@@ -11,6 +11,8 @@ export default function AccountSettingsPage() {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [showConfirm, setShowConfirm] = React.useState(false);
   const [password, setPassword] = React.useState("");
+  const [confirmText, setConfirmText] = React.useState("");
+  const [hasPassword, setHasPassword] = React.useState<boolean | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = React.useState<string>("");
   const [hasCustomAvatar, setHasCustomAvatar] = React.useState(false);
@@ -22,6 +24,19 @@ export default function AccountSettingsPage() {
       router.replace("/");
     }
   }, [isPending, router, session]);
+
+  // Check if account has password or is Google OAuth
+  React.useEffect(() => {
+    if (!session?.user) return;
+    fetch("/api/account/delete", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => {
+        setHasPassword(Boolean(data.hasPassword));
+      })
+      .catch(() => {
+        setHasPassword(false);
+      });
+  }, [session?.user]);
 
   // Sync avatar
   React.useEffect(() => {
@@ -67,9 +82,16 @@ export default function AccountSettingsPage() {
   }
 
   const handleDeleteAccount = async () => {
-    if (!password) {
-      setError("Password is required");
-      return;
+    if (hasPassword) {
+      if (!password) {
+        setError("Password is required");
+        return;
+      }
+    } else {
+      if (confirmText.trim().toUpperCase() !== "DELETE") {
+        setError("Please type DELETE to confirm");
+        return;
+      }
     }
 
     setIsDeleting(true);
@@ -79,16 +101,17 @@ export default function AccountSettingsPage() {
       const response = await fetch("/api/account/delete", {
         method: "POST",
         credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ password }),
-        }
-      );
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(
+          hasPassword ? { password } : { confirmation: confirmText.trim().toUpperCase() }
+        ),
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to delete account");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete account");
       }
 
       await authClient.signOut();
@@ -193,17 +216,36 @@ export default function AccountSettingsPage() {
             <p className="mb-3 text-xs font-medium text-[#991b1b]">
               ⚠️ Confirm deletion — this cannot be reversed.
             </p>
-            <label htmlFor="password" className="block text-xs font-medium text-[#77716b]">
-              Enter your password to confirm
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1.5 block w-full max-w-md rounded-lg border border-[#ded8d1] px-3 py-2 text-xs text-[#171717] focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-200 sm:text-sm"
-              placeholder="Enter your password"
-            />
+
+            {hasPassword ? (
+              <>
+                <label htmlFor="password" className="block text-xs font-medium text-[#77716b]">
+                  Enter your password to confirm
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="mt-1.5 block w-full max-w-md rounded-lg border border-[#ded8d1] px-3 py-2 text-xs text-[#171717] focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-200 sm:text-sm"
+                  placeholder="Enter your password"
+                />
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-[#5d5854] mb-2">
+                  You signed in with Google. Type <strong className="text-red-600 font-semibold">DELETE</strong> below to confirm deleting your account.
+                </p>
+                <input
+                  id="confirm-delete"
+                  type="text"
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  className="mt-1 block w-full max-w-md rounded-lg border border-[#ded8d1] px-3 py-2 text-xs text-[#171717] focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-200 sm:text-sm font-mono"
+                  placeholder="Type DELETE to confirm"
+                />
+              </>
+            )}
 
             {error && (
               <p className="mt-2 text-xs text-red-600">{error}</p>
@@ -220,7 +262,12 @@ export default function AccountSettingsPage() {
               </button>
               <button
                 type="button"
-                onClick={() => { setShowConfirm(false); setPassword(""); setError(null); }}
+                onClick={() => {
+                  setShowConfirm(false);
+                  setPassword("");
+                  setConfirmText("");
+                  setError(null);
+                }}
                 className="rounded-lg border border-[#ded8d1] px-4 py-2 text-xs font-medium text-[#5d5854] transition hover:bg-[#f5f3f1]"
               >
                 Cancel
