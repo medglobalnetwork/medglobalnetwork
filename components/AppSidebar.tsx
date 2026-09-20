@@ -67,21 +67,32 @@ export default function AppSidebar() {
         </button>
 
         <div className="mt-8 flex flex-col gap-2">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              aria-label={item.label}
-              onClick={() => router.push("/home")}
-              className={`flex h-8 w-8 items-center justify-center rounded-md transition ${
-                activeTab === item.id
-                  ? isDarkMode ? "bg-[#303030] text-white" : "bg-[#f0f0ef] text-[#171717]"
-                  : isDarkMode ? "text-[#999] hover:bg-[#292929]" : "text-[#81817f] hover:bg-[#f6f6f5]"
-              }`}
-            >
-              <NavIcon item={item.id} />
-            </button>
-          ))}
+          {navItems.map((item) => {
+            const targetRoute =
+              item.id === "study"
+                ? "/learn"
+                : item.id === "opportunities"
+                ? "/opportunities"
+                : item.id === "marketplace"
+                ? "/marketplace"
+                : "/home";
+
+            return (
+              <button
+                key={item.id}
+                type="button"
+                aria-label={item.label}
+                onClick={() => router.push(targetRoute)}
+                className={`flex h-8 w-8 items-center justify-center rounded-md transition ${
+                  activeTab === item.id
+                    ? isDarkMode ? "bg-[#303030] text-white" : "bg-[#f0f0ef] text-[#171717]"
+                    : isDarkMode ? "text-[#999] hover:bg-[#292929]" : "text-[#81817f] hover:bg-[#f6f6f5]"
+                }`}
+              >
+                <NavIcon item={item.id} />
+              </button>
+            );
+          })}
         </div>
 
         <div className="mt-auto flex flex-col gap-3">
@@ -134,12 +145,11 @@ export default function AppSidebar() {
             accentColor={isDarkMode ? "#f5f5f5" : "#1769c2"}
             lineColor={isDarkMode ? "#3f3f46" : "#d4d4d8"}
             onSelect={(value: string) => {
-              if (value === "home" || value === "study" || value === "opportunities" || value === "marketplace") {
-                router.push("/home");
-              }
-              if (value === "settings") {
-                router.push("/settings");
-              }
+              if (value === "home") router.push("/home");
+              else if (value === "study") router.push("/learn");
+              else if (value === "opportunities") router.push("/opportunities");
+              else if (value === "marketplace") router.push("/marketplace");
+              else if (value === "settings") router.push("/settings");
             }}
           />
         </div>

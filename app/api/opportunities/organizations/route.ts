@@ -1,0 +1,105 @@
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { database } from "@/lib/auth";
+import { sql } from "kysely";
+
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const query = searchParams.get("query")?.trim() || "";
+    const type = searchParams.get("type") || "";
+
+    let queryBuilder = sql`
+      SELECT 
+        o.*,
+        (SELECT COUNT(*) FROM jobs j WHERE j.organization_id = o.id AND j.status = 'published') as active_jobs_count
+      FROM organizations o
+      WHERE o.verification_status != 'suspended'
+    `;
+
+    if (query) {
+      queryBuilder = sql`${queryBuilder} AND (o.name ILIKE ${`%${query}%`} OR o.city ILIKE ${`%${query}%`})`;
+    }
+
+    if (type && type !== "All") {
+      queryBuilder = sql`${queryBuilder} AND o.organization_type = ${type}`;
+    }
+
+    queryBuilder = sql`${queryBuilder} ORDER BY o.verification_status = 'verified' DESC, o.name ASC LIMIT 50`;
+
+    const orgsResult: any = await queryBuilder.execute(database);
+
+    return NextResponse.json({
+      organizations: orgsResult.rows || [],
+    });
+  } catch (error: any) {
+    console.error("Failed to fetch organizations:", error);
+    return NextResponse.json({ error: error.message || "Failed to fetch organizations" }, { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await auth.api.getSession({ headers: req.headers });
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const currentUserId = session.user.id;
+    const body = await req.json();
+
+    const {
+      name,
+      organization_type = "Hospital",
+      logo_url,
+      cover_url,
+      description,
+      website,
+      email,
+      phone,
+      address,
+      city,
+      state,
+      country = "India",
+      specialties = [],
+    } = body;
+
+    if (!name?.trim()) {
+      return NextResponse.json({ error: "Organization name is required" }, { status: 400 });
+    }
+
+    const slug = `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now().toString(36)}`;
+
+    // Create organization
+    const orgResult: any = await sql`
+      INSERT INTO organizations (
+        name, slug, logo_url, cover_url, description, organization_type,
+        website, email, phone, address, city, state, country, specialties,
+        verification_status, created_by
+      ) VALUES (
+        ${name.trim()}, ${slug}, ${logo_url || null}, ${cover_url || null},
+        ${description || null}, ${organization_type}, ${website || null},
+        ${email || null}, ${phone || null}, ${address || null}, ${city || null},
+        ${state || null}, ${country}, ${specialties}, 'pending', ${currentUserId}
+      )
+      RETURNING id, slug
+    `.execute(database);
+
+    const newOrg = orgResult.rows[0];
+
+    // Add creator as owner in organization_members
+    await sql`
+      INSERT INTO organization_members (organization_id, user_id, role)
+      VALUES (${newOrg.id}, ${currentUserId}, 'owner')
+      ON CONFLICT (organization_id, user_id) DO NOTHING
+    `.execute(database);
+
+    return NextResponse.json({
+      success: true,
+      organizationId: newOrg.id,
+      slug: newOrg.slug,
+    }, { status: 201 });
+  } catch (error: any) {
+    console.error("Failed to create organization:", error);
+    return NextResponse.json({ error: error.message || "Failed to create organization" }, { status: 500 });
+  }
+}
