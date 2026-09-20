@@ -2,6 +2,7 @@ import dns from "node:dns";
 dns.setDefaultResultOrder("ipv4first");
 
 import { betterAuth } from "better-auth";
+import { dash } from "@better-auth/infra";
 import { Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
 
@@ -38,6 +39,7 @@ export const auth = betterAuth({
     "http://127.0.0.1:3000",
   ],
   database: pool,
+  plugins: [dash()],
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, url }) => {
