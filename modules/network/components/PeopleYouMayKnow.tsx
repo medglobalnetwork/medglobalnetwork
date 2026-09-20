@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import type { ProfessionalProfile } from "../types";
-import { SAMPLE_PROFESSIONALS, getProfessionColor } from "../lib/network-data";
+import { getProfessionColor } from "../lib/network-data";
 import { VerificationBadge } from "./VerificationBadge";
 import { ConnectionRequestModal } from "./ConnectionRequestModal";
 
@@ -31,19 +31,10 @@ export function PeopleYouMayKnow({ currentUserId, limit = 5 }: PeopleYouMayKnowP
           const data = await res.json();
           if (!cancelled) setPeople(data.data ?? []);
         } else {
-          // Fallback to sample data
-          if (!cancelled) {
-            setPeople(
-              SAMPLE_PROFESSIONALS.filter((p) => p.user_id !== currentUserId).slice(0, limit)
-            );
-          }
+          if (!cancelled) setPeople([]);
         }
       } catch {
-        if (!cancelled) {
-          setPeople(
-            SAMPLE_PROFESSIONALS.filter((p) => p.user_id !== currentUserId).slice(0, limit)
-          );
-        }
+        if (!cancelled) setPeople([]);
       } finally {
         if (!cancelled) setLoading(false);
       }

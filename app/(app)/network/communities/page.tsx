@@ -6,7 +6,6 @@ import { authClient } from "@/lib/auth-client";
 import { CommunityCard } from "@/modules/network/components/CommunityCard";
 import { EmptyState } from "@/modules/network/components/EmptyState";
 import { CommunityCardSkeleton } from "@/modules/network/components/SkeletonLoader";
-import { SAMPLE_COMMUNITIES } from "@/modules/network/lib/network-data";
 import type { Community } from "@/modules/network/types";
 
 export default function CommunitiesPage() {
@@ -30,8 +29,8 @@ export default function CommunitiesPage() {
 
     fetch(`/api/network/communities?${params}`, { credentials: "include" })
       .then((r) => r.json())
-      .then((d) => setCommunities(d.data ?? SAMPLE_COMMUNITIES))
-      .catch(() => setCommunities(SAMPLE_COMMUNITIES))
+      .then((d) => setCommunities(d.data ?? []))
+      .catch(() => setCommunities([]))
       .finally(() => setLoading(false));
   }, [session?.user, search, activeFilter]);
 

@@ -13,7 +13,6 @@ import { ProfessionalCardSkeleton, ListItemSkeleton } from "@/modules/network/co
 import { VerificationBadge } from "@/modules/network/components/VerificationBadge";
 import { ConnectionButton } from "@/modules/network/components/ConnectionButton";
 import { ConnectionRequestModal } from "@/modules/network/components/ConnectionRequestModal";
-import { SAMPLE_PROFESSIONALS } from "@/modules/network/lib/network-data";
 import { getProfessionColor, formatRelativeTime } from "@/modules/network/lib/network-data";
 import type { ProfessionalProfile, NetworkFilters as Filters, ConnectionStatus } from "@/modules/network/types";
 
@@ -55,23 +54,11 @@ function DiscoverTab({
         );
         setHasMore(data.hasMore ?? false);
       } else {
-        // Fallback to sample data
-        const filtered = SAMPLE_PROFESSIONALS.filter((pr) => {
-          if (f.profession && pr.profession !== f.profession) return false;
-          if (
-            f.city &&
-            !pr.city?.toLowerCase().includes(f.city.toLowerCase())
-          )
-            return false;
-          if (q && !pr.name.toLowerCase().includes(q.toLowerCase()) && !pr.profession?.toLowerCase().includes(q.toLowerCase()))
-            return false;
-          return true;
-        });
-        setProfiles(filtered);
+        setProfiles([]);
         setHasMore(false);
       }
     } catch {
-      setProfiles(SAMPLE_PROFESSIONALS);
+      setProfiles([]);
       setHasMore(false);
     } finally {
       setLoading(false);

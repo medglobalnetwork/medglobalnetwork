@@ -7,7 +7,6 @@ import { PostCard } from "@/modules/network/components/PostCard";
 import { CreatePost } from "@/modules/network/components/CreatePost";
 import { EmptyState } from "@/modules/network/components/EmptyState";
 import { PostCardSkeleton } from "@/modules/network/components/SkeletonLoader";
-import { SAMPLE_COMMUNITIES, SAMPLE_POSTS, SAMPLE_PROFESSIONALS, getProfessionColor } from "@/modules/network/lib/network-data";
 import type { Community, NetworkPost } from "@/modules/network/types";
 
 type CommunityTab = "posts" | "discussions" | "events" | "resources" | "members" | "about";
@@ -32,16 +31,8 @@ export default function CommunityDetailPage() {
     if (!session?.user || !params.slug) return;
     fetch(`/api/network/communities/${params.slug}`, { credentials: "include" })
       .then((r) => r.json())
-      .then((d) =>
-        setCommunity(
-          d.data ?? SAMPLE_COMMUNITIES.find((c) => c.slug === params.slug) ?? null
-        )
-      )
-      .catch(() =>
-        setCommunity(
-          SAMPLE_COMMUNITIES.find((c) => c.slug === params.slug) ?? null
-        )
-      )
+      .then((d) => setCommunity(d.data ?? null))
+      .catch(() => setCommunity(null))
       .finally(() => setLoading(false));
   }, [session?.user, params.slug]);
 
@@ -50,8 +41,8 @@ export default function CommunityDetailPage() {
     if (!session?.user || !community) return;
     fetch(`/api/network/posts?communityId=${community.id}`, { credentials: "include" })
       .then((r) => r.json())
-      .then((d) => setPosts(d.data?.length ? d.data : SAMPLE_POSTS.slice(0, 2)))
-      .catch(() => setPosts(SAMPLE_POSTS.slice(0, 2)))
+      .then((d) => setPosts(d.data ?? []))
+      .catch(() => setPosts([]))
       .finally(() => setPostsLoading(false));
   }, [session?.user, community]);
 
@@ -290,47 +281,11 @@ export default function CommunityDetailPage() {
                   <h2 className="mb-4 text-sm font-semibold text-[#171717]">
                     Community Members ({community.member_count.toLocaleString()})
                   </h2>
-                  <div className="space-y-3">
-                    {SAMPLE_PROFESSIONALS.slice(0, 4).map((m) => {
-                      const color = getProfessionColor(m.profession);
-                      const initials = (m.name || "U")
-                        .split(" ")
-                        .map((n) => n[0])
-                        .slice(0, 2)
-                        .join("")
-                        .toUpperCase();
-                      return (
-                        <div
-                          key={m.user_id}
-                          className="flex items-center justify-between gap-3 border-b border-[#f5f4f3] pb-3 last:border-0 last:pb-0"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div
-                              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold text-[#3f3f3c]"
-                              style={{ background: color }}
-                            >
-                              {initials}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold text-[#171717] truncate">
-                                {m.name}
-                              </p>
-                              <p className="text-xs text-[#77716b] truncate">
-                                {m.profession} · {m.organization}
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => router.push(`/profile/${m.user_id}`)}
-                            className="rounded-lg border border-[#ded8d1] px-2.5 py-1 text-xs font-medium text-[#5d5854] hover:bg-[#f8f7f6]"
-                          >
-                            View
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <EmptyState
+                    icon="👥"
+                    title="No members listed yet"
+                    description="Members who join this healthcare community will appear here."
+                  />
                 </div>
               )}
 

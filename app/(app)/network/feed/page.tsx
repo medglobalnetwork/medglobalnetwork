@@ -8,7 +8,6 @@ import { CreatePost } from "@/modules/network/components/CreatePost";
 import { NetworkSidebar } from "@/modules/network/components/NetworkSidebar";
 import { EmptyState } from "@/modules/network/components/EmptyState";
 import { PostCardSkeleton } from "@/modules/network/components/SkeletonLoader";
-import { SAMPLE_POSTS } from "@/modules/network/lib/network-data";
 import type { NetworkPost } from "@/modules/network/types";
 
 export default function FeedPage() {
@@ -32,12 +31,11 @@ export default function FeedPage() {
         setPosts((prev) => p === 1 ? (data.data ?? []) : [...prev, ...(data.data ?? [])]);
         setHasMore(data.hasMore ?? false);
       } else {
-        // Fallback to sample posts
-        if (p === 1) setPosts(SAMPLE_POSTS);
+        if (p === 1) setPosts([]);
         setHasMore(false);
       }
     } catch {
-      if (p === 1) setPosts(SAMPLE_POSTS);
+      if (p === 1) setPosts([]);
       setHasMore(false);
     } finally {
       setLoading(false);

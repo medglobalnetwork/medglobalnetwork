@@ -7,7 +7,7 @@ import { VerificationBadge } from "@/modules/network/components/VerificationBadg
 import { ConnectionButton } from "@/modules/network/components/ConnectionButton";
 import { ConnectionRequestModal } from "@/modules/network/components/ConnectionRequestModal";
 import { EmptyState } from "@/modules/network/components/EmptyState";
-import { SAMPLE_PROFESSIONALS, getProfessionColor } from "@/modules/network/lib/network-data";
+import { getProfessionColor } from "@/modules/network/lib/network-data";
 import type { ProfessionalProfile, ConnectionStatus } from "@/modules/network/types";
 
 const SECTION_ICONS: Record<string, string> = {
@@ -86,25 +86,11 @@ export default function ProfilePage() {
           setConnectionStatus(p.connection_status ?? "none");
           setIsFollowing(p.follow_status === "following");
         } else {
-          const sample = SAMPLE_PROFESSIONALS.find((s) => s.user_id === params.userId) ?? SAMPLE_PROFESSIONALS[0];
-          setProfile({
-            ...sample,
-            connection_count: sample.connection_count ?? 0,
-            follower_count: 0,
-            following_count: 0,
-            is_own_profile: false,
-          });
+          setProfile(null);
         }
       })
       .catch(() => {
-        const sample = SAMPLE_PROFESSIONALS[0];
-        setProfile({
-          ...sample,
-          connection_count: sample.connection_count ?? 0,
-          follower_count: 0,
-          following_count: 0,
-          is_own_profile: false,
-        });
+        setProfile(null);
       })
       .finally(() => setLoading(false));
   }, [session?.user, params.userId]);
