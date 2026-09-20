@@ -32,6 +32,8 @@ export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
   trustedOrigins: [
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+    "https://www.mgn.life",
+    "https://mgn.life",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
   ],
