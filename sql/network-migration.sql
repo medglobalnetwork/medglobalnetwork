@@ -91,11 +91,12 @@ CREATE TABLE IF NOT EXISTS connections (
   user_b_id       TEXT        NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
   connected_at    TIMESTAMPTZ DEFAULT now(),
   
-  CONSTRAINT no_self_connection CHECK (user_a_id <> user_b_id),
-  CONSTRAINT unique_connection UNIQUE (
-    LEAST(user_a_id, user_b_id),
-    GREATEST(user_a_id, user_b_id)
-  )
+  CONSTRAINT no_self_connection CHECK (user_a_id <> user_b_id)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_connection ON connections (
+  LEAST(user_a_id, user_b_id),
+  GREATEST(user_a_id, user_b_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_connections_user_a ON connections(user_a_id);
