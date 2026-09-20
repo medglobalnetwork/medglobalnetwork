@@ -2,7 +2,6 @@
 import { auth } from "@/lib/auth";
 import { networkDb, generateId } from "@/modules/network/lib/network-db";
 import { headers } from "next/headers";
-import type { NetworkDatabase } from "@/modules/network/lib/network-db";
 
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -21,38 +20,22 @@ export async function GET(request: Request) {
   const offset = (page - 1) * pageSize;
 
   try {
-    let q = networkDb
+    let base = networkDb
       .selectFrom("professional_profiles as pp")
       .innerJoin("user as u", "u.id", "pp.user_id")
-      .select([
-        "pp.id",
-        "pp.user_id",
-        "u.name",
-        "u.image",
-        "pp.profession",
-        "pp.specialization",
-        "pp.designation",
-        "pp.primary_degree",
-        "pp.additional_degrees",
-        "pp.organization",
-        "pp.city",
-        "pp.state",
-        "pp.experience_years",
-        "pp.bio",
-        "pp.skills",
-        "pp.identity_verified",
-        "pp.education_verified",
-        "pp.registration_verified",
-        "pp.experience_verified",
-      ])
       .where("pp.user_id", "<>", session.user.id)
-      .where("pp.profile_visibility", "<>", "private");
+      .where((eb) =>
+        eb.or([
+          eb("pp.profile_visibility", "is", null),
+          eb("pp.profile_visibility", "<>", "private"),
+        ])
+      );
 
-    if (profession) q = q.where("pp.profession", "=", profession);
-    if (specialization) q = q.where("pp.specialization", "=", specialization);
-    if (city) q = q.where("pp.city", "ilike", `%${city}%`);
+    if (profession) base = base.where("pp.profession", "=", profession);
+    if (specialization) base = base.where("pp.specialization", "=", specialization);
+    if (city) base = base.where("pp.city", "ilike", `%${city}%`);
     if (verifiedOnly) {
-      q = q.where((eb) =>
+      base = base.where((eb) =>
         eb.or([
           eb("pp.identity_verified", "=", true),
           eb("pp.education_verified", "=", true),
@@ -61,7 +44,7 @@ export async function GET(request: Request) {
       );
     }
     if (query) {
-      q = q.where((eb) =>
+      base = base.where((eb) =>
         eb.or([
           eb("u.name", "ilike", `%${query}%`),
           eb("pp.profession", "ilike", `%${query}%`),
@@ -72,8 +55,34 @@ export async function GET(request: Request) {
     }
 
     const [profiles, countResult] = await Promise.all([
-      q.limit(pageSize).offset(offset).execute(),
-      q.select((eb) => eb.fn.countAll<string>().as("total")).executeTakeFirst(),
+      base
+        .select([
+          "pp.id",
+          "pp.user_id",
+          "u.name",
+          "u.image",
+          "pp.profession",
+          "pp.specialization",
+          "pp.designation",
+          "pp.primary_degree",
+          "pp.additional_degrees",
+          "pp.organization",
+          "pp.city",
+          "pp.state",
+          "pp.experience_years",
+          "pp.bio",
+          "pp.skills",
+          "pp.identity_verified",
+          "pp.education_verified",
+          "pp.registration_verified",
+          "pp.experience_verified",
+        ])
+        .limit(pageSize)
+        .offset(offset)
+        .execute(),
+      base
+        .select((eb) => eb.fn.countAll<string>().as("total"))
+        .executeTakeFirst(),
     ]);
 
     const total = parseInt(countResult?.total ?? "0", 10);
