@@ -1,3 +1,6 @@
+import dns from "node:dns";
+dns.setDefaultResultOrder("ipv4first");
+
 import { betterAuth } from "better-auth";
 import { Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
@@ -11,7 +14,10 @@ const globalForAuth = globalThis as typeof globalThis & {
 };
 
 const pool =
-  globalForAuth.mgnAuthPool ?? new Pool({ connectionString: databaseUrl });
+  globalForAuth.mgnAuthPool ??
+  new Pool({
+    connectionString: databaseUrl,
+  });
 
 export const database =
   globalForAuth.mgnAuthDatabase ??
@@ -29,10 +35,7 @@ export const auth = betterAuth({
     "http://localhost:3000",
     "http://127.0.0.1:3000",
   ],
-  database: {
-    db: database,
-    type: "postgres",
-  },
+  database: pool,
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, url }) => {
