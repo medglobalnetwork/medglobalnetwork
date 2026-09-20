@@ -1,5 +1,5 @@
 "use client";
-// modules/network/components/NetworkFilters.tsx
+
 import * as React from "react";
 import { PROFESSIONS } from "../types";
 import type { NetworkFilters } from "../types";
@@ -12,10 +12,10 @@ interface NetworkFiltersProps {
 
 const EXPERIENCE_OPTIONS = [
   { label: "Any experience", min: 0, max: 99 },
-  { label: "0–2 years", min: 0, max: 2 },
-  { label: "3–5 years", min: 3, max: 5 },
-  { label: "6–10 years", min: 6, max: 10 },
-  { label: "10+ years", min: 10, max: 99 },
+  { label: "0–2 yrs", min: 0, max: 2 },
+  { label: "3–5 yrs", min: 3, max: 5 },
+  { label: "6–10 yrs", min: 6, max: 10 },
+  { label: "10+ yrs", min: 10, max: 99 },
 ];
 
 const SPECIALIZATIONS: Record<string, string[]> = {
@@ -50,6 +50,7 @@ export function NetworkFilters({ filters, onChange, onReset }: NetworkFiltersPro
     !!filters.profession ||
     !!filters.specialization ||
     !!filters.city ||
+    !!filters.organization ||
     filters.experience_min !== undefined ||
     filters.verified_only;
 
@@ -151,10 +152,26 @@ export function NetworkFilters({ filters, onChange, onReset }: NetworkFiltersPro
         </div>
       )}
 
+      {/* Organization / Hospital */}
+      <div>
+        <label className="mb-1.5 block text-xs font-semibold text-[#77716b] uppercase tracking-wide">
+          Hospital / Organization
+        </label>
+        <input
+          type="text"
+          value={filters.organization ?? ""}
+          onChange={(e) =>
+            onChange({ ...filters, organization: e.target.value || undefined })
+          }
+          placeholder="e.g. AIIMS, Fortis"
+          className="block w-full rounded-xl border border-[#ded8d1] bg-white px-3 py-2 text-xs text-[#171717] placeholder:text-[#8a8784] focus:border-[#1769c2] focus:outline-none"
+        />
+      </div>
+
       {/* City / Location */}
       <div>
         <label className="mb-1.5 block text-xs font-semibold text-[#77716b] uppercase tracking-wide">
-          City
+          Location / City
         </label>
         <input
           type="text"

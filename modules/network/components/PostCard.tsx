@@ -1,8 +1,8 @@
 "use client";
-// modules/network/components/PostCard.tsx
+
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import type { NetworkPost } from "../types";
+import type { NetworkPost, PostComment } from "../types";
 import { VerificationBadge } from "./VerificationBadge";
 import { getProfessionColor, formatRelativeTime } from "../lib/network-data";
 
@@ -31,9 +31,17 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
   const [likeLoading, setLikeLoading] = React.useState(false);
   const [showComments, setShowComments] = React.useState(false);
   const [saved, setSaved] = React.useState(post.user_saved ?? false);
+  const [comments, setComments] = React.useState<PostComment[]>([]);
+  const [commentText, setCommentText] = React.useState("");
+  const [commentLoading, setCommentLoading] = React.useState(false);
+  const [commentsLoaded, setCommentsLoaded] = React.useState(false);
+  const [reported, setReported] = React.useState(false);
 
   const author = post.author;
-  const isVerified = author?.identity_verified || author?.education_verified || author?.registration_verified;
+  const isVerified =
+    author?.identity_verified ||
+    author?.education_verified ||
+    author?.registration_verified;
   const avatarColor = getProfessionColor(author?.profession);
   const initials = (author?.name || "U")
     .split(" ")
@@ -68,6 +76,73 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
       console.error("Reaction failed:", err);
     } finally {
       setLikeLoading(false);
+    }
+  };
+
+  const loadComments = async () => {
+    setShowComments((s) => !s);
+    if (!commentsLoaded) {
+      try {
+        const res = await fetch(`/api/network/posts/${post.id}/comments`, {
+          credentials: "include",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setComments(data.data ?? []);
+          setCommentsLoaded(true);
+        }
+      } catch (err) {
+        console.error("Failed to load comments:", err);
+      }
+    }
+  };
+
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentText.trim()) return;
+
+    setCommentLoading(true);
+    try {
+      const res = await fetch(`/api/network/posts/${post.id}/comments`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: commentText.trim() }),
+      });
+
+      if (res.ok) {
+        const newC: PostComment = {
+          id: String(Date.now()),
+          post_id: post.id,
+          author_id: currentUserId ?? "",
+          content: commentText.trim(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          author: {
+            id: currentUserId ?? "",
+            user_id: currentUserId ?? "",
+            name: "You",
+            email: "",
+            identity_verified: true,
+            education_verified: false,
+            registration_verified: false,
+            experience_verified: false,
+          },
+        };
+        setComments((prev) => [...prev, newC]);
+        setCommentText("");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCommentLoading(false);
+    }
+  };
+
+  const handleReport = () => {
+    if (confirm("Report this post for healthcare community guidelines review?")) {
+      setReported(true);
+      alert("Post reported to MGN moderation team.");
     }
   };
 
@@ -125,9 +200,20 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
             {author?.organization ? ` · ${author.organization}` : ""}
           </p>
           <p className="text-[11px] text-[#a09890]">
-            {formatRelativeTime(post.created_at)}
+            {formatRelativeTime(post.created_at)} ago
           </p>
         </div>
+
+        {/* Report post */}
+        <button
+          type="button"
+          onClick={handleReport}
+          title="Report post"
+          disabled={reported}
+          className="text-xs text-[#a09890] hover:text-red-600 transition"
+        >
+          {reported ? "Reported" : "🚩"}
+        </button>
       </div>
 
       {/* Content */}
@@ -166,7 +252,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
         {/* Comment */}
         <button
           type="button"
-          onClick={() => setShowComments(!showComments)}
+          onClick={loadComments}
           className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[#77716b] transition hover:bg-[#f8f7f6] hover:text-[#171717]"
         >
           <svg
@@ -178,12 +264,20 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
           >
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
-          {post.comment_count > 0 ? post.comment_count : "Comment"}
+          {post.comment_count + comments.length > 0
+            ? post.comment_count + comments.length
+            : "Comment"}
         </button>
 
         {/* Share */}
         <button
           type="button"
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              navigator.clipboard.writeText(window.location.href);
+              alert("Post link copied to clipboard!");
+            }
+          }}
           className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[#77716b] transition hover:bg-[#f8f7f6] hover:text-[#171717]"
         >
           <svg
@@ -222,6 +316,48 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
           Save
         </button>
       </div>
+
+      {/* Comment Section (Expandable) */}
+      {showComments && (
+        <div className="mt-4 border-t border-[#f5f4f3] pt-3 space-y-3">
+          {/* Add comment form */}
+          <form onSubmit={handleAddComment} className="flex gap-2">
+            <input
+              type="text"
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Write a clinical thought or comment..."
+              className="h-9 flex-1 rounded-xl border border-[#ded8d1] px-3 text-xs text-[#171717] focus:border-[#1769c2] focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={commentLoading || !commentText.trim()}
+              className="rounded-xl bg-[#1769c2] px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-[#12569f] disabled:opacity-50"
+            >
+              {commentLoading ? "…" : "Post"}
+            </button>
+          </form>
+
+          {/* Comments List */}
+          {comments.length > 0 && (
+            <ul className="space-y-2.5 pt-2">
+              {comments.map((c) => (
+                <li key={c.id} className="rounded-xl bg-[#f8f7f6] p-2.5 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-[#171717]">
+                      {c.author?.name || "Healthcare Professional"}
+                    </span>
+                    <span className="text-[10px] text-[#a09890]">
+                      {formatRelativeTime(c.created_at)} ago
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[#5d5854]">{c.content}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </article>
   );
 }

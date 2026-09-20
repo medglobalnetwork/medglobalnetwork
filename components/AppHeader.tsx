@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import UserMenu from "@/components/UserMenu";
 import { useScrollDirection } from "@/lib/useScrollDirection";
+import { formatRelativeTime } from "@/modules/network/lib/network-data";
 
 /* ── Icons ─────────────────────────────────────── */
 function BellIcon() {
@@ -25,14 +26,26 @@ function MessageIcon() {
 }
 
 /* ── Notification popup ─────────────────────────── */
-const sampleNotifs = [
-  { id: 1, title: "New update available", time: "2m ago", read: false },
-  { id: 2, title: "Your report is ready", time: "1h ago", read: false },
-  { id: 3, title: "Welcome to MGN!", time: "2d ago", read: true },
-];
-
-function NotifPopup({ onClose }: { onClose: () => void }) {
+function NotifPopup({
+  onClose,
+  onViewAll,
+}: {
+  onClose: () => void;
+  onViewAll: () => void;
+}) {
   const ref = React.useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const [notifs, setNotifs] = React.useState<Array<{
+    id: string;
+    type: string;
+    message?: string;
+    is_read: boolean;
+    created_at: string;
+    actor_name?: string;
+    actor_id?: string;
+  }>>([]);
+  const [loading, setLoading] = React.useState(true);
+
   React.useEffect(() => {
     function handler(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose();
@@ -41,25 +54,89 @@ function NotifPopup({ onClose }: { onClose: () => void }) {
     return () => document.removeEventListener("mousedown", handler);
   }, [onClose]);
 
+  React.useEffect(() => {
+    fetch("/api/network/notifications", { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => setNotifs(d.data ?? []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleMarkAllRead = async () => {
+    await fetch("/api/network/notifications", {
+      method: "PATCH",
+      credentials: "include",
+    });
+    setNotifs((prev) => prev.map((n) => ({ ...n, is_read: true })));
+  };
+
+  const handleNotifClick = (n: { type: string; actor_id?: string }) => {
+    onClose();
+    if (n.type.includes("connection")) {
+      router.push("/network/connections");
+    } else if (n.type.includes("post")) {
+      router.push("/network/feed");
+    } else if (n.actor_id) {
+      router.push(`/profile/${n.actor_id}`);
+    } else {
+      router.push("/network");
+    }
+  };
+
   return (
-    <div ref={ref} className="absolute right-0 top-11 lg:top-14 z-50 w-[320px] lg:w-[350px] overflow-hidden rounded-2xl border border-[#ebebeb] bg-white shadow-[0_8px_40px_rgba(0,0,0,0.12)]">
+    <div ref={ref} className="absolute right-0 top-11 lg:top-14 z-50 w-[320px] lg:w-[360px] overflow-hidden rounded-2xl border border-[#ebebeb] bg-white shadow-[0_8px_40px_rgba(0,0,0,0.12)]">
       <div className="flex items-center justify-between px-4 py-3.5 border-b border-[#f0efee]">
         <span className="text-sm lg:text-base font-semibold text-[#171717]">Notifications</span>
-        <button type="button" onClick={onClose} className="text-[11px] lg:text-xs font-medium text-[#1769c2] hover:underline">Mark all read</button>
+        {notifs.some((n) => !n.is_read) && (
+          <button
+            type="button"
+            onClick={handleMarkAllRead}
+            className="text-[11px] lg:text-xs font-medium text-[#1769c2] hover:underline"
+          >
+            Mark all read
+          </button>
+        )}
       </div>
+
       <ul className="max-h-[300px] overflow-y-auto divide-y divide-[#f5f4f3]">
-        {sampleNotifs.map((n) => (
-          <li key={n.id} className={`flex items-start gap-3 px-4 py-3 ${n.read ? "" : "bg-[#f7f9fd]"}`}>
-            <span className={`mt-1.5 h-2 w-2 lg:h-2.5 lg:w-2.5 shrink-0 rounded-full ${n.read ? "bg-transparent" : "bg-[#1769c2]"}`} />
-            <div className="min-w-0">
-              <p className="text-[13px] lg:text-sm font-medium text-[#171717] leading-snug">{n.title}</p>
-              <p className="mt-0.5 text-[11px] lg:text-xs text-[#8a8784]">{n.time}</p>
-            </div>
+        {loading ? (
+          <li className="p-4 text-center text-xs text-[#8a8784]">Loading notifications...</li>
+        ) : notifs.length === 0 ? (
+          <li className="p-6 text-center text-xs text-[#8a8784]">
+            <p className="text-lg mb-1">🔔</p>
+            No notifications yet
           </li>
-        ))}
+        ) : (
+          notifs.map((n) => (
+            <li
+              key={n.id}
+              onClick={() => handleNotifClick(n)}
+              className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition hover:bg-[#f8f7f6] ${
+                n.is_read ? "" : "bg-[#f7f9fd]"
+              }`}
+            >
+              <span className={`mt-1.5 h-2 w-2 lg:h-2.5 lg:w-2.5 shrink-0 rounded-full ${n.is_read ? "bg-transparent" : "bg-[#1769c2]"}`} />
+              <div className="min-w-0 flex-1">
+                <p className="text-[13px] font-medium text-[#171717] leading-snug">
+                  {n.message || "New activity in your healthcare network"}
+                </p>
+                <p className="mt-0.5 text-[11px] text-[#8a8784]">
+                  {formatRelativeTime(n.created_at)} ago
+                </p>
+              </div>
+            </li>
+          ))
+        )}
       </ul>
+
       <div className="px-4 py-3 border-t border-[#f0efee]">
-        <button type="button" className="w-full text-center text-[12px] lg:text-xs font-medium text-[#1769c2] hover:underline">View all notifications</button>
+        <button
+          type="button"
+          onClick={onViewAll}
+          className="w-full text-center text-[12px] lg:text-xs font-medium text-[#1769c2] hover:underline"
+        >
+          View all in Network →
+        </button>
       </div>
     </div>
   );
@@ -67,6 +144,7 @@ function NotifPopup({ onClose }: { onClose: () => void }) {
 
 /* ── Search bar ─────────────────────────────────── */
 function SearchBar() {
+  const router = useRouter();
   const [query, setQuery] = React.useState("");
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -83,8 +161,15 @@ function SearchBar() {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (query.trim()) {
+      router.push(`/network?q=${encodeURIComponent(query.trim())}`);
+    }
+  };
+
   return (
-    <div className="relative flex w-full">
+    <form onSubmit={handleSearchSubmit} className="relative flex w-full">
       {/* Search icon */}
       <svg
         className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 lg:h-5 lg:w-5 -translate-y-1/2 text-[#8a8784]"
@@ -100,7 +185,7 @@ function SearchBar() {
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search anything..."
+        placeholder="Search professionals, specialties, organizations..."
         aria-label="Global search"
         className="h-9 lg:h-11 w-full rounded-xl lg:rounded-2xl border border-[#e8e6e3] bg-[#f8f7f6] pl-9 lg:pl-11 pr-14 text-sm lg:text-[15px] text-[#171717] placeholder:text-[#8a8784] transition focus:border-[#1769c2] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1769c2]/20"
       />
@@ -125,15 +210,25 @@ function SearchBar() {
           </svg>
         </button>
       )}
-    </div>
+    </form>
   );
 }
 
 /* ── Main Header ────────────────────────────────── */
 export default function AppHeader() {
   const router = useRouter();
+  const { data: session } = authClient.useSession();
   const [notifOpen, setNotifOpen] = React.useState(false);
+  const [unreadCount, setUnreadCount] = React.useState(0);
   const hidden = useScrollDirection();
+
+  React.useEffect(() => {
+    if (!session?.user) return;
+    fetch("/api/network/notifications", { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => setUnreadCount(d.unreadCount ?? 0))
+      .catch(() => {});
+  }, [session?.user]);
 
   const iconBtn = "relative flex h-9 w-9 lg:h-11 lg:w-11 items-center justify-center rounded-full text-[#6b6a68] transition hover:bg-[#f0efee] hover:text-[#171717] focus:outline-none";
 
@@ -168,13 +263,26 @@ export default function AppHeader() {
             type="button"
             aria-label="Notifications"
             aria-expanded={notifOpen}
-            onClick={() => setNotifOpen((o) => !o)}
+            onClick={() => {
+              setNotifOpen((o) => !o);
+              if (!notifOpen) setUnreadCount(0);
+            }}
             className={iconBtn}
           >
             <BellIcon />
-            <span className="absolute right-1.5 lg:right-2 top-1.5 lg:top-2 h-2 w-2 lg:h-2.5 lg:w-2.5 rounded-full bg-[#1769c2] ring-2 ring-white" aria-hidden="true" />
+            {unreadCount > 0 && (
+              <span className="absolute right-1.5 lg:right-2 top-1.5 lg:top-2 flex h-2 w-2 lg:h-2.5 lg:w-2.5 rounded-full bg-[#1769c2] ring-2 ring-white" aria-hidden="true" />
+            )}
           </button>
-          {notifOpen && <NotifPopup onClose={() => setNotifOpen(false)} />}
+          {notifOpen && (
+            <NotifPopup
+              onClose={() => setNotifOpen(false)}
+              onViewAll={() => {
+                setNotifOpen(false);
+                router.push("/network/connections");
+              }}
+            />
+          )}
         </div>
 
         {/* Message */}
@@ -193,4 +301,3 @@ export default function AppHeader() {
     </header>
   );
 }
-

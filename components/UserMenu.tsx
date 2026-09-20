@@ -3,52 +3,6 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-
-const menuItems = [
-  {
-    label: "My orders",
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="1" y="3" width="15" height="13" rx="1" />
-        <path d="M16 8h4l3 4v4h-7V8z" />
-        <circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" />
-      </svg>
-    ),
-  },
-  {
-    label: "Reviews",
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-      </svg>
-    ),
-  },
-  {
-    label: "Delivery addresses",
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
-      </svg>
-    ),
-  },
-  {
-    label: "Recently viewed",
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" /><circle cx="12" cy="12" r="3" />
-      </svg>
-    ),
-  },
-  {
-    label: "Favorite items",
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-      </svg>
-    ),
-  },
-];
-
 import { getUserAvatarUrl } from "@/lib/avatar";
 
 export default function UserMenu() {
@@ -89,6 +43,11 @@ export default function UserMenu() {
     router.replace("/");
   };
 
+  const navTo = (path: string) => {
+    setOpen(false);
+    router.push(path);
+  };
+
   return (
     <div ref={ref} className="relative">
       {/* Collapsed — profile avatar fetched from email or custom */}
@@ -114,7 +73,12 @@ export default function UserMenu() {
       {open && (
         <div className="absolute right-0 top-11 lg:top-14 z-50 w-[280px] lg:w-[300px] overflow-hidden rounded-2xl border border-[#ebebeb] bg-white shadow-[0_8px_40px_rgba(0,0,0,0.12)]">
           {/* User info */}
-          <div className="flex items-center gap-3 px-5 py-4">
+          <div
+            onClick={() => session?.user?.id && navTo(`/profile/${session.user.id}`)}
+            role="button"
+            tabIndex={0}
+            className="flex cursor-pointer items-center gap-3 px-5 py-4 transition hover:bg-[#f8f7f6]"
+          >
             <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#ded8d1] bg-[#eef5fc] text-base font-bold text-[#1769c2]">
               {avatarUrl ? (
                 <img
@@ -130,8 +94,11 @@ export default function UserMenu() {
               <p className="truncate text-sm font-semibold text-[#171717]">
                 {session?.user.name || "User"}
               </p>
-              <p className="truncate text-[13px] text-[#8a8784]">
+              <p className="truncate text-[12px] text-[#8a8784]">
                 {session?.user.email}
+              </p>
+              <p className="mt-0.5 text-[11px] font-medium text-[#1769c2]">
+                View Profile →
               </p>
             </div>
           </div>
@@ -140,27 +107,57 @@ export default function UserMenu() {
 
           {/* Menu items */}
           <ul className="px-2 py-2">
-            {menuItems.map((item) => (
-              <li key={item.label}>
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717]"
-                >
-                  <span className="text-[#8a8784]">{item.icon}</span>
-                  {item.label}
-                </button>
-              </li>
-            ))}
+            <li>
+              <button
+                type="button"
+                onClick={() => session?.user?.id && navTo(`/profile/${session.user.id}`)}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717]"
+              >
+                <span className="text-[#8a8784]">👤</span>
+                My Profile
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => navTo("/network/connections")}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717]"
+              >
+                <span className="text-[#8a8784]">🤝</span>
+                My Network
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => navTo("/network/feed")}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717]"
+              >
+                <span className="text-[#8a8784]">📰</span>
+                Professional Feed
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => navTo("/network/communities")}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717]"
+              >
+                <span className="text-[#8a8784]">👥</span>
+                Communities
+              </button>
+            </li>
           </ul>
+
+          <div className="mx-4 h-px bg-[#f0efee]" />
 
           {/* Admin Console shortcut for admin */}
           {session?.user.email?.toLowerCase() === "patreshubham141@gmail.com" && (
             <>
-              <div className="px-2 py-1">
+              <div className="px-2 py-1.5">
                 <button
                   type="button"
-                  onClick={() => { setOpen(false); router.push("/admin"); }}
+                  onClick={() => navTo("/admin")}
                   className="flex w-full items-center gap-3 rounded-xl bg-[#eef5fc] px-3 py-2 text-[13px] font-semibold text-[#1769c2] transition hover:bg-[#dbeafe]"
                 >
                   <span>🛡️</span>
@@ -172,11 +169,11 @@ export default function UserMenu() {
           )}
 
           {/* Settings */}
-          <div className="px-2 py-2">
+          <div className="px-2 py-1.5">
             <button
               type="button"
-              onClick={() => { setOpen(false); router.push("/settings"); }}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717]"
+              onClick={() => navTo("/settings")}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717]"
             >
               <span className="text-[#8a8784]">
                 <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
@@ -191,11 +188,11 @@ export default function UserMenu() {
           <div className="mx-4 h-px bg-[#f0efee]" />
 
           {/* Log out */}
-          <div className="px-2 py-2">
+          <div className="px-2 py-1.5">
             <button
               type="button"
               onClick={handleSignOut}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold text-red-500 transition hover:bg-red-50"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-semibold text-red-500 transition hover:bg-red-50"
             >
               <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
