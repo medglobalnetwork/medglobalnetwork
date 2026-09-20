@@ -1,12 +1,40 @@
 "use client";
-// modules/network/components/NetworkSidebar.tsx
+
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import {
+  Activity,
+  Bone,
+  FlaskConical,
+  GraduationCap,
+  HeartPulse,
+  Stethoscope,
+  Users,
+} from "lucide-react";
 import { PeopleYouMayKnow } from "./PeopleYouMayKnow";
 import type { Community } from "../types";
 
 interface NetworkSidebarProps {
   currentUserId?: string;
+}
+
+function getCommunityIcon(specialty?: string) {
+  switch (specialty) {
+    case "Physiotherapy":
+      return <Bone className="h-4 w-4 text-[#1769c2]" />;
+    case "Cardiology":
+      return <HeartPulse className="h-4 w-4 text-[#e11d48]" />;
+    case "Medical Students":
+      return <GraduationCap className="h-4 w-4 text-[#047857]" />;
+    case "Clinical Research":
+      return <FlaskConical className="h-4 w-4 text-[#8b5cf6]" />;
+    case "Nursing":
+      return <Stethoscope className="h-4 w-4 text-[#0284c7]" />;
+    case "Sports Medicine":
+      return <Activity className="h-4 w-4 text-[#d97706]" />;
+    default:
+      return <Users className="h-4 w-4 text-[#1769c2]" />;
+  }
 }
 
 export function NetworkSidebar({ currentUserId }: NetworkSidebarProps) {
@@ -29,7 +57,9 @@ export function NetworkSidebar({ currentUserId }: NetworkSidebarProps) {
       {communities.length > 0 && (
         <div className="rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-[#171717]">Communities</h3>
+            <h3 className="text-sm font-semibold text-[#171717] flex items-center gap-1.5">
+              <Users className="h-4 w-4 text-[#1769c2]" /> Communities
+            </h3>
             <button
               type="button"
               onClick={() => router.push("/network/communities")}
@@ -42,16 +72,8 @@ export function NetworkSidebar({ currentUserId }: NetworkSidebarProps) {
           <ul className="space-y-2.5">
             {communities.map((c) => (
               <li key={c.slug} className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f0efee] text-sm">
-                  {c.specialty === "Physiotherapy" && "🦴"}
-                  {c.specialty === "Cardiology" && "❤️"}
-                  {c.specialty === "Medical Students" && "🎓"}
-                  {c.specialty === "Clinical Research" && "🔬"}
-                  {c.specialty === "Nursing" && "🩺"}
-                  {c.specialty === "Sports Medicine" && "🏃"}
-                  {c.specialty === "Radiology" && "🔭"}
-                  {c.specialty === "Pediatrics" && "👶"}
-                  {!c.specialty && "👥"}
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f0efee]">
+                  {getCommunityIcon(c.specialty)}
                 </div>
                 <div className="min-w-0 flex-1">
                   <button

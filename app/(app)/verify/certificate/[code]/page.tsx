@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
+import { ShieldCheck, XCircle } from "lucide-react";
 import { CertificateView } from "@/modules/learn/components/CertificateView";
 import { Certificate } from "@/modules/learn/types";
 
@@ -40,8 +41,10 @@ export default function CertificateVerificationPage() {
       <div className="mx-auto max-w-5xl space-y-6">
         {/* Verification Banner */}
         <div className="flex items-center justify-between border-b border-[#ded8d1] pb-4 print:hidden">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🛡️</span>
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eef5fc] text-[#1769c2]">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
             <div>
               <h1 className="text-sm font-bold text-[#171717]">
                 MGN Official Credential Verification System
@@ -66,7 +69,9 @@ export default function CertificateVerificationPage() {
           <div className="h-96 rounded-3xl bg-white/70 animate-pulse border border-[#ded8d1]" />
         ) : errorMsg || !certificate ? (
           <div className="rounded-3xl border border-red-200 bg-white p-10 text-center shadow-xs">
-            <span className="text-4xl">❌</span>
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-500">
+              <XCircle className="h-7 w-7" />
+            </div>
             <h2 className="mt-3 text-lg font-bold text-red-600">
               Certificate Verification Failed
             </h2>

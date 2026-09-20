@@ -2,6 +2,16 @@
 
 import * as React from "react";
 import { CourseModule, CourseLesson } from "../types";
+import {
+  PlayCircle,
+  FileText,
+  FileSpreadsheet,
+  HelpCircle,
+  CheckCircle2,
+  Lock,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 
 interface CurriculumAccordionProps {
   modules: CourseModule[];
@@ -10,21 +20,12 @@ interface CurriculumAccordionProps {
   isEnrolled?: boolean;
 }
 
-const LESSON_ICONS: Record<string, string> = {
-  video: "🎥",
-  article: "📄",
-  pdf: "📑",
-  resource: "📦",
-  quiz: "📝",
-};
-
 export function CurriculumAccordion({
   modules,
   currentLessonId,
   onSelectLesson,
   isEnrolled = false,
 }: CurriculumAccordionProps) {
-  // By default expand first module
   const [openModuleIds, setOpenModuleIds] = React.useState<Set<string>>(
     new Set(modules.length > 0 ? [modules[0].id] : [])
   );
@@ -42,6 +43,25 @@ export function CurriculumAccordion({
     const mins = Math.floor(sec / 60);
     const s = sec % 60;
     return `${mins}:${s < 10 ? "0" : ""}${s}`;
+  };
+
+  const getLessonIcon = (type: string, completed?: boolean) => {
+    if (completed) {
+      return <CheckCircle2 className="h-4 w-4 text-[#15803d]" />;
+    }
+    switch (type) {
+      case "video":
+        return <PlayCircle className="h-4 w-4 text-[#1769c2]" />;
+      case "article":
+        return <FileText className="h-4 w-4 text-[#77716b]" />;
+      case "pdf":
+      case "resource":
+        return <FileSpreadsheet className="h-4 w-4 text-[#0891b2]" />;
+      case "quiz":
+        return <HelpCircle className="h-4 w-4 text-[#7c3aed]" />;
+      default:
+        return <FileText className="h-4 w-4 text-[#77716b]" />;
+    }
   };
 
   if (modules.length === 0) {
@@ -83,7 +103,11 @@ export function CurriculumAccordion({
                 </div>
               </div>
 
-              <span className="text-xs text-[#77716b]">{isOpen ? "▲" : "▼"}</span>
+              {isOpen ? (
+                <ChevronUp className="h-4 w-4 text-[#77716b]" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-[#77716b]" />
+              )}
             </button>
 
             {/* Lessons List */}
@@ -104,18 +128,14 @@ export function CurriculumAccordion({
                         disabled={!canAccess}
                         className={`flex w-full items-center justify-between p-3.5 text-left text-xs transition ${
                           isSelected
-                            ? "bg-[#eef5fc] font-semibold text-[#1769c2]"
+                            ? "bg-[#eef5fc] font-bold text-[#1769c2]"
                             : canAccess
                             ? "hover:bg-[#faf9f8] text-[#171717]"
                             : "opacity-60 cursor-not-allowed bg-white text-[#77716b]"
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                          <span className="text-sm">
-                            {lesson.completed
-                              ? "✅"
-                              : LESSON_ICONS[lesson.lesson_type] || "📄"}
-                          </span>
+                          {getLessonIcon(lesson.lesson_type, lesson.completed)}
                           <span className="truncate">{lesson.title}</span>
                           {lesson.is_preview && !isEnrolled && (
                             <span className="rounded-full bg-[#eef5fc] px-2 py-0.5 text-[9px] font-bold text-[#1769c2]">
@@ -130,7 +150,7 @@ export function CurriculumAccordion({
                               {formatSeconds(lesson.duration_seconds)}
                             </span>
                           )}
-                          {!canAccess && <span className="text-xs">🔒</span>}
+                          {!canAccess && <Lock className="h-3.5 w-3.5 text-[#a8a29e]" />}
                         </div>
                       </button>
                     );

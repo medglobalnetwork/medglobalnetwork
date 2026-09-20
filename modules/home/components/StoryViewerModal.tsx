@@ -3,6 +3,7 @@
 import * as React from "react";
 import { StoryGroup, Story } from "../types";
 import { VerificationBadge } from "@/modules/network/components/VerificationBadge";
+import { Eye, Trash2, X, Heart, ThumbsUp, Sparkles, Flame, Lightbulb } from "lucide-react";
 
 interface StoryViewerModalProps {
   isOpen: boolean;
@@ -29,7 +30,6 @@ export function StoryViewerModal({
   const [isPaused, setIsPaused] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
 
-  // Sync initialGroupIndex when modal opens
   React.useEffect(() => {
     if (isOpen) {
       setGroupIndex(Math.min(initialGroupIndex, Math.max(0, groups.length - 1)));
@@ -42,18 +42,16 @@ export function StoryViewerModal({
   const currentGroup = groups[groupIndex];
   const currentStory: Story | undefined = currentGroup?.stories[storyIndex];
 
-  // Mark story as viewed on render
   React.useEffect(() => {
     if (isOpen && currentStory) {
       fetch(`/api/stories/${currentStory.id}/view`, { method: "POST" }).catch(() => {});
     }
   }, [isOpen, currentStory?.id]);
 
-  // Handle auto-advancing progress bar
   React.useEffect(() => {
     if (!isOpen || isPaused || !currentStory) return;
 
-    const intervalTime = 50; // update every 50ms
+    const intervalTime = 50;
     const step = (intervalTime / STORY_DURATION_MS) * 100;
 
     const timer = setInterval(() => {
@@ -79,7 +77,6 @@ export function StoryViewerModal({
       setGroupIndex((g) => g + 1);
       setStoryIndex(0);
     } else {
-      // Reached the very end
       onClose();
     }
   }, [currentGroup, storyIndex, groupIndex, groups.length, onClose]);
@@ -95,7 +92,6 @@ export function StoryViewerModal({
     }
   }, [storyIndex, groupIndex, groups]);
 
-  // Keyboard navigation
   React.useEffect(() => {
     if (!isOpen) return;
 
@@ -118,7 +114,6 @@ export function StoryViewerModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reactionType }),
       });
-      // Increment local count & push reaction
       if (!currentStory.userReactions?.includes(reactionType)) {
         currentStory.reactionCount += 1;
         currentStory.userReactions = [...(currentStory.userReactions || []), reactionType];
@@ -148,7 +143,6 @@ export function StoryViewerModal({
 
   if (!isOpen || !currentGroup || !currentStory) return null;
 
-  // Format created time
   const getTimeAgo = (dateStr: string) => {
     const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
     if (diff < 60) return "Just now";
@@ -161,7 +155,6 @@ export function StoryViewerModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md">
-      {/* Container simulating phone/story ratio */}
       <div
         className="relative flex h-[92vh] max-h-[850px] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-[#121212] shadow-2xl"
         onMouseDown={() => setIsPaused(true)}
@@ -209,9 +202,7 @@ export function StoryViewerModal({
                 <span className="text-xs font-bold text-white drop-shadow-sm">
                   {currentStory.userName}
                 </span>
-                {currentStory.isVerified && (
-                  <VerificationBadge size="sm" />
-                )}
+                {currentStory.isVerified && <VerificationBadge size="sm" />}
                 <span className="text-[10px] text-white/70">· {getTimeAgo(currentStory.createdAt)}</span>
               </div>
               <p className="text-[10px] text-white/80 line-clamp-1">
@@ -229,20 +220,20 @@ export function StoryViewerModal({
                 title="Delete Story"
                 className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white/80 hover:bg-red-600 hover:text-white transition"
               >
-                🗑️
+                <Trash2 className="h-3.5 w-3.5" />
               </button>
             )}
             <button
               type="button"
               onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-sm font-bold text-white hover:bg-black/60 transition"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 transition"
             >
-              ✕
+              <X className="h-4 w-4" />
             </button>
           </div>
         </div>
 
-        {/* 3. TAP ZONES (Left 30% for prev, Right 70% for next) */}
+        {/* 3. TAP ZONES */}
         <button
           type="button"
           onClick={handlePrev}
@@ -312,24 +303,32 @@ export function StoryViewerModal({
 
         {/* 5. BOTTOM REACTION BAR */}
         <div className="absolute inset-x-0 bottom-0 z-30 flex items-center justify-between border-t border-white/10 bg-black/60 px-4 py-3 backdrop-blur-md">
-          {/* View stats */}
           <div className="flex items-center gap-1.5 text-xs text-white/70">
-            <span>👁️ {currentStory.viewCount || 0}</span>
+            <Eye className="h-3.5 w-3.5" />
+            <span>{currentStory.viewCount || 0}</span>
             {currentStory.reactionCount > 0 && (
-              <span className="ml-1 text-white/90">· ❤️ {currentStory.reactionCount}</span>
+              <span className="ml-1 flex items-center gap-1 text-white/90">
+                · <Heart className="h-3 w-3 fill-red-500 text-red-500" /> {currentStory.reactionCount}
+              </span>
             )}
           </div>
 
-          {/* Quick Emoji Reaction Buttons */}
-          <div className="flex items-center gap-2">
-            {["❤️", "👏", "💡", "🔥", "👍"].map((emoji) => (
+          {/* Quick Reaction Buttons */}
+          <div className="flex items-center gap-1.5">
+            {[
+              { type: "like", icon: <ThumbsUp className="h-3.5 w-3.5" /> },
+              { type: "heart", icon: <Heart className="h-3.5 w-3.5" /> },
+              { type: "insightful", icon: <Lightbulb className="h-3.5 w-3.5" /> },
+              { type: "fire", icon: <Flame className="h-3.5 w-3.5" /> },
+              { type: "sparkles", icon: <Sparkles className="h-3.5 w-3.5" /> },
+            ].map((r) => (
               <button
-                key={emoji}
+                key={r.type}
                 type="button"
-                onClick={() => handleReaction(emoji)}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-sm transition hover:scale-125 hover:bg-white/20 active:scale-95"
+                onClick={() => handleReaction(r.type)}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white transition hover:scale-125 hover:bg-white/20 active:scale-95"
               >
-                {emoji}
+                {r.icon}
               </button>
             ))}
           </div>

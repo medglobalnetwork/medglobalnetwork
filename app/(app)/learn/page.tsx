@@ -2,6 +2,20 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import {
+  Activity,
+  ArrowRight,
+  BookOpen,
+  Bone,
+  Brain,
+  FlaskConical,
+  GraduationCap,
+  HeartPulse,
+  PlusCircle,
+  Search,
+  Stethoscope,
+  Syringe,
+} from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { CourseCard } from "@/modules/learn/components/CourseCard";
 import { EmptyState } from "@/modules/network/components/EmptyState";
@@ -81,13 +95,13 @@ export default function LearnPage() {
   }
 
   const categories = [
-    { name: "Physiotherapy", icon: "🏃", count: "Rehab & Ortho" },
-    { name: "Medicine", icon: "🩺", count: "Internal & Clinical" },
-    { name: "Cardiology", icon: "❤️", count: "ECG & Vascular" },
-    { name: "Orthopedics", icon: "🦴", count: "Joints & Trauma" },
-    { name: "Neurology", icon: "🧠", count: "Brain & Spine" },
-    { name: "Clinical Research", icon: "🔬", count: "Trials & GCP" },
-    { name: "Nursing", icon: "💉", count: "Critical Care" },
+    { name: "Physiotherapy", icon: Activity, count: "Rehab & Ortho" },
+    { name: "Medicine", icon: Stethoscope, count: "Internal & Clinical" },
+    { name: "Cardiology", icon: HeartPulse, count: "ECG & Vascular" },
+    { name: "Orthopedics", icon: Bone, count: "Joints & Trauma" },
+    { name: "Neurology", icon: Brain, count: "Brain & Spine" },
+    { name: "Clinical Research", icon: FlaskConical, count: "Trials & GCP" },
+    { name: "Nursing", icon: Syringe, count: "Critical Care" },
   ];
 
   return (
@@ -97,7 +111,7 @@ export default function LearnPage() {
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="max-w-2xl space-y-3">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold tracking-wide text-white backdrop-blur-xs">
-              <span>🎓</span> Accredited Clinical Education
+              <GraduationCap className="h-3.5 w-3.5" /> Accredited Clinical Education
             </span>
             <h1 className="text-2xl font-black tracking-tight text-white sm:text-4xl">
               Elevate Your Healthcare Expertise
@@ -117,9 +131,9 @@ export default function LearnPage() {
               />
               <button
                 type="submit"
-                className="inline-flex shrink-0 items-center justify-center rounded-2xl bg-white px-5 text-xs font-bold text-[#1769c2] shadow-sm transition hover:bg-[#eef5fc]"
+                className="inline-flex shrink-0 items-center gap-1.5 justify-center rounded-2xl bg-white px-5 text-xs font-bold text-[#1769c2] shadow-sm transition hover:bg-[#eef5fc]"
               >
-                Search
+                <Search className="h-3.5 w-3.5" /> Search
               </button>
             </form>
           </div>
@@ -129,9 +143,9 @@ export default function LearnPage() {
             <button
               type="button"
               onClick={() => router.push("/learn/courses")}
-              className="font-semibold text-white hover:underline"
+              className="inline-flex items-center gap-1 font-semibold text-white hover:underline"
             >
-              Browse All Courses →
+              Browse All Courses <ArrowRight className="h-3.5 w-3.5" />
             </button>
             <span className="text-white/40">·</span>
             <button
@@ -145,9 +159,9 @@ export default function LearnPage() {
             <button
               type="button"
               onClick={() => router.push("/learn/instructor")}
-              className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-bold text-white hover:bg-white/30"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-[11px] font-bold text-white hover:bg-white/30"
             >
-              + Teach a Course / Instructor Studio
+              <PlusCircle className="h-3.5 w-3.5" /> Teach a Course / Instructor Studio
             </button>
           </div>
         </div>
@@ -227,20 +241,25 @@ export default function LearnPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
-            {categories.map((cat) => (
-              <button
-                key={cat.name}
-                type="button"
-                onClick={() => router.push(`/learn/courses?category=${encodeURIComponent(cat.name)}`)}
-                className="group flex flex-col items-center justify-center rounded-2xl border border-[#ded8d1] bg-white p-4 text-center shadow-2xs transition hover:-translate-y-1 hover:border-[#1769c2] hover:shadow-xs"
-              >
-                <span className="text-2xl transition group-hover:scale-110">{cat.icon}</span>
-                <p className="mt-2 text-xs font-bold text-[#171717] group-hover:text-[#1769c2]">
-                  {cat.name}
-                </p>
-                <p className="text-[10px] text-[#77716b]">{cat.count}</p>
-              </button>
-            ))}
+            {categories.map((cat) => {
+              const IconComp = cat.icon;
+              return (
+                <button
+                  key={cat.name}
+                  type="button"
+                  onClick={() => router.push(`/learn/courses?category=${encodeURIComponent(cat.name)}`)}
+                  className="group flex flex-col items-center justify-center rounded-2xl border border-[#ded8d1] bg-white p-4 text-center shadow-2xs transition hover:-translate-y-1 hover:border-[#1769c2] hover:shadow-xs"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eef5fc] text-[#1769c2] transition group-hover:bg-[#1769c2] group-hover:text-white">
+                    <IconComp className="h-5 w-5" />
+                  </div>
+                  <p className="mt-2 text-xs font-bold text-[#171717] group-hover:text-[#1769c2]">
+                    {cat.name}
+                  </p>
+                  <p className="text-[10px] text-[#77716b]">{cat.count}</p>
+                </button>
+              );
+            })}
           </div>
         </section>
 

@@ -2,6 +2,15 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import {
+  ArrowRight,
+  Calendar,
+  CheckCircle2,
+  ChevronRight,
+  ShieldCheck,
+  Sparkles,
+  Users,
+} from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { getUserAvatarUrl } from "@/lib/avatar";
 import { StoriesBar } from "@/modules/home/components/StoriesBar";
@@ -19,9 +28,7 @@ function VerifiedBadge() {
       title="Verified Clinician / Organization"
       aria-label="Verified"
     >
-      <svg className="h-3.5 w-3.5 fill-[#1769c2]" viewBox="0 0 24 24">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-      </svg>
+      <ShieldCheck className="h-4 w-4 fill-[#1769c2]/10 text-[#1769c2]" />
     </span>
   );
 }
@@ -253,8 +260,8 @@ export default function HomePage() {
               className="rounded-2xl border border-[#dbeafe] bg-gradient-to-br from-white via-white to-[#f0f7ff] p-4 shadow-2xs sm:p-5"
             >
               <div className="flex items-center gap-2.5">
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#1769c2] text-xs font-bold text-white">
-                  ✦
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#1769c2] text-white">
+                  <Sparkles className="h-4 w-4" />
                 </span>
                 <div>
                   <h3 className="text-sm font-bold text-[#171717]">MGN AI Assistant</h3>
@@ -278,8 +285,9 @@ export default function HomePage() {
                   type="button"
                   onClick={() => handleAskAI()}
                   disabled={isAiLoading || !aiPrompt.trim()}
-                  className="inline-flex shrink-0 items-center rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-[#12569f] disabled:opacity-50"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-[#12569f] disabled:opacity-50"
                 >
+                  <Sparkles className="h-3.5 w-3.5" />
                   {isAiLoading ? "Thinking..." : "Ask AI"}
                 </button>
               </div>
@@ -336,13 +344,15 @@ export default function HomePage() {
             {/* 2. Professional Network Shortcut */}
             <div className="rounded-2xl border border-[#ded8d1] bg-white p-4 shadow-2xs">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-semibold text-[#171717]">Healthcare Network</h3>
+                <h3 className="text-xs font-semibold text-[#171717] flex items-center gap-1.5">
+                  <Users className="h-4 w-4 text-[#1769c2]" /> Healthcare Network
+                </h3>
                 <button
                   type="button"
                   onClick={() => router.push("/network")}
-                  className="text-[11px] font-semibold text-[#1769c2] hover:underline"
+                  className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-[#1769c2] hover:underline"
                 >
-                  Explore →
+                  Explore <ChevronRight className="h-3 w-3" />
                 </button>
               </div>
               <p className="mt-1.5 text-xs text-[#77716b]">
@@ -360,7 +370,9 @@ export default function HomePage() {
             {/* 3. Today's Consultations & Meetings */}
             <div id="meetings-section" className="rounded-2xl border border-[#ded8d1] bg-white p-4 shadow-2xs">
               <div className="flex items-center justify-between text-xs font-semibold text-[#171717]">
-                <span>Today&apos;s Meetings</span>
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4 text-[#1769c2]" /> Today&apos;s Meetings
+                </span>
                 <span className="text-[10px] text-[#8a8784]">No meetings scheduled</span>
               </div>
               <p className="mt-2 text-xs text-[#77716b]">

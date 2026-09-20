@@ -2,6 +2,16 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  CheckCircle2,
+  FileText,
+  Layers,
+  Plus,
+  Video,
+} from "lucide-react";
 import { CreateCourseInput } from "../types";
 
 export function InstructorBuilder() {
@@ -299,9 +309,13 @@ export function InstructorBuilder() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-xl bg-[#1769c2] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#12569f] disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#1769c2] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#12569f] disabled:opacity-50"
             >
-              {isSubmitting ? "Creating Course..." : "Save & Proceed to Curriculum →"}
+              {isSubmitting ? "Creating Course..." : (
+                <>
+                  Save & Proceed to Curriculum <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </button>
           </div>
         </form>
@@ -312,7 +326,9 @@ export function InstructorBuilder() {
         <div className="space-y-6">
           {/* Add Module Box */}
           <div className="rounded-3xl border border-[#ded8d1] bg-white p-6 shadow-xs space-y-4">
-            <h3 className="text-sm font-bold text-[#171717]">Step 2: Add Curriculum Modules</h3>
+            <h3 className="text-sm font-bold text-[#171717] flex items-center gap-2">
+              <Layers className="h-4 w-4 text-[#1769c2]" /> Step 2: Add Curriculum Modules
+            </h3>
 
             <div className="flex gap-2">
               <input
@@ -325,9 +341,9 @@ export function InstructorBuilder() {
               <button
                 type="button"
                 onClick={handleAddModule}
-                className="rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-bold text-white hover:bg-[#12569f]"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-bold text-white hover:bg-[#12569f]"
               >
-                + Add Module
+                <Plus className="h-3.5 w-3.5" /> Add Module
               </button>
             </div>
 
@@ -348,18 +364,22 @@ export function InstructorBuilder() {
                         onClick={() => setActiveModuleId(m.id)}
                         className="text-[11px] font-semibold text-[#1769c2] hover:underline"
                       >
-                        {activeModuleId === m.id ? "● Active Module" : "Select to Add Lessons"}
+                        {activeModuleId === m.id ? "Active Module" : "Select to Add Lessons"}
                       </button>
                     </div>
 
                     {/* Lessons list in this module */}
                     {m.lessons.length > 0 && (
-                      <ul className="mt-2 space-y-1 text-xs text-[#5d5854] border-t border-black/5 pt-2">
+                      <ul className="mt-2 space-y-1.5 text-xs text-[#5d5854] border-t border-black/5 pt-2">
                         {m.lessons.map((l, i) => (
                           <li key={l.id} className="flex items-center gap-2">
-                            <span>{i + 1}.</span>
-                            <span>{l.type === "video" ? "🎥" : "📄"}</span>
-                            <span>{l.title}</span>
+                            <span className="text-[11px] text-[#77716b]">{i + 1}.</span>
+                            {l.type === "video" ? (
+                              <Video className="h-3.5 w-3.5 text-[#1769c2]" />
+                            ) : (
+                              <FileText className="h-3.5 w-3.5 text-[#047857]" />
+                            )}
+                            <span className="font-medium text-[#171717]">{l.title}</span>
                           </li>
                         ))}
                       </ul>
@@ -398,8 +418,8 @@ export function InstructorBuilder() {
                     onChange={(e) => setLessonType(e.target.value)}
                     className="h-10 w-full rounded-xl border border-[#ded8d1] bg-white px-3 text-xs"
                   >
-                    <option value="video">🎥 Video (URL / YouTube)</option>
-                    <option value="article">📄 Clinical Article / Notes</option>
+                    <option value="video">Video (URL / YouTube)</option>
+                    <option value="article">Clinical Article / Notes</option>
                   </select>
                 </div>
               </div>
@@ -449,9 +469,9 @@ export function InstructorBuilder() {
                 type="button"
                 onClick={handleAddLesson}
                 disabled={!lessonTitle.trim()}
-                className="rounded-xl bg-[#1769c2] px-5 py-2 text-xs font-bold text-white hover:bg-[#12569f] disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-5 py-2 text-xs font-bold text-white hover:bg-[#12569f] disabled:opacity-50"
               >
-                + Save Lesson to Module
+                <Plus className="h-3.5 w-3.5" /> Save Lesson to Module
               </button>
             </div>
           )}
@@ -461,17 +481,17 @@ export function InstructorBuilder() {
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="rounded-xl border border-[#ded8d1] bg-white px-4 py-2 text-xs font-semibold text-[#5d5854]"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-white px-4 py-2 text-xs font-semibold text-[#5d5854]"
             >
-              ← Edit Course Info
+              <ArrowLeft className="h-3.5 w-3.5" /> Edit Course Info
             </button>
 
             <button
               type="button"
               onClick={() => router.push(`/learn/course/${createdCourseId}`)}
-              className="rounded-xl bg-[#15803d] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#166534]"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#15803d] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#166534]"
             >
-              ✓ Complete & View Course Page 🚀
+              <CheckCircle2 className="h-4 w-4" /> Complete & View Course
             </button>
           </div>
         </div>

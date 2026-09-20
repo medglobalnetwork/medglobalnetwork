@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { CourseLesson } from "../types";
+import { CheckCircle2, ArrowRight, Video, FileText, BookOpen, Check } from "lucide-react";
 
 interface LessonPlayerProps {
   lesson: CourseLesson;
@@ -24,14 +25,12 @@ export function LessonPlayer({
   const [isMarkingComplete, setIsMarkingComplete] = React.useState(false);
   const videoRef = React.useRef<HTMLVideoElement>(null);
 
-  // Sync initial playback position
   React.useEffect(() => {
     if (videoRef.current && lesson.last_position_seconds) {
       videoRef.current.currentTime = lesson.last_position_seconds;
     }
   }, [lesson.id, lesson.last_position_seconds]);
 
-  // Periodic progress tracking (every 5 seconds)
   React.useEffect(() => {
     if (!videoRef.current || lesson.lesson_type !== "video") return;
 
@@ -108,20 +107,20 @@ export function LessonPlayer({
             )
           ) : (
             <div className="flex h-full w-full flex-col items-center justify-center text-white/70">
-              <span className="text-4xl">🎥</span>
+              <Video className="h-10 w-10 text-white/40" />
               <p className="mt-2 text-xs">Video content is currently processing or unavailable.</p>
             </div>
           )
         ) : lesson.lesson_type === "article" ? (
           <div className="flex h-full w-full flex-col justify-center bg-gradient-to-br from-[#1e293b] to-[#0f172a] p-8 text-center text-white">
-            <span className="text-4xl">📄</span>
-            <h3 className="mt-2 text-lg font-bold">{lesson.title}</h3>
+            <FileText className="mx-auto h-12 w-12 text-[#38bdf8]" />
+            <h3 className="mt-3 text-lg font-bold">{lesson.title}</h3>
             <p className="mt-1 text-xs text-white/70">Interactive Clinical Reading</p>
           </div>
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-[#0f4c81] to-[#1e3a8a] p-8 text-center text-white">
-            <span className="text-4xl">📑</span>
-            <h3 className="mt-2 text-lg font-bold">{lesson.title}</h3>
+            <BookOpen className="h-12 w-12 text-white/80" />
+            <h3 className="mt-3 text-lg font-bold">{lesson.title}</h3>
             <p className="mt-1 text-xs text-white/70">Document & Clinical Protocol</p>
           </div>
         )}
@@ -136,8 +135,8 @@ export function LessonPlayer({
                 {lesson.lesson_type}
               </span>
               {lesson.completed && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#ecfdf5] px-2 py-0.5 text-[10px] font-bold text-[#047857]">
-                  ✓ Completed
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#ecfdf5] px-2.5 py-0.5 text-[10px] font-bold text-[#047857]">
+                  <Check className="h-3 w-3" /> Completed
                 </span>
               )}
             </div>
@@ -150,22 +149,24 @@ export function LessonPlayer({
               type="button"
               onClick={handleManualComplete}
               disabled={isMarkingComplete || lesson.completed}
-              className={`rounded-xl px-4 py-2 text-xs font-semibold shadow-xs transition ${
+              className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold shadow-xs transition ${
                 lesson.completed
                   ? "bg-[#ecfdf5] text-[#047857] border border-[#a7f3d0]"
                   : "bg-[#1769c2] text-white hover:bg-[#12569f]"
               }`}
             >
-              {lesson.completed ? "✓ Lesson Finished" : isMarkingComplete ? "Saving..." : "Mark Complete"}
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              {lesson.completed ? "Lesson Finished" : isMarkingComplete ? "Saving..." : "Mark Complete"}
             </button>
 
             {hasNext && (
               <button
                 type="button"
                 onClick={onNextLesson}
-                className="rounded-xl border border-[#ded8d1] bg-white px-4 py-2 text-xs font-semibold text-[#171717] hover:bg-[#f8f7f6]"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-white px-4 py-2 text-xs font-semibold text-[#171717] hover:bg-[#f8f7f6]"
               >
-                Next Lesson →
+                <span>Next Lesson</span>
+                <ArrowRight className="h-3.5 w-3.5" />
               </button>
             )}
           </div>

@@ -2,6 +2,18 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Award,
+  BookOpen,
+  CheckCircle2,
+  GraduationCap,
+  Plus,
+  Printer,
+  ShieldCheck,
+  Trophy,
+} from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { EmptyState } from "@/modules/network/components/EmptyState";
 import { CourseEnrollment, Certificate } from "@/modules/learn/types";
@@ -57,9 +69,9 @@ export default function MyLearningPage() {
               <button
                 type="button"
                 onClick={() => router.push("/learn")}
-                className="text-xs font-semibold text-[#1769c2] hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#1769c2] hover:underline"
               >
-                ← Back to Learn Home
+                <ArrowLeft className="h-3.5 w-3.5" /> Back to Learn Home
               </button>
             </div>
             <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#171717]">
@@ -73,9 +85,9 @@ export default function MyLearningPage() {
           <button
             type="button"
             onClick={() => router.push("/learn/courses")}
-            className="rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#12569f]"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#12569f]"
           >
-            + Browse More Courses
+            <Plus className="h-3.5 w-3.5" /> Browse More Courses
           </button>
         </div>
 
@@ -84,35 +96,35 @@ export default function MyLearningPage() {
           <button
             type="button"
             onClick={() => setActiveTab("in_progress")}
-            className={`border-b-2 py-3 px-5 text-xs font-bold transition ${
+            className={`inline-flex items-center gap-2 border-b-2 py-3 px-5 text-xs font-bold transition ${
               activeTab === "in_progress"
                 ? "border-[#1769c2] text-[#1769c2]"
                 : "border-transparent text-[#77716b] hover:text-[#171717]"
             }`}
           >
-            In Progress ({inProgress.length})
+            <BookOpen className="h-4 w-4" /> In Progress ({inProgress.length})
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("completed")}
-            className={`border-b-2 py-3 px-5 text-xs font-bold transition ${
+            className={`inline-flex items-center gap-2 border-b-2 py-3 px-5 text-xs font-bold transition ${
               activeTab === "completed"
                 ? "border-[#1769c2] text-[#1769c2]"
                 : "border-transparent text-[#77716b] hover:text-[#171717]"
             }`}
           >
-            Completed ({completed.length})
+            <CheckCircle2 className="h-4 w-4" /> Completed ({completed.length})
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("certificates")}
-            className={`border-b-2 py-3 px-5 text-xs font-bold transition ${
+            className={`inline-flex items-center gap-2 border-b-2 py-3 px-5 text-xs font-bold transition ${
               activeTab === "certificates"
                 ? "border-[#1769c2] text-[#1769c2]"
                 : "border-transparent text-[#77716b] hover:text-[#171717]"
             }`}
           >
-            Certificates 📜 ({certificates.length})
+            <Award className="h-4 w-4" /> Certificates ({certificates.length})
           </button>
         </div>
 
@@ -157,9 +169,9 @@ export default function MyLearningPage() {
                     </div>
                     <button
                       type="button"
-                      className="mt-4 w-full rounded-xl bg-[#1769c2] py-2 text-xs font-bold text-white transition hover:bg-[#12569f]"
+                      className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#1769c2] py-2 text-xs font-bold text-white transition hover:bg-[#12569f]"
                     >
-                      Resume Learning →
+                      Resume Learning <ArrowRight className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>
@@ -167,7 +179,7 @@ export default function MyLearningPage() {
             </div>
           ) : (
             <EmptyState
-              icon="🎓"
+              icon={<GraduationCap className="h-10 w-10 text-[#77716b]" />}
               title="No courses in progress"
               description="Explore accredited clinical courses and physical therapy modules to advance your skills."
               actionText="Explore Course Catalog"
@@ -183,8 +195,8 @@ export default function MyLearningPage() {
                   className="flex flex-col justify-between rounded-2xl border border-[#bbf7d0] bg-white p-5 shadow-2xs"
                 >
                   <div>
-                    <span className="rounded-full bg-[#f0fdf4] px-2.5 py-0.5 text-[10px] font-bold text-[#15803d]">
-                      ✓ 100% Completed
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#f0fdf4] px-2.5 py-0.5 text-[10px] font-bold text-[#15803d]">
+                      <CheckCircle2 className="h-3 w-3" /> 100% Completed
                     </span>
                     <h3 className="mt-2 text-sm font-bold text-[#171717]">
                       {item.course?.title}
@@ -205,9 +217,9 @@ export default function MyLearningPage() {
                     <button
                       type="button"
                       onClick={() => setActiveTab("certificates")}
-                      className="flex-1 rounded-xl bg-[#15803d] py-2 text-xs font-bold text-white hover:bg-[#166534]"
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#15803d] py-2 text-xs font-bold text-white hover:bg-[#166534]"
                     >
-                      View Cert 📜
+                      <Award className="h-3.5 w-3.5" /> View Certificate
                     </button>
                   </div>
                 </div>
@@ -215,7 +227,7 @@ export default function MyLearningPage() {
             </div>
           ) : (
             <EmptyState
-              icon="🏆"
+              icon={<Trophy className="h-10 w-10 text-[#77716b]" />}
               title="No completed courses yet"
               description="Complete all lessons and pass the final assessment of any enrolled course to earn your accredited certificate."
               actionText="Resume Active Course"
@@ -232,9 +244,11 @@ export default function MyLearningPage() {
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xl">🏅</span>
-                      <span className="rounded-full bg-[#ecfdf5] px-2 py-0.5 text-[10px] font-bold text-[#047857]">
-                        Verified
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#eef5fc] text-[#1769c2]">
+                        <Award className="h-5 w-5" />
+                      </div>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#ecfdf5] px-2 py-0.5 text-[10px] font-bold text-[#047857]">
+                        <ShieldCheck className="h-3 w-3" /> Verified
                       </span>
                     </div>
 
@@ -254,9 +268,9 @@ export default function MyLearningPage() {
                       href={`/verify/certificate/${cert.verification_code}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="block w-full text-center rounded-xl bg-[#1769c2] py-2 text-xs font-bold text-white transition hover:bg-[#12569f]"
+                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#1769c2] py-2 text-xs font-bold text-white transition hover:bg-[#12569f]"
                     >
-                      View & Print Certificate 🖨️
+                      <Printer className="h-3.5 w-3.5" /> View & Print Certificate
                     </a>
                   </div>
                 </div>
@@ -264,7 +278,7 @@ export default function MyLearningPage() {
             </div>
           ) : (
             <EmptyState
-              icon="📜"
+              icon={<Award className="h-10 w-10 text-[#77716b]" />}
               title="No certificates earned yet"
               description="Complete courses with accredited certificates enabled to have verified credentials issued directly to your MGN Profile."
               actionText="Browse Certificate Courses"

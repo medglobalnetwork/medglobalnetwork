@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Course } from "../types";
 import { VerificationBadge } from "@/modules/network/components/VerificationBadge";
+import { Award, Clock, Star, Stethoscope } from "lucide-react";
 
 interface CourseCardProps {
   course: Course;
@@ -60,7 +61,7 @@ export function CourseCard({ course, compact = false }: CourseCardProps) {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1769c2]/10 via-[#0284c7]/10 to-[#f5f4f3] p-4 text-center">
-            <span className="text-3xl">🩺</span>
+            <Stethoscope className="h-10 w-10 text-[#1769c2]/60" />
           </div>
         )}
 
@@ -80,9 +81,9 @@ export function CourseCard({ course, compact = false }: CourseCardProps) {
 
         {/* Certificate Badge */}
         {course.certificate_enabled && (
-          <div className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-full bg-[#171717]/80 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-xs">
-            <span>📜</span>
-            <span>Cert</span>
+          <div className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-full bg-[#171717]/80 px-2.5 py-0.5 text-[10px] font-semibold text-white backdrop-blur-xs shadow-xs">
+            <Award className="h-3 w-3 text-amber-400" />
+            <span>Accredited</span>
           </div>
         )}
       </div>
@@ -91,7 +92,7 @@ export function CourseCard({ course, compact = false }: CourseCardProps) {
       <div className="flex flex-1 flex-col justify-between p-4">
         <div>
           {/* Title */}
-          <h3 className="line-clamp-2 text-sm font-bold text-[#171717] group-hover:text-[#1769c2]">
+          <h3 className="line-clamp-2 text-sm font-bold tracking-tight text-[#171717] group-hover:text-[#1769c2]">
             {course.title}
           </h3>
 
@@ -126,7 +127,7 @@ export function CourseCard({ course, compact = false }: CourseCardProps) {
         <div className="mt-4 border-t border-[#f5f4f3] pt-3">
           {course.user_enrolled && course.user_progress !== undefined ? (
             <div>
-              <div className="flex justify-between text-[11px] font-medium text-[#77716b]">
+              <div className="flex justify-between text-[11px] font-semibold text-[#77716b]">
                 <span>Progress</span>
                 <span className="font-bold text-[#1769c2]">{course.user_progress}%</span>
               </div>
@@ -140,12 +141,13 @@ export function CourseCard({ course, compact = false }: CourseCardProps) {
           ) : (
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2.5 text-[#77716b]">
-                <span className="flex items-center gap-1 text-[11px]">
-                  ⏱ {formatDuration(course.duration_minutes)}
+                <span className="flex items-center gap-1 text-[11px] font-medium">
+                  <Clock className="h-3 w-3" /> {formatDuration(course.duration_minutes)}
                 </span>
                 {course.rating_avg > 0 && (
-                  <span className="flex items-center gap-0.5 text-[11px] font-bold text-[#b45309]">
-                    ★ {course.rating_avg.toFixed(1)}
+                  <span className="flex items-center gap-1 text-[11px] font-bold text-[#b45309]">
+                    <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                    {course.rating_avg.toFixed(1)}
                   </span>
                 )}
               </div>

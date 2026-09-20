@@ -1,8 +1,33 @@
 "use client";
-// modules/network/components/CreatePost.tsx
+
 import * as React from "react";
+import {
+  Award,
+  BarChart2,
+  Briefcase,
+  Calendar,
+  Camera,
+  FileText,
+  FlaskConical,
+  HelpCircle,
+  Send,
+} from "lucide-react";
 import type { PostType } from "../types";
-import { POST_TYPES } from "../types";
+
+const POST_TYPE_CONFIG: {
+  value: PostType;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
+  { value: "text", label: "Post", icon: FileText },
+  { value: "image", label: "Photo", icon: Camera },
+  { value: "research", label: "Research", icon: FlaskConical },
+  { value: "achievement", label: "Achievement", icon: Award },
+  { value: "question", label: "Question", icon: HelpCircle },
+  { value: "event", label: "Event", icon: Calendar },
+  { value: "job", label: "Job", icon: Briefcase },
+  { value: "poll", label: "Poll", icon: BarChart2 },
+];
 
 interface CreatePostProps {
   userImage?: string;
@@ -94,21 +119,24 @@ export function CreatePost({ userImage, userName, onPosted }: CreatePostProps) {
         <div className="mt-3">
           {/* Post type selector */}
           <div className="mb-3 flex flex-wrap gap-1.5">
-            {POST_TYPES.map((type) => (
-              <button
-                key={type.value}
-                type="button"
-                onClick={() => setPostType(type.value)}
-                className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
-                  postType === type.value
-                    ? "border-[#1769c2] bg-[#eef5fc] text-[#1769c2]"
-                    : "border-[#ded8d1] text-[#5d5854] hover:border-[#1769c2] hover:text-[#1769c2]"
-                }`}
-              >
-                <span>{type.emoji}</span>
-                {type.label}
-              </button>
-            ))}
+            {POST_TYPE_CONFIG.map((type) => {
+              const IconComp = type.icon;
+              return (
+                <button
+                  key={type.value}
+                  type="button"
+                  onClick={() => setPostType(type.value)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
+                    postType === type.value
+                      ? "border-[#1769c2] bg-[#eef5fc] text-[#1769c2]"
+                      : "border-[#ded8d1] text-[#5d5854] hover:border-[#1769c2] hover:text-[#1769c2]"
+                  }`}
+                >
+                  <IconComp className="h-3.5 w-3.5" />
+                  {type.label}
+                </button>
+              );
+            })}
           </div>
 
           {error && <p className="mb-2 text-xs text-red-600">{error}</p>}

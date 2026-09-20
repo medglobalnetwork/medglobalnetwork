@@ -2,6 +2,21 @@
 
 import * as React from "react";
 import { CreateStoryInput, StoryMediaType, StoryVisibility } from "../types";
+import {
+  PenTool,
+  Image as ImageIcon,
+  Video as VideoIcon,
+  Globe,
+  Users,
+  Clock,
+  Sparkles,
+  Send,
+  X,
+  Stethoscope,
+  Microscope,
+  MapPin,
+  Lightbulb,
+} from "lucide-react";
 
 interface CreateStoryModalProps {
   isOpen: boolean;
@@ -80,7 +95,6 @@ export function CreateStoryModal({
         throw new Error(data.error || "Failed to create story");
       }
 
-      // Reset and close
       setCaption("");
       setMediaUrl("");
       onStoryCreated();
@@ -90,10 +104,6 @@ export function CreateStoryModal({
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handlePromptClick = (prompt: string) => {
-    setCaption(prompt);
   };
 
   return (
@@ -117,7 +127,7 @@ export function CreateStoryModal({
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-full text-[#77716b] hover:bg-[#f5f4f3] hover:text-[#171717]"
           >
-            ✕
+            <X className="h-4 w-4" />
           </button>
         </div>
 
@@ -126,35 +136,35 @@ export function CreateStoryModal({
           <button
             type="button"
             onClick={() => setActiveTab("text")}
-            className={`border-b-2 py-2.5 px-4 text-xs font-semibold transition ${
+            className={`flex items-center gap-2 border-b-2 py-3 px-4 text-xs font-semibold transition ${
               activeTab === "text"
                 ? "border-[#1769c2] text-[#1769c2]"
                 : "border-transparent text-[#77716b] hover:text-[#171717]"
             }`}
           >
-            ✍️ Text Story
+            <PenTool className="h-3.5 w-3.5" /> Text Story
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("image")}
-            className={`border-b-2 py-2.5 px-4 text-xs font-semibold transition ${
+            className={`flex items-center gap-2 border-b-2 py-3 px-4 text-xs font-semibold transition ${
               activeTab === "image"
                 ? "border-[#1769c2] text-[#1769c2]"
                 : "border-transparent text-[#77716b] hover:text-[#171717]"
             }`}
           >
-            🖼️ Photo / Image
+            <ImageIcon className="h-3.5 w-3.5" /> Photo / Image
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("video")}
-            className={`border-b-2 py-2.5 px-4 text-xs font-semibold transition ${
+            className={`flex items-center gap-2 border-b-2 py-3 px-4 text-xs font-semibold transition ${
               activeTab === "video"
                 ? "border-[#1769c2] text-[#1769c2]"
                 : "border-transparent text-[#77716b] hover:text-[#171717]"
             }`}
           >
-            📹 Video URL
+            <VideoIcon className="h-3.5 w-3.5" /> Video URL
           </button>
         </div>
 
@@ -166,7 +176,7 @@ export function CreateStoryModal({
             </div>
           )}
 
-          {/* Live Preview Card (Aspect Ratio 9:16 scaled down) */}
+          {/* Live Preview Card */}
           <div className="relative mx-auto flex h-60 w-36 flex-col justify-between overflow-hidden rounded-2xl p-3 shadow-inner border border-black/10">
             {activeTab === "text" ? (
               <div
@@ -197,7 +207,6 @@ export function CreateStoryModal({
               </div>
             )}
 
-            {/* Header Overlay Preview */}
             <div className="relative z-10 flex items-center gap-1">
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-[9px] font-bold text-white">
                 {currentUserName.slice(0, 1)}
@@ -224,26 +233,27 @@ export function CreateStoryModal({
                   className="w-full rounded-xl border border-[#ded8d1] p-3 text-xs text-[#171717] focus:border-[#1769c2] focus:outline-none focus:ring-2 focus:ring-[#1769c2]/20"
                 />
                 <div className="flex justify-between text-[10px] text-[#77716b]">
-                  <span>Supports markdown & medical emojis</span>
+                  <span>Supports markdown & medical symbols</span>
                   <span>{caption.length} / 300</span>
                 </div>
               </div>
 
-              {/* Quick Prompts */}
+              {/* Quick Prompt Suggestions */}
               <div className="flex flex-wrap gap-1.5">
                 {[
-                  "🩺 Clinical Case Note: ",
-                  "🔬 Research Discovery: ",
-                  "📍 Attending Conference: ",
-                  "💡 Practice Tip: ",
+                  { label: "Clinical Case Note", icon: <Stethoscope className="h-3 w-3" />, text: "Clinical Case Note: " },
+                  { label: "Research Discovery", icon: <Microscope className="h-3 w-3" />, text: "Research Discovery: " },
+                  { label: "Conference Update", icon: <MapPin className="h-3 w-3" />, text: "Attending Conference: " },
+                  { label: "Practice Tip", icon: <Lightbulb className="h-3 w-3" />, text: "Practice Tip: " },
                 ].map((p) => (
                   <button
-                    key={p}
+                    key={p.label}
                     type="button"
-                    onClick={() => handlePromptClick(p)}
-                    className="rounded-full border border-[#ded8d1] bg-[#f8f7f6] px-2.5 py-1 text-[11px] text-[#5d5854] hover:bg-[#eef5fc] hover:text-[#1769c2]"
+                    onClick={() => setCaption(p.text)}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-[#ded8d1] bg-[#f8f7f6] px-2.5 py-1 text-[11px] text-[#5d5854] hover:bg-[#eef5fc] hover:text-[#1769c2]"
                   >
-                    {p}
+                    {p.icon}
+                    {p.label}
                   </button>
                 ))}
               </div>
@@ -337,13 +347,13 @@ export function CreateStoryModal({
                 onChange={(e) => setVisibility(e.target.value as StoryVisibility)}
                 className="rounded-lg border border-[#ded8d1] bg-white px-2.5 py-1 text-xs text-[#171717] focus:outline-none"
               >
-                <option value="public">🌐 Public (All Healthcare Peers)</option>
-                <option value="connections">👥 Connections Only</option>
+                <option value="public">Public (All Healthcare Peers)</option>
+                <option value="connections">Connections Only</option>
               </select>
             </div>
 
             <span className="inline-flex items-center gap-1 text-[11px] text-[#77716b]">
-              ⏳ 24h Expiry
+              <Clock className="h-3 w-3" /> 24h Expiry
             </span>
           </div>
 
@@ -359,9 +369,10 @@ export function CreateStoryModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center rounded-xl bg-[#1769c2] px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#12569f] disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#12569f] disabled:opacity-50"
             >
-              {isSubmitting ? "Sharing..." : "Share to Story 🚀"}
+              <Send className="h-3.5 w-3.5" />
+              {isSubmitting ? "Sharing..." : "Share to Story"}
             </button>
           </div>
         </form>

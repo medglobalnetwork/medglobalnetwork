@@ -2,6 +2,17 @@
 
 import * as React from "react";
 import { Quiz, QuizQuestion, QuizAttempt, SubmitQuizAnswerInput } from "../types";
+import {
+  Trophy,
+  BookOpen,
+  CheckCircle2,
+  RotateCcw,
+  HelpCircle,
+  Check,
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
+} from "lucide-react";
 
 interface QuizEngineProps {
   quiz: Quiz;
@@ -78,8 +89,12 @@ export function QuizEngine({ quiz, onQuizFinished, onClose }: QuizEngineProps) {
   if (attemptResult) {
     return (
       <div className="rounded-3xl border border-[#ded8d1] bg-white p-8 text-center shadow-lg animate-in fade-in">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full text-3xl">
-          {attemptResult.passed ? "🏆" : "📚"}
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#eef5fc] text-[#1769c2]">
+          {attemptResult.passed ? (
+            <Trophy className="h-8 w-8 text-[#1769c2]" />
+          ) : (
+            <BookOpen className="h-8 w-8 text-[#5d5854]" />
+          )}
         </div>
 
         <h3 className="mt-4 text-xl font-bold text-[#171717]">
@@ -109,7 +124,9 @@ export function QuizEngine({ quiz, onQuizFinished, onClose }: QuizEngineProps) {
 
         {courseCompleted && certCode && (
           <div className="my-4 rounded-2xl border border-[#bbf7d0] bg-[#f0fdf4] p-4 text-xs text-[#15803d]">
-            <p className="font-bold">🎉 Course Completed & Certificate Unlocked!</p>
+            <p className="font-bold flex items-center justify-center gap-1.5">
+              <Sparkles className="h-4 w-4" /> Course Completed & Certificate Unlocked!
+            </p>
             <p className="mt-0.5 text-[11px] text-[#166534]">
               Verification Code: <span className="font-mono font-bold">{certCode}</span>
             </p>
@@ -135,9 +152,10 @@ export function QuizEngine({ quiz, onQuizFinished, onClose }: QuizEngineProps) {
                 setCurrentIdx(0);
                 setAnswers(new Map());
               }}
-              className="rounded-xl bg-[#1769c2] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#12569f]"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#1769c2] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#12569f]"
             >
-              Retry Assessment
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>Retry Assessment</span>
             </button>
           )}
         </div>
@@ -213,7 +231,7 @@ export function QuizEngine({ quiz, onQuizFinished, onClose }: QuizEngineProps) {
                         : "border-[#ded8d1]"
                     }`}
                   >
-                    {isSelected ? "✓" : ""}
+                    {isSelected ? <Check className="h-3 w-3 stroke-[3]" /> : null}
                   </span>
                 </button>
               );
@@ -228,9 +246,10 @@ export function QuizEngine({ quiz, onQuizFinished, onClose }: QuizEngineProps) {
           type="button"
           onClick={() => setCurrentIdx((i) => Math.max(0, i - 1))}
           disabled={currentIdx === 0}
-          className="rounded-xl border border-[#ded8d1] px-4 py-2 text-xs font-semibold text-[#5d5854] hover:bg-[#f8f7f6] disabled:opacity-30"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] px-4 py-2 text-xs font-semibold text-[#5d5854] hover:bg-[#f8f7f6] disabled:opacity-30"
         >
-          ← Previous
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>Previous</span>
         </button>
 
         {isLastQ ? (
@@ -240,15 +259,16 @@ export function QuizEngine({ quiz, onQuizFinished, onClose }: QuizEngineProps) {
             disabled={isSubmitting}
             className="rounded-xl bg-[#1769c2] px-6 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#12569f] disabled:opacity-50"
           >
-            {isSubmitting ? "Evaluating Answers..." : "Submit Assessment 🚀"}
+            {isSubmitting ? "Evaluating Answers..." : "Submit Assessment"}
           </button>
         ) : (
           <button
             type="button"
             onClick={() => setCurrentIdx((i) => Math.min(questions.length - 1, i + 1))}
-            className="rounded-xl bg-[#1769c2] px-5 py-2 text-xs font-semibold text-white hover:bg-[#12569f]"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-5 py-2 text-xs font-semibold text-white hover:bg-[#12569f]"
           >
-            Next Question →
+            <span>Next Question</span>
+            <ArrowRight className="h-3.5 w-3.5" />
           </button>
         )}
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { CheckCircle2, Circle, SlidersHorizontal } from "lucide-react";
 
 interface LearnFiltersProps {
   selectedCategory: string;
@@ -57,8 +58,8 @@ export function LearnFilters({
     <div className="space-y-4 rounded-2xl border border-[#ded8d1] bg-white p-4 shadow-2xs">
       {/* 1. Category Pills */}
       <div>
-        <label className="block text-[11px] font-bold uppercase tracking-wider text-[#77716b] mb-2">
-          Clinical Domain
+        <label className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#77716b] mb-2">
+          <SlidersHorizontal className="h-3.5 w-3.5 text-[#1769c2]" /> Clinical Domain
         </label>
         <div className="flex flex-wrap gap-1.5">
           {CATEGORIES.map((cat) => (
@@ -127,7 +128,11 @@ export function LearnFilters({
                 : "border-[#ded8d1] bg-white text-[#5d5854] hover:bg-[#faf9f8]"
             }`}
           >
-            <span>{isFreeOnly ? "✓" : "○"}</span>
+            {isFreeOnly ? (
+              <CheckCircle2 className="h-3.5 w-3.5 text-[#15803d]" />
+            ) : (
+              <Circle className="h-3.5 w-3.5 text-[#77716b]" />
+            )}
             <span>Free CME Only</span>
           </button>
         </div>

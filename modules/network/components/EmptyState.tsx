@@ -1,8 +1,9 @@
 // modules/network/components/EmptyState.tsx
 import * as React from "react";
+import { Search } from "lucide-react";
 
 interface EmptyStateProps {
-  icon?: string;
+  icon?: React.ReactNode;
   title: string;
   description: string;
   actionText?: string;
@@ -13,7 +14,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({
-  icon = "🔍",
+  icon,
   title,
   description,
   actionText,
@@ -26,9 +27,9 @@ export function EmptyState({
     <div
       className={`flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#ded8d1] bg-white p-8 text-center ${className}`}
     >
-      <span className="text-3xl" aria-hidden="true">
-        {icon}
-      </span>
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f5f5f4] text-[#77716b]" aria-hidden="true">
+        {icon ?? <Search className="h-6 w-6 text-[#77716b]" />}
+      </div>
       <p className="mt-3 text-sm font-semibold text-[#171717]">{title}</p>
       <p className="mt-1.5 max-w-xs text-xs leading-relaxed text-[#77716b]">
         {description}

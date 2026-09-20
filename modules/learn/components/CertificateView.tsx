@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Award, CheckCircle2, Printer, ShieldCheck } from "lucide-react";
 import { Certificate } from "../types";
 
 interface CertificateViewProps {
@@ -26,8 +27,8 @@ export function CertificateView({ certificate }: CertificateViewProps) {
       {/* 1. PRINT / ACTION BAR (Hidden in print) */}
       <div className="flex items-center justify-between print:hidden">
         <div>
-          <span className="rounded-full bg-[#ecfdf5] px-3 py-1 text-xs font-bold text-[#047857]">
-            ✓ Verified & Active
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#ecfdf5] px-3 py-1 text-xs font-bold text-[#047857]">
+            <CheckCircle2 className="h-3.5 w-3.5" /> Verified & Active
           </span>
         </div>
         <div className="flex gap-2">
@@ -36,7 +37,7 @@ export function CertificateView({ certificate }: CertificateViewProps) {
             onClick={handlePrint}
             className="inline-flex items-center gap-2 rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-[#12569f]"
           >
-            <span>🖨️</span> Print / Save as PDF
+            <Printer className="h-4 w-4" /> Print / Save as PDF
           </button>
         </div>
       </div>
@@ -103,8 +104,8 @@ export function CertificateView({ certificate }: CertificateViewProps) {
 
             {/* 2. Official Seal */}
             <div className="flex flex-col items-center justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-[#1769c2] bg-[#eef5fc] text-2xl shadow-inner">
-                🏅
+              <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-[#1769c2] bg-[#eef5fc] text-[#1769c2] shadow-inner">
+                <Award className="h-8 w-8" />
               </div>
               <p className="mt-1 text-[9px] font-bold uppercase tracking-wider text-[#1769c2]">
                 MGN Verified Accreditation

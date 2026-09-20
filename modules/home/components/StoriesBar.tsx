@@ -4,6 +4,7 @@ import * as React from "react";
 import { StoryGroup } from "../types";
 import { CreateStoryModal } from "./CreateStoryModal";
 import { StoryViewerModal } from "./StoryViewerModal";
+import { Plus, Sparkles } from "lucide-react";
 
 interface StoriesBarProps {
   currentUserId?: string;
@@ -128,11 +129,11 @@ export function StoriesBar({
                 title="Add Story"
                 className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-[#1769c2] text-xs font-bold text-white shadow-xs transition hover:bg-[#12569f]"
               >
-                +
+                <Plus className="h-3 w-3 stroke-[3]" />
               </button>
             </div>
 
-            <span className="w-16 truncate text-center text-[11px] font-medium text-[#171717]">
+            <span className="w-16 truncate text-center text-[11px] font-semibold text-[#171717]">
               {ownStoryGroup ? "Your Story" : "Add Story"}
             </span>
           </div>
@@ -178,7 +179,7 @@ export function StoriesBar({
                   </div>
                 </div>
 
-                <span className="w-16 truncate text-center text-[11px] font-medium text-[#171717] group-hover:text-[#1769c2]">
+                <span className="w-16 truncate text-center text-[11px] font-semibold text-[#171717] group-hover:text-[#1769c2]">
                   {group.userName.split(" ")[0]}
                 </span>
               </button>
@@ -187,7 +188,7 @@ export function StoriesBar({
           {/* EMPTY PEER PROMPT */}
           {!isLoading && peerGroups.length === 0 && (
             <div className="flex items-center gap-2 pl-2 text-xs text-[#77716b]">
-              <span className="text-sm">✨</span>
+              <Sparkles className="h-3.5 w-3.5 text-[#1769c2]" />
               <span>Stories from connections disappear after 24h</span>
             </div>
           )}
