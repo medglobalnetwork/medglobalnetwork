@@ -55,13 +55,7 @@ export function StoryViewerModal({
     const step = (intervalTime / STORY_DURATION_MS) * 100;
 
     const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev + step >= 100) {
-          handleNext();
-          return 0;
-        }
-        return prev + step;
-      });
+      setProgress((prev) => Math.min(100, prev + step));
     }, intervalTime);
 
     return () => clearInterval(timer);
@@ -80,6 +74,13 @@ export function StoryViewerModal({
       onClose();
     }
   }, [currentGroup, storyIndex, groupIndex, groups.length, onClose]);
+
+  // Trigger next story when progress reaches 100%
+  React.useEffect(() => {
+    if (progress >= 100) {
+      handleNext();
+    }
+  }, [progress, handleNext]);
 
   const handlePrev = React.useCallback(() => {
     setProgress(0);
