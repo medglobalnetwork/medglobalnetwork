@@ -201,38 +201,38 @@ export function QuickLinksBar() {
         </div>
       </div>
 
-      {/* 2. 10 CARDS GRID (5 Columns x 2 Rows on Desktop) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
+      {/* 2. 10 CARDS GRID (2 Columns on Mobile, 5 Columns on Desktop) */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
         {cards.map((card) => (
           <div
             key={card.id}
             onClick={() => handleClick(card.href)}
-            className="group relative flex flex-col justify-between rounded-2xl border border-[#e8ecf2] bg-white p-4 sm:p-5 transition-all duration-200 hover:-translate-y-1 hover:border-[#cbd5e1] hover:shadow-md cursor-pointer"
+            className="group relative flex flex-col justify-between rounded-2xl border border-[#e8ecf2] bg-white p-3.5 sm:p-5 transition-all duration-200 hover:-translate-y-1 hover:border-[#cbd5e1] hover:shadow-md cursor-pointer"
           >
             {/* Top Icon */}
             <div>
               <div
-                className={`flex h-12 w-12 items-center justify-center rounded-2xl transition-transform duration-200 group-hover:scale-105 ${card.iconBg} ${card.iconColor}`}
+                className={`flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl sm:rounded-2xl transition-transform duration-200 group-hover:scale-105 [&>svg]:h-5 [&>svg]:w-5 sm:[&>svg]:h-6 sm:[&>svg]:w-6 ${card.iconBg} ${card.iconColor}`}
               >
                 {card.icon}
               </div>
 
               {/* Title & Description */}
-              <h3 className="mt-3.5 text-sm sm:text-base font-bold text-[#0f172a] tracking-tight group-hover:text-[#1b64da] transition-colors">
+              <h3 className="mt-2.5 sm:mt-3.5 text-xs sm:text-base font-bold text-[#0f172a] tracking-tight group-hover:text-[#1b64da] transition-colors">
                 {card.title}
               </h3>
-              <p className="mt-1 text-xs text-[#64748b] leading-relaxed line-clamp-2">
+              <p className="mt-0.5 sm:mt-1 text-[11px] sm:text-xs text-[#64748b] leading-tight sm:leading-relaxed line-clamp-2">
                 {card.description}
               </p>
             </div>
 
             {/* Bottom Action Row */}
-            <div className="mt-4 flex items-center justify-between pt-2 border-t border-slate-50">
-              <span className={`text-xs font-bold ${card.actionColor}`}>
+            <div className="mt-3 sm:mt-4 flex items-center justify-between pt-1.5 sm:pt-2 border-t border-slate-50">
+              <span className={`text-[11px] sm:text-xs font-bold ${card.actionColor}`}>
                 {card.actionText}
               </span>
-              <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[#e2e8f0] bg-white text-[#64748b] transition-all group-hover:border-[#1b64da] group-hover:bg-[#1b64da] group-hover:text-white shadow-2xs">
-                <ArrowRight className="h-3.5 w-3.5" />
+              <div className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full border border-[#e2e8f0] bg-white text-[#64748b] transition-all group-hover:border-[#1b64da] group-hover:bg-[#1b64da] group-hover:text-white shadow-2xs">
+                <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               </div>
             </div>
           </div>
