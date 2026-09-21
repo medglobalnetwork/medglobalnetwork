@@ -71,7 +71,43 @@ export async function getActiveStoryGroups(currentUserId?: string): Promise<Stor
   try {
     const now = new Date();
 
-    // Query all active non-expired stories
+    if (!currentUserId) {
+      return [];
+    }
+
+    // 1. Determine allowed author IDs: self + followed users + connected peers
+    const allowedUserIds = new Set<string>([currentUserId]);
+
+    const [followed, connected] = await Promise.all([
+      homeDb
+        .selectFrom(sql`follows` as any)
+        .select(["following_id as id"])
+        .where("follower_id", "=", currentUserId)
+        .execute()
+        .catch(() => []),
+      homeDb
+        .selectFrom(sql`connections` as any)
+        .select(["user_a_id", "user_b_id"])
+        .where((eb: any) =>
+          eb.or([
+            eb("user_a_id", "=", currentUserId),
+            eb("user_b_id", "=", currentUserId),
+          ])
+        )
+        .execute()
+        .catch(() => []),
+    ]);
+
+    followed.forEach((f: any) => {
+      if (f.id) allowedUserIds.add(f.id);
+    });
+
+    connected.forEach((c: any) => {
+      if (c.user_a_id === currentUserId && c.user_b_id) allowedUserIds.add(c.user_b_id);
+      else if (c.user_b_id === currentUserId && c.user_a_id) allowedUserIds.add(c.user_a_id);
+    });
+
+    // 2. Query only active non-expired stories from allowed users
     const storiesRaw = await homeDb
       .selectFrom("stories")
       .innerJoin("user", "user.id", "stories.user_id")
@@ -94,6 +130,7 @@ export async function getActiveStoryGroups(currentUserId?: string): Promise<Stor
         "professional_profiles.registration_verified as registrationVerified",
       ])
       .where("stories.expires_at", ">", now)
+      .where("stories.user_id", "in", Array.from(allowedUserIds))
       .orderBy("stories.created_at", "asc")
       .execute();
 

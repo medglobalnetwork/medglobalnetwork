@@ -56,10 +56,10 @@ export async function GET(request: Request) {
 
     // Rule-based recommendation: same profession/specialization/city
     let q = networkDb
-      .selectFrom("professional_profiles as pp")
-      .innerJoin("user as u", "u.id", "pp.user_id")
+      .selectFrom("user as u")
+      .leftJoin("professional_profiles as pp", "pp.user_id", "u.id")
       .select([
-        "pp.user_id",
+        "u.id as user_id",
         "u.name",
         "u.image",
         "pp.profession",
@@ -73,11 +73,16 @@ export async function GET(request: Request) {
         "pp.experience_verified",
         "pp.experience_years",
       ])
-      .where("pp.profile_visibility", "<>", "private");
+      .where((eb) =>
+        eb.or([
+          eb("pp.profile_visibility", "is", null),
+          eb("pp.profile_visibility", "<>", "private"),
+        ])
+      );
 
-    // Exclude already connected / pending
+    // Exclude already connected / pending / self
     if (excludeIds.size > 0) {
-      q = q.where("pp.user_id", "not in", [...excludeIds]);
+      q = q.where("u.id", "not in", [...excludeIds]);
     }
 
     // Prioritize matches

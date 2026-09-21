@@ -2,6 +2,7 @@
 import { auth } from "@/lib/auth";
 import { networkDb, generateId } from "@/modules/network/lib/network-db";
 import { headers } from "next/headers";
+import { sql } from "kysely";
 
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -21,9 +22,9 @@ export async function GET(request: Request) {
 
   try {
     let base = networkDb
-      .selectFrom("professional_profiles as pp")
-      .innerJoin("user as u", "u.id", "pp.user_id")
-      .where("pp.user_id", "<>", session.user.id)
+      .selectFrom("user as u")
+      .leftJoin("professional_profiles as pp", "pp.user_id", "u.id")
+      .where("u.id", "<>", session.user.id)
       .where((eb) =>
         eb.or([
           eb("pp.profile_visibility", "is", null),
@@ -47,9 +48,11 @@ export async function GET(request: Request) {
       base = base.where((eb) =>
         eb.or([
           eb("u.name", "ilike", `%${query}%`),
+          eb("u.email", "ilike", `%${query}%`),
           eb("pp.profession", "ilike", `%${query}%`),
           eb("pp.specialization", "ilike", `%${query}%`),
           eb("pp.organization", "ilike", `%${query}%`),
+          eb("pp.city", "ilike", `%${query}%`),
         ])
       );
     }
@@ -57,8 +60,8 @@ export async function GET(request: Request) {
     const [profiles, countResult] = await Promise.all([
       base
         .select([
-          "pp.id",
-          "pp.user_id",
+          sql<string>`COALESCE(pp.id, u.id)`.as("id"),
+          "u.id as user_id",
           "u.name",
           "u.image",
           "pp.profession",
