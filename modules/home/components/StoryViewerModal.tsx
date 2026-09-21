@@ -3,6 +3,7 @@
 import * as React from "react";
 import { StoryGroup, Story } from "../types";
 import { VerificationBadge } from "@/modules/network/components/VerificationBadge";
+import { formatRelativeTime } from "@/modules/network/lib/network-data";
 import { Eye, Trash2, X, Heart, ThumbsUp, Sparkles, Flame, Lightbulb } from "lucide-react";
 
 interface StoryViewerModalProps {
@@ -144,14 +145,6 @@ export function StoryViewerModal({
 
   if (!isOpen || !currentGroup || !currentStory) return null;
 
-  const getTimeAgo = (dateStr: string) => {
-    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-    if (diff < 60) return "Just now";
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
-  };
-
   const isOwnStory = currentUserId === currentStory.userId;
 
   return (
@@ -204,7 +197,7 @@ export function StoryViewerModal({
                   {currentStory.userName}
                 </span>
                 {currentStory.isVerified && <VerificationBadge size="sm" />}
-                <span className="text-[10px] text-white/70">· {getTimeAgo(currentStory.createdAt)}</span>
+                <span className="text-[10px] text-white/70">· {formatRelativeTime(currentStory.createdAt)}</span>
               </div>
               <p className="text-[10px] text-white/80 line-clamp-1">
                 {currentStory.userSpecialization || "Clinician"}
