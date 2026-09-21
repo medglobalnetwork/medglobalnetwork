@@ -25,9 +25,11 @@ import { formatRelativeTime } from "@/modules/network/lib/network-data";
 function NotifPopup({
   onClose,
   onViewAll,
+  onMarkAllRead,
 }: {
   onClose: () => void;
   onViewAll: () => void;
+  onMarkAllRead?: () => void;
 }) {
   const ref = React.useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -68,12 +70,19 @@ function NotifPopup({
     await fetch("/api/network/notifications", {
       method: "PATCH",
       credentials: "include",
-    });
+    }).catch(() => {});
     setNotifs((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    onMarkAllRead?.();
   };
 
-  const handleNotifClick = (n: { type: string; actor_id?: string }) => {
+  const handleNotifClick = (n: { id: string; type: string; actor_id?: string }) => {
     onClose();
+    fetch("/api/network/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ ids: [n.id] }),
+    }).catch(() => {});
     if (n.type.includes("connection")) {
       router.push("/network/connections");
     } else if (n.type.includes("post")) {
@@ -157,7 +166,7 @@ export default function AppHeader() {
   const pathname = usePathname();
   const { data: session } = authClient.useSession();
   const [notifOpen, setNotifOpen] = React.useState(false);
-  const [unreadCount, setUnreadCount] = React.useState(3);
+  const [unreadCount, setUnreadCount] = React.useState(0);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -177,6 +186,20 @@ export default function AppHeader() {
       })
       .catch(() => {});
   }, [session?.user]);
+
+  const handleToggleNotifications = () => {
+    setNotifOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setUnreadCount(0);
+        fetch("/api/network/notifications", {
+          method: "PATCH",
+          credentials: "include",
+        }).catch(() => {});
+      }
+      return next;
+    });
+  };
 
   // Ctrl+K / Cmd+K → focus search
   React.useEffect(() => {
@@ -288,10 +311,7 @@ export default function AppHeader() {
                     type="button"
                     aria-label="Notifications"
                     aria-expanded={notifOpen}
-                    onClick={() => {
-                      setNotifOpen((o) => !o);
-                      if (!notifOpen) setUnreadCount(0);
-                    }}
+                    onClick={handleToggleNotifications}
                     className="relative flex h-9 w-9 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
                   >
                     <Bell className="h-5 w-5 stroke-[1.8]" />
@@ -304,6 +324,7 @@ export default function AppHeader() {
                   {notifOpen && (
                     <NotifPopup
                       onClose={() => setNotifOpen(false)}
+                      onMarkAllRead={() => setUnreadCount(0)}
                       onViewAll={() => {
                         setNotifOpen(false);
                         router.push("/network/connections");
@@ -392,10 +413,7 @@ export default function AppHeader() {
                     type="button"
                     aria-label="Notifications"
                     aria-expanded={notifOpen}
-                    onClick={() => {
-                      setNotifOpen((o) => !o);
-                      if (!notifOpen) setUnreadCount(0);
-                    }}
+                    onClick={handleToggleNotifications}
                     className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
                   >
                     <Bell className="h-4.5 w-4.5 sm:h-5 sm:w-5 stroke-[1.8]" />
@@ -408,6 +426,7 @@ export default function AppHeader() {
                   {notifOpen && (
                     <NotifPopup
                       onClose={() => setNotifOpen(false)}
+                      onMarkAllRead={() => setUnreadCount(0)}
                       onViewAll={() => {
                         setNotifOpen(false);
                         router.push("/network/connections");
@@ -516,10 +535,7 @@ export default function AppHeader() {
                   type="button"
                   aria-label="Notifications"
                   aria-expanded={notifOpen}
-                  onClick={() => {
-                    setNotifOpen((o) => !o);
-                    if (!notifOpen) setUnreadCount(0);
-                  }}
+                  onClick={handleToggleNotifications}
                   className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
                 >
                   <Bell className="h-4.5 w-4.5 sm:h-5 sm:w-5 stroke-[1.8]" />
@@ -532,6 +548,7 @@ export default function AppHeader() {
                 {notifOpen && (
                   <NotifPopup
                     onClose={() => setNotifOpen(false)}
+                    onMarkAllRead={() => setUnreadCount(0)}
                     onViewAll={() => {
                       setNotifOpen(false);
                       router.push("/network/connections");
