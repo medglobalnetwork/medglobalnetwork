@@ -509,7 +509,7 @@ export default function LearnPage() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {continueLearning.slice(0, 3).map((item) => (
                 <div
                   key={item.id}
@@ -731,8 +731,8 @@ export default function LearnPage() {
             </div>
           </div>
 
-          {/* Courses Grid */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Courses Grid (2-column on mobile) */}
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {filteredTabCourses.map((course) => (
               <CourseCard key={course.id} course={course} />
             ))}
