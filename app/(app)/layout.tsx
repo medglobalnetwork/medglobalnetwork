@@ -5,7 +5,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <AppHeader />
-      {children}
+      <div className="flex-1 pb-18 md:pb-0">{children}</div>
       <AppBottomNav />
     </>
   );

@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useScrollDirection } from "@/lib/useScrollDirection";
 
 type NavTab = "home" | "network" | "learn" | "opportunities" | "marketplace";
 
@@ -87,8 +86,7 @@ const iconMap = {
 
 export default function AppBottomNav() {
   const pathname = usePathname();
-  const router   = useRouter();
-  const hidden   = useScrollDirection();
+  const router = useRouter();
 
   const activeTab: NavTab =
     navItems.find((n) => pathname.startsWith(`/${n.id}`))?.id ?? "home";
@@ -96,33 +94,45 @@ export default function AppBottomNav() {
   return (
     <nav
       aria-label="Primary navigation"
-      className={`fixed bottom-5 left-1/2 z-50 -translate-x-1/2 flex md:hidden h-[64px] items-center gap-0.5 rounded-[22px] border border-[#e8e6e3] bg-white px-2 shadow-[0_8px_32px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] transition-transform duration-300 ease-in-out ${
-        hidden ? "translate-y-[calc(100%+2.5rem)]" : "translate-y-0"
-      }`}
+      className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden w-full items-center justify-around border-t border-[#e8e6e3] bg-white/95 backdrop-blur-md px-1 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] shadow-[0_-2px_12px_rgba(0,0,0,0.06)]"
+      style={{
+        paddingBottom: "max(0.4rem, env(safe-area-inset-bottom, 0px))",
+      }}
     >
-      {navItems.map((item) => {
-        const isActive = activeTab === item.id;
-        const Icon = iconMap[item.id];
-        return (
-          <button
-            key={item.id}
-            type="button"
-            aria-label={item.label}
-            aria-current={isActive ? "page" : undefined}
-            onClick={() => router.push(`/${item.id}`)}
-            className={`flex flex-col items-center justify-center gap-0.5 lg:gap-1 rounded-xl lg:rounded-2xl px-2.5 lg:px-4 py-1.5 lg:py-2 transition-colors ${
-              isActive
-                ? "text-[#1769c2]"
-                : "text-[#8a8784] hover:text-[#3f3f3c]"
-            }`}
-          >
-            <Icon active={isActive} />
-            <span className={`text-[9.5px] lg:text-[11.5px] font-medium leading-none ${isActive ? "text-[#1769c2]" : "text-[#8a8784]"}`}>
-              {item.label}
-            </span>
-          </button>
-        );
-      })}
+      <div className="flex w-full items-center justify-around max-w-lg mx-auto">
+        {navItems.map((item) => {
+          const isActive = activeTab === item.id;
+          const Icon = iconMap[item.id];
+          return (
+            <button
+              key={item.id}
+              type="button"
+              aria-label={item.label}
+              aria-current={isActive ? "page" : undefined}
+              onClick={() => router.push(`/${item.id}`)}
+              className={`flex flex-1 flex-col items-center justify-center py-1 transition-colors relative ${
+                isActive
+                  ? "text-[#1769c2]"
+                  : "text-[#8a8784] hover:text-[#3f3f3c] active:scale-95"
+              }`}
+            >
+              <div className="relative flex items-center justify-center">
+                <Icon active={isActive} />
+                {isActive && (
+                  <span className="absolute -bottom-1 h-1 w-1 rounded-full bg-[#1769c2]" />
+                )}
+              </div>
+              <span
+                className={`mt-1 text-[10px] font-medium leading-none ${
+                  isActive ? "text-[#1769c2] font-semibold" : "text-[#8a8784]"
+                }`}
+              >
+                {item.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </nav>
   );
 }
