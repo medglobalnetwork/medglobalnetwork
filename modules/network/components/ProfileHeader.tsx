@@ -4,18 +4,15 @@ import * as React from "react";
 import { 
   CheckCircle2, 
   MapPin, 
-  Sparkles, 
   ShieldCheck, 
-  Camera, 
   Edit3, 
   Share2, 
-  MoreHorizontal, 
   MessageSquare, 
   UserPlus, 
   Check, 
+  Stethoscope,
   ExternalLink,
-  Award,
-  Stethoscope
+  Mail
 } from "lucide-react";
 import { VerificationBadge } from "@/modules/network/components/VerificationBadge";
 import { ConnectionButton } from "@/modules/network/components/ConnectionButton";
@@ -55,37 +52,6 @@ export function ProfileHeader({
   onOpenKnowMore,
   onShareClick,
 }: ProfileHeaderProps) {
-  const [coverUrl, setCoverUrl] = React.useState<string>(
-    "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1600&auto=format&fit=crop&q=80"
-  );
-  const [quoteText, setQuoteText] = React.useState<string>("Healing Movement, Better Lives");
-  const [isEditingCover, setIsEditingCover] = React.useState(false);
-  const [newCoverInput, setNewCoverInput] = React.useState("");
-  const [newQuoteInput, setNewQuoteInput] = React.useState("");
-
-  // Load custom cover & quote from localStorage if customized
-  React.useEffect(() => {
-    if (typeof window !== "undefined" && profile.user_id) {
-      const savedCover = localStorage.getItem(`mgn_cover_${profile.user_id}`);
-      if (savedCover) setCoverUrl(savedCover);
-      const savedQuote = localStorage.getItem(`mgn_quote_${profile.user_id}`);
-      if (savedQuote) setQuoteText(savedQuote);
-    }
-  }, [profile.user_id]);
-
-  const handleSaveCover = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newCoverInput.trim()) {
-      setCoverUrl(newCoverInput.trim());
-      localStorage.setItem(`mgn_cover_${profile.user_id}`, newCoverInput.trim());
-    }
-    if (newQuoteInput.trim()) {
-      setQuoteText(newQuoteInput.trim());
-      localStorage.setItem(`mgn_quote_${profile.user_id}`, newQuoteInput.trim());
-    }
-    setIsEditingCover(false);
-  };
-
   const isVerified =
     profile.identity_verified ||
     profile.education_verified ||
@@ -104,315 +70,190 @@ export function ProfileHeader({
     ? profile.skills 
     : [profile.profession, profile.specialization, "Evidence-Based Care", "Clinical Rehab"].filter(Boolean) as string[];
 
+  const formatCount = (count?: number) => {
+    if (!count) return "0";
+    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+    return count.toLocaleString();
+  };
+
   return (
-    <div className="relative rounded-3xl bg-white shadow-sm border border-[#e8e6e3] overflow-hidden mb-4 sm:mb-5">
-      {/* 1. Panoramic Mountain Cover Image with Overlay Quote */}
-      <div className="relative h-28 sm:h-36 lg:h-44 w-full overflow-hidden bg-gradient-to-r from-teal-900 via-emerald-800 to-cyan-900">
-        <img
-          src={coverUrl}
-          alt="Profile Cover"
-          className="h-full w-full object-cover opacity-85 transition-transform duration-700 hover:scale-105"
-        />
-        
-        {/* Soft Dark Vignette Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30" />
-
-        {/* Inspirational Floating Motto / Quote */}
-        {quoteText && (
-          <div className="absolute top-3 left-4 sm:top-4 sm:left-6 max-w-md hidden xs:block">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-black/40 backdrop-blur-md px-3 py-1 border border-white/15 text-[11px] sm:text-xs text-white/95 font-medium tracking-wide shadow-md">
-              <Sparkles className="h-3 w-3 text-amber-300" />
-              <span>&ldquo;{quoteText}&rdquo;</span>
-            </div>
-          </div>
-        )}
-
-        {/* Edit Cover Action Button for Own Profile */}
-        {isOwnProfile && (
-          <div className="absolute top-3 right-3 sm:top-4 sm:right-5">
-            <button
-              type="button"
-              onClick={() => {
-                setNewCoverInput(coverUrl);
-                setNewQuoteInput(quoteText);
-                setIsEditingCover(true);
-              }}
-              className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md px-3 py-1 text-[11px] sm:text-xs font-semibold text-white border border-white/30 transition-all hover:bg-white/30 hover:scale-105 active:scale-95 shadow-md"
+    <div className="bg-white rounded-3xl border border-[#e8e6e3] shadow-xs p-4 sm:p-6 mb-4 sm:mb-5">
+      {/* 1. TOP ROW: Avatar on Left + (Posts, Followers, Following) on Right */}
+      <div className="flex items-center justify-between gap-4 mb-4">
+        {/* Large Round Avatar with Gradient Story Ring */}
+        <div className="relative shrink-0">
+          <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full p-[2.5px] bg-gradient-to-tr from-amber-500 via-rose-500 to-fuchsia-600 shadow-xs">
+            <div
+              className="h-full w-full rounded-full overflow-hidden flex items-center justify-center text-xl sm:text-2xl font-extrabold text-white border-2 border-white"
+              style={{ background: color }}
             >
-              <Camera className="h-3 w-3" />
-              <span>Edit Cover</span>
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* 2. Cover Edit Dialog Modal */}
-      {isEditingCover && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-[#e8e6e3]">
-            <h3 className="text-base font-bold text-[#171717] mb-1">Customize Cover Header</h3>
-            <p className="text-xs text-[#77716b] mb-4">
-              Enter an image URL for your cover banner and set your inspirational professional motto.
-            </p>
-            <form onSubmit={handleSaveCover} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-[#5d5854] mb-1">
-                  Cover Image URL
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://images.unsplash.com/..."
-                  value={newCoverInput}
-                  onChange={(e) => setNewCoverInput(e.target.value)}
-                  className="w-full rounded-xl border border-[#ded8d1] px-3 py-2 text-xs text-[#171717] focus:outline-none focus:ring-2 focus:ring-[#1769c2]"
+              {profile.image ? (
+                <img
+                  src={profile.image}
+                  alt={profile.name}
+                  className="h-full w-full object-cover"
                 />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-[#5d5854] mb-1">
-                  Cover Quote / Motto
-                </label>
-                <input
-                  type="text"
-                  placeholder="Healing Movement, Better Lives"
-                  value={newQuoteInput}
-                  onChange={(e) => setNewQuoteInput(e.target.value)}
-                  className="w-full rounded-xl border border-[#ded8d1] px-3 py-2 text-xs text-[#171717] focus:outline-none focus:ring-2 focus:ring-[#1769c2]"
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsEditingCover(false)}
-                  className="rounded-xl border border-[#ded8d1] px-4 py-2 text-xs font-semibold text-[#5d5854] hover:bg-[#f8f7f6]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-semibold text-white shadow hover:bg-[#12569f]"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* 3. Main Profile Details Section */}
-      <div className="px-4 sm:px-6 pb-4 sm:pb-5">
-        <div className="flex flex-col md:flex-row md:items-end justify-between items-center md:items-end gap-3 -mt-10 sm:-mt-12 lg:-mt-14 mb-3 sm:mb-4 text-center md:text-left">
-          {/* Avatar with Teal Ring & Online Dot */}
-          <div className="flex flex-col md:flex-row items-center md:items-end gap-3.5">
-            <div className="relative group">
-              <div className="relative h-20 w-20 sm:h-24 sm:w-24 lg:h-28 lg:w-28 rounded-full p-1 bg-white shadow-lg ring-3 sm:ring-4 ring-cyan-500/80">
-                <div
-                  className="h-full w-full rounded-full overflow-hidden flex items-center justify-center text-xl sm:text-2xl font-extrabold text-white"
-                  style={{ background: color }}
-                >
-                  {profile.image ? (
-                    <img
-                      src={profile.image}
-                      alt={profile.name}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    initials
-                  )}
-                </div>
-              </div>
-              {/* Online Green Indicator Dot */}
-              <span
-                className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full bg-emerald-500 ring-2 sm:ring-3 ring-white shadow-sm"
-                title="Online & Verified"
-              />
-            </div>
-
-            {/* Mobile Name & Profession */}
-            <div className="md:hidden text-center">
-              <div className="flex items-center justify-center gap-1.5">
-                <h1 className="text-lg font-bold text-[#171717]">{profile.name}</h1>
-                <CheckCircle2 className="h-4.5 w-4.5 text-blue-500 fill-blue-500 text-white shrink-0" />
-              </div>
-              <p className="text-[11px] font-medium text-[#5d5854]">
-                {profile.designation ? `${profile.designation} · ` : ""}
-                {profile.profession}
-                {profile.specialization ? ` (${profile.specialization})` : ""}
-              </p>
-            </div>
-          </div>
-
-          {/* Action Buttons Toolbar */}
-          <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 pt-1 w-full md:w-auto">
-            {isOwnProfile ? (
-              <>
-                <button
-                  type="button"
-                  onClick={onEditProfileClick}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-3.5 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-[#12569f] active:scale-95"
-                >
-                  <Edit3 className="h-3.5 w-3.5" />
-                  <span>Edit Profile</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={onOpenKnowMore}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-white px-3.5 py-2 text-xs font-semibold text-[#5d5854] shadow-xs transition hover:bg-[#f8f7f6] active:scale-95"
-                >
-                  <Stethoscope className="h-3.5 w-3.5 text-[#1769c2]" />
-                  <span>Know More</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={onShareClick}
-                  className="inline-flex items-center justify-center h-8.5 w-8.5 rounded-xl border border-[#ded8d1] bg-white text-[#5d5854] transition hover:bg-[#f8f7f6] active:scale-95"
-                  title="Share Profile"
-                >
-                  <Share2 className="h-3.5 w-3.5" />
-                </button>
-              </>
-            ) : (
-              <>
-                <ConnectionButton
-                  targetUserId={profile.user_id}
-                  initialStatus={connectionStatus}
-                  onStatusChange={onStatusChange}
-                  onConnectClick={onConnectClick}
-                  size="md"
-                />
-                <button
-                  type="button"
-                  onClick={onFollowToggle}
-                  disabled={followLoading}
-                  className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition active:scale-95 disabled:opacity-50 ${
-                    isFollowing
-                      ? "border-[#1769c2] bg-[#eef5fc] text-[#1769c2]"
-                      : "border-[#ded8d1] bg-white text-[#171717] hover:bg-[#f8f7f6]"
-                  }`}
-                >
-                  {followLoading ? (
-                    "..."
-                  ) : isFollowing ? (
-                    <>
-                      <Check className="h-3.5 w-3.5" />
-                      <span>Following</span>
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="h-3.5 w-3.5 text-[#1769c2]" />
-                      <span>Follow</span>
-                    </>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={onOpenKnowMore}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-3.5 py-2 text-xs font-semibold text-[#5d5854] hover:bg-[#f0efee] active:scale-95"
-                >
-                  <span>Know More</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={onShareClick}
-                  className="inline-flex items-center justify-center h-8.5 w-8.5 rounded-xl border border-[#ded8d1] bg-white text-[#5d5854] transition hover:bg-[#f8f7f6]"
-                >
-                  <Share2 className="h-3.5 w-3.5" />
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Profile Info Row */}
-        <div className="space-y-2 text-center md:text-left">
-          <div className="hidden md:block">
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-black text-[#171717] tracking-tight">{profile.name}</h1>
-              <CheckCircle2 className="h-5 w-5 text-blue-500 fill-blue-500 text-white" />
-              {isVerified && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700">
-                  <ShieldCheck className="h-3.5 w-3.5" /> Verified Clinician
-                </span>
+              ) : (
+                initials
               )}
             </div>
-            <p className="mt-0.5 text-xs sm:text-sm font-semibold text-[#5d5854]">
-              {profile.designation ? `${profile.designation} · ` : ""}
-              {profile.profession}
-              {profile.specialization ? ` (${profile.specialization})` : ""}
-            </p>
+          </div>
+          {/* Online green indicator dot */}
+          <span className="absolute bottom-1 right-1 h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full bg-emerald-500 ring-2 ring-white shadow-xs" />
+        </div>
+
+        {/* Stats on the right: Posts, Followers, Following */}
+        <div className="flex-1 flex items-center justify-around text-center max-w-sm sm:max-w-md ml-1 sm:ml-4">
+          <div className="cursor-pointer">
+            <span className="block text-base sm:text-lg font-black text-[#171717] tracking-tight">
+              {(profile.post_count ?? 142).toLocaleString()}
+            </span>
+            <span className="text-xs sm:text-sm text-[#5d5854] font-medium">posts</span>
           </div>
 
-          {/* Location & Organization */}
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-y-1 gap-x-4 text-xs text-[#77716b]">
-            {(profile.city || profile.state) && (
-              <span className="inline-flex items-center gap-1 text-[#5d5854] font-medium">
-                <MapPin className="h-3.5 w-3.5 text-[#1769c2]" />
-                {[profile.city, profile.state].filter(Boolean).join(", ")}
-              </span>
-            )}
-            {profile.organization && (
-              <span>
-                Affiliated with <strong className="text-[#171717]">{profile.organization}</strong>
-              </span>
-            )}
-            {profile.experience_years !== undefined && profile.experience_years > 0 && (
-              <span>
-                <strong className="text-[#171717]">{profile.experience_years} years</strong> active practice
-              </span>
-            )}
+          <div className="cursor-pointer">
+            <span className="block text-base sm:text-lg font-black text-[#171717] tracking-tight">
+              {formatCount(profile.follower_count ?? 1240)}
+            </span>
+            <span className="text-xs sm:text-sm text-[#5d5854] font-medium">followers</span>
           </div>
 
-          {/* Bio snippet */}
-          <p className="text-xs sm:text-sm text-[#44403c] leading-relaxed max-w-3xl mx-auto md:mx-0">
-            {profile.bio ||
-              "Specialized in Clinical Healthcare, Rehabilitation & Patient Wellness. Helping patients regain strength & health with evidence-based modern medical practices."}
-          </p>
-
-          {/* Specialty Tags */}
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5 pt-1">
-            {tags.slice(0, 5).map((tag, idx) => (
-              <span
-                key={idx}
-                className="inline-flex items-center rounded-lg bg-[#f0f4f8] px-2.5 py-1 text-xs font-semibold text-[#1769c2] border border-[#d8e5f2]"
-              >
-                {tag}
-              </span>
-            ))}
-            {tags.length > 5 && (
-              <span className="inline-flex items-center rounded-lg bg-[#f8f7f6] px-2 py-1 text-xs font-bold text-[#77716b] border border-[#e8e6e3]">
-                +{tags.length - 5}
-              </span>
-            )}
-          </div>
-
-          {/* Key Stats Strip (CENTER-BASED) */}
-          <div className="grid grid-cols-4 sm:flex sm:items-center sm:justify-center sm:gap-12 pt-3 border-t border-[#f0efee] text-xs text-center">
-            <div className="text-center">
-              <span className="block text-sm sm:text-base font-extrabold text-[#171717]">
-                {(profile.post_count ?? 142).toLocaleString()}
-              </span>
-              <span className="text-[#77716b] text-[10px] sm:text-[11px] font-medium">Posts</span>
-            </div>
-            <div className="text-center">
-              <span className="block text-sm sm:text-base font-extrabold text-[#171717]">
-                {(profile.connection_count ?? 584).toLocaleString()}
-              </span>
-              <span className="text-[#77716b] text-[10px] sm:text-[11px] font-medium">Connections</span>
-            </div>
-            <div className="text-center">
-              <span className="block text-sm sm:text-base font-extrabold text-[#171717]">
-                {(profile.follower_count ?? 1240).toLocaleString()}
-              </span>
-              <span className="text-[#77716b] text-[10px] sm:text-[11px] font-medium">Followers</span>
-            </div>
-            <div className="text-center">
-              <span className="block text-sm sm:text-base font-extrabold text-[#171717]">
-                {(profile.following_count ?? 320).toLocaleString()}
-              </span>
-              <span className="text-[#77716b] text-[10px] sm:text-[11px] font-medium">Following</span>
-            </div>
+          <div className="cursor-pointer">
+            <span className="block text-base sm:text-lg font-black text-[#171717] tracking-tight">
+              {formatCount(profile.following_count ?? 320)}
+            </span>
+            <span className="text-xs sm:text-sm text-[#5d5854] font-medium">following</span>
           </div>
         </div>
+      </div>
+
+      {/* 2. NAME, PROFESSION, BIO & LINKS */}
+      <div className="space-y-1 mb-4">
+        {/* Name with Blue Verification Badge */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <h1 className="text-base sm:text-lg font-black text-[#171717] tracking-tight">
+            {profile.name}
+          </h1>
+          <CheckCircle2 className="h-4.5 w-4.5 text-blue-500 fill-blue-500 text-white shrink-0" />
+          {isVerified && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+              <ShieldCheck className="h-3 w-3" /> Verified Clinician
+            </span>
+          )}
+        </div>
+
+        {/* Profession & Specialization */}
+        <p className="text-xs font-semibold text-[#5d5854]">
+          {profile.designation ? `${profile.designation} · ` : ""}
+          {profile.profession}
+          {profile.specialization ? ` (${profile.specialization})` : ""}
+        </p>
+
+        {/* Bio Text */}
+        <p className="text-xs sm:text-sm text-[#262626] leading-relaxed pt-0.5">
+          {profile.bio ||
+            "Specialized in Clinical Healthcare, Rehabilitation & Patient Wellness. Helping patients regain strength & health with evidence-based modern medical practices."}
+        </p>
+
+        {/* Location & Organization / Links */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#171717] pt-1">
+          {(profile.city || profile.state) && (
+            <span className="inline-flex items-center gap-1 text-[#5d5854] font-medium">
+              <MapPin className="h-3.5 w-3.5 text-[#1769c2]" />
+              {[profile.city, profile.state].filter(Boolean).join(", ")}
+            </span>
+          )}
+          {profile.organization && (
+            <span className="inline-flex items-center gap-1 font-semibold text-[#1769c2]">
+              🔗 {profile.organization}
+            </span>
+          )}
+        </div>
+
+        {/* Specialty Tag Pills */}
+        <div className="flex flex-wrap items-center gap-1.5 pt-1.5">
+          {tags.slice(0, 4).map((tag, idx) => (
+            <span
+              key={idx}
+              className="inline-flex items-center rounded-lg bg-[#f0f4f8] px-2.5 py-0.5 text-[11px] font-semibold text-[#1769c2] border border-[#d8e5f2]"
+            >
+              {tag}
+            </span>
+          ))}
+          {tags.length > 4 && (
+            <span className="inline-flex items-center rounded-lg bg-[#f8f7f6] px-2 py-0.5 text-[11px] font-bold text-[#77716b] border border-[#e8e6e3]">
+              +{tags.length - 4}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* 3. ACTION BUTTONS ROW (Instagram Style) */}
+      <div className="flex items-center gap-2 pt-1">
+        {isOwnProfile ? (
+          <>
+            <button
+              type="button"
+              onClick={onEditProfileClick}
+              className="flex-1 rounded-xl bg-[#efefef] hover:bg-[#e4e4e4] py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-[#171717] transition active:scale-98 text-center"
+            >
+              Edit profile
+            </button>
+            <button
+              type="button"
+              onClick={onOpenKnowMore}
+              className="flex-1 rounded-xl bg-[#efefef] hover:bg-[#e4e4e4] py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-[#171717] transition active:scale-98 text-center"
+            >
+              Know More
+            </button>
+            <button
+              type="button"
+              onClick={onShareClick}
+              className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-[#efefef] hover:bg-[#e4e4e4] text-[#171717] transition active:scale-95"
+              title="Share profile"
+            >
+              <Share2 className="h-4 w-4" />
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={onFollowToggle}
+              disabled={followLoading}
+              className={`flex-1 rounded-xl py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition active:scale-98 text-center ${
+                isFollowing
+                  ? "bg-[#efefef] hover:bg-[#e4e4e4] text-[#171717]"
+                  : "bg-[#1769c2] hover:bg-[#12569f] text-white shadow-xs"
+              }`}
+            >
+              {followLoading ? "..." : isFollowing ? "Following" : "Follow"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {}}
+              className="flex-1 rounded-xl bg-[#efefef] hover:bg-[#e4e4e4] py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-[#171717] transition active:scale-98 text-center"
+            >
+              Message
+            </button>
+            <button
+              type="button"
+              onClick={onOpenKnowMore}
+              className="flex-1 rounded-xl bg-[#efefef] hover:bg-[#e4e4e4] py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-[#171717] transition active:scale-98 text-center"
+            >
+              Know More
+            </button>
+            <button
+              type="button"
+              onClick={onConnectClick}
+              className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-[#efefef] hover:bg-[#e4e4e4] text-[#171717] transition active:scale-95"
+              title="Add connection"
+            >
+              <UserPlus className="h-4 w-4" />
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

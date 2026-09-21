@@ -12,10 +12,9 @@ import {
   MessageCircle, 
   Share2, 
   X, 
-  ChevronLeft, 
-  ChevronRight,
   SlidersHorizontal,
-  Eye,
+  Repeat,
+  UserCheck,
   CheckCircle2
 } from "lucide-react";
 
@@ -82,7 +81,7 @@ const SAMPLE_POSTS: MediaPost[] = [
     likes: 512,
     commentsCount: 42,
     views: "4.7K",
-    isPinned: false,
+    isPinned: true,
     isVideo: false,
     timestamp: "1 week ago",
     tags: ["#Ergonomics", "#PosturalHealth", "#WorkplaceWellness"],
@@ -182,152 +181,108 @@ export function ProfileContentGrid({ userId, isOwnProfile }: ProfileContentGridP
   };
 
   return (
-    <div className="rounded-3xl bg-white border border-[#e8e6e3] shadow-sm overflow-hidden mb-6">
-      {/* Tab Navigation Strip */}
-      <div className="flex items-center justify-between border-b border-[#f0efee] px-4 sm:px-6">
-        <div className="flex items-center gap-1 sm:gap-4 overflow-x-auto no-scrollbar">
-          <button
-            type="button"
-            onClick={() => setActiveTab("posts")}
-            className={`inline-flex items-center gap-2 py-4 px-2 sm:px-3 text-xs sm:text-sm font-bold border-b-2 transition-all shrink-0 ${
-              activeTab === "posts"
-                ? "border-[#1769c2] text-[#1769c2]"
-                : "border-transparent text-[#77716b] hover:text-[#171717]"
-            }`}
-          >
-            <Grid3X3 className="h-4 w-4" />
-            <span>Posts</span>
-            <span className="rounded-full bg-[#f0efee] px-2 py-0.5 text-[10px] font-bold text-[#5d5854]">
-              142
-            </span>
-          </button>
+    <div className="rounded-3xl bg-white border border-[#e8e6e3] shadow-xs overflow-hidden mb-6">
+      {/* Instagram 4-Icon Navigation Tabs */}
+      <div className="grid grid-cols-4 border-b border-[#e8e6e3] bg-white">
+        <button
+          type="button"
+          onClick={() => setActiveTab("posts")}
+          className={`flex items-center justify-center py-3.5 sm:py-4 transition-all border-b-2 ${
+            activeTab === "posts"
+              ? "border-[#171717] text-[#171717]"
+              : "border-transparent text-[#a8a29e] hover:text-[#57534e]"
+          }`}
+          title="Posts"
+        >
+          <Grid3X3 className="h-5 w-5 sm:h-6 sm:w-6" />
+        </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab("reels")}
-            className={`inline-flex items-center gap-2 py-4 px-2 sm:px-3 text-xs sm:text-sm font-bold border-b-2 transition-all shrink-0 ${
-              activeTab === "reels"
-                ? "border-[#1769c2] text-[#1769c2]"
-                : "border-transparent text-[#77716b] hover:text-[#171717]"
-            }`}
-          >
-            <Film className="h-4 w-4" />
-            <span>Reels</span>
-            <span className="rounded-full bg-[#f0efee] px-2 py-0.5 text-[10px] font-bold text-[#5d5854]">
-              38
-            </span>
-          </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("reels")}
+          className={`flex items-center justify-center py-3.5 sm:py-4 transition-all border-b-2 ${
+            activeTab === "reels"
+              ? "border-[#171717] text-[#171717]"
+              : "border-transparent text-[#a8a29e] hover:text-[#57534e]"
+          }`}
+          title="Reels"
+        >
+          <Film className="h-5 w-5 sm:h-6 sm:w-6" />
+        </button>
 
-          {isOwnProfile && (
-            <button
-              type="button"
-              onClick={() => setActiveTab("saved")}
-              className={`inline-flex items-center gap-2 py-4 px-2 sm:px-3 text-xs sm:text-sm font-bold border-b-2 transition-all shrink-0 ${
-                activeTab === "saved"
-                  ? "border-[#1769c2] text-[#1769c2]"
-                : "border-transparent text-[#77716b] hover:text-[#171717]"
-              }`}
-            >
-              <Bookmark className="h-4 w-4" />
-              <span>Saved</span>
-              <span className="rounded-full bg-[#f0efee] px-2 py-0.5 text-[10px] font-bold text-[#5d5854]">
-                19
-              </span>
-            </button>
-          )}
+        <button
+          type="button"
+          onClick={() => setActiveTab("saved")}
+          className={`flex items-center justify-center py-3.5 sm:py-4 transition-all border-b-2 ${
+            activeTab === "saved"
+              ? "border-[#171717] text-[#171717]"
+              : "border-transparent text-[#a8a29e] hover:text-[#57534e]"
+          }`}
+          title="Saved & Reposts"
+        >
+          <Repeat className="h-5 w-5 sm:h-6 sm:w-6" />
+        </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab("tagged")}
-            className={`inline-flex items-center gap-2 py-4 px-2 sm:px-3 text-xs sm:text-sm font-bold border-b-2 transition-all shrink-0 ${
-              activeTab === "tagged"
-                ? "border-[#1769c2] text-[#1769c2]"
-                : "border-transparent text-[#77716b] hover:text-[#171717]"
-            }`}
-          >
-            <Tag className="h-4 w-4" />
-            <span>Tagged</span>
-            <span className="rounded-full bg-[#f0efee] px-2 py-0.5 text-[10px] font-bold text-[#5d5854]">
-              12
-            </span>
-          </button>
-        </div>
-
-        {/* Sort selector */}
-        <div className="hidden sm:flex items-center gap-2">
-          <SlidersHorizontal className="h-3.5 w-3.5 text-[#77716b]" />
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="rounded-lg border border-[#ded8d1] bg-white px-2.5 py-1 text-xs font-semibold text-[#5d5854] focus:outline-none focus:ring-1 focus:ring-[#1769c2]"
-          >
-            <option value="latest">Latest</option>
-            <option value="popular">Most Popular</option>
-            <option value="oldest">Oldest</option>
-          </select>
-        </div>
+        <button
+          type="button"
+          onClick={() => setActiveTab("tagged")}
+          className={`flex items-center justify-center py-3.5 sm:py-4 transition-all border-b-2 ${
+            activeTab === "tagged"
+              ? "border-[#171717] text-[#171717]"
+              : "border-transparent text-[#a8a29e] hover:text-[#57534e]"
+          }`}
+          title="Tagged"
+        >
+          <UserCheck className="h-5 w-5 sm:h-6 sm:w-6" />
+        </button>
       </div>
 
-      {/* 3-Column Instagram-Style Grid */}
-      <div className="p-4 sm:p-6">
+      {/* 3-Column Instagram-Style Media Grid */}
+      <div className="p-1 sm:p-4">
         {filteredPosts.length === 0 ? (
           <div className="py-16 text-center">
-            <p className="text-sm font-semibold text-[#77716b]">No media items found in this section.</p>
+            <p className="text-sm font-semibold text-[#77716b]">No media items in this section.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-3 gap-1 sm:gap-2">
             {filteredPosts.map((post) => (
               <div
                 key={post.id}
                 onClick={() => setSelectedPost(post)}
-                className="group relative aspect-4/5 sm:aspect-square w-full rounded-2xl overflow-hidden cursor-pointer bg-black/5 shadow-xs transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+                className="group relative aspect-square sm:aspect-4/5 w-full overflow-hidden cursor-pointer bg-black/5 transition-transform active:scale-98"
               >
                 {/* Image Thumbnail */}
                 <img
                   src={post.mediaUrl}
                   alt={post.caption}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
 
-                {/* Dark Vignette Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/20 opacity-80 group-hover:opacity-90 transition-opacity" />
+                {/* Dark Vignette Overlay on Hover */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                {/* Top Badges: Pinned / Video */}
-                <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between">
-                  {post.isPinned ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-black/60 backdrop-blur-md px-2 py-0.5 text-[10px] font-bold text-amber-300 border border-white/10 shadow-xs">
-                      <Pin className="h-3 w-3 fill-amber-300" />
-                      <span>Pinned</span>
-                    </span>
-                  ) : <span />}
-
-                  {post.isVideo && (
-                    <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/10 shadow-xs">
-                      <Play className="h-3 w-3 fill-white ml-0.5" />
-                    </span>
-                  )}
-                </div>
-
-                {/* Bottom Stats: Views & Engagement */}
-                <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-end justify-between text-white">
-                  {post.views ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold drop-shadow-md">
-                      <Play className="h-3 w-3 fill-white" />
-                      <span>{post.views}</span>
-                    </span>
-                  ) : (
-                    <span />
-                  )}
-
-                  {/* Hover stats */}
-                  <div className="flex items-center gap-2 text-[11px] font-bold opacity-90 group-hover:opacity-100 transition-opacity">
-                    <span className="inline-flex items-center gap-0.5">
-                      <Heart className="h-3 w-3 fill-white" /> {post.likes}
-                    </span>
-                    <span className="inline-flex items-center gap-0.5">
-                      <MessageCircle className="h-3 w-3 fill-white" /> {post.commentsCount}
-                    </span>
+                {/* Pinned Badge (Top Right) */}
+                {post.isPinned && (
+                  <div className="absolute top-2 right-2 flex items-center justify-center">
+                    <Pin className="h-4 w-4 fill-white text-white drop-shadow-md" />
                   </div>
+                )}
+
+                {/* Video Icon (Bottom/Top Right) */}
+                {post.isVideo && !post.isPinned && (
+                  <div className="absolute top-2 right-2 flex items-center justify-center">
+                    <Film className="h-4 w-4 text-white drop-shadow-md" />
+                  </div>
+                )}
+
+                {/* Hover Like & Comment Counts */}
+                <div className="absolute inset-0 hidden group-hover:flex items-center justify-center gap-3 text-white text-xs font-bold bg-black/30">
+                  <span className="flex items-center gap-1">
+                    <Heart className="h-4 w-4 fill-white text-white" /> {post.likes}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <MessageCircle className="h-4 w-4 fill-white text-white" /> {post.commentsCount}
+                  </span>
                 </div>
               </div>
             ))}
