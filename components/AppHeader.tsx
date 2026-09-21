@@ -14,6 +14,7 @@ import {
   Users,
   X,
   ArrowRight,
+  ArrowLeft,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import UserMenu from "@/components/UserMenu";
@@ -213,6 +214,89 @@ export default function AppHeader() {
     { id: "opportunities", label: "Opportunities", href: "/opportunities", icon: Briefcase },
     { id: "marketplace", label: "Marketplace", href: "/marketplace", icon: ShoppingBag },
   ];
+
+  const isProfilePage = pathname?.startsWith("/profile");
+
+  if (isProfilePage) {
+    return (
+      <header
+        className={`sticky top-0 z-40 border-b border-[#e8e6e3] bg-white transition-transform duration-300 ease-in-out ${
+          hidden ? "-translate-y-full" : "translate-y-0"
+        }`}
+      >
+        <div className="mx-auto flex h-14 sm:h-16 max-w-6xl items-center justify-between px-3 sm:px-6 lg:px-8">
+          {/* Left: Back Arrow */}
+          <div className="flex items-center">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              aria-label="Go back"
+              className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl text-[#5d5854] hover:bg-[#f0efee] hover:text-[#171717] transition active:scale-95"
+            >
+              <ArrowLeft className="h-5 w-5 stroke-[2.2]" />
+            </button>
+          </div>
+
+          {/* Center: Website Logo */}
+          <div className="flex items-center justify-center">
+            <Link href="/home" className="flex items-center focus:outline-none" aria-label="MGN Home">
+              <img
+                src="/logo.png"
+                alt="MGN - Med Global Network"
+                className="h-7 sm:h-8.5 w-auto object-contain"
+              />
+            </Link>
+          </div>
+
+          {/* Right: Notification icon & Message icon */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Notifications */}
+            <div className="relative">
+              <button
+                type="button"
+                aria-label="Notifications"
+                aria-expanded={notifOpen}
+                onClick={() => {
+                  setNotifOpen((o) => !o);
+                  if (!notifOpen) setUnreadCount(0);
+                }}
+                className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
+              >
+                <Bell className="h-5 w-5 stroke-[1.8]" />
+                {unreadCount > 0 && (
+                  <span className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 flex h-3.5 min-w-3.5 sm:h-4 sm:min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] sm:text-[9px] font-bold text-white ring-2 ring-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              {notifOpen && (
+                <NotifPopup
+                  onClose={() => setNotifOpen(false)}
+                  onViewAll={() => {
+                    setNotifOpen(false);
+                    router.push("/network/connections");
+                  }}
+                />
+              )}
+            </div>
+
+            {/* Messages */}
+            <button
+              type="button"
+              aria-label="Messages"
+              onClick={() => router.push("/network")}
+              className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
+            >
+              <MessageSquare className="h-5 w-5 stroke-[1.8]" />
+            </button>
+
+            {/* UserMenu */}
+            <UserMenu />
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header

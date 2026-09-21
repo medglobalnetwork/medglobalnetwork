@@ -178,28 +178,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Mobile Top App Bar */}
-      <div className="sticky top-0 z-30 flex items-center justify-between border-b border-[#e8e6e3] bg-white/95 backdrop-blur-md px-4 py-3 sm:hidden">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-[#5d5854] hover:bg-[#f8f7f6]"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </button>
-        <div className="text-center">
-          <p className="text-xs font-bold text-[#171717] line-clamp-1">{profile?.name || "Profile"}</p>
-          <p className="text-[10px] text-[#77716b]">{profile?.profession || "Healthcare Specialist"}</p>
-        </div>
-        <button
-          type="button"
-          onClick={handleShareProfile}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-[#5d5854] hover:bg-[#f8f7f6]"
-        >
-          <Share2 className="h-4 w-4" />
-        </button>
-      </div>
-
       <div className="mx-auto max-w-6xl px-3 sm:px-6 lg:px-8 pt-3 sm:pt-6">
         {loading ? (
           <div className="animate-pulse space-y-4">

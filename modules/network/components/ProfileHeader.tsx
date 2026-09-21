@@ -412,36 +412,6 @@ export function ProfileHeader({
           </div>
         </div>
       </div>
-
-      {/* 4. MGN Verified Healthcare Professional Trust Card */}
-      <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border-t border-emerald-100/80 px-5 sm:px-8 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-xs">
-            <ShieldCheck className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-emerald-950">
-                MGN Verified Healthcare Professional
-              </span>
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              <span className="text-[11px] font-medium text-emerald-700">Medical Council Verified</span>
-            </div>
-            <p className="text-[11px] text-emerald-800/80">
-              Registration & Clinical Credentials verified by MGN Board · ID: MGN-PHY-{profile.user_id.slice(0, 6).toUpperCase()}
-            </p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={onOpenKnowMore}
-          className="self-start sm:self-center inline-flex items-center gap-1 text-xs font-bold text-emerald-800 hover:text-emerald-950 transition hover:underline"
-        >
-          <span>View Credentials</span>
-          <ExternalLink className="h-3 w-3" />
-        </button>
-      </div>
     </div>
   );
 }
