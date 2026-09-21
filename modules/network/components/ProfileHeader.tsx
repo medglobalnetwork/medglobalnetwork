@@ -201,9 +201,9 @@ export function ProfileHeader({
 
       {/* 3. Main Profile Details Section */}
       <div className="px-4 sm:px-6 pb-4 sm:pb-5">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 -mt-10 sm:-mt-12 lg:-mt-14 mb-3 sm:mb-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between items-center md:items-end gap-3 -mt-10 sm:-mt-12 lg:-mt-14 mb-3 sm:mb-4 text-center md:text-left">
           {/* Avatar with Teal Ring & Online Dot */}
-          <div className="flex items-end gap-3.5">
+          <div className="flex flex-col md:flex-row items-center md:items-end gap-3.5">
             <div className="relative group">
               <div className="relative h-20 w-20 sm:h-24 sm:w-24 lg:h-28 lg:w-28 rounded-full p-1 bg-white shadow-lg ring-3 sm:ring-4 ring-cyan-500/80">
                 <div
@@ -228,20 +228,22 @@ export function ProfileHeader({
               />
             </div>
 
-            {/* Quick Mobile Bio Info */}
-            <div className="md:hidden pb-1">
-              <div className="flex items-center gap-1.5">
+            {/* Mobile Name & Profession */}
+            <div className="md:hidden text-center">
+              <div className="flex items-center justify-center gap-1.5">
                 <h1 className="text-lg font-bold text-[#171717]">{profile.name}</h1>
                 <CheckCircle2 className="h-4.5 w-4.5 text-blue-500 fill-blue-500 text-white shrink-0" />
               </div>
-              <p className="text-[11px] font-medium text-[#5d5854] line-clamp-1">
-                {profile.designation || profile.profession}
+              <p className="text-[11px] font-medium text-[#5d5854]">
+                {profile.designation ? `${profile.designation} · ` : ""}
+                {profile.profession}
+                {profile.specialization ? ` (${profile.specialization})` : ""}
               </p>
             </div>
           </div>
 
           {/* Action Buttons Toolbar */}
-          <div className="flex flex-wrap items-center gap-2 pt-1">
+          <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 pt-1 w-full md:w-auto">
             {isOwnProfile ? (
               <>
                 <button
@@ -321,8 +323,8 @@ export function ProfileHeader({
           </div>
         </div>
 
-        {/* Profile Info Row (Desktop & Tablet) */}
-        <div className="space-y-2">
+        {/* Profile Info Row */}
+        <div className="space-y-2 text-center md:text-left">
           <div className="hidden md:block">
             <div className="flex items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-black text-[#171717] tracking-tight">{profile.name}</h1>
@@ -341,7 +343,7 @@ export function ProfileHeader({
           </div>
 
           {/* Location & Organization */}
-          <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-[#77716b]">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-y-1 gap-x-4 text-xs text-[#77716b]">
             {(profile.city || profile.state) && (
               <span className="inline-flex items-center gap-1 text-[#5d5854] font-medium">
                 <MapPin className="h-3.5 w-3.5 text-[#1769c2]" />
@@ -361,13 +363,13 @@ export function ProfileHeader({
           </div>
 
           {/* Bio snippet */}
-          <p className="text-xs sm:text-sm text-[#44403c] leading-relaxed max-w-3xl">
+          <p className="text-xs sm:text-sm text-[#44403c] leading-relaxed max-w-3xl mx-auto md:mx-0">
             {profile.bio ||
               "Specialized in Clinical Healthcare, Rehabilitation & Patient Wellness. Helping patients regain strength & health with evidence-based modern medical practices."}
           </p>
 
           {/* Specialty Tags */}
-          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5 pt-1">
             {tags.slice(0, 5).map((tag, idx) => (
               <span
                 key={idx}
@@ -383,31 +385,31 @@ export function ProfileHeader({
             )}
           </div>
 
-          {/* Key Stats Strip */}
-          <div className="flex items-center gap-6 sm:gap-8 pt-3 border-t border-[#f0efee] text-xs">
-            <div>
-              <span className="block text-base font-extrabold text-[#171717]">
+          {/* Key Stats Strip (CENTER-BASED) */}
+          <div className="grid grid-cols-4 sm:flex sm:items-center sm:justify-center sm:gap-12 pt-3 border-t border-[#f0efee] text-xs text-center">
+            <div className="text-center">
+              <span className="block text-sm sm:text-base font-extrabold text-[#171717]">
                 {(profile.post_count ?? 142).toLocaleString()}
               </span>
-              <span className="text-[#77716b] text-[11px] font-medium">Posts</span>
+              <span className="text-[#77716b] text-[10px] sm:text-[11px] font-medium">Posts</span>
             </div>
-            <div>
-              <span className="block text-base font-extrabold text-[#171717]">
+            <div className="text-center">
+              <span className="block text-sm sm:text-base font-extrabold text-[#171717]">
                 {(profile.connection_count ?? 584).toLocaleString()}
               </span>
-              <span className="text-[#77716b] text-[11px] font-medium">Connections</span>
+              <span className="text-[#77716b] text-[10px] sm:text-[11px] font-medium">Connections</span>
             </div>
-            <div>
-              <span className="block text-base font-extrabold text-[#171717]">
+            <div className="text-center">
+              <span className="block text-sm sm:text-base font-extrabold text-[#171717]">
                 {(profile.follower_count ?? 1240).toLocaleString()}
               </span>
-              <span className="text-[#77716b] text-[11px] font-medium">Followers</span>
+              <span className="text-[#77716b] text-[10px] sm:text-[11px] font-medium">Followers</span>
             </div>
-            <div>
-              <span className="block text-base font-extrabold text-[#171717]">
+            <div className="text-center">
+              <span className="block text-sm sm:text-base font-extrabold text-[#171717]">
                 {(profile.following_count ?? 320).toLocaleString()}
               </span>
-              <span className="text-[#77716b] text-[11px] font-medium">Following</span>
+              <span className="text-[#77716b] text-[10px] sm:text-[11px] font-medium">Following</span>
             </div>
           </div>
         </div>
