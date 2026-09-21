@@ -7,11 +7,16 @@ import { Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
 
 const databaseUrl =
-  process.env.SUPABASE_DATABASE_URL || "postgresql://localhost:5432/mgn";
+  process.env.SUPABASE_DATABASE_URL ||
+  process.env.DATABASE_URL ||
+  process.env.POSTGRES_URL ||
+  process.env.POSTGRES_PRISMA_URL ||
+  "postgresql://localhost:5432/mgn";
 
 const rawBaseUrl =
   process.env.BETTER_AUTH_URL ||
   process.env.NEXT_PUBLIC_APP_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "") ||
   "http://localhost:3000";
 
 let cleanBaseUrl = rawBaseUrl.replace(/\/api\/auth\/?$/, "").replace(/\/+$/, "");
@@ -66,6 +71,7 @@ export const auth = betterAuth({
     "https://mgn.life",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
   ],
   database: pool,
   plugins: process.env.BETTER_AUTH_API_KEY ? [dash()] : [],
