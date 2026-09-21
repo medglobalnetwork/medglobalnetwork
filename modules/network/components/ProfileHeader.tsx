@@ -174,9 +174,9 @@ export function ProfileHeader({
       {/* 2. Main Profile Details Section */}
       <div className="px-4 sm:px-6 pb-4 sm:pb-5">
         {/* TOP ROW: Overlapping Avatar + 4 Stats (Posts, Followers, Following, Connections) */}
-        <div className="flex items-end justify-between gap-2 sm:gap-4 -mt-10 sm:-mt-12 lg:-mt-14 mb-3.5">
-          {/* Avatar with Story Ring */}
-          <div className="relative shrink-0">
+        <div className="flex items-start sm:items-center justify-between gap-2 sm:gap-4 mb-3.5">
+          {/* Avatar with Story Ring overlapping cover */}
+          <div className="relative shrink-0 -mt-10 sm:-mt-12 lg:-mt-14 z-10">
             <div className="h-20 w-20 sm:h-24 sm:w-24 lg:h-28 lg:w-28 rounded-full p-[2.5px] bg-gradient-to-tr from-amber-500 via-rose-500 to-fuchsia-600 shadow-md">
               <div
                 className="h-full w-full rounded-full overflow-hidden flex items-center justify-center text-xl sm:text-2xl font-extrabold text-white border-2 border-white"
@@ -200,34 +200,34 @@ export function ProfileHeader({
             />
           </div>
 
-          {/* 4 Stats: Posts, Followers, Following, Connections */}
-          <div className="flex-1 flex items-center justify-around text-center max-w-md sm:max-w-lg ml-1 sm:ml-4 pb-0.5">
-            <div className="cursor-pointer">
-              <span className="block text-sm sm:text-base lg:text-lg font-black text-[#171717] tracking-tight">
+          {/* 4 Stats: Posts, Followers, Following, Connections - shifted down and clear */}
+          <div className="flex-1 flex items-center justify-around text-center max-w-md sm:max-w-lg ml-1 sm:ml-4 pt-2 sm:pt-3 pb-1">
+            <div className="cursor-pointer hover:opacity-80 transition-opacity">
+              <span className="block text-sm sm:text-base lg:text-lg font-black text-[#171717] tracking-tight leading-none mb-1">
                 {(profile.post_count ?? 142).toLocaleString()}
               </span>
-              <span className="text-[11px] sm:text-xs text-[#5d5854] font-medium">posts</span>
+              <span className="text-[11px] sm:text-xs text-[#5d5854] font-medium leading-none">posts</span>
             </div>
 
-            <div className="cursor-pointer">
-              <span className="block text-sm sm:text-base lg:text-lg font-black text-[#171717] tracking-tight">
+            <div className="cursor-pointer hover:opacity-80 transition-opacity">
+              <span className="block text-sm sm:text-base lg:text-lg font-black text-[#171717] tracking-tight leading-none mb-1">
                 {formatCount(profile.follower_count ?? 1240)}
               </span>
-              <span className="text-[11px] sm:text-xs text-[#5d5854] font-medium">followers</span>
+              <span className="text-[11px] sm:text-xs text-[#5d5854] font-medium leading-none">followers</span>
             </div>
 
-            <div className="cursor-pointer">
-              <span className="block text-sm sm:text-base lg:text-lg font-black text-[#171717] tracking-tight">
+            <div className="cursor-pointer hover:opacity-80 transition-opacity">
+              <span className="block text-sm sm:text-base lg:text-lg font-black text-[#171717] tracking-tight leading-none mb-1">
                 {formatCount(profile.following_count ?? 320)}
               </span>
-              <span className="text-[11px] sm:text-xs text-[#5d5854] font-medium">following</span>
+              <span className="text-[11px] sm:text-xs text-[#5d5854] font-medium leading-none">following</span>
             </div>
 
-            <div className="cursor-pointer">
-              <span className="block text-sm sm:text-base lg:text-lg font-black text-[#1769c2] tracking-tight">
+            <div className="cursor-pointer hover:opacity-80 transition-opacity">
+              <span className="block text-sm sm:text-base lg:text-lg font-black text-[#1769c2] tracking-tight leading-none mb-1">
                 {formatCount(profile.connection_count ?? 584)}
               </span>
-              <span className="text-[11px] sm:text-xs text-[#5d5854] font-medium">connections</span>
+              <span className="text-[11px] sm:text-xs text-[#5d5854] font-medium leading-none">connections</span>
             </div>
           </div>
         </div>
