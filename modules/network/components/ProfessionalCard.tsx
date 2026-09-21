@@ -22,7 +22,7 @@ export function ProfessionalCard({
   variant = "grid",
 }: ProfessionalCardProps) {
   const router = useRouter();
-  const hasCustomImage = Boolean(profile.image && !isGoogleOrExternalAvatar(profile.image));
+  const customImageSrc = (profile.image && !isGoogleOrExternalAvatar(profile.image)) ? profile.image : null;
   const [connectionStatus, setConnectionStatus] = React.useState<ConnectionStatus>(
     profile.connection_status ?? "none"
   );
