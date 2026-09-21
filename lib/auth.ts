@@ -22,6 +22,11 @@ const isRemoteDb =
   databaseUrl.includes("aws") ||
   process.env.NODE_ENV === "production";
 
+const globalForAuth = globalThis as typeof globalThis & {
+  mgnAuthPool?: Pool;
+  mgnAuthDatabase?: Kysely<unknown>;
+};
+
 const pool =
   globalForAuth.mgnAuthPool ??
   new Pool({
