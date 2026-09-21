@@ -669,7 +669,7 @@ export default function NetworkPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f5f4] pb-36 text-[#171717]">
+    <main className="min-h-screen bg-[#f5f5f4] pb-24 md:pb-12 text-[#171717]">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Page Header */}
         <div className="mb-5">

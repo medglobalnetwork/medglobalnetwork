@@ -96,7 +96,7 @@ export default function AppBottomNav() {
   return (
     <nav
       aria-label="Primary navigation"
-      className={`fixed bottom-5 lg:bottom-6 left-1/2 z-50 -translate-x-1/2 flex h-[64px] lg:h-[72px] items-center gap-0.5 lg:gap-2 rounded-[22px] lg:rounded-[28px] border border-[#e8e6e3] bg-white px-2 lg:px-4 shadow-[0_8px_32px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] transition-transform duration-300 ease-in-out ${
+      className={`fixed bottom-5 left-1/2 z-50 -translate-x-1/2 flex md:hidden h-[64px] items-center gap-0.5 rounded-[22px] border border-[#e8e6e3] bg-white px-2 shadow-[0_8px_32px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] transition-transform duration-300 ease-in-out ${
         hidden ? "translate-y-[calc(100%+2.5rem)]" : "translate-y-0"
       }`}
     >
