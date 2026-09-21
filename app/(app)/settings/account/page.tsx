@@ -4,6 +4,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { getUserAvatarUrl, setUserCustomAvatar } from "@/lib/avatar";
+import HoldButton from "@/components/HoldButton";
+import { Trash2 } from "lucide-react";
 
 export default function AccountSettingsPage() {
   const router = useRouter();
@@ -251,15 +253,38 @@ export default function AccountSettingsPage() {
               <p className="mt-2 text-xs text-red-600">{error}</p>
             )}
 
-            <div className="mt-4 flex gap-2">
-              <button
-                type="button"
-                onClick={handleDeleteAccount}
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <HoldButton
+                doneLabel="Deleting..."
+                backgroundColor="#dc2626"
+                fillColor="#7f1d1d"
+                textColor="#ffffff"
+                fillTextColor="#ffffff"
+                size="md"
+                radius={12}
+                fillDirection="right"
+                holdTime={2000}
+                releaseTime={200}
+                pressScale={0.97}
+                wave
+                waveAmplitude={6}
+                glow
+                resetAfter={0}
                 disabled={isDeleting}
-                className="rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50"
+                icon={<Trash2 className="h-4 w-4" />}
+                onHold={handleDeleteAccount}
+                onTap={() => {
+                  if (hasPassword && !password) {
+                    setError("Please enter your password first, then hold to confirm deletion");
+                  } else if (!hasPassword && confirmText.trim().toUpperCase() !== "DELETE") {
+                    setError("Please type DELETE first, then hold to confirm deletion");
+                  } else {
+                    setError("Press and hold the button for 2 seconds to confirm account deletion");
+                  }
+                }}
               >
-                {isDeleting ? "Deleting…" : "Yes, delete my account"}
-              </button>
+                Hold to delete account
+              </HoldButton>
               <button
                 type="button"
                 onClick={() => {
@@ -268,7 +293,7 @@ export default function AccountSettingsPage() {
                   setConfirmText("");
                   setError(null);
                 }}
-                className="rounded-lg border border-[#ded8d1] px-4 py-2 text-xs font-medium text-[#5d5854] transition hover:bg-[#f5f3f1]"
+                className="h-11 rounded-xl border border-[#ded8d1] px-4 text-xs font-semibold text-[#5d5854] transition hover:bg-[#f5f3f1]"
               >
                 Cancel
               </button>
