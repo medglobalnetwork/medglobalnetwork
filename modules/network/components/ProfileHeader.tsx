@@ -172,9 +172,9 @@ export function ProfileHeader({
       )}
 
       {/* 2. Main Profile Details Section */}
-      <div className="px-4 sm:px-6 pb-4 sm:pb-5">
+      <div className="px-4 sm:px-5 pb-3.5 sm:pb-4">
         {/* TOP ROW: Overlapping Avatar + 4 Stats (Posts, Followers, Following, Connections) */}
-        <div className="flex items-start sm:items-center justify-between gap-2 sm:gap-4 mb-3.5">
+        <div className="flex items-center justify-between gap-2 sm:gap-4 mb-2">
           {/* Avatar with Story Ring overlapping cover */}
           <div className="relative shrink-0 -mt-10 sm:-mt-12 lg:-mt-14 z-10">
             <div className="h-20 w-20 sm:h-24 sm:w-24 lg:h-28 lg:w-28 rounded-full p-[2.5px] bg-gradient-to-tr from-amber-500 via-rose-500 to-fuchsia-600 shadow-md">
@@ -200,31 +200,31 @@ export function ProfileHeader({
             />
           </div>
 
-          {/* 4 Stats: Posts, Followers, Following, Connections - shifted down comfortably */}
-          <div className="flex-1 flex items-center justify-around text-center max-w-md sm:max-w-lg ml-1 sm:ml-4 pt-5 sm:pt-6 pb-2">
+          {/* 4 Stats: Posts, Followers, Following, Connections */}
+          <div className="flex-1 flex items-center justify-around text-center max-w-md sm:max-w-lg ml-1 sm:ml-4 pt-1 sm:pt-2">
             <div className="cursor-pointer hover:opacity-80 transition-opacity">
-              <span className="block text-sm sm:text-base lg:text-lg font-black text-[#171717] tracking-tight leading-none mb-1">
+              <span className="block text-sm sm:text-base lg:text-lg font-black text-[#171717] tracking-tight leading-none mb-0.5">
                 {(profile.post_count ?? 142).toLocaleString()}
               </span>
               <span className="text-[11px] sm:text-xs text-[#5d5854] font-medium leading-none">posts</span>
             </div>
 
             <div className="cursor-pointer hover:opacity-80 transition-opacity">
-              <span className="block text-sm sm:text-base lg:text-lg font-black text-[#171717] tracking-tight leading-none mb-1">
+              <span className="block text-sm sm:text-base lg:text-lg font-black text-[#171717] tracking-tight leading-none mb-0.5">
                 {formatCount(profile.follower_count ?? 1240)}
               </span>
               <span className="text-[11px] sm:text-xs text-[#5d5854] font-medium leading-none">followers</span>
             </div>
 
             <div className="cursor-pointer hover:opacity-80 transition-opacity">
-              <span className="block text-sm sm:text-base lg:text-lg font-black text-[#171717] tracking-tight leading-none mb-1">
+              <span className="block text-sm sm:text-base lg:text-lg font-black text-[#171717] tracking-tight leading-none mb-0.5">
                 {formatCount(profile.following_count ?? 320)}
               </span>
               <span className="text-[11px] sm:text-xs text-[#5d5854] font-medium leading-none">following</span>
             </div>
 
             <div className="cursor-pointer hover:opacity-80 transition-opacity">
-              <span className="block text-sm sm:text-base lg:text-lg font-black text-[#1769c2] tracking-tight leading-none mb-1">
+              <span className="block text-sm sm:text-base lg:text-lg font-black text-[#1769c2] tracking-tight leading-none mb-0.5">
                 {formatCount(profile.connection_count ?? 584)}
               </span>
               <span className="text-[11px] sm:text-xs text-[#5d5854] font-medium leading-none">connections</span>
@@ -233,73 +233,79 @@ export function ProfileHeader({
         </div>
 
         {/* 3. NAME, PROFESSION, BIO & LINKS */}
-        <div className="space-y-1 mb-3.5">
+        <div className="space-y-1.5 mb-2.5 sm:mb-3">
           {/* Name with Blue Verification Badge */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <h1 className="text-base sm:text-lg font-black text-[#171717] tracking-tight">
+            <h1 className="text-base sm:text-lg font-black text-[#171717] tracking-tight leading-none">
               {profile.name}
             </h1>
-            <CheckCircle2 className="h-4.5 w-4.5 text-blue-500 fill-blue-500 text-white shrink-0" />
+            <CheckCircle2 className="h-4 w-4 text-blue-500 fill-blue-500 text-white shrink-0" />
             {isVerified && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700 leading-none">
                 <ShieldCheck className="h-3 w-3" /> Verified Clinician
               </span>
             )}
           </div>
 
-          {/* Profession & Specialization */}
-          <p className="text-xs font-semibold text-[#5d5854]">
-            {profile.designation ? `${profile.designation} · ` : ""}
-            {profile.profession}
-            {profile.specialization ? ` (${profile.specialization})` : ""}
-          </p>
+          {/* Profession & Specialization (only if present) */}
+          {(profile.designation || profile.profession || profile.specialization) && (
+            <p className="text-xs font-semibold text-[#5d5854] leading-snug">
+              {profile.designation ? `${profile.designation} · ` : ""}
+              {profile.profession || ""}
+              {profile.specialization ? ` (${profile.specialization})` : ""}
+            </p>
+          )}
 
           {/* Bio Text */}
-          <p className="text-xs sm:text-sm text-[#262626] leading-relaxed pt-0.5">
+          <p className="text-xs sm:text-sm text-[#262626] leading-snug">
             {profile.bio ||
               "Specialized in Clinical Healthcare, Rehabilitation & Patient Wellness. Helping patients regain strength & health with evidence-based modern medical practices."}
           </p>
 
-          {/* Location & Links */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#171717] pt-0.5">
-            {(profile.city || profile.state) && (
-              <span className="inline-flex items-center gap-1 text-[#5d5854] font-medium">
-                <MapPin className="h-3.5 w-3.5 text-[#1769c2]" />
-                {[profile.city, profile.state].filter(Boolean).join(", ")}
-              </span>
-            )}
-            {profile.organization && (
-              <span className="inline-flex items-center gap-1 font-semibold text-[#1769c2]">
-                🔗 {profile.organization}
-              </span>
-            )}
-            {profile.experience_years !== undefined && profile.experience_years > 0 && (
-              <span className="text-[#77716b]">
-                · <strong>{profile.experience_years} yrs</strong> experience
-              </span>
-            )}
-          </div>
+          {/* Location & Links (only if present) */}
+          {(profile.city || profile.state || profile.organization || (profile.experience_years !== undefined && profile.experience_years > 0)) && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-[#171717]">
+              {(profile.city || profile.state) && (
+                <span className="inline-flex items-center gap-1 text-[#5d5854] font-medium">
+                  <MapPin className="h-3.5 w-3.5 text-[#1769c2]" />
+                  {[profile.city, profile.state].filter(Boolean).join(", ")}
+                </span>
+              )}
+              {profile.organization && (
+                <span className="inline-flex items-center gap-1 font-semibold text-[#1769c2]">
+                  🔗 {profile.organization}
+                </span>
+              )}
+              {profile.experience_years !== undefined && profile.experience_years > 0 && (
+                <span className="text-[#77716b]">
+                  · <strong>{profile.experience_years} yrs</strong> experience
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Specialty Tag Pills */}
-          <div className="flex flex-wrap items-center gap-1.5 pt-1">
-            {tags.slice(0, 4).map((tag, idx) => (
-              <span
-                key={idx}
-                className="inline-flex items-center rounded-lg bg-[#f0f4f8] px-2.5 py-0.5 text-[11px] font-semibold text-[#1769c2] border border-[#d8e5f2]"
-              >
-                {tag}
-              </span>
-            ))}
-            {tags.length > 4 && (
-              <span className="inline-flex items-center rounded-lg bg-[#f8f7f6] px-2 py-0.5 text-[11px] font-bold text-[#77716b] border border-[#e8e6e3]">
-                +{tags.length - 4}
-              </span>
-            )}
-          </div>
+          {tags.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+              {tags.slice(0, 4).map((tag, idx) => (
+                <span
+                  key={idx}
+                  className="inline-flex items-center rounded-lg bg-[#f0f4f8] px-2.5 py-0.5 text-[11px] font-semibold text-[#1769c2] border border-[#d8e5f2]"
+                >
+                  {tag}
+                </span>
+              ))}
+              {tags.length > 4 && (
+                <span className="inline-flex items-center rounded-lg bg-[#f8f7f6] px-2 py-0.5 text-[11px] font-bold text-[#77716b] border border-[#e8e6e3]">
+                  +{tags.length - 4}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 4. ACTION BUTTONS ROW (Instagram / LinkedIn Hybrid Style) */}
-        <div className="flex items-center gap-2 pt-1">
+        <div className="flex items-center gap-2">
           {isOwnProfile ? (
             <>
               <button
