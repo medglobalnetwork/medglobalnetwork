@@ -91,7 +91,7 @@ function DiscoverCenter({
 
   if (loading && page === 1) {
     return (
-      <div className={viewMode === "grid" ? "grid gap-4 sm:grid-cols-2" : "space-y-3"}>
+      <div className={viewMode === "grid" ? "grid grid-cols-2 gap-2.5 sm:gap-4" : "space-y-3"}>
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <ProfessionalCardSkeleton key={i} />
         ))}
@@ -111,7 +111,7 @@ function DiscoverCenter({
 
   return (
     <div>
-      <div className={viewMode === "grid" ? "grid gap-4 sm:grid-cols-2" : "space-y-3"}>
+      <div className={viewMode === "grid" ? "grid grid-cols-2 gap-2.5 sm:gap-4" : "space-y-3"}>
         {profiles.map((p) => (
           <ProfessionalCard key={p.user_id} profile={p} variant={viewMode} />
         ))}
