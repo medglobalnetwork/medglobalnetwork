@@ -2,32 +2,14 @@
 
 import * as React from "react";
 import {
-  Award,
   BarChart2,
-  Briefcase,
-  Calendar,
   Camera,
   FileText,
-  FlaskConical,
-  HelpCircle,
-  Send,
+  Image as ImageIcon,
+  Sparkles,
+  Video,
 } from "lucide-react";
 import type { PostType } from "../types";
-
-const POST_TYPE_CONFIG: {
-  value: PostType;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-}[] = [
-  { value: "text", label: "Post", icon: FileText },
-  { value: "image", label: "Photo", icon: Camera },
-  { value: "research", label: "Research", icon: FlaskConical },
-  { value: "achievement", label: "Achievement", icon: Award },
-  { value: "question", label: "Question", icon: HelpCircle },
-  { value: "event", label: "Event", icon: Calendar },
-  { value: "job", label: "Job", icon: Briefcase },
-  { value: "poll", label: "Poll", icon: BarChart2 },
-];
 
 interface CreatePostProps {
   userImage?: string;
@@ -76,72 +58,106 @@ export function CreatePost({ userImage, userName, onPosted }: CreatePostProps) {
   };
 
   return (
-    <div className="rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs">
-      <div className="flex items-center gap-3">
-        {/* Avatar */}
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#eef5fc] text-sm font-bold text-[#1769c2]">
+    <div className="rounded-3xl border border-[#e8e6e3] bg-white p-5 shadow-2xs">
+      <div className="flex items-start gap-3">
+        {/* User Avatar */}
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#eef5fc] text-sm font-bold text-[#1769c2]">
           {userImage ? (
             <img
               src={userImage}
               alt={userName ?? "You"}
-              className="h-full w-full rounded-full object-cover"
+              className="h-full w-full object-cover"
             />
           ) : (
             initials
           )}
         </div>
 
-        {/* Compose trigger */}
-        {!expanded ? (
-          <button
-            type="button"
-            onClick={() => setExpanded(true)}
-            className="flex-1 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-4 py-2.5 text-left text-sm text-[#8a8784] transition hover:bg-[#f0efee]"
-          >
-            Share a clinical insight, case, or achievement…
-          </button>
-        ) : (
-          <div className="flex-1">
-            <textarea
-              autoFocus
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Share a clinical insight, research update, case study, or achievement with your healthcare network…"
-              rows={4}
-              className="block w-full resize-none rounded-xl border border-[#ded8d1] px-3.5 py-3 text-sm text-[#171717] placeholder:text-[#8a8784] focus:border-[#1769c2] focus:outline-none focus:ring-2 focus:ring-[#1769c2]/20"
-            />
-          </div>
-        )}
+        {/* Input area */}
+        <div className="flex-1">
+          {!expanded ? (
+            <button
+              type="button"
+              onClick={() => setExpanded(true)}
+              className="w-full rounded-2xl border border-[#e8e6e3] bg-[#f8f7f6] px-4 py-3 text-left text-xs font-medium text-[#77716b] transition hover:border-[#1769c2]/40 hover:bg-white"
+            >
+              What&apos;s happening in healthcare?
+            </button>
+          ) : (
+            <div className="space-y-3">
+              <textarea
+                autoFocus
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Share a clinical case, discussion, research finding, or update with your healthcare network..."
+                rows={3}
+                className="w-full resize-none rounded-2xl border border-[#ded8d1] p-3 text-xs text-[#171717] placeholder:text-[#8a8784] focus:border-[#1769c2] focus:outline-none focus:ring-2 focus:ring-[#1769c2]/20"
+              />
+
+              {error && <p className="text-xs text-red-600">{error}</p>}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Expanded controls */}
-      {expanded && (
-        <div className="mt-3">
-          {/* Post type selector */}
-          <div className="mb-3 flex flex-wrap gap-1.5">
-            {POST_TYPE_CONFIG.map((type) => {
-              const IconComp = type.icon;
-              return (
-                <button
-                  key={type.value}
-                  type="button"
-                  onClick={() => setPostType(type.value)}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
-                    postType === type.value
-                      ? "border-[#1769c2] bg-[#eef5fc] text-[#1769c2]"
-                      : "border-[#ded8d1] text-[#5d5854] hover:border-[#1769c2] hover:text-[#1769c2]"
-                  }`}
-                >
-                  <IconComp className="h-3.5 w-3.5" />
-                  {type.label}
-                </button>
-              );
-            })}
-          </div>
+      {/* Action triggers bottom bar */}
+      <div className="mt-4 flex items-center justify-between border-t border-[#f5f4f3] pt-3 text-xs">
+        <div className="flex flex-wrap items-center gap-4 text-[#5d5854]">
+          <button
+            type="button"
+            onClick={() => {
+              setPostType("image");
+              setExpanded(true);
+            }}
+            className={`inline-flex items-center gap-1.5 font-medium transition hover:text-[#1769c2] ${
+              postType === "image" && expanded ? "text-[#1769c2] font-bold" : ""
+            }`}
+          >
+            <ImageIcon className="h-4 w-4 text-[#0369a1]" /> Photo
+          </button>
 
-          {error && <p className="mb-2 text-xs text-red-600">{error}</p>}
+          <button
+            type="button"
+            onClick={() => {
+              setPostType("video");
+              setExpanded(true);
+            }}
+            className={`inline-flex items-center gap-1.5 font-medium transition hover:text-[#1769c2] ${
+              postType === "video" && expanded ? "text-[#1769c2] font-bold" : ""
+            }`}
+          >
+            <Video className="h-4 w-4 text-[#7c3aed]" /> Video
+          </button>
 
-          <div className="flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setPostType("document");
+              setExpanded(true);
+            }}
+            className={`inline-flex items-center gap-1.5 font-medium transition hover:text-[#1769c2] ${
+              postType === "document" && expanded ? "text-[#1769c2] font-bold" : ""
+            }`}
+          >
+            <FileText className="h-4 w-4 text-[#0e7490]" /> Document
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setPostType("poll");
+              setExpanded(true);
+            }}
+            className={`inline-flex items-center gap-1.5 font-medium transition hover:text-[#1769c2] ${
+              postType === "poll" && expanded ? "text-[#1769c2] font-bold" : ""
+            }`}
+          >
+            <BarChart2 className="h-4 w-4 text-[#6d28d9]" /> Poll
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {expanded && (
             <button
               type="button"
               onClick={() => {
@@ -149,21 +165,25 @@ export function CreatePost({ userImage, userName, onPosted }: CreatePostProps) {
                 setContent("");
                 setError(null);
               }}
-              className="rounded-xl border border-[#ded8d1] px-4 py-2 text-xs font-medium text-[#5d5854] transition hover:bg-[#f8f7f6]"
+              className="rounded-xl border border-[#ded8d1] px-3.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8]"
             >
               Cancel
             </button>
-            <button
-              type="button"
-              onClick={handlePost}
-              disabled={posting || !content.trim()}
-              className="rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#12569f] disabled:opacity-50"
-            >
-              {posting ? "Posting…" : "Post"}
-            </button>
-          </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => {
+              if (!expanded) setExpanded(true);
+              else handlePost();
+            }}
+            disabled={posting || (expanded && !content.trim())}
+            className="rounded-xl bg-[#1769c2] px-6 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-[#12569f] disabled:opacity-50"
+          >
+            {posting ? "Posting..." : "Post"}
+          </button>
         </div>
-      )}
+      </div>
     </div>
   );
 }

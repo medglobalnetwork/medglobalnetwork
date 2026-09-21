@@ -1,29 +1,22 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  Bell,
+  Briefcase,
+  GraduationCap,
+  Home,
+  MessageSquare,
+  Search,
+  ShoppingBag,
+  Users,
+} from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import UserMenu from "@/components/UserMenu";
 import { useScrollDirection } from "@/lib/useScrollDirection";
 import { formatRelativeTime } from "@/modules/network/lib/network-data";
-
-/* ── Icons ─────────────────────────────────────── */
-function BellIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-[20px] w-[20px] lg:h-[23px] lg:w-[23px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-    </svg>
-  );
-}
-
-function MessageIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-[20px] w-[20px] lg:h-[23px] lg:w-[23px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    </svg>
-  );
-}
 
 /* ── Notification popup ─────────────────────────── */
 function NotifPopup({
@@ -35,15 +28,17 @@ function NotifPopup({
 }) {
   const ref = React.useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const [notifs, setNotifs] = React.useState<Array<{
-    id: string;
-    type: string;
-    message?: string;
-    is_read: boolean;
-    created_at: string;
-    actor_name?: string;
-    actor_id?: string;
-  }>>([]);
+  const [notifs, setNotifs] = React.useState<
+    Array<{
+      id: string;
+      type: string;
+      message?: string;
+      is_read: boolean;
+      created_at: string;
+      actor_name?: string;
+      actor_id?: string;
+    }>
+  >([]);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -84,26 +79,29 @@ function NotifPopup({
   };
 
   return (
-    <div ref={ref} className="absolute right-0 top-11 lg:top-14 z-50 w-[320px] lg:w-[360px] overflow-hidden rounded-2xl border border-[#ebebeb] bg-white shadow-[0_8px_40px_rgba(0,0,0,0.12)]">
-      <div className="flex items-center justify-between px-4 py-3.5 border-b border-[#f0efee]">
-        <span className="text-sm lg:text-base font-semibold text-[#171717]">Notifications</span>
+    <div
+      ref={ref}
+      className="absolute right-0 top-12 z-50 w-[340px] overflow-hidden rounded-2xl border border-[#ded8d1] bg-white shadow-xl"
+    >
+      <div className="flex items-center justify-between border-b border-[#f0efee] px-4 py-3">
+        <span className="text-xs font-bold text-[#171717]">Notifications</span>
         {notifs.some((n) => !n.is_read) && (
           <button
             type="button"
             onClick={handleMarkAllRead}
-            className="text-[11px] lg:text-xs font-medium text-[#1769c2] hover:underline"
+            className="text-[11px] font-medium text-[#1769c2] hover:underline"
           >
             Mark all read
           </button>
         )}
       </div>
 
-      <ul className="max-h-[300px] overflow-y-auto divide-y divide-[#f5f4f3]">
+      <ul className="max-h-[320px] divide-y divide-[#f5f4f3] overflow-y-auto">
         {loading ? (
           <li className="p-4 text-center text-xs text-[#8a8784]">Loading notifications...</li>
         ) : notifs.length === 0 ? (
           <li className="p-6 text-center text-xs text-[#8a8784]">
-            <p className="text-lg mb-1">🔔</p>
+            <p className="mb-1 text-lg">🔔</p>
             No notifications yet
           </li>
         ) : (
@@ -111,16 +109,20 @@ function NotifPopup({
             <li
               key={n.id}
               onClick={() => handleNotifClick(n)}
-              className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition hover:bg-[#f8f7f6] ${
+              className={`flex cursor-pointer items-start gap-3 px-4 py-3 transition hover:bg-[#f8f7f6] ${
                 n.is_read ? "" : "bg-[#f7f9fd]"
               }`}
             >
-              <span className={`mt-1.5 h-2 w-2 lg:h-2.5 lg:w-2.5 shrink-0 rounded-full ${n.is_read ? "bg-transparent" : "bg-[#1769c2]"}`} />
+              <span
+                className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                  n.is_read ? "bg-transparent" : "bg-[#1769c2]"
+                }`}
+              />
               <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-medium text-[#171717] leading-snug">
+                <p className="text-xs font-medium leading-snug text-[#171717]">
                   {n.message || "New activity in your healthcare network"}
                 </p>
-                <p className="mt-0.5 text-[11px] text-[#8a8784]">
+                <p className="mt-0.5 text-[10px] text-[#8a8784]">
                   {formatRelativeTime(n.created_at)} ago
                 </p>
               </div>
@@ -129,24 +131,39 @@ function NotifPopup({
         )}
       </ul>
 
-      <div className="px-4 py-3 border-t border-[#f0efee]">
+      <div className="border-t border-[#f0efee] px-4 py-2.5">
         <button
           type="button"
           onClick={onViewAll}
-          className="w-full text-center text-[12px] lg:text-xs font-medium text-[#1769c2] hover:underline"
+          className="w-full text-center text-xs font-semibold text-[#1769c2] hover:underline"
         >
-          View all in Network →
+          View all notifications →
         </button>
       </div>
     </div>
   );
 }
 
-/* ── Search bar ─────────────────────────────────── */
-function SearchBar() {
+/* ── Main App Header ────────────────────────────── */
+export default function AppHeader() {
   const router = useRouter();
-  const [query, setQuery] = React.useState("");
+  const pathname = usePathname();
+  const { data: session } = authClient.useSession();
+  const [notifOpen, setNotifOpen] = React.useState(false);
+  const [unreadCount, setUnreadCount] = React.useState(3);
+  const [searchQuery, setSearchQuery] = React.useState("");
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const hidden = useScrollDirection();
+
+  React.useEffect(() => {
+    if (!session?.user) return;
+    fetch("/api/network/notifications", { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.unreadCount !== undefined) setUnreadCount(d.unreadCount);
+      })
+      .catch(() => {});
+  }, [session?.user]);
 
   // Ctrl+K / Cmd+K → focus search
   React.useEffect(() => {
@@ -163,140 +180,136 @@ function SearchBar() {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim()) {
-      router.push(`/network?q=${encodeURIComponent(query.trim())}`);
+    if (searchQuery.trim()) {
+      router.push(`/network?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
-  return (
-    <form onSubmit={handleSearchSubmit} className="relative flex w-full">
-      {/* Search icon */}
-      <svg
-        className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 lg:h-5 lg:w-5 -translate-y-1/2 text-[#8a8784]"
-        viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-        strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
-      >
-        <circle cx="11" cy="11" r="8" />
-        <path d="m21 21-4.35-4.35" />
-      </svg>
-
-      <input
-        ref={inputRef}
-        type="search"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search professionals, specialties, organizations..."
-        aria-label="Global search"
-        className="h-9 lg:h-11 w-full rounded-xl lg:rounded-2xl border border-[#e8e6e3] bg-[#f8f7f6] pl-9 lg:pl-11 pr-14 text-sm lg:text-[15px] text-[#171717] placeholder:text-[#8a8784] transition focus:border-[#1769c2] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1769c2]/20"
-      />
-
-      {/* Keyboard shortcut badge */}
-      {!query && (
-        <kbd className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 rounded-md border border-[#e8e6e3] bg-white px-1.5 py-0.5 font-mono text-[10px] lg:text-xs text-[#8a8784] shadow-sm">
-          ⌘K
-        </kbd>
-      )}
-
-      {/* Clear button */}
-      {query && (
-        <button
-          type="button"
-          onClick={() => { setQuery(""); inputRef.current?.focus(); }}
-          className="absolute right-3 top-1/2 -translate-y-1/2 flex h-5 w-5 lg:h-6 lg:w-6 items-center justify-center rounded-full bg-[#e8e6e3] text-[#5d5854] hover:bg-[#d9d7d4]"
-          aria-label="Clear search"
-        >
-          <svg viewBox="0 0 24 24" className="h-3 w-3 lg:h-3.5 lg:w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <path d="M18 6 6 18M6 6l12 12" />
-          </svg>
-        </button>
-      )}
-    </form>
-  );
-}
-
-/* ── Main Header ────────────────────────────────── */
-export default function AppHeader() {
-  const router = useRouter();
-  const { data: session } = authClient.useSession();
-  const [notifOpen, setNotifOpen] = React.useState(false);
-  const [unreadCount, setUnreadCount] = React.useState(0);
-  const hidden = useScrollDirection();
-
-  React.useEffect(() => {
-    if (!session?.user) return;
-    fetch("/api/network/notifications", { credentials: "include" })
-      .then((r) => r.json())
-      .then((d) => setUnreadCount(d.unreadCount ?? 0))
-      .catch(() => {});
-  }, [session?.user]);
-
-  const iconBtn = "relative flex h-9 w-9 lg:h-11 lg:w-11 items-center justify-center rounded-full text-[#6b6a68] transition hover:bg-[#f0efee] hover:text-[#171717] focus:outline-none";
+  const navItems = [
+    { id: "home", label: "Home", href: "/home", icon: Home },
+    { id: "network", label: "Network", href: "/network", icon: Users },
+    { id: "learn", label: "Learn", href: "/learn", icon: GraduationCap },
+    { id: "opportunities", label: "Opportunities", href: "/opportunities", icon: Briefcase },
+    { id: "marketplace", label: "Marketplace", href: "/marketplace", icon: ShoppingBag },
+  ];
 
   return (
     <header
-      className={`sticky top-0 z-40 flex items-center bg-white px-4 lg:px-8 py-2.5 lg:py-3.5 transition-transform duration-300 ease-in-out ${
+      className={`sticky top-0 z-40 border-b border-[#e8e6e3] bg-white transition-transform duration-300 ease-in-out ${
         hidden ? "-translate-y-full" : "translate-y-0"
       }`}
     >
-      {/* Left — MGN logo */}
-      <button
-        type="button"
-        onClick={() => router.push("/home")}
-        className="flex shrink-0 items-center focus:outline-none"
-        aria-label="MGN Home"
-      >
-        <img src="/logo.png" alt="MGN" className="h-8 lg:h-10 w-auto object-contain" />
-      </button>
-
-      {/* Center — search bar truly centered via absolute (desktop only) */}
-      <div className="pointer-events-none absolute inset-0 hidden items-center justify-center lg:flex">
-        <div className="pointer-events-auto w-full max-w-lg xl:max-w-xl px-4">
-          <SearchBar />
+      <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        {/* 1. LEFT: LOGO */}
+        <div className="flex shrink-0 items-center gap-6">
+          <Link href="/home" className="flex items-center gap-2 focus:outline-none">
+            <div className="flex items-center gap-1.5">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#1769c2] text-sm font-bold text-white shadow-xs">
+                +
+              </span>
+              <span className="text-xl font-bold tracking-tight text-[#1769c2]">MGN</span>
+            </div>
+            <span className="hidden text-[10px] font-medium leading-none text-[#77716b] xl:inline-block">
+              For a Healthier Tomorrow
+            </span>
+          </Link>
         </div>
-      </div>
 
-      {/* Right — icons */}
-      <div className="ml-auto flex items-center gap-1.5 lg:gap-2.5">
-        {/* Notification */}
-        <div className="relative">
+        {/* 2. CENTER: GLOBAL SEARCH BAR */}
+        <div className="flex-1 max-w-xl">
+          <form onSubmit={handleSearchSubmit} className="relative flex w-full items-center">
+            <Search className="pointer-events-none absolute left-3.5 h-4 w-4 text-[#8a8784]" />
+            <input
+              ref={inputRef}
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search professionals, specialties, organizations, jobs, courses..."
+              aria-label="Global search"
+              className="h-10 w-full rounded-2xl border border-[#e8e6e3] bg-[#f8f7f6] pl-10 pr-14 text-xs text-[#171717] placeholder:text-[#8a8784] transition focus:border-[#1769c2] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1769c2]/15"
+            />
+            {!searchQuery && (
+              <kbd className="pointer-events-none absolute right-3 flex items-center rounded-md border border-[#ded8d1] bg-white px-1.5 py-0.5 font-mono text-[10px] text-[#8a8784] shadow-2xs">
+                ⌘ K
+              </kbd>
+            )}
+          </form>
+        </div>
+
+        {/* 3. RIGHT: DESKTOP NAVIGATION TABS & UTILITIES */}
+        <div className="flex items-center gap-1 sm:gap-2">
+          {/* Navigation Links (Desktop) */}
+          <nav className="hidden md:flex items-center gap-1 mr-2">
+            {navItems.map((item) => {
+              const isActive =
+                item.href === "/home"
+                  ? pathname === "/home" || pathname === "/"
+                  : pathname.startsWith(item.href);
+              const IconComp = item.icon;
+
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className={`flex flex-col items-center justify-center rounded-xl px-3 py-1.5 text-center transition ${
+                    isActive
+                      ? "bg-[#eef5fc] text-[#1769c2] font-bold"
+                      : "text-[#77716b] hover:bg-[#f8f7f6] hover:text-[#171717]"
+                  }`}
+                >
+                  <IconComp className={`h-4 w-4 stroke-[2] ${isActive ? "text-[#1769c2]" : ""}`} />
+                  <span className="text-[10px] mt-0.5">{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Vertical Divider */}
+          <div className="hidden md:block h-6 w-px bg-[#e8e6e3] mx-1" />
+
+          {/* Notifications */}
+          <div className="relative">
+            <button
+              type="button"
+              aria-label="Notifications"
+              aria-expanded={notifOpen}
+              onClick={() => {
+                setNotifOpen((o) => !o);
+                if (!notifOpen) setUnreadCount(0);
+              }}
+              className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
+            >
+              <Bell className="h-5 w-5 stroke-[1.8]" />
+              {unreadCount > 0 && (
+                <span className="absolute right-2 top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-2 ring-white">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+            {notifOpen && (
+              <NotifPopup
+                onClose={() => setNotifOpen(false)}
+                onViewAll={() => {
+                  setNotifOpen(false);
+                  router.push("/network/connections");
+                }}
+              />
+            )}
+          </div>
+
+          {/* Messages */}
           <button
             type="button"
-            aria-label="Notifications"
-            aria-expanded={notifOpen}
-            onClick={() => {
-              setNotifOpen((o) => !o);
-              if (!notifOpen) setUnreadCount(0);
-            }}
-            className={iconBtn}
+            aria-label="Messages"
+            onClick={() => router.push("/network")}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
           >
-            <BellIcon />
-            {unreadCount > 0 && (
-              <span className="absolute right-1.5 lg:right-2 top-1.5 lg:top-2 flex h-2 w-2 lg:h-2.5 lg:w-2.5 rounded-full bg-[#1769c2] ring-2 ring-white" aria-hidden="true" />
-            )}
+            <MessageSquare className="h-5 w-5 stroke-[1.8]" />
           </button>
-          {notifOpen && (
-            <NotifPopup
-              onClose={() => setNotifOpen(false)}
-              onViewAll={() => {
-                setNotifOpen(false);
-                router.push("/network/connections");
-              }}
-            />
-          )}
+
+          {/* User Menu Avatar */}
+          <UserMenu />
         </div>
-
-        {/* Message */}
-        <button
-          type="button"
-          aria-label="Messages"
-          onClick={() => router.push("/home")}
-          className={iconBtn}
-        >
-          <MessageIcon />
-        </button>
-
-        {/* User profile */}
-        <UserMenu />
       </div>
     </header>
   );
