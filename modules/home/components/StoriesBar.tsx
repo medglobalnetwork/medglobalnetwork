@@ -88,12 +88,12 @@ export function StoriesBar({
   };
 
   return (
-    <div className="rounded-3xl border border-[#e8e6e3] bg-white p-5 shadow-2xs">
+    <div className="border-0 sm:border sm:border-[#e8e6e3] bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 shadow-none sm:shadow-2xs">
       {/* 1. SECTION HEADER */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-2.5 sm:mb-4">
         <div>
-          <h2 className="text-base font-bold text-[#171717] tracking-tight">Stories</h2>
-          <p className="text-xs text-[#77716b]">See what your colleagues are sharing today</p>
+          <h2 className="text-sm sm:text-base font-bold text-[#171717] tracking-tight">Stories</h2>
+          <p className="hidden sm:block text-xs text-[#77716b]">See what your colleagues are sharing today</p>
         </div>
         <button
           type="button"
@@ -101,21 +101,21 @@ export function StoriesBar({
             if (peerGroups.length > 0) handleOpenPeerStory(peerGroups[0]);
             else setIsCreateOpen(true);
           }}
-          className="inline-flex items-center text-xs font-bold text-[#1769c2] hover:underline"
+          className="inline-flex items-center text-xs font-semibold text-[#1769c2] hover:underline"
         >
           View All <ChevronRight className="h-3.5 w-3.5 ml-0.5" />
         </button>
       </div>
 
       {/* 2. HORIZONTAL STORIES LIST */}
-      <div className="flex items-center gap-4 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex items-center gap-3 sm:gap-4 overflow-x-auto pb-1 scrollbar-none touch-pan-x overscroll-x-contain">
         {/* YOUR STORY */}
-        <div className="flex shrink-0 flex-col items-center gap-1.5">
+        <div className="flex shrink-0 flex-col items-center gap-1">
           <div className="relative cursor-pointer">
             <button
               type="button"
               onClick={handleOpenOwnStory}
-              className={`flex h-16 w-16 items-center justify-center rounded-full p-[2.5px] transition hover:scale-105 ${
+              className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full p-[2px] sm:p-[2.5px] transition hover:scale-105 ${
                 ownStoryGroup
                   ? "bg-gradient-to-tr from-[#1769c2] via-[#0284c7] to-[#38bdf8]"
                   : "bg-slate-100"
@@ -142,24 +142,24 @@ export function StoriesBar({
                 setIsCreateOpen(true);
               }}
               title="Add Story"
-              className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-[#1769c2] text-white shadow-xs transition hover:bg-[#12569f]"
+              className="absolute bottom-0 right-0 flex h-4.5 w-4.5 sm:h-5 sm:w-5 items-center justify-center rounded-full border-2 border-white bg-[#1769c2] text-white shadow-xs transition hover:bg-[#12569f]"
             >
-              <Plus className="h-3 w-3 stroke-[3]" />
+              <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3 stroke-[3]" />
             </button>
           </div>
 
-          <span className="w-16 truncate text-center text-[11px] font-semibold text-[#171717]">
+          <span className="w-14 sm:w-16 truncate text-center text-[10px] sm:text-[11px] font-medium text-[#171717]">
             Your Story
           </span>
         </div>
 
         {/* LOADING SKELETON */}
         {isLoading && (
-          <div className="flex gap-4">
+          <div className="flex gap-3 sm:gap-4">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex shrink-0 flex-col items-center gap-1.5 animate-pulse">
-                <div className="h-16 w-16 rounded-full bg-[#f0efee]" />
-                <div className="h-2.5 w-12 rounded bg-[#f0efee]" />
+              <div key={i} className="flex shrink-0 flex-col items-center gap-1 animate-pulse">
+                <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-[#f0efee]" />
+                <div className="h-2 w-10 sm:h-2.5 sm:w-12 rounded bg-[#f0efee]" />
               </div>
             ))}
           </div>
@@ -175,10 +175,10 @@ export function StoriesBar({
                 key={group.userId}
                 type="button"
                 onClick={() => handleOpenPeerStory(group)}
-                className="group flex shrink-0 flex-col items-center gap-1.5 focus:outline-none"
+                className="group flex shrink-0 flex-col items-center gap-1 focus:outline-none"
               >
                 <div
-                  className={`flex h-16 w-16 items-center justify-center rounded-full p-[2.5px] transition group-hover:scale-105 ${
+                  className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full p-[2px] sm:p-[2.5px] transition group-hover:scale-105 ${
                     group.hasUnviewed
                       ? `bg-gradient-to-tr ${ringColor}`
                       : "bg-[#ded8d1]"
@@ -197,7 +197,7 @@ export function StoriesBar({
                   </div>
                 </div>
 
-                <span className="w-16 truncate text-center text-[11px] font-medium text-[#171717] group-hover:text-[#1769c2]">
+                <span className="w-14 sm:w-16 truncate text-center text-[10px] sm:text-[11px] font-medium text-[#171717] group-hover:text-[#1769c2]">
                   {group.userName}
                 </span>
               </button>
@@ -206,9 +206,9 @@ export function StoriesBar({
 
         {/* EMPTY STATE HELPER IF NO PEERS POSTED */}
         {!isLoading && peerGroups.length === 0 && (
-          <div className="flex items-center gap-2 pl-2 text-xs text-[#77716b]">
-            <Sparkles className="h-4 w-4 text-[#1769c2]" />
-            <span>Stories from followed peers appear here</span>
+          <div className="flex items-center gap-2 pl-2 text-xs text-[#77716b] whitespace-nowrap">
+            <Sparkles className="h-4 w-4 text-[#1769c2] shrink-0" />
+            <span className="text-[11px] sm:text-xs">Stories from followed peers appear here</span>
           </div>
         )}
       </div>

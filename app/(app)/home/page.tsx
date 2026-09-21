@@ -99,13 +99,13 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#f8f7f6] pb-24 text-[#171717]">
-      <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1440px] px-3 py-4 sm:px-6 lg:px-8">
         {/* 2-Column Responsive Layout Matching Mockup */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12 lg:gap-8">
           {/* =================================================================
               LEFT COLUMN: Stories + Quick Links + Inline Post + Feeds (68-70%)
               ================================================================= */}
-          <div className="space-y-6 lg:col-span-8">
+          <div className="space-y-4 sm:space-y-6 lg:col-span-8">
             {/* 1. STORIES SECTION */}
             <StoriesBar
               currentUserId={session.user.id}
