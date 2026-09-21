@@ -6,12 +6,6 @@
 // Real data is fetched directly from database via API routes.
 // ============================================================
 
-import type { ProfessionalProfile, Community, NetworkPost } from "../types";
-
-export const SAMPLE_PROFESSIONALS: ProfessionalProfile[] = [];
-export const SAMPLE_COMMUNITIES: Community[] = [];
-export const SAMPLE_POSTS: NetworkPost[] = [];
-
 // ─────────────────────────────────────────────
 // SPECIALTY AVATAR COLORS
 // Consistent color per profession for avatars
