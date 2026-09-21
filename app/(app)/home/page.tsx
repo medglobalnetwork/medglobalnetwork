@@ -316,7 +316,7 @@ export default function HomePage() {
 
               <button
                 type="button"
-                onClick={() => router.push("/settings")}
+                onClick={() => router.push("/pricing")}
                 className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-xs font-bold text-[#1e40af] shadow-xs hover:bg-slate-50 transition"
               >
                 Explore Plans <ArrowRight className="h-3.5 w-3.5" />

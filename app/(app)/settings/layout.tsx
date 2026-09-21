@@ -24,6 +24,16 @@ const settingsNav = [
           </svg>
         ),
       },
+      {
+        label: "Plans & Billing",
+        href: "/pricing",
+        icon: (
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect width="20" height="14" x="2" y="5" rx="2" />
+            <line x1="2" x2="22" y1="10" y2="10" />
+          </svg>
+        ),
+      },
     ],
   },
 ];
