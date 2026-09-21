@@ -14,7 +14,19 @@ const rawBaseUrl =
   process.env.NEXT_PUBLIC_APP_URL ||
   "http://localhost:3000";
 
-const baseURL = rawBaseUrl.replace(/\/api\/auth\/?$/, "").replace(/\/+$/, "");
+let cleanBaseUrl = rawBaseUrl.replace(/\/api\/auth\/?$/, "").replace(/\/+$/, "");
+
+// Force HTTPS for production domains
+if (
+  (cleanBaseUrl.includes("mgn.life") || cleanBaseUrl.includes("vercel.app") || process.env.NODE_ENV === "production") &&
+  cleanBaseUrl.startsWith("http://") &&
+  !cleanBaseUrl.includes("localhost") &&
+  !cleanBaseUrl.includes("127.0.0.1")
+) {
+  cleanBaseUrl = cleanBaseUrl.replace("http://", "https://");
+}
+
+const baseURL = cleanBaseUrl;
 
 const isRemoteDb =
   databaseUrl.includes("supabase") ||
