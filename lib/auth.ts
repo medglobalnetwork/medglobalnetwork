@@ -9,15 +9,27 @@ import { Pool } from "pg";
 const databaseUrl =
   process.env.SUPABASE_DATABASE_URL || "postgresql://localhost:5432/mgn";
 
-const globalForAuth = globalThis as typeof globalThis & {
-  mgnAuthPool?: Pool;
-  mgnAuthDatabase?: Kysely<unknown>;
-};
+const rawBaseUrl =
+  process.env.BETTER_AUTH_URL ||
+  process.env.NEXT_PUBLIC_APP_URL ||
+  "http://localhost:3000";
+
+const baseURL = rawBaseUrl.replace(/\/api\/auth\/?$/, "").replace(/\/+$/, "");
+
+const isRemoteDb =
+  databaseUrl.includes("supabase") ||
+  databaseUrl.includes("pooler") ||
+  databaseUrl.includes("aws") ||
+  process.env.NODE_ENV === "production";
 
 const pool =
   globalForAuth.mgnAuthPool ??
   new Pool({
     connectionString: databaseUrl,
+    ssl: isRemoteDb ? { rejectUnauthorized: false } : undefined,
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
   });
 
 export const database =
@@ -30,16 +42,16 @@ globalForAuth.mgnAuthPool = pool;
 globalForAuth.mgnAuthDatabase = database;
 
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  baseURL,
   trustedOrigins: [
-    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+    baseURL,
     "https://www.mgn.life",
     "https://mgn.life",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
   ],
   database: pool,
-  plugins: [dash()],
+  plugins: process.env.BETTER_AUTH_API_KEY ? [dash()] : [],
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, url }) => {
@@ -53,5 +65,5 @@ export const auth = betterAuth({
       prompt: "select_account",
     },
   },
-  secret: process.env.BETTER_AUTH_SECRET,
+  secret: process.env.BETTER_AUTH_SECRET || "mgn-auth-super-secret-key-2026",
 });
