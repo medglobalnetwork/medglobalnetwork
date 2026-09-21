@@ -174,7 +174,7 @@ export default function MyNetworkPage() {
 
   return (
     <main className="min-h-screen bg-[#f5f5f4] pb-36 text-[#171717]">
-      <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-2 py-4 sm:px-4 lg:px-6">
 
         {/* Breadcrumb Header */}
         <div className="mb-5 flex items-center gap-2 text-xs text-[#77716b]">
