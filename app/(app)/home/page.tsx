@@ -129,20 +129,20 @@ export default function HomePage() {
               ================================================================= */}
           <div className="space-y-5 lg:col-span-4">
             {/* 1. USER PROFILE SUMMARY CARD */}
-            <div className="overflow-hidden rounded-3xl border border-[#e8e6e3] bg-white shadow-2xs">
+            <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-[#e8e6e3] bg-white shadow-2xs">
               {/* Graphic Top Banner */}
-              <div className="relative h-24 w-full bg-gradient-to-r from-[#1769c2] via-[#0284c7] to-[#0ea5e9] p-4 text-white">
+              <div className="relative h-14 sm:h-24 w-full bg-gradient-to-r from-[#1769c2] via-[#0284c7] to-[#0ea5e9] p-2.5 sm:p-4 text-white">
                 <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:12px_12px] opacity-20" />
-                <p className="relative text-right text-[11px] font-semibold text-white/90">
+                <p className="relative text-right text-[9px] sm:text-[11px] font-semibold text-white/90 leading-tight">
                   Better Professionals<br />Better Healthcare
                 </p>
               </div>
 
               {/* Avatar + Info */}
-              <div className="relative px-5 pb-5 pt-0 text-center">
+              <div className="relative px-3.5 pb-3.5 sm:px-5 sm:pb-5 pt-0 text-center">
                 {/* Center avatar overlaying banner */}
-                <div className="relative -mt-11 inline-block">
-                  <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-[#eef5fc] text-xl font-bold text-[#1769c2] shadow-md mx-auto">
+                <div className="relative -mt-7 sm:-mt-11 inline-block">
+                  <div className="flex h-14 w-14 sm:h-20 sm:w-20 items-center justify-center overflow-hidden rounded-full border-3 sm:border-4 border-white bg-[#eef5fc] text-base sm:text-xl font-bold text-[#1769c2] shadow-md mx-auto">
                     {avatarUrl ? (
                       <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
                     ) : (
@@ -151,41 +151,41 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="mt-2 flex items-center justify-center gap-1.5">
-                  <h3 className="font-bold text-base text-[#171717]">{displayName}</h3>
-                  <ShieldCheck className="h-4 w-4 fill-[#1769c2]/15 text-[#1769c2]" />
+                <div className="mt-1 sm:mt-2 flex items-center justify-center gap-1">
+                  <h3 className="font-bold text-sm sm:text-base text-[#171717]">{displayName}</h3>
+                  <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-[#1769c2]/15 text-[#1769c2]" />
                 </div>
-                <p className="text-xs text-[#77716b] font-medium">Clinician / Member</p>
-                <p className="text-xs text-[#a09890] mt-0.5">Physiotherapist · Raipur, CG</p>
+                <p className="text-[11px] sm:text-xs text-[#77716b] font-medium">Clinician / Member</p>
+                <p className="text-[10px] sm:text-xs text-[#a09890] mt-0.5">Physiotherapist · Raipur, CG</p>
 
                 {/* 3 Metric Stats */}
-                <div className="mt-4 grid grid-cols-3 divide-x divide-[#f0efee] border-t border-b border-[#f5f4f3] py-3 text-center">
+                <div className="mt-2.5 sm:mt-4 grid grid-cols-3 divide-x divide-[#f0efee] border-t border-b border-[#f5f4f3] py-2 sm:py-3 text-center">
                   <div>
-                    <span className="block text-sm font-bold text-[#171717]">184</span>
-                    <span className="text-[10px] text-[#77716b]">Connections</span>
+                    <span className="block text-xs sm:text-sm font-bold text-[#171717]">184</span>
+                    <span className="text-[9px] sm:text-[10px] text-[#77716b]">Connections</span>
                   </div>
                   <div>
-                    <span className="block text-sm font-bold text-[#171717]">327</span>
-                    <span className="text-[10px] text-[#77716b]">Followers</span>
+                    <span className="block text-xs sm:text-sm font-bold text-[#171717]">327</span>
+                    <span className="text-[9px] sm:text-[10px] text-[#77716b]">Followers</span>
                   </div>
                   <div>
-                    <span className="block text-sm font-bold text-[#171717]">52</span>
-                    <span className="text-[10px] text-[#77716b]">Posts</span>
+                    <span className="block text-xs sm:text-sm font-bold text-[#171717]">52</span>
+                    <span className="text-[9px] sm:text-[10px] text-[#77716b]">Posts</span>
                   </div>
                 </div>
 
                 {/* Complete Profile Progress */}
-                <div className="mt-4 text-left">
-                  <div className="flex items-center justify-between text-xs mb-1">
+                <div className="mt-2.5 sm:mt-4 text-left">
+                  <div className="flex items-center justify-between text-[11px] sm:text-xs mb-1">
                     <span className="font-bold text-[#171717]">Complete your profile</span>
                     <Link
                       href="/settings/account"
-                      className="text-xs font-bold text-[#1769c2] hover:underline"
+                      className="text-[11px] sm:text-xs font-bold text-[#1769c2] hover:underline"
                     >
                       20% &gt;
                     </Link>
                   </div>
-                  <p className="text-[11px] text-[#77716b] mb-2">
+                  <p className="text-[10px] sm:text-[11px] text-[#77716b] mb-1.5 sm:mb-2">
                     Add credentials, skills and more to get discovered
                   </p>
                   <div className="h-1.5 w-full rounded-full bg-[#f0efee] overflow-hidden">
