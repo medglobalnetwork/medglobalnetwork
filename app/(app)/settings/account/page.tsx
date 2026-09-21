@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { getUserAvatarUrl, setUserCustomAvatar } from "@/lib/avatar";
+import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl, setUserCustomAvatar } from "@/lib/avatar";
 import { Trash2 } from "lucide-react";
 
 export default function AccountSettingsPage() {
@@ -15,7 +15,7 @@ export default function AccountSettingsPage() {
   const [confirmText, setConfirmText] = React.useState("");
   const [hasPassword, setHasPassword] = React.useState<boolean | null>(null);
   const [error, setError] = React.useState<string | null>(null);
-  const [avatarUrl, setAvatarUrl] = React.useState<string>("");
+  const [avatarUrl, setAvatarUrl] = React.useState<string>(DEFAULT_BLANK_AVATAR);
   const [hasCustomAvatar, setHasCustomAvatar] = React.useState(false);
   const [photoSuccess, setPhotoSuccess] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -46,12 +46,18 @@ export default function AccountSettingsPage() {
         const custom = localStorage.getItem("mgn_user_custom_avatar");
         setHasCustomAvatar(Boolean(custom));
       }
-      setAvatarUrl(getUserAvatarUrl(session?.user?.email, session?.user?.name));
+      setAvatarUrl(
+        getUserAvatarUrl(
+          session?.user?.email,
+          session?.user?.name,
+          session?.user?.image
+        )
+      );
     };
     syncAvatar();
     window.addEventListener("mgn-avatar-updated", syncAvatar);
     return () => window.removeEventListener("mgn-avatar-updated", syncAvatar);
-  }, [session?.user?.email, session?.user?.name]);
+  }, [session?.user?.email, session?.user?.name, session?.user?.image]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -74,7 +80,7 @@ export default function AccountSettingsPage() {
 
   const handleResetAvatar = () => {
     setUserCustomAvatar(null);
-    setPhotoSuccess("Profile picture reset to email default.");
+    setPhotoSuccess("Profile picture removed. Default blank avatar applied.");
     setTimeout(() => setPhotoSuccess(null), 3000);
   };
 

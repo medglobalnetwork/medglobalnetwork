@@ -8,6 +8,7 @@ import { VerificationBadge } from "./VerificationBadge";
 import { ConnectionButton } from "./ConnectionButton";
 import { ConnectionRequestModal } from "./ConnectionRequestModal";
 import { getProfessionColor } from "../lib/network-data";
+import { isGoogleOrExternalAvatar } from "@/lib/avatar";
 
 interface ProfessionalCardProps {
   profile: ProfessionalProfile;
@@ -21,6 +22,7 @@ export function ProfessionalCard({
   variant = "grid",
 }: ProfessionalCardProps) {
   const router = useRouter();
+  const hasCustomImage = Boolean(profile.image && !isGoogleOrExternalAvatar(profile.image));
   const [connectionStatus, setConnectionStatus] = React.useState<ConnectionStatus>(
     profile.connection_status ?? "none"
   );
@@ -104,7 +106,7 @@ export function ProfessionalCard({
 
   if (variant === "list") {
     return (
-      <div className="group relative flex items-center gap-3.5 rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs transition hover:border-[#1769c2]/30 hover:shadow-sm">
+      <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#e8e6e3] bg-white p-3.5 transition hover:border-[#1769c2]/40 hover:shadow-xs">
         {/* Avatar */}
         <button
           type="button"
@@ -115,9 +117,9 @@ export function ProfessionalCard({
             className="flex h-12 w-12 items-center justify-center rounded-full text-base font-bold text-[#3f3f3c] ring-2 ring-[#f4f3f0]"
             style={{ background: avatarColor }}
           >
-            {profile.image ? (
+            {customImageSrc ? (
               <img
-                src={profile.image}
+                src={customImageSrc}
                 alt={profile.name}
                 className="h-full w-full rounded-full object-cover"
               />
@@ -194,9 +196,9 @@ export function ProfessionalCard({
           onClick={() => router.push(`/profile/${profile.user_id}`)}
           className="h-full w-full block text-left"
         >
-          {profile.image ? (
+          {customImageSrc ? (
             <img
-              src={profile.image}
+              src={customImageSrc}
               alt={profile.name}
               className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
             />

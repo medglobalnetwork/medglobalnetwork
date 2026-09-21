@@ -3,24 +3,30 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { getUserAvatarUrl } from "@/lib/avatar";
+import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl } from "@/lib/avatar";
 
 export default function UserMenu() {
   const router = useRouter();
   const { data: session } = authClient.useSession();
   const [open, setOpen] = React.useState(false);
-  const [avatarUrl, setAvatarUrl] = React.useState<string>("");
+  const [avatarUrl, setAvatarUrl] = React.useState<string>(DEFAULT_BLANK_AVATAR);
   const ref = React.useRef<HTMLDivElement>(null);
 
   // Sync avatar on mount and on custom avatar change
   React.useEffect(() => {
     const updateAvatar = () => {
-      setAvatarUrl(getUserAvatarUrl(session?.user?.email, session?.user?.name));
+      setAvatarUrl(
+        getUserAvatarUrl(
+          session?.user?.email,
+          session?.user?.name,
+          session?.user?.image
+        )
+      );
     };
     updateAvatar();
     window.addEventListener("mgn-avatar-updated", updateAvatar);
     return () => window.removeEventListener("mgn-avatar-updated", updateAvatar);
-  }, [session?.user?.email, session?.user?.name]);
+  }, [session?.user?.email, session?.user?.name, session?.user?.image]);
 
   // Close on outside click
   React.useEffect(() => {
@@ -32,10 +38,6 @@ export default function UserMenu() {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
-
-  const initial = session
-    ? (session.user.name || session.user.email).slice(0, 1).toUpperCase()
-    : "?";
 
   const handleSignOut = async () => {
     setOpen(false);
@@ -50,23 +52,19 @@ export default function UserMenu() {
 
   return (
     <div ref={ref} className="relative">
-      {/* Collapsed — profile avatar fetched from email or custom */}
+      {/* Collapsed — profile avatar fetched from custom or blank */}
       <button
         type="button"
         aria-label="Open user menu"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="flex h-9 w-9 lg:h-11 lg:w-11 items-center justify-center overflow-hidden rounded-full border border-[#ded8d1] bg-[#eef5fc] text-sm lg:text-base font-semibold text-[#1769c2] ring-2 ring-transparent transition hover:ring-[#1769c2]/30 focus:outline-none focus:ring-[#1769c2]/50"
+        className="flex h-9 w-9 lg:h-11 lg:w-11 items-center justify-center overflow-hidden rounded-full border border-[#ded8d1] bg-[#eef5fc] ring-2 ring-transparent transition hover:ring-[#1769c2]/30 focus:outline-none focus:ring-[#1769c2]/50"
       >
-        {avatarUrl ? (
-          <img
-            src={avatarUrl}
-            alt={session?.user?.name || "User Avatar"}
-            className="h-full w-full rounded-full object-cover"
-          />
-        ) : (
-          initial
-        )}
+        <img
+          src={avatarUrl || DEFAULT_BLANK_AVATAR}
+          alt={session?.user?.name || "User Avatar"}
+          className="h-full w-full rounded-full object-cover"
+        />
       </button>
 
       {/* Dropdown */}
@@ -79,16 +77,12 @@ export default function UserMenu() {
             tabIndex={0}
             className="flex cursor-pointer items-center gap-3 px-5 py-4 transition hover:bg-[#f8f7f6]"
           >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#ded8d1] bg-[#eef5fc] text-base font-bold text-[#1769c2]">
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={session?.user?.name || "User Avatar"}
-                  className="h-full w-full rounded-full object-cover"
-                />
-              ) : (
-                initial
-              )}
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#ded8d1] bg-[#eef5fc]">
+              <img
+                src={avatarUrl || DEFAULT_BLANK_AVATAR}
+                alt={session?.user?.name || "User Avatar"}
+                className="h-full w-full rounded-full object-cover"
+              />
             </span>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-[#171717]">

@@ -19,6 +19,7 @@ import { VerificationBadge } from "@/modules/network/components/VerificationBadg
 import { ConnectionButton } from "@/modules/network/components/ConnectionButton";
 import type { ProfessionalProfile, ConnectionStatus } from "@/modules/network/types";
 import { getProfessionColor } from "@/modules/network/lib/network-data";
+import { DEFAULT_BLANK_AVATAR, isGoogleOrExternalAvatar } from "@/lib/avatar";
 
 interface ProfileHeaderProps {
   profile: ProfessionalProfile & {
@@ -93,6 +94,19 @@ export function ProfileHeader({
   const tags = profile.skills && profile.skills.length > 0 
     ? profile.skills 
     : [profile.profession, profile.specialization, "Evidence-Based Care", "Clinical Rehab"].filter(Boolean) as string[];
+
+  const avatarSrc = React.useMemo(() => {
+    if (typeof window !== "undefined") {
+      const custom = isOwnProfile
+        ? localStorage.getItem("mgn_user_custom_avatar")
+        : localStorage.getItem(`mgn_avatar_${profile.user_id}`);
+      if (custom) return custom;
+    }
+    if (profile.image && !isGoogleOrExternalAvatar(profile.image)) {
+      return profile.image;
+    }
+    return DEFAULT_BLANK_AVATAR;
+  }, [profile.image, profile.user_id, isOwnProfile]);
 
   const formatCount = (count?: number) => {
     if (!count) return "0";
@@ -179,18 +193,13 @@ export function ProfileHeader({
           <div className="relative shrink-0 -mt-10 sm:-mt-12 lg:-mt-14 z-10">
             <div className="h-20 w-20 sm:h-24 sm:w-24 lg:h-28 lg:w-28 rounded-full p-[2.5px] bg-gradient-to-tr from-amber-500 via-rose-500 to-fuchsia-600 shadow-md">
               <div
-                className="h-full w-full rounded-full overflow-hidden flex items-center justify-center text-xl sm:text-2xl font-extrabold text-white border-2 border-white"
-                style={{ background: color }}
+                className="h-full w-full rounded-full overflow-hidden flex items-center justify-center bg-slate-100 border-2 border-white"
               >
-                {profile.image ? (
-                  <img
-                    src={profile.image}
-                    alt={profile.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  initials
-                )}
+                <img
+                  src={avatarSrc}
+                  alt={profile.name}
+                  className="h-full w-full object-cover"
+                />
               </div>
             </div>
             {/* Online Green Indicator Dot */}

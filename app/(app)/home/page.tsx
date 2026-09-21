@@ -18,7 +18,7 @@ import {
   Video,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { getUserAvatarUrl } from "@/lib/avatar";
+import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl } from "@/lib/avatar";
 import { StoriesBar } from "@/modules/home/components/StoriesBar";
 import { QuickLinksBar } from "@/modules/home/components/QuickLinksBar";
 import { HomeFeed } from "@/modules/home/components/HomeFeed";
@@ -28,17 +28,23 @@ export default function HomePage() {
   const { data: session, isPending } = authClient.useSession();
 
   // Dynamic Avatar sync
-  const [avatarUrl, setAvatarUrl] = React.useState<string>("");
+  const [avatarUrl, setAvatarUrl] = React.useState<string>(DEFAULT_BLANK_AVATAR);
   const [peopleStates, setPeopleStates] = React.useState<{ [id: string]: boolean }>({});
 
   React.useEffect(() => {
     const updateAvatar = () => {
-      setAvatarUrl(getUserAvatarUrl(session?.user?.email, session?.user?.name));
+      setAvatarUrl(
+        getUserAvatarUrl(
+          session?.user?.email,
+          session?.user?.name,
+          session?.user?.image
+        )
+      );
     };
     updateAvatar();
     window.addEventListener("mgn-avatar-updated", updateAvatar);
     return () => window.removeEventListener("mgn-avatar-updated", updateAvatar);
-  }, [session?.user?.email, session?.user?.name]);
+  }, [session?.user?.email, session?.user?.name, session?.user?.image]);
 
   React.useEffect(() => {
     if (!isPending && !session) {
