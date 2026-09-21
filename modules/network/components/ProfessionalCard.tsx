@@ -2,7 +2,7 @@
 // modules/network/components/ProfessionalCard.tsx
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Heart, MessageSquare, MoreHorizontal, ShieldCheck, Share2, Copy, Check } from "lucide-react";
+import { Heart, MessageSquare, MoreHorizontal, Share2, Copy, Check } from "lucide-react";
 import type { ProfessionalProfile, ConnectionStatus } from "../types";
 import { VerificationBadge } from "./VerificationBadge";
 import { ConnectionButton } from "./ConnectionButton";
@@ -91,16 +91,15 @@ export function ProfessionalCard({
     if (profile.sub_specialization) tags.push(profile.sub_specialization);
     if (profile.skills && Array.isArray(profile.skills)) {
       for (const s of profile.skills) {
-        if (s && !tags.includes(s) && tags.length < 3) {
+        if (s && !tags.includes(s) && tags.length < 2) {
           tags.push(s);
         }
       }
     }
-    // Fallback if none
     if (tags.length === 0 && profile.profession) {
       tags.push(profile.profession);
     }
-    return tags.slice(0, 3);
+    return tags.slice(0, 2);
   }, [profile.specialization, profile.sub_specialization, profile.skills, profile.profession]);
 
   if (variant === "list") {
@@ -185,46 +184,57 @@ export function ProfessionalCard({
     );
   }
 
-  // Grid variant (matches reference mockup)
+  // Grid variant: Full-width portrait cover photo matching the design mockup exactly
   return (
-    <div className="group relative flex flex-col justify-between rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs transition duration-150 hover:border-[#1769c2]/30 hover:shadow-sm">
-      {/* Top Bar inside card: Verified Badge & Bookmark / Options */}
-      <div className="flex items-center justify-between">
-        {isVerified ? (
-          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Verified
-          </span>
-        ) : (
-          <span className="text-[11px] text-[#a09890]">
-            {profile.profession || "Healthcare"}
-          </span>
+    <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#e8e6e3] bg-white shadow-xs transition duration-150 hover:border-[#1769c2]/40 hover:shadow-md">
+      {/* 1. TOP PORTRAIT COVER PHOTO */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#eef5fc]">
+        <button
+          type="button"
+          onClick={() => router.push(`/profile/${profile.user_id}`)}
+          className="h-full w-full block text-left"
+        >
+          {profile.image ? (
+            <img
+              src={profile.image}
+              alt={profile.name}
+              className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+            />
+          ) : (
+            <div
+              className="flex h-full w-full items-center justify-center text-4xl font-bold text-slate-700/80"
+              style={{ background: avatarColor }}
+            >
+              {initials}
+            </div>
+          )}
+        </button>
+
+        {/* Top-Left: Verified Badge Overlay */}
+        {isVerified && (
+          <div className="absolute left-3 top-3">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-emerald-700 shadow-xs backdrop-blur-xs">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              Verified
+            </span>
+          </div>
         )}
 
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setIsSaved(!isSaved)}
-            className="rounded-lg p-1 text-[#8a8784] transition hover:bg-[#f8f7f6] hover:text-rose-500"
-            title={isSaved ? "Saved" : "Save professional"}
-          >
-            <Heart
-              className={`h-4 w-4 ${isSaved ? "fill-rose-500 text-rose-500" : ""}`}
-            />
-          </button>
-
+        {/* Top-Right: Options and Bookmark Stack */}
+        <div className="absolute right-3 top-3 flex flex-col items-center gap-2">
+          {/* More Options Menu */}
           <div className="relative" ref={menuRef}>
             <button
               type="button"
               onClick={() => setShowMenu(!showMenu)}
-              className="rounded-lg p-1 text-[#8a8784] transition hover:bg-[#f8f7f6] hover:text-[#171717]"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#3f3f3c] shadow-xs backdrop-blur-xs transition hover:bg-white hover:text-[#171717]"
               title="More options"
             >
               <MoreHorizontal className="h-4 w-4" />
             </button>
 
             {showMenu && (
-              <div className="absolute right-0 top-full z-20 mt-1 w-44 rounded-xl border border-[#e8e6e3] bg-white py-1 shadow-lg">
+              <div className="absolute right-0 top-full z-30 mt-1 w-44 rounded-xl border border-[#e8e6e3] bg-white py-1 shadow-xl">
                 <button
                   type="button"
                   onClick={handleCopyLink}
@@ -254,91 +264,79 @@ export function ProfessionalCard({
               </div>
             )}
           </div>
-        </div>
-      </div>
 
-      {/* Center: Portrait Avatar & Info */}
-      <div className="mt-3 flex flex-col items-center text-center">
-        <button
-          type="button"
-          onClick={() => router.push(`/profile/${profile.user_id}`)}
-          className="relative group-hover:scale-105 transition duration-200"
-        >
-          <div
-            className="flex h-20 w-20 items-center justify-center rounded-full text-xl font-bold text-[#3f3f3c] ring-4 ring-[#f8f7f6] shadow-xs overflow-hidden"
-            style={{ background: avatarColor }}
-          >
-            {profile.image ? (
-              <img
-                src={profile.image}
-                alt={profile.name}
-                className="h-full w-full rounded-full object-cover"
-              />
-            ) : (
-              initials
-            )}
-          </div>
-        </button>
-
-        {/* Doctor Name with Verified Badge */}
-        <div className="mt-3 flex items-center justify-center gap-1.5">
+          {/* Heart Bookmark Button */}
           <button
             type="button"
-            onClick={() => router.push(`/profile/${profile.user_id}`)}
-            className="truncate text-sm font-bold text-[#171717] hover:text-[#1769c2]"
+            onClick={() => setIsSaved(!isSaved)}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-xs backdrop-blur-xs transition hover:bg-white hover:text-rose-500"
+            title={isSaved ? "Saved" : "Save professional"}
           >
-            {profile.name}
+            <Heart
+              className={`h-4 w-4 ${
+                isSaved ? "fill-rose-500 text-rose-500" : "text-rose-500"
+              }`}
+            />
           </button>
-          {isVerified && <VerificationBadge size="sm" />}
         </div>
-
-        {/* Designation / Profession */}
-        <p className="mt-0.5 text-xs font-medium text-[#77716b]">
-          {profile.designation || profile.profession || "Healthcare Professional"}
-        </p>
-
-        {/* Hospital / Location */}
-        {(profile.organization || profile.city) && (
-          <p className="mt-0.5 truncate max-w-[200px] text-[11px] text-[#a09890]">
-            {[profile.organization, profile.city].filter(Boolean).join(", ")}
-          </p>
-        )}
-
-        {/* Specialty Pill Tags */}
-        {specialtyTags.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
-            {specialtyTags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-md bg-[#f4f3f0] px-2 py-0.5 text-[10px] font-medium text-[#5d5854]"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* Bottom Action Bar: Connect + Message Button */}
-      <div className="mt-4 flex items-center gap-2 pt-2 border-t border-[#f0efee]">
-        <div className="flex-1">
-          <ConnectionButton
-            targetUserId={profile.user_id}
-            initialStatus={connectionStatus}
-            onStatusChange={handleStatusChange}
-            onConnectClick={() => setShowModal(true)}
-            size="sm"
-          />
+      {/* 2. BOTTOM CARD CONTENT */}
+      <div className="flex flex-1 flex-col justify-between p-3.5">
+        <div>
+          {/* Name with Blue Verified Badge */}
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => router.push(`/profile/${profile.user_id}`)}
+              className="truncate text-left text-sm font-bold text-[#171717] hover:text-[#1769c2]"
+            >
+              {profile.name}
+            </button>
+            <VerificationBadge size="sm" />
+          </div>
+
+          {/* Profession Subtitle */}
+          <p className="mt-0.5 truncate text-left text-xs font-medium text-[#77716b]">
+            {profile.designation || profile.profession || "Healthcare Professional"}
+          </p>
+
+          {/* Specialty Pill Tags */}
+          {specialtyTags.length > 0 && (
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
+              {specialtyTags.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-lg bg-[#f0f4f9] px-2.5 py-1 text-[11px] font-medium text-[#475569]"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => router.push(`/messages?to=${profile.user_id}`)}
-          className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#ded8d1] text-[#5d5854] transition hover:bg-[#f8f7f6] hover:text-[#171717]"
-          title="Send message"
-        >
-          <MessageSquare className="h-4 w-4" />
-        </button>
+        {/* 3. ACTION BUTTONS: Connect + Message Button */}
+        <div className="mt-3.5 flex items-center gap-2">
+          <div className="flex-1">
+            <ConnectionButton
+              targetUserId={profile.user_id}
+              initialStatus={connectionStatus}
+              onStatusChange={handleStatusChange}
+              onConnectClick={() => setShowModal(true)}
+              size="sm"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => router.push(`/messages?to=${profile.user_id}`)}
+            className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border border-[#ded8d1] text-[#1769c2] transition hover:bg-[#f8f7f6]"
+            title="Send message"
+          >
+            <MessageSquare className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {showModal && (
