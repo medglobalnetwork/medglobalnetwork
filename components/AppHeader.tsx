@@ -217,87 +217,6 @@ export default function AppHeader() {
 
   const isProfilePage = pathname?.startsWith("/profile");
 
-  if (isProfilePage) {
-    return (
-      <header
-        className={`sticky top-0 z-40 border-b border-[#e8e6e3] bg-white transition-transform duration-300 ease-in-out ${
-          hidden ? "-translate-y-full" : "translate-y-0"
-        }`}
-      >
-        <div className="mx-auto flex h-14 sm:h-16 max-w-6xl items-center justify-between px-3 sm:px-6 lg:px-8">
-          {/* Left: Back Arrow */}
-          <div className="flex items-center">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              aria-label="Go back"
-              className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl text-[#5d5854] hover:bg-[#f0efee] hover:text-[#171717] transition active:scale-95"
-            >
-              <ArrowLeft className="h-5 w-5 stroke-[2.2]" />
-            </button>
-          </div>
-
-          {/* Center: Website Logo */}
-          <div className="flex items-center justify-center">
-            <Link href="/home" className="flex items-center focus:outline-none" aria-label="MGN Home">
-              <img
-                src="/logo.png"
-                alt="MGN - Med Global Network"
-                className="h-7 sm:h-8.5 w-auto object-contain"
-              />
-            </Link>
-          </div>
-
-          {/* Right: Notification icon & Message icon */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Notifications */}
-            <div className="relative">
-              <button
-                type="button"
-                aria-label="Notifications"
-                aria-expanded={notifOpen}
-                onClick={() => {
-                  setNotifOpen((o) => !o);
-                  if (!notifOpen) setUnreadCount(0);
-                }}
-                className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
-              >
-                <Bell className="h-5 w-5 stroke-[1.8]" />
-                {unreadCount > 0 && (
-                  <span className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 flex h-3.5 min-w-3.5 sm:h-4 sm:min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] sm:text-[9px] font-bold text-white ring-2 ring-white">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-              {notifOpen && (
-                <NotifPopup
-                  onClose={() => setNotifOpen(false)}
-                  onViewAll={() => {
-                    setNotifOpen(false);
-                    router.push("/network/connections");
-                  }}
-                />
-              )}
-            </div>
-
-            {/* Messages */}
-            <button
-              type="button"
-              aria-label="Messages"
-              onClick={() => router.push("/network")}
-              className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
-            >
-              <MessageSquare className="h-5 w-5 stroke-[1.8]" />
-            </button>
-
-            {/* UserMenu */}
-            <UserMenu />
-          </div>
-        </div>
-      </header>
-    );
-  }
-
   return (
     <header
       className={`sticky top-0 z-40 border-b border-[#e8e6e3] bg-white transition-transform duration-300 ease-in-out ${
@@ -339,7 +258,181 @@ export default function AppHeader() {
               Cancel
             </button>
           </div>
+        ) : isProfilePage ? (
+          <>
+            {/* 1. MOBILE-ONLY PROFILE HEADER (< md) */}
+            <div className="flex md:hidden w-full items-center justify-between">
+              {/* Left: Back Arrow */}
+              <button
+                type="button"
+                onClick={() => router.back()}
+                aria-label="Go back"
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-[#5d5854] hover:bg-[#f0efee] hover:text-[#171717] transition active:scale-95"
+              >
+                <ArrowLeft className="h-5 w-5 stroke-[2.2]" />
+              </button>
+
+              {/* Center: Website Logo */}
+              <Link href="/home" className="flex items-center focus:outline-none" aria-label="MGN Home">
+                <img
+                  src="/logo.png"
+                  alt="MGN - Med Global Network"
+                  className="h-7 w-auto object-contain"
+                />
+              </Link>
+
+              {/* Right: Notifications & Messages */}
+              <div className="flex items-center gap-1">
+                <div className="relative">
+                  <button
+                    type="button"
+                    aria-label="Notifications"
+                    aria-expanded={notifOpen}
+                    onClick={() => {
+                      setNotifOpen((o) => !o);
+                      if (!notifOpen) setUnreadCount(0);
+                    }}
+                    className="relative flex h-9 w-9 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
+                  >
+                    <Bell className="h-5 w-5 stroke-[1.8]" />
+                    {unreadCount > 0 && (
+                      <span className="absolute right-1 top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] font-bold text-white ring-2 ring-white">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+                  {notifOpen && (
+                    <NotifPopup
+                      onClose={() => setNotifOpen(false)}
+                      onViewAll={() => {
+                        setNotifOpen(false);
+                        router.push("/network/connections");
+                      }}
+                    />
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  aria-label="Messages"
+                  onClick={() => router.push("/network")}
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
+                >
+                  <MessageSquare className="h-5 w-5 stroke-[1.8]" />
+                </button>
+              </div>
+            </div>
+
+            {/* 2. DESKTOP PROFILE HEADER (>= md) — Identical to standard desktop navbar */}
+            <div className="hidden md:flex w-full items-center justify-between gap-4">
+              {/* Left: Logo */}
+              <div className="flex shrink-0 items-center gap-4">
+                <Link href="/home" className="flex items-center gap-2 focus:outline-none" aria-label="MGN Home">
+                  <img
+                    src="/logo.png"
+                    alt="MGN - Med Global Network"
+                    className="h-6 sm:h-7.5 lg:h-8 w-auto object-contain transition-transform"
+                  />
+                </Link>
+              </div>
+
+              {/* Center: Global Search */}
+              <div className="flex-1 max-w-xl">
+                <form onSubmit={handleSearchSubmit} className="relative flex w-full items-center">
+                  <Search className="pointer-events-none absolute left-3.5 h-4 w-4 text-[#8a8784]" />
+                  <input
+                    ref={inputRef}
+                    type="search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search professionals, specialties, organizations, jobs, courses..."
+                    aria-label="Global search"
+                    className="h-9.5 w-full rounded-2xl border border-[#e8e6e3] bg-[#f8f7f6] pl-10 pr-14 text-xs text-[#171717] placeholder:text-[#8a8784] transition focus:border-[#1769c2] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1769c2]/15"
+                  />
+                  {!searchQuery && (
+                    <kbd className="pointer-events-none absolute right-3 flex items-center rounded-md border border-[#ded8d1] bg-white px-1.5 py-0.5 font-mono text-[10px] text-[#8a8784] shadow-2xs">
+                      ⌘ K
+                    </kbd>
+                  )}
+                </form>
+              </div>
+
+              {/* Right: Navigation Tabs & Utilities */}
+              <div className="flex items-center gap-1 sm:gap-2">
+                <nav className="flex items-center gap-1 mr-2">
+                  {navItems.map((item) => {
+                    const isActive =
+                      item.href === "/home"
+                        ? pathname === "/home" || pathname === "/"
+                        : pathname.startsWith(item.href);
+                    const IconComp = item.icon;
+
+                    return (
+                      <Link
+                        key={item.id}
+                        href={item.href}
+                        className={`flex flex-col items-center justify-center rounded-xl px-3 py-1.5 text-center transition ${
+                          isActive
+                            ? "bg-[#eef5fc] text-[#1769c2] font-bold"
+                            : "text-[#77716b] hover:bg-[#f8f7f6] hover:text-[#171717]"
+                        }`}
+                      >
+                        <IconComp className={`h-4 w-4 stroke-[2] ${isActive ? "text-[#1769c2]" : ""}`} />
+                        <span className="text-[10px] mt-0.5">{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </nav>
+
+                <div className="h-6 w-px bg-[#e8e6e3] mx-1" />
+
+                {/* Notifications */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    aria-label="Notifications"
+                    aria-expanded={notifOpen}
+                    onClick={() => {
+                      setNotifOpen((o) => !o);
+                      if (!notifOpen) setUnreadCount(0);
+                    }}
+                    className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
+                  >
+                    <Bell className="h-4.5 w-4.5 sm:h-5 sm:w-5 stroke-[1.8]" />
+                    {unreadCount > 0 && (
+                      <span className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 flex h-3.5 min-w-3.5 sm:h-4 sm:min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] sm:text-[9px] font-bold text-white ring-2 ring-white">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+                  {notifOpen && (
+                    <NotifPopup
+                      onClose={() => setNotifOpen(false)}
+                      onViewAll={() => {
+                        setNotifOpen(false);
+                        router.push("/network/connections");
+                      }}
+                    />
+                  )}
+                </div>
+
+                {/* Messages */}
+                <button
+                  type="button"
+                  aria-label="Messages"
+                  onClick={() => router.push("/network")}
+                  className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
+                >
+                  <MessageSquare className="h-4.5 w-4.5 sm:h-5 sm:w-5 stroke-[1.8]" />
+                </button>
+
+                {/* User Menu Avatar */}
+                <UserMenu />
+              </div>
+            </div>
+          </>
         ) : (
+          /* STANDARD HEADER FOR ALL OTHER PAGES */
           <>
             {/* 1. LEFT: LOGO */}
             <div className="flex shrink-0 items-center gap-4">
