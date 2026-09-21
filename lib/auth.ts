@@ -61,9 +61,10 @@ const pool =
   new Pool({
     connectionString: databaseUrl,
     ssl: isRemoteDb ? { rejectUnauthorized: false } : undefined,
-    max: isProduction ? 10 : 5,
-    idleTimeoutMillis: 10000,
-    connectionTimeoutMillis: 5000,
+    max: isProduction ? 15 : 5,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+    keepAlive: true,
   });
 
 export const database =

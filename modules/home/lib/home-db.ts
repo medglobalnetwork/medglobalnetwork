@@ -140,54 +140,59 @@ export async function getActiveStoryGroups(currentUserId?: string): Promise<Stor
 
     const storyIds = storiesRaw.map((s) => s.id);
 
-    // Fetch views for current user if logged in
-    let viewedStoryIds = new Set<string>();
-    if (currentUserId && storyIds.length > 0) {
-      const views = await homeDb
-        .selectFrom("story_views")
-        .select(["story_id"])
-        .where("viewer_id", "=", currentUserId)
-        .where("story_id", "in", storyIds)
-        .execute();
-      viewedStoryIds = new Set(views.map((v) => v.story_id));
-    }
+    // Run all metadata subqueries concurrently in Promise.all (1 parallel batch instead of 4 serial roundtrips)
+    const [views, viewCountsRaw, reactionCountsRaw, userReactions] = await Promise.all([
+      currentUserId && storyIds.length > 0
+        ? homeDb
+            .selectFrom("story_views")
+            .select(["story_id"])
+            .where("viewer_id", "=", currentUserId)
+            .where("story_id", "in", storyIds)
+            .execute()
+            .catch(() => [])
+        : Promise.resolve([]),
+      storyIds.length > 0
+        ? homeDb
+            .selectFrom("story_views")
+            .select(["story_id", sql<string>`count(*)`.as("count")])
+            .where("story_id", "in", storyIds)
+            .groupBy("story_id")
+            .execute()
+            .catch(() => [])
+        : Promise.resolve([]),
+      storyIds.length > 0
+        ? homeDb
+            .selectFrom("story_reactions")
+            .select(["story_id", sql<string>`count(*)`.as("count")])
+            .where("story_id", "in", storyIds)
+            .groupBy("story_id")
+            .execute()
+            .catch(() => [])
+        : Promise.resolve([]),
+      currentUserId && storyIds.length > 0
+        ? homeDb
+            .selectFrom("story_reactions")
+            .select(["story_id", "reaction_type"])
+            .where("user_id", "=", currentUserId)
+            .where("story_id", "in", storyIds)
+            .execute()
+            .catch(() => [])
+        : Promise.resolve([]),
+    ]);
 
-    // Fetch view counts for all stories
-    const viewCountsRaw = await homeDb
-      .selectFrom("story_views")
-      .select(["story_id", sql<string>`count(*)`.as("count")])
-      .where("story_id", "in", storyIds)
-      .groupBy("story_id")
-      .execute();
+    const viewedStoryIds = new Set(views.map((v: any) => v.story_id));
     const viewCountMap = new Map<string, number>(
-      viewCountsRaw.map((v) => [v.story_id, parseInt(v.count, 10) || 0])
+      viewCountsRaw.map((v: any) => [v.story_id, parseInt(v.count, 10) || 0])
     );
-
-    // Fetch reaction counts
-    const reactionCountsRaw = await homeDb
-      .selectFrom("story_reactions")
-      .select(["story_id", sql<string>`count(*)`.as("count")])
-      .where("story_id", "in", storyIds)
-      .groupBy("story_id")
-      .execute();
     const reactionCountMap = new Map<string, number>(
-      reactionCountsRaw.map((r) => [r.story_id, parseInt(r.count, 10) || 0])
+      reactionCountsRaw.map((r: any) => [r.story_id, parseInt(r.count, 10) || 0])
     );
 
-    // Fetch user's reactions
     const userReactionsMap = new Map<string, string[]>();
-    if (currentUserId && storyIds.length > 0) {
-      const userReactions = await homeDb
-        .selectFrom("story_reactions")
-        .select(["story_id", "reaction_type"])
-        .where("user_id", "=", currentUserId)
-        .where("story_id", "in", storyIds)
-        .execute();
-      for (const ur of userReactions) {
-        const list = userReactionsMap.get(ur.story_id) || [];
-        list.push(ur.reaction_type);
-        userReactionsMap.set(ur.story_id, list);
-      }
+    for (const ur of userReactions as any[]) {
+      const list = userReactionsMap.get(ur.story_id) || [];
+      list.push(ur.reaction_type);
+      userReactionsMap.set(ur.story_id, list);
     }
 
     // Group stories by userId

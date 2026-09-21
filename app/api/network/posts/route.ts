@@ -49,33 +49,35 @@ export async function GET(request: Request) {
 
     const posts = await q.limit(pageSize).offset(offset).execute();
 
-    // Enrich with user reaction status
-    const enriched = await Promise.all(
-      posts.map(async (post) => {
-        const reaction = await networkDb
-          .selectFrom("post_reactions")
-          .where("post_id", "=", post.id)
-          .where("user_id", "=", session.user.id)
-          .selectAll()
-          .executeTakeFirst();
+    // Batch enrich with user reaction status (1 single batch query instead of N+1)
+    const postIds = posts.map((p) => p.id);
+    let userReactedSet = new Set<string>();
+    if (session?.user?.id && postIds.length > 0) {
+      const reactions = await networkDb
+        .selectFrom("post_reactions")
+        .select(["post_id"])
+        .where("post_id", "in", postIds)
+        .where("user_id", "=", session.user.id)
+        .execute()
+        .catch(() => []);
+      userReactedSet = new Set(reactions.map((r) => r.post_id));
+    }
 
-        return {
-          ...post,
-          user_reacted: !!reaction,
-          author: {
-            user_id: post.author_id,
-            name: post.name,
-            image: post.image,
-            profession: post.profession,
-            specialization: post.specialization,
-            organization: post.organization,
-            identity_verified: post.identity_verified ?? false,
-            education_verified: post.education_verified ?? false,
-            registration_verified: post.registration_verified ?? false,
-          },
-        };
-      })
-    );
+    const enriched = posts.map((post) => ({
+      ...post,
+      user_reacted: userReactedSet.has(post.id),
+      author: {
+        user_id: post.author_id,
+        name: post.name,
+        image: post.image,
+        profession: post.profession,
+        specialization: post.specialization,
+        organization: post.organization,
+        identity_verified: post.identity_verified ?? false,
+        education_verified: post.education_verified ?? false,
+        registration_verified: post.registration_verified ?? false,
+      },
+    }));
 
     return Response.json({
       data: enriched,
