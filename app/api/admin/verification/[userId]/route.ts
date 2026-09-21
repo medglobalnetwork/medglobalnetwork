@@ -2,6 +2,7 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { verifDb } from "@/modules/onboarding/lib/verification-db";
+import { getUserStoragePaths } from "@/modules/onboarding/lib/user-storage";
 
 export async function GET(
   request: Request,
@@ -65,6 +66,12 @@ export async function GET(
       qualifications,
       registrations,
       auditLogs,
+      storage: {
+        folder: `private_storage/users/${userId}`,
+        documentsFolder: `private_storage/users/${userId}/documents`,
+        metadataFile: `private_storage/users/${userId}/metadata.json`,
+        summaryFile: `private_storage/users/${userId}/summary.txt`,
+      },
     });
   } catch (err: any) {
     console.error("GET /api/admin/verification/[userId] error:", err);

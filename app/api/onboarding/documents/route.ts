@@ -2,8 +2,9 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { verifDb } from "@/modules/onboarding/lib/verification-db";
+import { ensureUserStorage, syncUserDossier } from "@/modules/onboarding/lib/user-storage";
 import { nanoid } from "nanoid";
-import { writeFile, mkdir } from "fs/promises";
+import { writeFile } from "fs/promises";
 import path from "path";
 
 export async function POST(request: Request) {
@@ -30,19 +31,19 @@ export async function POST(request: Request) {
       return Response.json({ error: "Invalid file format. Please upload PDF, JPG, or PNG." }, { status: 400 });
     }
 
-    // Secure private directory storage
-    const storageDir = path.join(process.cwd(), "private_storage", "verification_docs");
-    await mkdir(storageDir, { recursive: true });
+    // Dedicated per-user storage workspace: private_storage/users/<userId>/documents/
+    const storagePaths = await ensureUserStorage(session.user.id);
 
     const fileExtension = path.extname(file.name) || (file.type === "application/pdf" ? ".pdf" : ".jpg");
-    const safeDocId = nanoid();
-    const storedFileName = `${session.user.id}_${safeDocId}${fileExtension}`;
-    const targetFilePath = path.join(storageDir, storedFileName);
+    const safeDocId = nanoid(8);
+    const sanitizedType = documentType.toLowerCase().replace(/[^a-z0-9_]/g, "_");
+    const storedFileName = `${sanitizedType}_${safeDocId}${fileExtension}`;
+    const targetFilePath = path.join(storagePaths.documentsDir, storedFileName);
 
     const arrayBuffer = await file.arrayBuffer();
     await writeFile(targetFilePath, Buffer.from(arrayBuffer));
 
-    // Remove existing document for same type if any, to keep latest clean
+    // Remove existing document record for same type if any, to keep latest clean
     await verifDb
       .deleteFrom("mgn_verification_documents")
       .where("user_id", "=", session.user.id)
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
       .execute();
 
     await verifDb
-      .insertInto("mgn_verification_documents")
+      .insertInto("mgn_verification_documents" as any)
       .values({
         id: safeDocId,
         user_id: session.user.id,
@@ -65,19 +66,22 @@ export async function POST(request: Request) {
       .execute();
 
     await verifDb
-      .insertInto("mgn_verification_audit_logs")
+      .insertInto("mgn_verification_audit_logs" as any)
       .values({
         id: nanoid(),
         target_user_id: session.user.id,
         actor_id: session.user.id,
         action: "document.uploaded",
-        reason: `Uploaded ${documentType} (${file.name})`,
+        reason: `Uploaded ${documentType} (${file.name}) to user folder`,
         previous_state: "NONE",
         new_state: "PENDING",
-        metadata: JSON.stringify({ documentType, fileName: file.name, size: file.size }),
+        metadata: JSON.stringify({ documentType, fileName: file.name, size: file.size, targetFilePath }),
         created_at: new Date(),
       })
       .execute();
+
+    // Automatically sync full user metadata.json dossier in their folder
+    await syncUserDossier(session.user.id);
 
     return Response.json({
       success: true,
@@ -87,6 +91,7 @@ export async function POST(request: Request) {
         file_name: file.name,
         file_size: file.size,
         status: "PENDING",
+        stored_path: targetFilePath,
       },
     });
   } catch (err: any) {

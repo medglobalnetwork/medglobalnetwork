@@ -8,6 +8,7 @@
 
 import { verifDb } from "./verification-db";
 import { getProfessionSchema, getOrganisationSchema } from "../config/schemas";
+import { syncUserDossier } from "./user-storage";
 import { nanoid } from "nanoid";
 
 export class VerificationService {
@@ -120,6 +121,7 @@ export class VerificationService {
         .execute();
     }
 
+    await syncUserDossier(userId);
     return this.getIdentity(userId);
   }
 
@@ -271,6 +273,7 @@ export class VerificationService {
       }
     }
 
+    await syncUserDossier(userId);
     return this.getIdentity(userId);
   }
 
@@ -335,6 +338,7 @@ export class VerificationService {
       })
       .execute();
 
+    await syncUserDossier(userId);
     return { success: true, message: "Application submitted for review successfully." };
   }
 
@@ -460,6 +464,8 @@ export class VerificationService {
         created_at: now,
       })
       .execute();
+
+    await syncUserDossier(targetUserId);
 
     return { success: true, newStatus };
   }

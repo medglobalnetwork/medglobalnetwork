@@ -23,6 +23,8 @@ import {
   Info,
   X,
   Lock,
+  Folder,
+  FolderCheck,
 } from "lucide-react";
 import { AdminConfirmDialog } from "@/modules/admin/components/AdminConfirmDialog";
 
@@ -618,6 +620,23 @@ export default function AdminVerificationPage() {
                     ) : (
                       <p className="text-xs text-slate-500">No KYC documents uploaded yet.</p>
                     )}
+                  </div>
+
+                  {/* User Storage Workspace */}
+                  <div className="rounded-xl border border-blue-500/20 bg-blue-950/20 p-4 space-y-2">
+                    <div className="flex items-center gap-2 text-blue-400">
+                      <Folder className="h-4 w-4" />
+                      <h4 className="text-xs font-bold uppercase tracking-wider">Dedicated User Storage Workspace</h4>
+                    </div>
+                    <p className="text-[11px] text-slate-300">
+                      All files and full JSON / summary dossiers are automatically isolated in the user&apos;s personal server directory:
+                    </p>
+                    <div className="rounded-lg bg-slate-950 border border-slate-800 p-2.5 font-mono text-[11px] text-blue-300 space-y-1">
+                      <div>📁 <span className="text-slate-400">User Root:</span> private_storage/users/{dossier.identity?.user_id}/</div>
+                      <div>├── 📁 documents/ <span className="text-slate-500">({dossier.documents?.length || 0} KYC files)</span></div>
+                      <div>├── 📄 metadata.json <span className="text-slate-500">(auto-synced dossier)</span></div>
+                      <div>└── 📄 summary.txt <span className="text-slate-500">(human-readable profile)</span></div>
+                    </div>
                   </div>
 
                   {/* Audit Logs */}
