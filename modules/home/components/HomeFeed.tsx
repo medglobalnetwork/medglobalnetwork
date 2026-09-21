@@ -42,8 +42,17 @@ export function HomeFeed({
       try {
         const feedParam = tab === "following" ? "&feed=following" : "";
         const res = await fetch(`/api/network/posts?page=${targetPage}&pageSize=15${feedParam}`);
-        const json = await res.json();
-        if (res.ok && json.data) {
+        if (!res.ok) {
+          setIsLoading(false);
+          return;
+        }
+        const text = await res.text();
+        if (!text) {
+          setIsLoading(false);
+          return;
+        }
+        const json = JSON.parse(text);
+        if (json.data) {
           if (append) {
             setPosts((prev) => [...prev, ...json.data]);
           } else {

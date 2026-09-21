@@ -40,12 +40,22 @@ export function StoriesBar({
   const fetchStories = React.useCallback(async () => {
     try {
       const res = await fetch("/api/stories");
-      const data = await res.json();
-      if (res.ok && data.groups) {
+      if (!res.ok) {
+        setGroups([]);
+        return;
+      }
+      const text = await res.text();
+      if (!text) {
+        setGroups([]);
+        return;
+      }
+      const data = JSON.parse(text);
+      if (data.groups) {
         setGroups(data.groups);
       }
     } catch (err) {
       console.error("Failed to load stories:", err);
+      setGroups([]);
     } finally {
       setIsLoading(false);
     }

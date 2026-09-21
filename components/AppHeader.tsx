@@ -51,7 +51,11 @@ function NotifPopup({
 
   React.useEffect(() => {
     fetch("/api/network/notifications", { credentials: "include" })
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) return { data: [] };
+        const text = await r.text();
+        return text ? JSON.parse(text) : { data: [] };
+      })
       .then((d) => setNotifs(d.data ?? []))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -158,7 +162,11 @@ export default function AppHeader() {
   React.useEffect(() => {
     if (!session?.user) return;
     fetch("/api/network/notifications", { credentials: "include" })
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) return {};
+        const text = await r.text();
+        return text ? JSON.parse(text) : {};
+      })
       .then((d) => {
         if (d.unreadCount !== undefined) setUnreadCount(d.unreadCount);
       })
