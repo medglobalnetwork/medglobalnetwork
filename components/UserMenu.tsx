@@ -168,6 +168,18 @@ export default function UserMenu() {
             </>
           )}
 
+          {/* Plans & Pricing */}
+          <div className="px-2 py-1.5">
+            <button
+              type="button"
+              onClick={() => navTo("/pricing")}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717]"
+            >
+              <span className="text-[#1769c2]">👑</span>
+              Plans & Pricing
+            </button>
+          </div>
+
           {/* Settings */}
           <div className="px-2 py-1.5">
             <button
