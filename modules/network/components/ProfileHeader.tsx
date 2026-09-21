@@ -200,8 +200,8 @@ export function ProfileHeader({
             />
           </div>
 
-          {/* 4 Stats: Posts, Followers, Following, Connections - shifted down and clear */}
-          <div className="flex-1 flex items-center justify-around text-center max-w-md sm:max-w-lg ml-1 sm:ml-4 pt-2 sm:pt-3 pb-1">
+          {/* 4 Stats: Posts, Followers, Following, Connections - shifted down comfortably */}
+          <div className="flex-1 flex items-center justify-around text-center max-w-md sm:max-w-lg ml-1 sm:ml-4 pt-5 sm:pt-6 pb-2">
             <div className="cursor-pointer hover:opacity-80 transition-opacity">
               <span className="block text-sm sm:text-base lg:text-lg font-black text-[#171717] tracking-tight leading-none mb-1">
                 {(profile.post_count ?? 142).toLocaleString()}
