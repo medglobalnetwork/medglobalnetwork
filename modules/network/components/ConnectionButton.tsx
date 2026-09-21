@@ -105,7 +105,7 @@ export function ConnectionButton({
         type="button"
         onClick={() => handleAction("connect")}
         disabled={loading}
-        className={`rounded-xl bg-[#1769c2] font-semibold text-white transition hover:bg-[#12569f] disabled:opacity-50 ${sizeClasses}`}
+        className={`w-full text-center justify-center rounded-xl bg-[#1769c2] font-semibold text-white transition hover:bg-[#12569f] disabled:opacity-50 ${sizeClasses}`}
       >
         {loading ? "…" : "+ Connect"}
       </button>
@@ -119,7 +119,7 @@ export function ConnectionButton({
         onClick={() => handleAction("withdraw")}
         disabled={loading}
         title="Click to withdraw request"
-        className={`rounded-xl border border-[#ded8d1] font-medium text-[#5d5854] transition hover:border-red-300 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 ${sizeClasses}`}
+        className={`w-full text-center justify-center rounded-xl border border-[#ded8d1] font-medium text-[#5d5854] transition hover:border-red-300 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 ${sizeClasses}`}
       >
         {loading ? "…" : "Requested"}
       </button>
@@ -128,12 +128,12 @@ export function ConnectionButton({
 
   if (status === "received") {
     return (
-      <div className="flex gap-1.5">
+      <div className="flex w-full gap-1.5">
         <button
           type="button"
           onClick={() => handleAction("accept")}
           disabled={loading}
-          className={`rounded-xl bg-[#1769c2] font-semibold text-white transition hover:bg-[#12569f] disabled:opacity-50 ${sizeClasses}`}
+          className={`flex-1 text-center justify-center rounded-xl bg-[#1769c2] font-semibold text-white transition hover:bg-[#12569f] disabled:opacity-50 ${sizeClasses}`}
         >
           {loading ? "…" : "Accept"}
         </button>
@@ -141,7 +141,7 @@ export function ConnectionButton({
           type="button"
           onClick={() => handleAction("ignore")}
           disabled={loading}
-          className={`rounded-xl border border-[#ded8d1] font-medium text-[#5d5854] transition hover:bg-[#f8f7f6] disabled:opacity-50 ${sizeClasses}`}
+          className={`flex-1 text-center justify-center rounded-xl border border-[#ded8d1] font-medium text-[#5d5854] transition hover:bg-[#f8f7f6] disabled:opacity-50 ${sizeClasses}`}
         >
           Ignore
         </button>
@@ -152,7 +152,7 @@ export function ConnectionButton({
   if (status === "connected") {
     return (
       <span
-        className={`inline-flex items-center gap-1 rounded-xl border border-[#ded8d1] font-medium text-[#15803d] ${sizeClasses}`}
+        className={`inline-flex w-full items-center justify-center gap-1 rounded-xl border border-[#ded8d1] font-medium text-[#15803d] ${sizeClasses}`}
       >
         <svg className="h-3 w-3 fill-[#15803d]" viewBox="0 0 20 20">
           <path

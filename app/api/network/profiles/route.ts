@@ -14,6 +14,9 @@ export async function GET(request: Request) {
   const profession = searchParams.get("profession");
   const specialization = searchParams.get("specialization");
   const city = searchParams.get("city");
+  const organization = searchParams.get("organization");
+  const expMin = searchParams.get("expMin");
+  const expMax = searchParams.get("expMax");
   const verifiedOnly = searchParams.get("verified") === "true";
   const query = searchParams.get("q");
   const page = parseInt(searchParams.get("page") ?? "1", 10);
@@ -35,6 +38,13 @@ export async function GET(request: Request) {
     if (profession) base = base.where("pp.profession", "=", profession);
     if (specialization) base = base.where("pp.specialization", "=", specialization);
     if (city) base = base.where("pp.city", "ilike", `%${city}%`);
+    if (organization) base = base.where("pp.organization", "ilike", `%${organization}%`);
+    if (expMin !== null && expMin !== undefined) {
+      base = base.where("pp.experience_years", ">=", parseInt(expMin, 10));
+    }
+    if (expMax !== null && expMax !== undefined && parseInt(expMax, 10) < 90) {
+      base = base.where("pp.experience_years", "<=", parseInt(expMax, 10));
+    }
     if (verifiedOnly) {
       base = base.where((eb) =>
         eb.or([

@@ -1,121 +1,229 @@
 "use client";
 
 import * as React from "react";
+import { Search, ShieldCheck, Check, Filter } from "lucide-react";
 import { PROFESSIONS } from "../types";
-import type { NetworkFilters } from "../types";
+import type { NetworkFilters as FiltersType } from "../types";
 
 interface NetworkFiltersProps {
-  filters: NetworkFilters;
-  onChange: (filters: NetworkFilters) => void;
+  filters: FiltersType;
+  onChange: (filters: FiltersType) => void;
   onReset: () => void;
 }
 
-const EXPERIENCE_OPTIONS = [
-  { label: "Any experience", min: 0, max: 99 },
-  { label: "0–2 yrs", min: 0, max: 2 },
-  { label: "3–5 yrs", min: 3, max: 5 },
-  { label: "6–10 yrs", min: 6, max: 10 },
-  { label: "10+ yrs", min: 10, max: 99 },
+const EXPERIENCE_LEVELS = [
+  { id: "student", label: "Student", min: 0, max: 0, isStudent: true },
+  { id: "0-2", label: "0 - 2 years", min: 0, max: 2 },
+  { id: "3-5", label: "3 - 5 years", min: 3, max: 5 },
+  { id: "6-10", label: "6 - 10 years", min: 6, max: 10 },
+  { id: "10+", label: "10+ years", min: 10, max: 99 },
+];
+
+const COMMON_ORGANIZATIONS = [
+  "AIIMS New Delhi",
+  "Fortis Healthcare",
+  "Apollo Hospitals",
+  "Max Healthcare",
+  "Manipal Hospitals",
+  "Medanta - The Medicity",
+  "Narayana Health",
+  "Tata Memorial Hospital",
+  "Christian Medical College",
+  "King Edward Memorial Hospital",
 ];
 
 const SPECIALIZATIONS: Record<string, string[]> = {
   Doctor: [
-    "Cardiology", "Neurology", "Orthopaedics", "Pediatrics",
-    "Oncology", "Dermatology", "Radiology", "General Medicine",
-    "Emergency Medicine", "Anaesthesia", "Psychiatry", "Ophthalmology",
-    "ENT", "Gynaecology", "Urology",
+    "Cardiology",
+    "Neurology",
+    "Orthopaedics",
+    "Pediatrics",
+    "Oncology",
+    "Dermatology",
+    "Radiology",
+    "General Medicine",
+    "Emergency Medicine",
+    "Anaesthesia",
+    "Psychiatry",
+    "Ophthalmology",
+    "ENT",
+    "Gynaecology",
+    "Urology",
+    "Gastroenterology",
+    "Pulmonology",
   ],
   Physiotherapist: [
-    "Sports Rehabilitation", "Neuro Physiotherapy", "Musculoskeletal",
-    "Cardiopulmonary", "Paediatric Physio", "Geriatric Physio",
-    "Occupational Health", "Community Rehab",
+    "Sports Rehabilitation",
+    "Neuro Physiotherapy",
+    "Musculoskeletal Rehab",
+    "Cardiopulmonary Physio",
+    "Paediatric Physio",
+    "Geriatric Rehab",
+    "Occupational Health",
+    "Manual Therapy",
+    "Orthopedic Rehab",
   ],
   Nurse: [
-    "Critical Care", "Oncology Nursing", "Pediatric Nursing",
-    "Surgical Nursing", "Community Nursing", "Neonatology",
+    "Critical Care (ICU)",
+    "Oncology Nursing",
+    "Pediatric Nursing",
+    "Surgical Nursing",
+    "Community Nursing",
+    "Neonatology (NICU)",
+    "Emergency Nursing",
   ],
   Pharmacist: [
-    "Clinical Pharmacy", "Hospital Pharmacy", "Community Pharmacy",
-    "Oncology Pharmacy", "Regulatory Affairs",
+    "Clinical Pharmacy",
+    "Hospital Pharmacy",
+    "Community Pharmacy",
+    "Oncology Pharmacy",
+    "Regulatory Affairs",
+    "Pharmacovigilance",
+  ],
+  "Lab Technician": [
+    "Clinical Pathology",
+    "Microbiology",
+    "Hematology",
+    "Biochemistry",
+    "Histopathology",
+  ],
+  Radiographer: [
+    "MRI / CT Scan",
+    "Interventional Radiology",
+    "Ultrasound & Sonography",
+    "Diagnostic X-Ray",
   ],
 };
 
 export function NetworkFilters({ filters, onChange, onReset }: NetworkFiltersProps) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
-  const availableSpecs = filters.profession
-    ? (SPECIALIZATIONS[filters.profession] ?? [])
-    : [];
+
+  // Local draft state for filters
+  const [localFilters, setLocalFilters] = React.useState<FiltersType>(filters);
+
+  // Keep local filters in sync with parent if parent resets
+  React.useEffect(() => {
+    setLocalFilters(filters);
+  }, [filters]);
+
+  const availableSpecs = localFilters.profession
+    ? SPECIALIZATIONS[localFilters.profession] ?? []
+    : Array.from(new Set(Object.values(SPECIALIZATIONS).flat())).slice(0, 16);
 
   const hasActiveFilters =
-    !!filters.profession ||
-    !!filters.specialization ||
-    !!filters.city ||
-    !!filters.organization ||
-    filters.experience_min !== undefined ||
-    filters.verified_only;
+    !!localFilters.profession ||
+    !!localFilters.specialization ||
+    !!localFilters.city ||
+    !!localFilters.organization ||
+    !!localFilters.query ||
+    localFilters.experience_min !== undefined ||
+    localFilters.verified_only;
 
-  const FilterContent = () => (
+  const handleApply = () => {
+    onChange(localFilters);
+    if (mobileOpen) setMobileOpen(false);
+  };
+
+  const handleReset = () => {
+    setLocalFilters({});
+    onReset();
+    if (mobileOpen) setMobileOpen(false);
+  };
+
+  const handleExperienceToggle = (opt: typeof EXPERIENCE_LEVELS[number]) => {
+    const isSelected =
+      localFilters.experience_min === opt.min &&
+      localFilters.experience_max === opt.max;
+
+    const next = {
+      ...localFilters,
+      experience_min: isSelected ? undefined : opt.min,
+      experience_max: isSelected ? undefined : opt.max,
+    };
+    setLocalFilters(next);
+    onChange(next);
+  };
+
+  const FilterBody = () => (
     <div className="space-y-4">
+      {/* Header with Reset */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[#171717]">Filters</h3>
+        <h3 className="text-sm font-bold text-[#171717]">Filters</h3>
         {hasActiveFilters && (
           <button
             type="button"
-            onClick={onReset}
-            className="text-[11px] font-medium text-[#1769c2] hover:underline"
+            onClick={handleReset}
+            className="text-xs font-semibold text-[#1769c2] transition hover:underline"
           >
-            Reset all
+            Reset
           </button>
         )}
       </div>
 
-      {/* Verified only */}
-      <label className="flex cursor-pointer items-center gap-2.5">
+      {/* Search Input inside Filter */}
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#8a8784]" />
+        <input
+          type="search"
+          value={localFilters.query ?? ""}
+          onChange={(e) => {
+            const next = { ...localFilters, query: e.target.value || undefined };
+            setLocalFilters(next);
+            onChange(next);
+          }}
+          placeholder="Search by name, hospital, skill..."
+          className="h-9 w-full rounded-xl border border-[#ded8d1] bg-white pl-8 pr-3 text-xs text-[#171717] placeholder:text-[#8a8784] focus:border-[#1769c2] focus:outline-none focus:ring-1 focus:ring-[#1769c2]"
+        />
+      </div>
+
+      {/* Verified professionals checkbox */}
+      <label className="flex cursor-pointer items-center justify-between rounded-xl border border-[#f0efee] bg-[#faf9f8] p-2.5 transition hover:bg-[#f4f3f0]">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 text-[#1769c2] fill-[#1769c2]/10" />
+          <span className="text-xs font-semibold text-[#171717]">
+            Verified professionals
+          </span>
+        </div>
         <div
           role="checkbox"
-          aria-checked={filters.verified_only}
-          onClick={() =>
-            onChange({ ...filters, verified_only: !filters.verified_only })
-          }
-          className={`relative flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-md border transition ${
-            filters.verified_only
-              ? "border-[#1769c2] bg-[#1769c2]"
+          aria-checked={localFilters.verified_only}
+          onClick={(e) => {
+            e.stopPropagation();
+            const next = {
+              ...localFilters,
+              verified_only: !localFilters.verified_only,
+            };
+            setLocalFilters(next);
+            onChange(next);
+          }}
+          className={`flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded border transition ${
+            localFilters.verified_only
+              ? "border-[#1769c2] bg-[#1769c2] text-white"
               : "border-[#ded8d1] bg-white"
           }`}
         >
-          {filters.verified_only && (
-            <svg
-              className="h-3 w-3 fill-white"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-          )}
+          {localFilters.verified_only && <Check className="h-3 w-3 stroke-[3]" />}
         </div>
-        <span className="text-xs font-medium text-[#171717]">Verified professionals only</span>
       </label>
-
-      <hr className="border-[#f0efee]" />
 
       {/* Profession */}
       <div>
-        <label className="mb-1.5 block text-xs font-semibold text-[#77716b] uppercase tracking-wide">
+        <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#77716b]">
           Profession
         </label>
         <select
-          value={filters.profession ?? ""}
-          onChange={(e) =>
-            onChange({
-              ...filters,
-              profession: e.target.value || undefined,
+          value={localFilters.profession ?? ""}
+          onChange={(e) => {
+            const val = e.target.value || undefined;
+            const next = {
+              ...localFilters,
+              profession: val,
               specialization: undefined,
-            })
-          }
-          className="block w-full rounded-xl border border-[#ded8d1] bg-white px-3 py-2 text-xs text-[#171717] focus:border-[#1769c2] focus:outline-none"
+            };
+            setLocalFilters(next);
+            onChange(next);
+          }}
+          className="w-full rounded-xl border border-[#ded8d1] bg-white px-3 py-2 text-xs text-[#171717] focus:border-[#1769c2] focus:outline-none focus:ring-1 focus:ring-[#1769c2]"
         >
           <option value="">All professions</option>
           {PROFESSIONS.map((p) => (
@@ -126,119 +234,112 @@ export function NetworkFilters({ filters, onChange, onReset }: NetworkFiltersPro
         </select>
       </div>
 
-      {/* Specialization (conditional) */}
-      {availableSpecs.length > 0 && (
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold text-[#77716b] uppercase tracking-wide">
-            Specialization
-          </label>
-          <select
-            value={filters.specialization ?? ""}
-            onChange={(e) =>
-              onChange({
-                ...filters,
-                specialization: e.target.value || undefined,
-              })
-            }
-            className="block w-full rounded-xl border border-[#ded8d1] bg-white px-3 py-2 text-xs text-[#171717] focus:border-[#1769c2] focus:outline-none"
-          >
-            <option value="">All specializations</option>
-            {availableSpecs.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {/* Organization / Hospital */}
+      {/* Specialization */}
       <div>
-        <label className="mb-1.5 block text-xs font-semibold text-[#77716b] uppercase tracking-wide">
-          Hospital / Organization
+        <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#77716b]">
+          Specialization
         </label>
-        <input
-          type="text"
-          value={filters.organization ?? ""}
-          onChange={(e) =>
-            onChange({ ...filters, organization: e.target.value || undefined })
-          }
-          placeholder="e.g. AIIMS, Fortis"
-          className="block w-full rounded-xl border border-[#ded8d1] bg-white px-3 py-2 text-xs text-[#171717] placeholder:text-[#8a8784] focus:border-[#1769c2] focus:outline-none"
-        />
+        <select
+          value={localFilters.specialization ?? ""}
+          onChange={(e) => {
+            const next = {
+              ...localFilters,
+              specialization: e.target.value || undefined,
+            };
+            setLocalFilters(next);
+            onChange(next);
+          }}
+          className="w-full rounded-xl border border-[#ded8d1] bg-white px-3 py-2 text-xs text-[#171717] focus:border-[#1769c2] focus:outline-none focus:ring-1 focus:ring-[#1769c2]"
+        >
+          <option value="">Select specialization</option>
+          {availableSpecs.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* City / Location */}
+      {/* Organization */}
       <div>
-        <label className="mb-1.5 block text-xs font-semibold text-[#77716b] uppercase tracking-wide">
-          Location / City
+        <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#77716b]">
+          Organization / Hospital
         </label>
-        <input
-          type="text"
-          value={filters.city ?? ""}
-          onChange={(e) =>
-            onChange({ ...filters, city: e.target.value || undefined })
-          }
-          placeholder="e.g. Mumbai, Raipur"
-          className="block w-full rounded-xl border border-[#ded8d1] bg-white px-3 py-2 text-xs text-[#171717] placeholder:text-[#8a8784] focus:border-[#1769c2] focus:outline-none"
-        />
+        <select
+          value={localFilters.organization ?? ""}
+          onChange={(e) => {
+            const next = {
+              ...localFilters,
+              organization: e.target.value || undefined,
+            };
+            setLocalFilters(next);
+            onChange(next);
+          }}
+          className="w-full rounded-xl border border-[#ded8d1] bg-white px-3 py-2 text-xs text-[#171717] focus:border-[#1769c2] focus:outline-none focus:ring-1 focus:ring-[#1769c2]"
+        >
+          <option value="">Select organization</option>
+          {COMMON_ORGANIZATIONS.map((org) => (
+            <option key={org} value={org}>
+              {org}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* Experience */}
+      {/* Experience Level */}
       <div>
-        <label className="mb-1.5 block text-xs font-semibold text-[#77716b] uppercase tracking-wide">
-          Experience
+        <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#77716b]">
+          Experience Level
         </label>
-        <div className="flex flex-wrap gap-1.5">
-          {EXPERIENCE_OPTIONS.map((opt) => {
-            const isActive =
-              filters.experience_min === opt.min &&
-              filters.experience_max === opt.max;
+        <div className="space-y-2">
+          {EXPERIENCE_LEVELS.map((opt) => {
+            const isChecked =
+              localFilters.experience_min === opt.min &&
+              localFilters.experience_max === opt.max;
             return (
-              <button
-                key={opt.label}
-                type="button"
-                onClick={() =>
-                  onChange({
-                    ...filters,
-                    experience_min: opt.min === 0 && opt.max === 99 ? undefined : opt.min,
-                    experience_max: opt.min === 0 && opt.max === 99 ? undefined : opt.max,
-                  })
-                }
-                className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
-                  isActive
-                    ? "border-[#1769c2] bg-[#eef5fc] text-[#1769c2]"
-                    : "border-[#ded8d1] bg-white text-[#5d5854] hover:border-[#1769c2] hover:text-[#1769c2]"
-                }`}
+              <label
+                key={opt.id}
+                onClick={() => handleExperienceToggle(opt)}
+                className="flex cursor-pointer items-center gap-2.5 select-none"
               >
-                {opt.label}
-              </button>
+                <div
+                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition ${
+                    isChecked
+                      ? "border-[#1769c2] bg-[#1769c2] text-white"
+                      : "border-[#ded8d1] bg-white hover:border-[#1769c2]"
+                  }`}
+                >
+                  {isChecked && <Check className="h-3 w-3 stroke-[3]" />}
+                </div>
+                <span className="text-xs text-[#5d5854] hover:text-[#171717]">
+                  {opt.label}
+                </span>
+              </label>
             );
           })}
         </div>
       </div>
+
+      {/* Apply Filters Button */}
+      <button
+        type="button"
+        onClick={handleApply}
+        className="w-full rounded-xl bg-[#1769c2] py-2.5 text-center text-xs font-semibold text-white shadow-xs transition hover:bg-[#12569f]"
+      >
+        Apply Filters
+      </button>
     </div>
   );
 
   return (
     <>
-      {/* Mobile filter toggle button */}
+      {/* Mobile Trigger Button */}
       <button
         type="button"
         onClick={() => setMobileOpen(true)}
-        className="flex lg:hidden items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-white px-3 py-2 text-xs font-medium text-[#5d5854] shadow-xs"
+        className="flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-white px-3.5 py-2 text-xs font-semibold text-[#5d5854] shadow-xs lg:hidden"
       >
-        <svg
-          viewBox="0 0 24 24"
-          className="h-4 w-4"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <line x1="4" y1="6" x2="20" y2="6" />
-          <line x1="4" y1="12" x2="14" y2="12" />
-          <line x1="4" y1="18" x2="10" y2="18" />
-        </svg>
+        <Filter className="h-3.5 w-3.5 text-[#1769c2]" />
         Filters
         {hasActiveFilters && (
           <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#1769c2] text-[9px] font-bold text-white">
@@ -247,34 +348,22 @@ export function NetworkFilters({ filters, onChange, onReset }: NetworkFiltersPro
         )}
       </button>
 
-      {/* Mobile filter drawer */}
+      {/* Mobile Drawer */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 flex items-end lg:hidden">
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-black/40 backdrop-blur-xs"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="relative w-full rounded-t-2xl border-t border-[#e8e6e3] bg-white p-5 shadow-xl">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-sm font-semibold">Filters</span>
-              <button
-                type="button"
-                onClick={() => setMobileOpen(false)}
-                className="text-xs font-semibold text-[#1769c2]"
-              >
-                Done
-              </button>
-            </div>
-            <FilterContent />
+          <div className="relative max-h-[85vh] w-full overflow-y-auto rounded-t-2xl border-t border-[#e8e6e3] bg-white p-5 shadow-2xl">
+            <FilterBody />
           </div>
         </div>
       )}
 
-      {/* Desktop filter sidebar */}
-      <div className="hidden lg:block">
-        <div className="rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs">
-          <FilterContent />
-        </div>
+      {/* Desktop Card */}
+      <div className="hidden lg:block rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs">
+        <FilterBody />
       </div>
     </>
   );

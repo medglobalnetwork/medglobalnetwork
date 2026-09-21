@@ -4,12 +4,16 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   Activity,
+  ArrowRight,
   Bone,
+  Crown,
   FlaskConical,
   GraduationCap,
   HeartPulse,
+  Sparkles,
   Stethoscope,
   Users,
+  Check,
 } from "lucide-react";
 import { PeopleYouMayKnow } from "./PeopleYouMayKnow";
 import type { Community } from "../types";
@@ -18,62 +22,104 @@ interface NetworkSidebarProps {
   currentUserId?: string;
 }
 
-function getCommunityIcon(specialty?: string) {
-  switch (specialty) {
-    case "Physiotherapy":
-      return <Bone className="h-4 w-4 text-[#1769c2]" />;
-    case "Cardiology":
-      return <HeartPulse className="h-4 w-4 text-[#e11d48]" />;
-    case "Medical Students":
-      return <GraduationCap className="h-4 w-4 text-[#047857]" />;
-    case "Clinical Research":
-      return <FlaskConical className="h-4 w-4 text-[#8b5cf6]" />;
-    case "Nursing":
-      return <Stethoscope className="h-4 w-4 text-[#0284c7]" />;
-    case "Sports Medicine":
-      return <Activity className="h-4 w-4 text-[#d97706]" />;
-    default:
-      return <Users className="h-4 w-4 text-[#1769c2]" />;
-  }
-}
+const DEFAULT_COMMUNITIES = [
+  {
+    slug: "physiotherapy-india",
+    name: "Physiotherapy India",
+    specialty: "Physiotherapy",
+    member_count: 2450,
+    icon: <Bone className="h-4 w-4 text-[#1769c2]" />,
+  },
+  {
+    slug: "cardiology-network",
+    name: "Cardiology Network",
+    specialty: "Cardiology",
+    member_count: 1820,
+    icon: <HeartPulse className="h-4 w-4 text-[#e11d48]" />,
+  },
+  {
+    slug: "medical-students-forum",
+    name: "Medical Students Forum",
+    specialty: "Medical Students",
+    member_count: 3100,
+    icon: <GraduationCap className="h-4 w-4 text-[#047857]" />,
+  },
+  {
+    slug: "clinical-research-hub",
+    name: "Clinical Research Hub",
+    specialty: "Clinical Research",
+    member_count: 980,
+    icon: <FlaskConical className="h-4 w-4 text-[#8b5cf6]" />,
+  },
+];
 
 export function NetworkSidebar({ currentUserId }: NetworkSidebarProps) {
   const router = useRouter();
-  const [communities, setCommunities] = React.useState<Community[]>([]);
+  const [joinedSlugs, setJoinedSlugs] = React.useState<Set<string>>(new Set());
 
-  React.useEffect(() => {
-    fetch("/api/network/communities", { credentials: "include" })
-      .then((r) => r.json())
-      .then((d) => setCommunities((d.data ?? []).slice(0, 4)))
-      .catch(() => setCommunities([]));
-  }, []);
+  const handleJoinToggle = (slug: string) => {
+    setJoinedSlugs((prev) => {
+      const next = new Set(prev);
+      if (next.has(slug)) {
+        next.delete(slug);
+      } else {
+        next.add(slug);
+      }
+      return next;
+    });
+  };
 
   return (
-    <aside className="w-full shrink-0 space-y-4 lg:w-72">
-      {/* People You May Know */}
-      <PeopleYouMayKnow currentUserId={currentUserId} limit={5} />
+    <aside className="w-full shrink-0 space-y-4 lg:w-72 xl:w-80">
+      {/* 1. Top Promo Banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1769c2] to-[#0f4d92] p-4 text-white shadow-xs">
+        <div className="relative z-10">
+          <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-xs">
+            <Sparkles className="h-3 w-3" /> Connect & Grow
+          </span>
+          <h3 className="mt-2 text-sm font-bold leading-tight">
+            Build meaningful professional connections
+          </h3>
+          <p className="mt-1 text-xs text-blue-100">
+            Collaborate · Learn · Grow with peer clinicians across India.
+          </p>
+          <button
+            type="button"
+            onClick={() => router.push("/network")}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-bold text-[#1769c2] shadow-xs transition hover:bg-blue-50"
+          >
+            Explore Network <ArrowRight className="h-3 w-3" />
+          </button>
+        </div>
+        <div className="pointer-events-none absolute -right-6 -bottom-6 h-28 w-28 rounded-full bg-white/10 blur-xl" />
+      </div>
 
-      {/* Suggested Communities */}
-      {communities.length > 0 && (
-        <div className="rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs">
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-[#171717] flex items-center gap-1.5">
-              <Users className="h-4 w-4 text-[#1769c2]" /> Communities
-            </h3>
-            <button
-              type="button"
-              onClick={() => router.push("/network/communities")}
-              className="text-[11px] font-semibold text-[#1769c2] hover:underline"
-            >
-              See all →
-            </button>
-          </div>
+      {/* 2. People You May Know */}
+      <PeopleYouMayKnow currentUserId={currentUserId} limit={4} />
 
-          <ul className="space-y-2.5">
-            {communities.map((c) => (
+      {/* 3. Suggested Communities */}
+      <div className="rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="flex items-center gap-1.5 text-sm font-bold text-[#171717]">
+            <Users className="h-4 w-4 text-[#1769c2]" />
+            Suggested Communities
+          </h3>
+          <button
+            type="button"
+            onClick={() => router.push("/network/communities")}
+            className="text-[11px] font-semibold text-[#1769c2] transition hover:underline"
+          >
+            See all →
+          </button>
+        </div>
+
+        <ul className="space-y-3">
+          {DEFAULT_COMMUNITIES.map((c) => {
+            const isJoined = joinedSlugs.has(c.slug);
+            return (
               <li key={c.slug} className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f0efee]">
-                  {getCommunityIcon(c.specialty)}
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f4f3f0]">
+                  {c.icon}
                 </div>
                 <div className="min-w-0 flex-1">
                   <button
@@ -89,30 +135,51 @@ export function NetworkSidebar({ currentUserId }: NetworkSidebarProps) {
                 </div>
                 <button
                   type="button"
-                  onClick={() => router.push(`/network/communities/${c.slug}`)}
-                  className="shrink-0 rounded-lg border border-[#ded8d1] px-2 py-0.5 text-[10px] font-medium text-[#5d5854] transition hover:bg-[#f8f7f6]"
+                  onClick={() => handleJoinToggle(c.slug)}
+                  className={`shrink-0 rounded-xl px-2.5 py-1 text-xs font-semibold transition ${
+                    isJoined
+                      ? "bg-[#eef5fc] text-[#1769c2] border border-[#1769c2]/20"
+                      : "border border-[#ded8d1] bg-white text-[#5d5854] hover:border-[#1769c2] hover:text-[#1769c2]"
+                  }`}
                 >
-                  View
+                  {isJoined ? (
+                    <span className="flex items-center gap-1">
+                      <Check className="h-3 w-3" /> Joined
+                    </span>
+                  ) : (
+                    "Join"
+                  )}
                 </button>
               </li>
-            ))}
-          </ul>
-        </div>
-      )}
+            );
+          })}
+        </ul>
+      </div>
 
-      {/* Feed shortcut */}
-      <div className="rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs">
-        <h3 className="text-sm font-semibold text-[#171717]">Professional Feed</h3>
-        <p className="mt-1 text-xs text-[#77716b]">
-          Share clinical insights, research updates, and achievements with your healthcare network.
-        </p>
-        <button
-          type="button"
-          onClick={() => router.push("/network/feed")}
-          className="mt-3 w-full rounded-xl bg-[#eef5fc] py-2 text-xs font-semibold text-[#1769c2] transition hover:bg-[#1769c2] hover:text-white"
-        >
-          Go to Feed
-        </button>
+      {/* 4. Upgrade to MGN Pro */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0a1b33] via-[#0f2c52] to-[#17487d] p-4 text-white shadow-sm">
+        <div className="relative z-10">
+          <div className="flex items-center gap-1.5 text-amber-400">
+            <Crown className="h-4 w-4 fill-amber-400" />
+            <span className="text-xs font-bold uppercase tracking-wider">
+              MGN Pro
+            </span>
+          </div>
+          <h4 className="mt-2 text-sm font-bold text-white">
+            Upgrade to MGN Pro
+          </h4>
+          <p className="mt-1 text-xs text-blue-100/90 leading-relaxed">
+            Access advanced clinical networks, verify your credentials, and unlock unlimited connection requests.
+          </p>
+          <button
+            type="button"
+            onClick={() => router.push("/pro")}
+            className="mt-3.5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 py-2 text-xs font-bold text-[#0a1b33] shadow-xs transition hover:brightness-105"
+          >
+            Explore Pro Plans <ArrowRight className="h-3 w-3" />
+          </button>
+        </div>
+        <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-amber-400/10 blur-2xl" />
       </div>
     </aside>
   );
