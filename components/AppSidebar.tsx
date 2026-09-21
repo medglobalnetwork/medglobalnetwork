@@ -55,7 +55,7 @@ export default function AppSidebar() {
     >
       {/* Narrow icon strip */}
       <div className={`flex w-[54px] shrink-0 flex-col items-center border-r py-4 ${isDarkMode ? "border-[#303030]" : "border-[#ededeb]"}`}>
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1769c2] text-xs font-bold text-white">M</div>
+        <img src="/logo.png" alt="MGN" className="h-7 w-7 object-contain" />
 
         <button
           type="button"
@@ -128,8 +128,7 @@ export default function AppSidebar() {
       {/* Expanded panel */}
       <div className={`flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-4 transition-opacity duration-150 ${isExpanded ? "opacity-100" : "pointer-events-none opacity-0"}`}>
         <div className="flex items-center gap-2 px-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#1769c2] text-[10px] font-bold text-white">M</div>
-          <span className="text-sm font-bold tracking-tight">MGN</span>
+          <img src="/logo.png" alt="MGN" className="h-7 w-auto object-contain" />
         </div>
 
         <div className="relative mt-5">

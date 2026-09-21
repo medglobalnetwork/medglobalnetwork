@@ -202,16 +202,12 @@ export default function AppHeader() {
       <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         {/* 1. LEFT: LOGO */}
         <div className="flex shrink-0 items-center gap-6">
-          <Link href="/home" className="flex items-center gap-2 focus:outline-none">
-            <div className="flex items-center gap-1.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#1769c2] text-sm font-bold text-white shadow-xs">
-                +
-              </span>
-              <span className="text-xl font-bold tracking-tight text-[#1769c2]">MGN</span>
-            </div>
-            <span className="hidden text-[10px] font-medium leading-none text-[#77716b] xl:inline-block">
-              For a Healthier Tomorrow
-            </span>
+          <Link href="/home" className="flex items-center gap-2 focus:outline-none" aria-label="MGN Home">
+            <img
+              src="/logo.png"
+              alt="MGN - Med Global Network"
+              className="h-8 lg:h-9.5 w-auto object-contain"
+            />
           </Link>
         </div>
 
