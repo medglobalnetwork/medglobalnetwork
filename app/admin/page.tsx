@@ -1,226 +1,312 @@
 "use client";
 
-import * as React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { AdminMetricCard } from "@/modules/admin/components/AdminMetricCard";
+import {
+  Users,
+  ShieldCheck,
+  AlertTriangle,
+  GraduationCap,
+  Briefcase,
+  Layers,
+  ArrowRight,
+  ShieldAlert,
+  Clock,
+  Sparkles,
+  RefreshCw,
+  CheckCircle2,
+} from "lucide-react";
+import Link from "next/link";
 
-interface UserRecord {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  verified: boolean;
-  createdAt: string;
-}
-
-const ADMIN_EMAILS = ["patreshubham141@gmail.com"];
-
-export default function AdminPage() {
+export default function AdminDashboardPage() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
-  const [activeTab, setActiveTab] = React.useState<"users" | "jobs" | "events" | "camps" | "analytics">("users");
-  const [searchQuery, setSearchQuery] = React.useState("");
+  const [metrics, setMetrics] = useState<any>(null);
+  const [recentAudits, setRecentAudits] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  React.useEffect(() => {
+  const fetchMetrics = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetch("/api/admin/metrics");
+      if (res.status === 403) {
+        setError("ACCESS_DENIED");
+        return;
+      }
+      if (!res.ok) {
+        throw new Error("Failed to load metrics");
+      }
+      const data = await res.json();
+      setMetrics(data.metrics);
+      setRecentAudits(data.recentAudits || []);
+    } catch (err: any) {
+      setError(err.message || "Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (!isPending) {
       if (!session) {
         router.replace("/");
+      } else {
+        fetchMetrics();
       }
     }
-  }, [isPending, router, session]);
+  }, [isPending, session, router]);
 
-  if (isPending || !session) {
-    return <div className="min-h-screen bg-[#f5f5f4]" />;
+  if (isPending || (!session && !error)) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="flex items-center gap-3 text-slate-400">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+          <span className="text-xs font-semibold">Authenticating Admin Session...</span>
+        </div>
+      </div>
+    );
   }
 
-  const userEmail = session.user.email?.toLowerCase() || "";
-  const isAdmin = ADMIN_EMAILS.includes(userEmail);
-
-  if (!isAdmin) {
+  if (error === "ACCESS_DENIED") {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#f5f5f4] p-6 text-[#171717]">
-        <div className="max-w-md rounded-2xl border border-[#ded8d1] bg-white p-8 text-center shadow-sm">
-          <span className="text-4xl">🔒</span>
-          <h1 className="mt-3 text-lg font-bold text-[#171717]">Admin Access Restricted</h1>
-          <p className="mt-1.5 text-xs text-[#77716b]">
-            Your account ({session.user.email}) does not have administrative privileges.
+      <div className="flex min-h-[70vh] items-center justify-center p-4">
+        <div className="max-w-md w-full rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center shadow-2xl">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-rose-500/20 bg-rose-500/10 text-rose-400">
+            <ShieldAlert className="h-7 w-7" />
+          </div>
+          <h2 className="mt-4 text-lg font-bold text-white tracking-tight">
+            Admin Access Restricted
+          </h2>
+          <p className="mt-2 text-xs text-slate-400 leading-relaxed">
+            Your account (<strong className="text-slate-200">{session?.user?.email}</strong>) does
+            not possess verified platform administration privileges.
           </p>
           <button
             type="button"
             onClick={() => router.push("/home")}
-            className="mt-5 rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#12569f]"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md hover:bg-blue-500 transition-colors"
           >
-            Go to User Dashboard
+            Return to User Dashboard
           </button>
         </div>
-      </main>
+      </div>
     );
   }
 
-  // Real authenticated user record
-  const currentUsers: UserRecord[] = [
-    {
-      id: session.user.id || "admin-1",
-      name: session.user.name || "Administrator",
-      email: session.user.email,
-      role: "Platform Administrator",
-      verified: true,
-      createdAt: new Date().toISOString().split("T")[0],
-    },
-  ];
-
-  const filteredUsers = currentUsers.filter(
-    (u) =>
-      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.role.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
-    <main className="min-h-screen bg-[#f5f5f4] pb-24 text-[#171717]">
-      {/* Admin Header */}
-      <header className="border-b border-[#e8e6e3] bg-white px-6 py-4 lg:px-12">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => router.push("/home")}
-              className="flex items-center focus:outline-none"
-            >
-              <img src="/logo.png" alt="MGN" className="h-8 w-auto object-contain" />
-            </button>
-            <span className="rounded-md bg-[#eef5fc] px-2 py-0.5 text-xs font-bold text-[#1769c2]">
-              Admin Console
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-[#77716b]">
-              Signed in as <b className="text-[#171717]">{session.user.name || session.user.email}</b>
-            </span>
-            <button
-              type="button"
-              onClick={() => router.push("/home")}
-              className="rounded-lg border border-[#ded8d1] px-3 py-1.5 text-xs font-medium text-[#171717] hover:bg-[#f8f7f6]"
-            >
-              Back to App
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Container */}
-      <div className="mx-auto max-w-7xl px-6 py-8 lg:px-12">
-        {/* Real Metric Summary */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div className="rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-2xs">
-            <p className="text-xs text-[#77716b]">Registered Administrators</p>
-            <p className="mt-1 text-2xl font-bold text-[#171717]">1</p>
-            <span className="mt-1 inline-block text-[11px] font-semibold text-[#15803d]">Active session</span>
-          </div>
-          <div className="rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-2xs">
-            <p className="text-xs text-[#77716b]">Pending Verification</p>
-            <p className="mt-1 text-2xl font-bold text-[#171717]">0</p>
-            <span className="mt-1 inline-block text-[11px] text-[#8a8784]">All clear</span>
-          </div>
-          <div className="rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-2xs">
-            <p className="text-xs text-[#77716b]">Job Postings</p>
-            <p className="mt-1 text-2xl font-bold text-[#171717]">0</p>
-            <span className="mt-1 inline-block text-[11px] text-[#8a8784]">No active submissions</span>
-          </div>
-          <div className="rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-2xs">
-            <p className="text-xs text-[#77716b]">Healthcare Camps</p>
-            <p className="mt-1 text-2xl font-bold text-[#171717]">0</p>
-            <span className="mt-1 inline-block text-[11px] text-[#8a8784]">No active camps</span>
-          </div>
-        </div>
-
-        {/* Admin Navigation Tabs */}
-        <div className="mt-8 flex gap-2 border-b border-[#e8e6e3] pb-2 overflow-x-auto">
-          {[
-            { id: "users", label: "Clinicians & Users" },
-            { id: "jobs", label: "Job Approvals" },
-            { id: "events", label: "Conferences & Events" },
-            { id: "camps", label: "Community Camps" },
-            { id: "analytics", label: "Platform Analytics" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`rounded-xl px-4 py-2 text-xs font-semibold transition shrink-0 ${
-                activeTab === tab.id
-                  ? "bg-[#1769c2] text-white shadow-xs"
-                  : "text-[#77716b] hover:bg-white hover:text-[#171717]"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab Content */}
-        {activeTab === "users" && (
-          <div className="mt-6 rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-2xs">
-            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-              <div>
-                <h3 className="text-sm font-semibold text-[#171717]">Registered Clinicians & Accounts</h3>
-                <p className="text-xs text-[#77716b]">Live database records of registered members and administrators.</p>
-              </div>
-
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search clinician name or email..."
-                className="h-9 w-full max-w-xs rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-3 text-xs text-[#171717] focus:border-[#1769c2] focus:bg-white focus:outline-none"
-              />
+    <div className="space-y-8">
+      {/* Page Header Banner */}
+      <div className="relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900/90 to-blue-950/40 p-6 sm:p-8 shadow-xl">
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-[11px] font-bold text-blue-300">
+                <Sparkles className="h-3.5 w-3.5" />
+                Live Control Plane
+              </span>
+              <span className="text-xs text-slate-400">• MGN.life Platform v2.0</span>
             </div>
-
-            {/* Users Table */}
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full text-left text-xs text-[#171717]">
-                <thead>
-                  <tr className="border-b border-[#f0efee] text-[11px] font-semibold uppercase tracking-wider text-[#8a8784]">
-                    <th className="py-3 px-3">Name</th>
-                    <th className="py-3 px-3">Email</th>
-                    <th className="py-3 px-3">Role</th>
-                    <th className="py-3 px-3">Date</th>
-                    <th className="py-3 px-3">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#f5f4f3]">
-                  {filteredUsers.map((u) => (
-                    <tr key={u.id} className="hover:bg-[#fcfbf9]">
-                      <td className="py-3 px-3 font-semibold">{u.name}</td>
-                      <td className="py-3 px-3 text-[#77716b]">{u.email}</td>
-                      <td className="py-3 px-3">{u.role}</td>
-                      <td className="py-3 px-3 text-[#a09890]">{u.createdAt}</td>
-                      <td className="py-3 px-3">
-                        <span className="rounded-full bg-[#dcfce7] px-2 py-0.5 text-[10px] font-bold text-[#15803d]">
-                          Active ✓
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {activeTab !== "users" && (
-          <div className="mt-6 rounded-2xl border border-dashed border-[#ded8d1] bg-white p-12 text-center shadow-xs">
-            <span className="text-3xl">📂</span>
-            <h3 className="mt-2 text-sm font-semibold text-[#171717]">
-              No {activeTab} submissions yet
-            </h3>
-            <p className="mt-1 text-xs text-[#77716b]">
-              New submissions from hospitals, organizers, and clinicians will appear here for review.
+            <h1 className="mt-3 text-2xl font-black tracking-tight text-white sm:text-3xl">
+              Platform Command Center
+            </h1>
+            <p className="mt-1.5 text-xs text-slate-300 max-w-xl">
+              Real-time operational overview of registered clinicians, medical council verification queues, course catalogues, and moderation events.
             </p>
           </div>
-        )}
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={fetchMetrics}
+              className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:border-slate-600 hover:text-white transition-colors"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin text-blue-400" : ""}`} />
+              <span>Refresh KPIs</span>
+            </button>
+
+            <Link
+              href="/admin/verification"
+              className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-blue-500 transition-colors"
+            >
+              <ShieldCheck className="h-3.5 w-3.5" />
+              <span>KYC Queue ({metrics?.pendingVerification || 0})</span>
+            </Link>
+          </div>
+        </div>
       </div>
-    </main>
+
+      {/* KPI Metrics Grid */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <AdminMetricCard
+          title="Total Clinicians & Users"
+          value={metrics?.totalUsers ?? (loading ? "..." : 1)}
+          subtitle={`${metrics?.totalProfessionals ?? 1} healthcare professionals`}
+          icon={<Users className="h-5 w-5" />}
+          href="/admin/users"
+          badge="Directory"
+          badgeColor="blue"
+        />
+
+        <AdminMetricCard
+          title="Verified Doctors"
+          value={metrics?.verifiedDoctors ?? (loading ? "..." : 1)}
+          subtitle="Council credential authenticated"
+          icon={<ShieldCheck className="h-5 w-5" />}
+          href="/admin/verification"
+          badge="Verified ✓"
+          badgeColor="emerald"
+        />
+
+        <AdminMetricCard
+          title="Pending Verifications"
+          value={metrics?.pendingVerification ?? (loading ? "..." : 0)}
+          subtitle="Requires officer inspection"
+          icon={<Clock className="h-5 w-5" />}
+          href="/admin/verification"
+          badge={metrics?.pendingVerification > 0 ? "Action Required" : "Cleared"}
+          badgeColor={metrics?.pendingVerification > 0 ? "amber" : "slate"}
+        />
+
+        <AdminMetricCard
+          title="Safety & Content Alerts"
+          value={metrics?.openReports ?? (loading ? "..." : 0)}
+          subtitle="Flagged posts & abuse reports"
+          icon={<AlertTriangle className="h-5 w-5" />}
+          href="/admin/moderation"
+          badge={metrics?.openReports > 0 ? "Review Needed" : "All Good"}
+          badgeColor={metrics?.openReports > 0 ? "rose" : "slate"}
+        />
+      </div>
+
+      {/* Secondary Metrics & Quick Links */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Module Health & Statistics */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl lg:col-span-2">
+          <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
+            <div>
+              <h2 className="text-sm font-bold text-white tracking-tight">
+                Module Activity & Throughput
+              </h2>
+              <p className="text-xs text-slate-400">Live operational counts across MGN ecosystems</p>
+            </div>
+            <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          </div>
+
+          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <Link
+              href="/admin/learn"
+              className="group rounded-xl border border-slate-800 bg-slate-950/60 p-4 transition-all hover:border-blue-500/40 hover:bg-slate-950"
+            >
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 group-hover:text-blue-400">
+                <GraduationCap className="h-4 w-4" />
+                <span>Learn / LMS</span>
+              </div>
+              <p className="mt-2 text-2xl font-bold text-white">{metrics?.totalCourses ?? 0}</p>
+              <p className="text-[11px] text-slate-500">{metrics?.totalEnrollments ?? 0} active enrollments</p>
+            </Link>
+
+            <Link
+              href="/admin/opportunities"
+              className="group rounded-xl border border-slate-800 bg-slate-950/60 p-4 transition-all hover:border-blue-500/40 hover:bg-slate-950"
+            >
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 group-hover:text-blue-400">
+                <Briefcase className="h-4 w-4" />
+                <span>Opportunities</span>
+              </div>
+              <p className="mt-2 text-2xl font-bold text-white">{metrics?.totalJobs ?? 0}</p>
+              <p className="text-[11px] text-slate-500">{metrics?.totalApplications ?? 0} applications submitted</p>
+            </Link>
+
+            <Link
+              href="/admin/network"
+              className="group rounded-xl border border-slate-800 bg-slate-950/60 p-4 transition-all hover:border-blue-500/40 hover:bg-slate-950"
+            >
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 group-hover:text-blue-400">
+                <Layers className="h-4 w-4" />
+                <span>Network & Feed</span>
+              </div>
+              <p className="mt-2 text-2xl font-bold text-white">Active</p>
+              <p className="text-[11px] text-slate-500">Posts, Stories & Groups</p>
+            </Link>
+          </div>
+
+          {/* Quick Operations Strip */}
+          <div className="mt-6 rounded-xl border border-slate-800/80 bg-slate-950/40 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold text-white">Need to verify a medical doctor immediately?</p>
+                <p className="text-[11px] text-slate-400">Access the National Medical Council KYC queue.</p>
+              </div>
+              <Link
+                href="/admin/verification"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-500 transition-colors"
+              >
+                <span>Open Verification Queue</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Live Immutable Audit Feed */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
+              <div>
+                <h2 className="text-sm font-bold text-white tracking-tight">Audit Stream</h2>
+                <p className="text-xs text-slate-400">Immutable admin actions</p>
+              </div>
+              <Link
+                href="/admin/audit-logs"
+                className="text-xs font-semibold text-blue-400 hover:text-blue-300"
+              >
+                View All
+              </Link>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              {recentAudits.length === 0 ? (
+                <div className="py-8 text-center text-slate-500">
+                  <CheckCircle2 className="mx-auto h-8 w-8 text-slate-600 mb-2" />
+                  <p className="text-xs font-medium text-slate-400">Audit ledger initialized</p>
+                  <p className="text-[11px] text-slate-500">Administrative changes will appear here.</p>
+                </div>
+              ) : (
+                recentAudits.map((item, idx) => (
+                  <div
+                    key={item.id || idx}
+                    className="flex items-start gap-3 rounded-xl border border-slate-800/80 bg-slate-950/60 p-3 text-xs"
+                  >
+                    <div className="h-2 w-2 rounded-full bg-blue-400 mt-1.5 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-slate-200 truncate">
+                        {item.action}
+                      </p>
+                      <p className="text-[11px] text-slate-400 truncate">
+                        By {item.admin_email} • {item.entity_type}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="mt-4 border-t border-slate-800/80 pt-4">
+            <Link
+              href="/admin/audit-logs"
+              className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-800 bg-slate-950 py-2 text-xs font-semibold text-slate-300 hover:border-slate-700 hover:text-white transition-colors"
+            >
+              <span>Inspect Full Audit Trail</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

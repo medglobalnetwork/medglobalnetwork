@@ -1,6 +1,7 @@
 import { auth, database } from "@/lib/auth";
 import { Kysely } from "kysely";
 import { headers } from "next/headers";
+import { getAdminSession, AdminSessionContext } from "@/modules/admin/lib/rbac";
 
 export interface AdminDatabase {
   user: {
@@ -19,22 +20,11 @@ export interface AdminDatabase {
   };
 }
 
-const adminEmails = new Set(
-  (process.env.ADMIN_EMAILS || "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean),
-);
-
-export async function requireAdmin() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  const email = session?.user.email?.toLowerCase();
-
-  if (!session || !email || !adminEmails.has(email)) {
-    return null;
-  }
-
+export async function requireAdmin(): Promise<AdminSessionContext | null> {
+  const session = await getAdminSession(await headers());
   return session;
 }
 
 export const adminDatabase = database as unknown as Kysely<AdminDatabase>;
+export { getAdminSession, hasPermission, requireAdminPermission } from "@/modules/admin/lib/rbac";
+export { recordAuditLog } from "@/modules/admin/lib/audit";
