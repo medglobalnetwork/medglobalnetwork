@@ -27,10 +27,11 @@ export function HomeFeed({
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(false);
 
-  const fetchPosts = React.useCallback(async (targetPage = 1, append = false) => {
+  const fetchPosts = React.useCallback(async (targetPage = 1, append = false, tab = activeTab) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/network/posts?page=${targetPage}&pageSize=15`);
+      const feedParam = tab === "following" ? "&feed=following" : "";
+      const res = await fetch(`/api/network/posts?page=${targetPage}&pageSize=15${feedParam}`);
       const json = await res.json();
       if (res.ok && json.data) {
         if (append) {
@@ -46,14 +47,14 @@ export function HomeFeed({
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [activeTab]);
 
   React.useEffect(() => {
-    fetchPosts(1, false);
-  }, [fetchPosts]);
+    fetchPosts(1, false, activeTab);
+  }, [fetchPosts, activeTab]);
 
   const handlePostCreated = () => {
-    fetchPosts(1, false);
+    fetchPosts(1, false, activeTab);
   };
 
   return (

@@ -43,25 +43,30 @@ export function ProfessionalCard({
     profile.registration_verified;
 
   const handleFollow = async () => {
+    const previousState = isFollowing;
+    // Instant optimistic toggle
+    setIsFollowing(!previousState);
+
     setFollowLoading(true);
     try {
-      if (isFollowing) {
-        await fetch(`/api/network/follows?followingId=${profile.user_id}`, {
+      if (previousState) {
+        const res = await fetch(`/api/network/follows?followingId=${profile.user_id}`, {
           method: "DELETE",
           credentials: "include",
         });
-        setIsFollowing(false);
+        if (!res.ok) throw new Error("Failed to unfollow");
       } else {
-        await fetch("/api/network/follows", {
+        const res = await fetch("/api/network/follows", {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ followingId: profile.user_id }),
         });
-        setIsFollowing(true);
+        if (!res.ok) throw new Error("Failed to follow");
       }
     } catch (err) {
       console.error("Follow action failed:", err);
+      setIsFollowing(previousState);
     } finally {
       setFollowLoading(false);
     }

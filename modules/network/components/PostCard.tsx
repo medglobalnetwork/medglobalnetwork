@@ -53,27 +53,35 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
   const badge = POST_TYPE_BADGE[post.post_type] ?? POST_TYPE_BADGE.text;
 
   const handleReact = async () => {
+    const wasReacted = reacted;
+    const previousCount = reactionCount;
+
+    // Instant optimistic toggle
+    setReacted(!wasReacted);
+    setReactionCount((c) => (wasReacted ? Math.max(0, c - 1) : c + 1));
+
     setLikeLoading(true);
     try {
-      if (reacted) {
-        await fetch(`/api/network/posts/${post.id}/reactions`, {
+      if (wasReacted) {
+        const res = await fetch(`/api/network/posts/${post.id}/reactions`, {
           method: "DELETE",
           credentials: "include",
         });
-        setReacted(false);
-        setReactionCount((c) => Math.max(0, c - 1));
+        if (!res.ok) throw new Error("Failed to remove like");
       } else {
-        await fetch(`/api/network/posts/${post.id}/reactions`, {
+        const res = await fetch(`/api/network/posts/${post.id}/reactions`, {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ reactionType: "like" }),
         });
-        setReacted(true);
-        setReactionCount((c) => c + 1);
+        if (!res.ok) throw new Error("Failed to add like");
       }
     } catch (err) {
       console.error("Reaction failed:", err);
+      // Revert on error
+      setReacted(wasReacted);
+      setReactionCount(previousCount);
     } finally {
       setLikeLoading(false);
     }

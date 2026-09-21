@@ -29,15 +29,27 @@ export function ConnectionButton({
       : "px-4 py-2 text-sm";
 
   const handleAction = async (action: string) => {
+    if (action === "connect" && onConnectClick) {
+      onConnectClick();
+      return;
+    }
+
+    const previousStatus = status;
+
+    // Instant optimistic update
+    if (action === "connect") {
+      setStatus("pending");
+      onStatusChange?.("pending");
+    } else if (action === "withdraw" || action === "ignore" || action === "disconnect") {
+      setStatus("none");
+      onStatusChange?.("none");
+    } else if (action === "accept") {
+      setStatus("connected");
+      onStatusChange?.("connected");
+    }
+
     setLoading(true);
     try {
-      if (action === "connect" && onConnectClick) {
-        // Defer to parent modal
-        onConnectClick();
-        setLoading(false);
-        return;
-      }
-
       if (action === "connect") {
         const res = await fetch("/api/network/connections", {
           method: "POST",
@@ -45,47 +57,43 @@ export function ConnectionButton({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ receiverId: targetUserId }),
         });
-        if (res.ok) {
-          setStatus("pending");
-          onStatusChange?.("pending");
-        }
+        if (!res.ok) throw new Error("Failed to send request");
       } else if (action === "withdraw" && requestId) {
-        await fetch(`/api/network/connections/${requestId}`, {
+        const res = await fetch(`/api/network/connections/${requestId}`, {
           method: "PATCH",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "withdraw" }),
         });
-        setStatus("none");
-        onStatusChange?.("none");
+        if (!res.ok) throw new Error("Failed to withdraw");
       } else if (action === "accept" && requestId) {
-        await fetch(`/api/network/connections/${requestId}`, {
+        const res = await fetch(`/api/network/connections/${requestId}`, {
           method: "PATCH",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "accept" }),
         });
-        setStatus("connected");
-        onStatusChange?.("connected");
+        if (!res.ok) throw new Error("Failed to accept");
       } else if (action === "ignore" && requestId) {
-        await fetch(`/api/network/connections/${requestId}`, {
+        const res = await fetch(`/api/network/connections/${requestId}`, {
           method: "PATCH",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "ignore" }),
         });
-        setStatus("none");
-        onStatusChange?.("none");
-      } else if (action === "disconnect") {
-        await fetch(`/api/network/connections/${requestId}`, {
+        if (!res.ok) throw new Error("Failed to ignore");
+      } else if (action === "disconnect" && requestId) {
+        const res = await fetch(`/api/network/connections/${requestId}`, {
           method: "DELETE",
           credentials: "include",
         });
-        setStatus("none");
-        onStatusChange?.("none");
+        if (!res.ok) throw new Error("Failed to disconnect");
       }
     } catch (err) {
       console.error("Connection action failed:", err);
+      // Revert on error
+      setStatus(previousStatus);
+      onStatusChange?.(previousStatus);
     } finally {
       setLoading(false);
     }
