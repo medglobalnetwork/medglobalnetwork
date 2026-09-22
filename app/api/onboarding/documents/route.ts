@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { verifDb } from "@/modules/onboarding/lib/verification-db";
 import { ensureUserStorage, syncUserDossier } from "@/modules/onboarding/lib/user-storage";
+import { isR2Configured, uploadR2Buffer } from "@/lib/r2";
 import { nanoid } from "nanoid";
 import { writeFile } from "fs/promises";
 import path from "path";
@@ -22,8 +23,8 @@ export async function POST(request: Request) {
       return Response.json({ error: "No file provided" }, { status: 400 });
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      return Response.json({ error: "File size exceeds 5MB limit" }, { status: 400 });
+    if (file.size > 10 * 1024 * 1024) {
+      return Response.json({ error: "File size exceeds 10MB limit" }, { status: 400 });
     }
 
     const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
@@ -31,17 +32,34 @@ export async function POST(request: Request) {
       return Response.json({ error: "Invalid file format. Please upload PDF, JPG, or PNG." }, { status: 400 });
     }
 
-    // Dedicated per-user storage workspace: private_storage/users/<userId>/documents/
-    const storagePaths = await ensureUserStorage(session.user.id);
-
     const fileExtension = path.extname(file.name) || (file.type === "application/pdf" ? ".pdf" : ".jpg");
     const safeDocId = nanoid(8);
     const sanitizedType = documentType.toLowerCase().replace(/[^a-z0-9_]/g, "_");
-    const storedFileName = `${sanitizedType}_${safeDocId}${fileExtension}`;
-    const targetFilePath = path.join(storagePaths.documentsDir, storedFileName);
-
     const arrayBuffer = await file.arrayBuffer();
-    await writeFile(targetFilePath, Buffer.from(arrayBuffer));
+    const fileBuffer = Buffer.from(arrayBuffer);
+
+    let storedPath: string;
+
+    // Prefer Cloudflare R2 permanent cloud storage if configured
+    if (isR2Configured) {
+      const r2Key = `kyc/${session.user.id}/${sanitizedType}_${safeDocId}${fileExtension}`;
+      await uploadR2Buffer({
+        key: r2Key,
+        buffer: fileBuffer,
+        contentType: file.type,
+      });
+      storedPath = r2Key;
+    } else {
+      // Local / Serverless-safe fallback
+      const storagePaths = await ensureUserStorage(session.user.id);
+      const storedFileName = `${sanitizedType}_${safeDocId}${fileExtension}`;
+      storedPath = path.join(storagePaths.documentsDir, storedFileName);
+      try {
+        await writeFile(storedPath, fileBuffer);
+      } catch (localWriteErr) {
+        console.warn("Could not save to local filesystem on serverless:", localWriteErr);
+      }
+    }
 
     // Remove existing document record for same type if any, to keep latest clean
     await verifDb
@@ -57,7 +75,7 @@ export async function POST(request: Request) {
         user_id: session.user.id,
         document_type: documentType,
         file_name: file.name,
-        file_path: targetFilePath,
+        file_path: storedPath,
         file_size: file.size,
         mime_type: file.type,
         status: "PENDING",
@@ -72,16 +90,16 @@ export async function POST(request: Request) {
         target_user_id: session.user.id,
         actor_id: session.user.id,
         action: "document.uploaded",
-        reason: `Uploaded ${documentType} (${file.name}) to user folder`,
+        reason: `Uploaded ${documentType} (${file.name})`,
         previous_state: "NONE",
         new_state: "PENDING",
-        metadata: JSON.stringify({ documentType, fileName: file.name, size: file.size, targetFilePath }),
+        metadata: JSON.stringify({ documentType, fileName: file.name, size: file.size, storedPath }),
         created_at: new Date(),
       })
       .execute();
 
-    // Automatically sync full user metadata.json dossier in their folder
-    await syncUserDossier(session.user.id);
+    // Sync dossier file asynchronously (gracefully ignored on serverless if local FS is read-only)
+    syncUserDossier(session.user.id).catch(() => {});
 
     return Response.json({
       success: true,
@@ -91,7 +109,7 @@ export async function POST(request: Request) {
         file_name: file.name,
         file_size: file.size,
         status: "PENDING",
-        stored_path: targetFilePath,
+        stored_path: storedPath,
       },
     });
   } catch (err: any) {

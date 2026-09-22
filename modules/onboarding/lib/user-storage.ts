@@ -3,10 +3,11 @@
 // modules/onboarding/lib/user-storage.ts
 //
 // Manages dedicated per-user storage directories (private_storage/users/<userId>/)
-// containing documents, profile media, and auto-synced metadata dossiers.
+// with serverless environment compatibility (Vercel /tmp fallback).
 // ============================================================
 
 import path from "path";
+import os from "os";
 import { mkdir, writeFile } from "fs/promises";
 import { verifDb } from "./verification-db";
 
@@ -19,10 +20,16 @@ export interface UserStoragePaths {
 }
 
 /**
- * Returns absolute filesystem paths for a user's dedicated storage workspace.
+ * Returns filesystem paths for a user's dedicated storage workspace.
+ * Automatically selects /tmp on Vercel/Serverless environments to prevent read-only filesystem errors.
  */
 export function getUserStoragePaths(userId: string): UserStoragePaths {
-  const rootDir = path.join(process.cwd(), "private_storage", "users", userId);
+  const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+  const baseStorageDir = isServerless
+    ? path.join(os.tmpdir(), "mgn_private_storage")
+    : path.join(process.cwd(), "private_storage");
+
+  const rootDir = path.join(baseStorageDir, "users", userId);
   const documentsDir = path.join(rootDir, "documents");
   const profileDir = path.join(rootDir, "profile");
   const metadataJsonPath = path.join(rootDir, "metadata.json");
@@ -38,12 +45,16 @@ export function getUserStoragePaths(userId: string): UserStoragePaths {
 }
 
 /**
- * Ensures that the user's root, documents, and profile directories exist on disk.
+ * Ensures that the user's root, documents, and profile directories exist.
  */
 export async function ensureUserStorage(userId: string): Promise<UserStoragePaths> {
   const paths = getUserStoragePaths(userId);
-  await mkdir(paths.documentsDir, { recursive: true });
-  await mkdir(paths.profileDir, { recursive: true });
+  try {
+    await mkdir(paths.documentsDir, { recursive: true });
+    await mkdir(paths.profileDir, { recursive: true });
+  } catch (err) {
+    console.warn(`Warning: Could not create local storage directory for user ${userId}:`, err);
+  }
   return paths;
 }
 
@@ -118,8 +129,12 @@ export async function syncUserDossier(userId: string): Promise<void> {
       audit_history: auditLogs || [],
     };
 
-    // 1. Write structured JSON metadata
-    await writeFile(paths.metadataJsonPath, JSON.stringify(dossier, null, 2), "utf-8");
+    // 1. Write structured JSON metadata (graceful on serverless)
+    try {
+      await writeFile(paths.metadataJsonPath, JSON.stringify(dossier, null, 2), "utf-8");
+    } catch (writeErr) {
+      console.warn("Could not write metadata.json to disk:", writeErr);
+    }
 
     // 2. Write human-readable summary text file
     const fullName = [identity?.legal_first_name, identity?.legal_last_name].filter(Boolean).join(" ") || user?.name || "N/A";
@@ -175,7 +190,11 @@ ${auditLogs.slice(0, 10).map((l) => `[${new Date(l.created_at).toLocaleString()}
 ================================================================================
 `;
 
-    await writeFile(paths.summaryTxtPath, summaryText, "utf-8");
+    try {
+      await writeFile(paths.summaryTxtPath, summaryText, "utf-8");
+    } catch (writeErr) {
+      console.warn("Could not write summary.txt to disk:", writeErr);
+    }
   } catch (err) {
     console.error(`Error syncing user dossier for ${userId}:`, err);
   }

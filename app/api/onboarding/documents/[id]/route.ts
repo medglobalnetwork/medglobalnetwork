@@ -2,6 +2,7 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { verifDb } from "@/modules/onboarding/lib/verification-db";
+import { getR2ObjectBuffer, isR2Configured } from "@/lib/r2";
 import { readFile } from "fs/promises";
 import { existsSync } from "fs";
 
@@ -38,16 +39,33 @@ export async function GET(
       return Response.json({ error: "Access denied. Private document." }, { status: 403 });
     }
 
-    if (!existsSync(doc.file_path)) {
-      return Response.json({ error: "File missing on storage server" }, { status: 404 });
+    let fileBuffer: Buffer | null = null;
+    let contentType = doc.mime_type || "application/octet-stream";
+
+    // 1. Check Cloudflare R2 if key is an R2 path or file missing locally
+    if (doc.file_path.startsWith("kyc/") || !existsSync(doc.file_path)) {
+      if (isR2Configured) {
+        const r2Data = await getR2ObjectBuffer(doc.file_path);
+        if (r2Data) {
+          fileBuffer = r2Data.buffer;
+          contentType = r2Data.contentType || contentType;
+        }
+      }
     }
 
-    const fileBuffer = await readFile(doc.file_path);
+    // 2. Fallback to local filesystem if not loaded from R2
+    if (!fileBuffer && existsSync(doc.file_path)) {
+      fileBuffer = await readFile(doc.file_path);
+    }
 
-    return new Response(fileBuffer, {
+    if (!fileBuffer) {
+      return Response.json({ error: "Document file not found on storage servers" }, { status: 404 });
+    }
+
+    return new Response(new Uint8Array(fileBuffer), {
       status: 200,
       headers: {
-        "Content-Type": doc.mime_type || "application/octet-stream",
+        "Content-Type": contentType,
         "Content-Disposition": `inline; filename="${encodeURIComponent(doc.file_name)}"`,
         "Cache-Control": "private, max-age=3600",
       },

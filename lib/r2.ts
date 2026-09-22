@@ -3,7 +3,8 @@
 // lib/r2.ts
 //
 // S3-compatible client for Cloudflare R2 object storage.
-// Supports secure pre-signed PUT URLs for direct client-to-R2 uploads.
+// Supports secure pre-signed PUT URLs for direct client-to-R2 uploads
+// and direct buffer streaming for server-side KYC document storage.
 // ============================================================
 
 import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
@@ -14,6 +15,8 @@ const accessKeyId = process.env.R2_ACCESS_KEY_ID || "";
 const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY || "";
 const bucketName = process.env.R2_BUCKET_NAME || "";
 const mediaDomain = process.env.NEXT_PUBLIC_R2_MEDIA_DOMAIN || "https://media.mgn.life";
+
+export const isR2Configured = Boolean(accountId && accessKeyId && secretAccessKey && bucketName);
 
 /**
  * Singleton S3 Client configured for Cloudflare R2
@@ -88,6 +91,52 @@ export async function generatePresignedUploadUrl({
     publicUrl,
     key,
   };
+}
+
+/**
+ * Uploads a Buffer directly to Cloudflare R2 from server-side handlers
+ */
+export async function uploadR2Buffer({
+  key,
+  buffer,
+  contentType,
+  bucket = bucketName,
+}: {
+  key: string;
+  buffer: Buffer;
+  contentType: string;
+  bucket?: string;
+}) {
+  const command = new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    Body: buffer,
+    ContentType: contentType,
+  });
+  return r2Client.send(command);
+}
+
+/**
+ * Retrieves an object buffer from Cloudflare R2
+ */
+export async function getR2ObjectBuffer(key: string, bucket = bucketName): Promise<{ buffer: Buffer; contentType: string } | null> {
+  try {
+    const command = new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+    });
+    const response = await r2Client.send(command);
+    if (!response.Body) return null;
+
+    const byteArray = await response.Body.transformToByteArray();
+    return {
+      buffer: Buffer.from(byteArray),
+      contentType: response.ContentType || "application/octet-stream",
+    };
+  } catch (err) {
+    console.error("Error fetching object from R2:", err);
+    return null;
+  }
 }
 
 /**
