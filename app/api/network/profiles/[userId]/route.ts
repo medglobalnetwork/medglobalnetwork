@@ -30,6 +30,7 @@ export async function GET(
         "pp.primary_degree",
         "pp.additional_degrees",
         "pp.medical_council",
+        "pp.registration_number",
         "pp.organization",
         "pp.city",
         "pp.state",
@@ -43,6 +44,7 @@ export async function GET(
         "pp.registration_verified",
         "pp.experience_verified",
         "pp.cover_image_url",
+        "pp.profile_visibility",
         "pp.created_at",
       ])
       .where("pp.user_id", "=", userId)
@@ -147,3 +149,6 @@ export async function GET(
     return Response.json({ error: "Failed to fetch profile" }, { status: 500 });
   }
 }
+
+export { POST as PATCH, POST as PUT } from "../route";
+

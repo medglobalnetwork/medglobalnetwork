@@ -2,9 +2,11 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl, setUserCustomAvatar } from "@/lib/avatar";
-import { Trash2 } from "lucide-react";
+import { Trash2, User, Camera, Check, ExternalLink, Loader2 } from "lucide-react";
+import { ImageSelectorModal } from "@/components/media/ImageSelectorModal";
 
 export default function AccountSettingsPage() {
   const router = useRouter();
@@ -15,14 +17,21 @@ export default function AccountSettingsPage() {
   const [confirmText, setConfirmText] = React.useState("");
   const [hasPassword, setHasPassword] = React.useState<boolean | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+  
+  // Name & Avatar
+  const [name, setName] = React.useState("");
   const [avatarUrl, setAvatarUrl] = React.useState<string>(DEFAULT_BLANK_AVATAR);
-  const [hasCustomAvatar, setHasCustomAvatar] = React.useState(false);
+  const [isSavingName, setIsSavingName] = React.useState(false);
+  const [nameSuccess, setNameSuccess] = React.useState<string | null>(null);
   const [photoSuccess, setPhotoSuccess] = React.useState<string | null>(null);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [showAvatarSelector, setShowAvatarSelector] = React.useState(false);
 
   React.useEffect(() => {
     if (!isPending && !session) {
       router.replace("/");
+    }
+    if (session?.user?.name) {
+      setName(session.user.name);
     }
   }, [isPending, router, session]);
 
@@ -44,7 +53,10 @@ export default function AccountSettingsPage() {
     const syncAvatar = () => {
       if (typeof window !== "undefined") {
         const custom = localStorage.getItem("mgn_user_custom_avatar");
-        setHasCustomAvatar(Boolean(custom));
+        if (custom) {
+          setAvatarUrl(custom);
+          return;
+        }
       }
       setAvatarUrl(
         getUserAvatarUrl(
@@ -59,29 +71,66 @@ export default function AccountSettingsPage() {
     return () => window.removeEventListener("mgn-avatar-updated", syncAvatar);
   }, [session?.user?.email, session?.user?.name, session?.user?.image]);
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleUpdateAvatar = async (newUrl: string) => {
+    setAvatarUrl(newUrl);
+    setUserCustomAvatar(newUrl);
+    setPhotoSuccess("Profile photo updated successfully!");
+    setTimeout(() => setPhotoSuccess(null), 3000);
 
-    if (file.size > 2 * 1024 * 1024) {
-      setError("Please select an image smaller than 2MB");
-      return;
+    // Persist to server
+    try {
+      await fetch("/api/network/profiles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ image: newUrl }),
+      });
+    } catch (err) {
+      console.error(err);
     }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      setUserCustomAvatar(dataUrl);
-      setPhotoSuccess("Profile picture updated successfully!");
-      setTimeout(() => setPhotoSuccess(null), 3000);
-    };
-    reader.readAsDataURL(file);
   };
 
-  const handleResetAvatar = () => {
+  const handleResetAvatar = async () => {
     setUserCustomAvatar(null);
-    setPhotoSuccess("Profile picture removed. Default blank avatar applied.");
+    setPhotoSuccess("Profile picture removed. Default avatar applied.");
     setTimeout(() => setPhotoSuccess(null), 3000);
+
+    try {
+      await fetch("/api/network/profiles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ image: "" }),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSaveName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+
+    setIsSavingName(true);
+    setNameSuccess(null);
+
+    try {
+      const res = await fetch("/api/network/profiles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ name: name.trim() }),
+      });
+
+      if (!res.ok) throw new Error("Failed to update name");
+
+      setNameSuccess("Name updated successfully!");
+      setTimeout(() => setNameSuccess(null), 3000);
+    } catch (err: any) {
+      setError(err.message || "Failed to update name");
+    } finally {
+      setIsSavingName(false);
+    }
   };
 
   if (isPending || !session) {
@@ -133,31 +182,35 @@ export default function AccountSettingsPage() {
   return (
     <div>
       {/* Page header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-[#171717]">Account</h1>
-        <p className="mt-1 text-sm text-[#77716b]">Manage your profile, picture, and account credentials.</p>
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-[#171717]">Account</h1>
+          <p className="mt-1 text-sm text-[#77716b]">Manage your identity, photos, and login credentials.</p>
+        </div>
+
+        <Link
+          href={`/profile/${session.user.id}`}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-white px-3.5 py-2 text-xs font-bold text-[#1769c2] hover:bg-[#f8f7f6] transition shadow-2xs"
+        >
+          <span>View Public Profile</span>
+          <ExternalLink className="h-3.5 w-3.5" />
+        </Link>
       </div>
 
       {/* Profile Photo & Info card */}
       <div className="rounded-2xl border border-[#ded8d1] bg-white p-5 sm:p-6 mb-6 shadow-xs">
-        <h2 className="text-sm font-semibold text-[#171717]">Profile Details</h2>
+        <h2 className="text-sm font-semibold text-[#171717]">Profile Picture</h2>
         <p className="mt-0.5 text-xs text-[#77716b]">
-          Your avatar is automatically generated from your registered email address. You can also upload a custom photo.
+          Upload a high resolution photo or link an external image URL.
         </p>
 
         <div className="mt-5 flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#1769c2]/20 bg-[#eef5fc] shadow-xs">
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt={session.user.name || "User Avatar"}
-                className="h-full w-full rounded-full object-cover"
-              />
-            ) : (
-              <span className="text-xl font-bold text-[#1769c2]">
-                {(session.user.name || session.user.email).slice(0, 1).toUpperCase()}
-              </span>
-            )}
+          <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#1769c2]/30 bg-[#eef5fc] shadow-xs">
+            <img
+              src={avatarUrl || DEFAULT_BLANK_AVATAR}
+              alt={session.user.name || "User Avatar"}
+              className="h-full w-full rounded-full object-cover"
+            />
           </div>
 
           <div className="min-w-0 flex-1">
@@ -165,38 +218,62 @@ export default function AccountSettingsPage() {
             <p className="text-xs text-[#77716b]">{session.user.email}</p>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoUpload}
-                className="hidden"
-              />
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="rounded-lg bg-[#1769c2] px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-[#12569f]"
+                onClick={() => setShowAvatarSelector(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-[#12569f]"
               >
-                Upload New Photo
+                <Camera className="h-3.5 w-3.5" />
+                <span>Change Photo (Upload / URL)</span>
               </button>
 
-              {hasCustomAvatar && (
-                <button
-                  type="button"
-                  onClick={handleResetAvatar}
-                  className="rounded-lg border border-[#ded8d1] bg-white px-3 py-1.5 text-xs font-medium text-[#5d5854] transition hover:bg-[#f8f7f6]"
-                >
-                  Reset to Email Avatar
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleResetAvatar}
+                className="rounded-xl border border-[#ded8d1] bg-white px-3.5 py-2 text-xs font-semibold text-[#5d5854] transition hover:bg-[#f8f7f6]"
+              >
+                Reset Photo
+              </button>
             </div>
 
             {photoSuccess && (
-              <p className="mt-2 text-xs font-medium text-[#15803d]">{photoSuccess}</p>
+              <p className="mt-2 text-xs font-bold text-emerald-700">{photoSuccess}</p>
             )}
           </div>
         </div>
       </div>
+
+      {/* Name Change card */}
+      <form onSubmit={handleSaveName} className="rounded-2xl border border-[#ded8d1] bg-white p-5 sm:p-6 mb-6 shadow-xs">
+        <h2 className="text-sm font-semibold text-[#171717]">Display Name</h2>
+        <p className="mt-0.5 text-xs text-[#77716b]">
+          Change your public display name shown across your profile, network feed, and certificates.
+        </p>
+
+        <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <input
+            type="text"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter your full name"
+            className="w-full max-w-md rounded-xl border border-[#ded8d1] px-3.5 py-2 text-xs sm:text-sm text-[#171717] focus:border-[#1769c2] focus:outline-none"
+          />
+
+          <button
+            type="submit"
+            disabled={isSavingName || !name.trim()}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#12569f] transition disabled:opacity-50"
+          >
+            {isSavingName ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+            <span>Save Name</span>
+          </button>
+        </div>
+
+        {nameSuccess && (
+          <p className="mt-2 text-xs font-bold text-emerald-700">{nameSuccess}</p>
+        )}
+      </form>
 
       {/* Delete Account section */}
       <div className="rounded-2xl border border-red-200 bg-white p-5 sm:p-6 shadow-xs">
@@ -284,6 +361,19 @@ export default function AccountSettingsPage() {
           </div>
         )}
       </div>
+
+      {/* Avatar Image Selector Modal */}
+      <ImageSelectorModal
+        isOpen={showAvatarSelector}
+        onClose={() => setShowAvatarSelector(false)}
+        title="Update Profile Picture"
+        description="Choose a high quality photo of yourself (Upload from device or enter web URL)."
+        currentImageUrl={avatarUrl}
+        folder="avatars"
+        aspectRatio="square"
+        onSelect={handleUpdateAvatar}
+        onRemove={handleResetAvatar}
+      />
     </div>
   );
 }

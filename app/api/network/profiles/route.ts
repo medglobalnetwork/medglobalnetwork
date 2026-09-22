@@ -169,14 +169,39 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
+    const now = new Date();
 
+    // 1. Update User Table if name or image is supplied
+    if (body.name || body.image !== undefined) {
+      const userUpdates: Record<string, any> = { updatedAt: now };
+      if (body.name) userUpdates.name = body.name.trim();
+      if (body.image !== undefined) userUpdates.image = body.image;
+
+      await networkDb
+        .updateTable("user")
+        .set(userUpdates)
+        .where("id", "=", session.user.id)
+        .execute();
+    }
+
+    // 2. Update/Insert Professional Profile
     const existing = await networkDb
       .selectFrom("professional_profiles")
       .where("user_id", "=", session.user.id)
       .selectAll()
       .executeTakeFirst();
 
-    const now = new Date();
+    const parsedSkills = Array.isArray(body.skills)
+      ? body.skills
+      : typeof body.skills === "string"
+      ? body.skills.split(",").map((s: string) => s.trim()).filter(Boolean)
+      : existing?.skills ?? null;
+
+    const parsedAdditionalDegrees = Array.isArray(body.additionalDegrees || body.additional_degrees)
+      ? body.additionalDegrees || body.additional_degrees
+      : typeof (body.additionalDegrees || body.additional_degrees) === "string"
+      ? (body.additionalDegrees || body.additional_degrees).split(",").map((s: string) => s.trim()).filter(Boolean)
+      : existing?.additional_degrees ?? null;
 
     if (existing) {
       await networkDb
@@ -184,22 +209,30 @@ export async function POST(request: Request) {
         .set({
           profession: body.profession ?? existing.profession,
           specialization: body.specialization ?? existing.specialization,
+          sub_specialization: body.subSpecialization ?? body.sub_specialization ?? existing.sub_specialization,
           designation: body.designation ?? existing.designation,
-          primary_degree: body.primaryDegree ?? existing.primary_degree,
-          additional_degrees: body.additionalDegrees ?? existing.additional_degrees,
+          primary_degree: body.primaryDegree ?? body.primary_degree ?? existing.primary_degree,
+          additional_degrees: parsedAdditionalDegrees,
+          medical_council: body.medicalCouncil ?? body.medical_council ?? existing.medical_council,
+          registration_number: body.registrationNumber ?? body.registration_number ?? existing.registration_number,
           organization: body.organization ?? existing.organization,
           city: body.city ?? existing.city,
           state: body.state ?? existing.state,
+          country: body.country ?? existing.country ?? "India",
           bio: body.bio ?? existing.bio,
-          skills: body.skills ?? existing.skills,
-          experience_years: body.experienceYears ?? existing.experience_years,
-          profile_visibility: body.profileVisibility ?? existing.profile_visibility,
+          skills: parsedSkills,
+          languages: body.languages ?? existing.languages,
+          experience_years: body.experienceYears !== undefined 
+            ? (body.experienceYears ? Number(body.experienceYears) : null)
+            : body.experience_years !== undefined
+            ? (body.experience_years ? Number(body.experience_years) : null)
+            : existing.experience_years,
+          cover_image_url: body.coverImageUrl !== undefined ? body.coverImageUrl : body.cover_image_url !== undefined ? body.cover_image_url : existing.cover_image_url,
+          profile_visibility: body.profileVisibility ?? body.profile_visibility ?? existing.profile_visibility,
           updated_at: now,
         })
         .where("user_id", "=", session.user.id)
         .execute();
-
-      return Response.json({ success: true, action: "updated" });
     } else {
       await networkDb
         .insertInto("professional_profiles")
@@ -208,34 +241,81 @@ export async function POST(request: Request) {
           user_id: session.user.id,
           profession: body.profession ?? null,
           specialization: body.specialization ?? null,
+          sub_specialization: body.subSpecialization ?? body.sub_specialization ?? null,
           designation: body.designation ?? null,
-          primary_degree: body.primaryDegree ?? null,
-          additional_degrees: body.additionalDegrees ?? null,
-          medical_council: body.medicalCouncil ?? null,
-          registration_number: body.registrationNumber ?? null,
+          primary_degree: body.primaryDegree ?? body.primary_degree ?? null,
+          additional_degrees: parsedAdditionalDegrees,
+          medical_council: body.medicalCouncil ?? body.medical_council ?? null,
+          registration_number: body.registrationNumber ?? body.registration_number ?? null,
           organization: body.organization ?? null,
           city: body.city ?? null,
           state: body.state ?? null,
           country: body.country ?? "India",
-          experience_years: body.experienceYears ?? null,
+          experience_years: body.experienceYears ? Number(body.experienceYears) : body.experience_years ? Number(body.experience_years) : null,
           bio: body.bio ?? null,
-          skills: body.skills ?? null,
+          skills: parsedSkills,
           languages: body.languages ?? null,
           identity_verified: false,
           education_verified: false,
           registration_verified: false,
           experience_verified: false,
-          profile_visibility: body.profileVisibility ?? "public",
-          cover_image_url: null,
+          profile_visibility: body.profileVisibility ?? body.profile_visibility ?? "public",
+          cover_image_url: body.coverImageUrl ?? body.cover_image_url ?? null,
           created_at: now,
           updated_at: now,
         })
         .execute();
-
-      return Response.json({ success: true, action: "created" });
     }
-  } catch (err) {
+
+    // 3. Update mgn_identities display_name if exists
+    try {
+      if (body.name || body.city || body.state || body.country || body.organization) {
+        await networkDb
+          .updateTable("mgn_identities" as any)
+          .set({
+            ...(body.name ? { display_name: body.name.trim() } : {}),
+            ...(body.city ? { city: body.city } : {}),
+            ...(body.state ? { state: body.state } : {}),
+            ...(body.country ? { country: body.country } : {}),
+            ...(body.organization ? { current_organization: body.organization } : {}),
+            updated_at: now,
+          })
+          .where("user_id", "=", session.user.id)
+          .execute();
+      }
+    } catch {
+      // Non-blocking if table doesn't exist or column differs
+    }
+
+    // Return the updated combined profile
+    const updatedUser = await networkDb
+      .selectFrom("user")
+      .select(["id", "name", "email", "image"])
+      .where("id", "=", session.user.id)
+      .executeTakeFirst();
+
+    const updatedProfile = await networkDb
+      .selectFrom("professional_profiles")
+      .selectAll()
+      .where("user_id", "=", session.user.id)
+      .executeTakeFirst();
+
+    return Response.json({
+      success: true,
+      data: {
+        ...updatedProfile,
+        name: updatedUser?.name,
+        email: updatedUser?.email,
+        image: updatedUser?.image,
+        user_id: session.user.id,
+      },
+    });
+  } catch (err: any) {
     console.error("POST /api/network/profiles error:", err);
-    return Response.json({ error: "Failed to save profile" }, { status: 500 });
+    return Response.json({ error: err.message || "Failed to save profile" }, { status: 500 });
   }
+}
+
+export async function PATCH(request: Request) {
+  return POST(request);
 }
