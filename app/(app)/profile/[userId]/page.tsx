@@ -15,7 +15,8 @@ import {
   FileText,
   ExternalLink,
   ChevronRight,
-  Hash
+  Hash,
+  Edit3
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { EmptyState } from "@/modules/network/components/EmptyState";
@@ -70,41 +71,69 @@ export default function ProfilePage() {
             window.history.replaceState(null, "", `/profile/${p.username}`);
           }
         } else {
-          // Fallback demo profile for immediate visual rendering if mock user
-          setProfile({
-            id: params.userId,
-            user_id: params.userId,
-            username: params.userId,
-            name: session.user.id === params.userId ? session.user.name || "Dr. Professional" : "Dr. Rajesh Varma",
-            email: session.user.email || "professional@medglobalnetwork.com",
-            image: session.user.id === params.userId ? session.user.image || "" : "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&auto=format&fit=crop&q=80",
-            profession: "Physiotherapy",
-            designation: "Consultant Physiotherapist",
-            specialization: "Sports Injury & Neuro Rehab",
-            organization: "Department of Clinical Health & Rehabilitation",
-            medical_council: "State Medical & Physiotherapy Council",
-            registration_number: "KAR-PT-2018-09842",
-            primary_degree: "MPT (Sports Rehabilitation)",
-            additional_degrees: ["BPT (Orthopaedics)", "Fellowship in Sports Sciences"],
-            experience_years: 8,
-            bio: "Specialized in Sports Injury Rehab, Post-Op Recovery & Ergonomics. Helping patients regain strength, mobility & longevity with evidence-based modern protocols.",
-            city: "Bangalore",
-            state: "Karnataka",
-            skills: ["Musculoskeletal Rehab", "Dry Needling", "Spine Mobilization", "Biomechanics", "Ergonomics", "Kinesiology"],
-            identity_verified: true,
-            education_verified: true,
-            registration_verified: true,
-            experience_verified: true,
-            connection_count: 584,
-            follower_count: 1240,
-            following_count: 320,
-            post_count: 142,
-            is_own_profile: session.user.id === params.userId,
-          });
+          // If session user, initialize clean authentic blank profile
+          if (session.user.id === params.userId || session.user.name?.toLowerCase() === params.userId.toLowerCase()) {
+            setProfile({
+              id: session.user.id,
+              user_id: session.user.id,
+              username: session.user.email?.split("@")[0] || "user",
+              name: session.user.name || "Medical Professional",
+              email: session.user.email || "",
+              image: session.user.image || "",
+              profession: "Physiotherapy",
+              designation: undefined,
+              specialization: undefined,
+              organization: undefined,
+              medical_council: undefined,
+              registration_number: undefined,
+              primary_degree: undefined,
+              additional_degrees: undefined,
+              experience_years: 0,
+              bio: undefined,
+              city: undefined,
+              state: undefined,
+              country: "India",
+              skills: [],
+              identity_verified: false,
+              education_verified: false,
+              registration_verified: false,
+              experience_verified: false,
+              connection_count: 0,
+              follower_count: 0,
+              following_count: 0,
+              post_count: 0,
+              is_own_profile: true,
+            });
+          } else {
+            setProfile(null);
+          }
         }
       })
       .catch(() => {
-        setProfile(null);
+        if (session.user.id === params.userId) {
+          setProfile({
+            id: session.user.id,
+            user_id: session.user.id,
+            username: session.user.email?.split("@")[0] || "user",
+            name: session.user.name || "Medical Professional",
+            email: session.user.email || "",
+            image: session.user.image || "",
+            profession: "Physiotherapy",
+            experience_years: 0,
+            skills: [],
+            identity_verified: false,
+            education_verified: false,
+            registration_verified: false,
+            experience_verified: false,
+            connection_count: 0,
+            follower_count: 0,
+            following_count: 0,
+            post_count: 0,
+            is_own_profile: true,
+          });
+        } else {
+          setProfile(null);
+        }
       })
       .finally(() => setLoading(false));
   }, [session?.user, params.userId]);
@@ -239,25 +268,77 @@ export default function ProfilePage() {
                     </h3>
                   </div>
 
-                  <p className="text-xs text-[#5d5854] leading-relaxed line-clamp-4 mb-4">
-                    {profile.bio ||
-                      "Dedicated healthcare clinician focused on delivering exceptional patient care and continuous evidence-based rehabilitation."}
-                  </p>
+                  {profile.bio ? (
+                    <p className="text-xs text-[#5d5854] leading-relaxed line-clamp-4 mb-4">
+                      {profile.bio}
+                    </p>
+                  ) : isOwnProfile ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowEditModal(true)}
+                      className="w-full text-left text-xs text-[#1769c2] font-semibold hover:underline mb-4 p-2.5 rounded-xl bg-[#f4f8fe] border border-dashed border-[#cbdff7] flex items-center gap-1.5"
+                    >
+                      <Edit3 className="h-3.5 w-3.5 shrink-0" />
+                      <span>+ Add your clinical summary & background</span>
+                    </button>
+                  ) : (
+                    <p className="text-xs text-[#8a8784] italic mb-4">
+                      No clinical bio provided yet.
+                    </p>
+                  )}
 
-                  <div className="space-y-2 py-3 border-y border-[#f0efee] text-xs">
-                    <div className="flex justify-between">
+                  <div className="space-y-2.5 py-3 border-y border-[#f0efee] text-xs">
+                    <div className="flex justify-between items-center">
                       <span className="text-[#77716b]">Experience</span>
-                      <span className="font-bold text-[#171717]">{profile.experience_years ?? 8} Years</span>
+                      {profile.experience_years !== undefined && profile.experience_years > 0 ? (
+                        <span className="font-bold text-[#171717]">{profile.experience_years} Years</span>
+                      ) : isOwnProfile ? (
+                        <button
+                          type="button"
+                          onClick={() => setShowEditModal(true)}
+                          className="text-[11px] font-semibold text-[#1769c2] hover:underline"
+                        >
+                          + Add Experience
+                        </button>
+                      ) : (
+                        <span className="text-[#8a8784] italic">Not specified</span>
+                      )}
                     </div>
-                    <div className="flex justify-between">
+
+                    <div className="flex justify-between items-center">
                       <span className="text-[#77716b]">Location</span>
-                      <span className="font-bold text-[#171717]">{[profile.city, profile.state].filter(Boolean).join(", ")}</span>
+                      {[profile.city, profile.state].filter(Boolean).length > 0 ? (
+                        <span className="font-bold text-[#171717]">{[profile.city, profile.state].filter(Boolean).join(", ")}</span>
+                      ) : isOwnProfile ? (
+                        <button
+                          type="button"
+                          onClick={() => setShowEditModal(true)}
+                          className="text-[11px] font-semibold text-[#1769c2] hover:underline"
+                        >
+                          + Add Location
+                        </button>
+                      ) : (
+                        <span className="text-[#8a8784] italic">Not specified</span>
+                      )}
                     </div>
-                    <div className="flex justify-between">
+
+                    <div className="flex justify-between items-center">
                       <span className="text-[#77716b]">Registration</span>
-                      <span className="font-bold font-mono text-[11px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
-                        {profile.registration_number || "Verified"}
-                      </span>
+                      {profile.registration_number ? (
+                        <span className="font-bold font-mono text-[11px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                          {profile.registration_number}
+                        </span>
+                      ) : isOwnProfile ? (
+                        <button
+                          type="button"
+                          onClick={() => setShowEditModal(true)}
+                          className="text-[11px] font-semibold text-[#1769c2] hover:underline"
+                        >
+                          + Add Registration
+                        </button>
+                      ) : (
+                        <span className="text-[#8a8784] italic">Under Review</span>
+                      )}
                     </div>
                   </div>
 
@@ -278,56 +359,61 @@ export default function ProfilePage() {
                     <span>My Interests & Specialties</span>
                   </h3>
 
-                  <div className="flex flex-wrap gap-1.5">
-                    {[
-                      "#SportsRehab",
-                      "#NeuroRehabilitation",
-                      "#Ergonomics",
-                      "#ManualTherapy",
-                      "#Kinesiology",
-                      "#PostOpCare",
-                      "#DryNeedling",
-                      "#SpineHealth",
-                    ].map((interest, idx) => (
-                      <span
-                        key={idx}
-                        className="rounded-full bg-[#f4f6f9] border border-[#e2e8f0] px-3 py-1 text-xs font-semibold text-[#334155] hover:bg-[#e2e8f0] transition cursor-pointer"
-                      >
-                        {interest}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Featured Content Widget */}
-                <div className="rounded-3xl bg-white p-5 border border-[#e8e6e3] shadow-sm">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#171717] flex items-center gap-1.5">
-                      <Award className="h-3.5 w-3.5 text-amber-500" />
-                      <span>Featured Milestone</span>
-                    </h3>
-                  </div>
-
-                  <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-[#1769c2]/10 to-teal-500/10 border border-[#d0e1fd] p-4 space-y-2">
-                    <span className="text-[10px] font-bold text-[#1769c2] uppercase tracking-wider">
-                      Featured Case Study
-                    </span>
-                    <h4 className="text-xs font-bold text-[#171717]">
-                      Accelerated ACL Return-to-Sport in National Level Athletes
-                    </h4>
-                    <p className="text-[11px] text-[#5d5854]">
-                      A 12-week comprehensive eccentric loading and biomechanical stabilization trial.
-                    </p>
+                  {profile.skills && profile.skills.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {profile.skills.map((interest, idx) => (
+                        <span
+                          key={idx}
+                          className="rounded-full bg-[#f4f6f9] border border-[#e2e8f0] px-3 py-1 text-xs font-semibold text-[#334155]"
+                        >
+                          #{interest.replace(/^#/, "")}
+                        </span>
+                      ))}
+                    </div>
+                  ) : isOwnProfile ? (
                     <button
                       type="button"
-                      onClick={() => setShowKnowMoreDrawer(true)}
-                      className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1769c2] hover:underline pt-1"
+                      onClick={() => setShowEditModal(true)}
+                      className="w-full text-center text-xs text-[#1769c2] font-semibold hover:underline py-3 px-3 rounded-2xl bg-[#f4f8fe] border border-dashed border-[#cbdff7] flex items-center justify-center gap-1.5"
                     >
-                      <span>Read Case Study</span>
-                      <ExternalLink className="h-3 w-3" />
+                      <span>+ Add Clinical Specialties & Interests</span>
                     </button>
-                  </div>
+                  ) : (
+                    <p className="text-xs text-[#8a8784] italic">No specialties listed yet.</p>
+                  )}
                 </div>
+
+                {/* Featured Milestone Card */}
+                {isOwnProfile && (
+                  <div className="rounded-3xl bg-white p-5 border border-[#e8e6e3] shadow-sm">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#171717] flex items-center gap-1.5">
+                        <Award className="h-3.5 w-3.5 text-amber-500" />
+                        <span>Featured Milestone</span>
+                      </h3>
+                    </div>
+
+                    <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-[#1769c2]/10 to-teal-500/10 border border-[#d0e1fd] p-4 space-y-2">
+                      <span className="text-[10px] font-bold text-[#1769c2] uppercase tracking-wider">
+                        Highlight Your Achievements
+                      </span>
+                      <h4 className="text-xs font-bold text-[#171717]">
+                        Pin your best clinical case or research paper
+                      </h4>
+                      <p className="text-[11px] text-[#5d5854]">
+                        Showcase clinical milestones and key career accomplishments directly on your profile.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowEditModal(true)}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1769c2] hover:underline pt-1"
+                      >
+                        <span>Update Dossier Details</span>
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Communities Widget */}
                 <div className="rounded-3xl bg-white p-5 border border-[#e8e6e3] shadow-sm">

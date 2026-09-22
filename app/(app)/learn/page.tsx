@@ -30,250 +30,6 @@ import { authClient } from "@/lib/auth-client";
 import { CourseCard } from "@/modules/learn/components/CourseCard";
 import { Course, CourseEnrollment } from "@/modules/learn/types";
 
-// Curated Clinical Masterclasses Fallback & Showcase
-const SAMPLE_COURSES: Course[] = [
-  {
-    id: "cardio-ecg-101",
-    instructor_id: "inst-1",
-    organization_id: null,
-    title: "Advanced 12-Lead ECG & Arrhythmia Masterclass in Acute Care",
-    slug: "advanced-12-lead-ecg-arrhythmia-masterclass",
-    short_description: "Systematic interpretation of complex arrhythmias, STEMI equivalents, and conduction blocks with real clinical case studies.",
-    description: "Comprehensive 12-lead ECG training for emergency physicians, cardiologists, and ICU residents.",
-    thumbnail: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80",
-    category: "Cardiology",
-    subcategory: "Electrocardiology",
-    profession: "Doctor / Physician",
-    specialization: "Cardiology",
-    level: "intermediate",
-    language: "English",
-    duration_minutes: 240,
-    price: 0,
-    currency: "INR",
-    is_free: true,
-    certificate_enabled: true,
-    status: "published",
-    enrollment_count: 1420,
-    rating_avg: 4.9,
-    rating_count: 128,
-    published_at: "2026-01-01T00:00:00.000Z",
-    created_at: "2026-01-01T00:00:00.000Z",
-    updated_at: "2026-01-01T00:00:00.000Z",
-    instructor: {
-      id: "inst-1",
-      name: "Dr. Rajesh Sharma, MD, DM",
-      email: "rajesh.sharma@aiims.edu",
-      image: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&auto=format&fit=crop&q=80",
-      profession: "Senior Interventional Cardiologist",
-      specialization: "Cardiology",
-      organization: "AIIMS New Delhi",
-      identity_verified: true,
-      education_verified: true,
-      registration_verified: true,
-    },
-  },
-  {
-    id: "physio-acl-201",
-    instructor_id: "inst-2",
-    organization_id: null,
-    title: "Evidence-Based ACL Rehabilitation & Return-to-Play Criteria",
-    slug: "evidence-based-acl-rehabilitation-return-to-play",
-    short_description: "Phase-by-phase criteria-based ACL rehabilitation protocol from acute post-op stage to explosive athletic performance.",
-    description: "Clinical guidelines, neuromuscular biomechanics, and objective testing batteries.",
-    thumbnail: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=80",
-    category: "Physiotherapy",
-    subcategory: "Sports Rehab",
-    profession: "Physiotherapist",
-    specialization: "Sports Physiotherapy",
-    level: "advanced",
-    language: "English",
-    duration_minutes: 180,
-    price: 1499,
-    currency: "INR",
-    is_free: false,
-    certificate_enabled: true,
-    status: "published",
-    enrollment_count: 980,
-    rating_avg: 4.8,
-    rating_count: 95,
-    published_at: "2026-01-01T00:00:00.000Z",
-    created_at: "2026-01-01T00:00:00.000Z",
-    updated_at: "2026-01-01T00:00:00.000Z",
-    instructor: {
-      id: "inst-2",
-      name: "Dr. Priya Nair, MPT (Sports)",
-      email: "priya.nair@sportsmed.org",
-      image: "https://images.unsplash.com/photo-1594824813576-96a3013d33df?w=400&auto=format&fit=crop&q=80",
-      profession: "Head of Sports Rehabilitation",
-      specialization: "Sports Medicine",
-      organization: "National Sports Medicine Institute",
-      identity_verified: true,
-      education_verified: true,
-      registration_verified: true,
-    },
-  },
-  {
-    id: "em-pocus-301",
-    instructor_id: "inst-3",
-    organization_id: null,
-    title: "Point-of-Care Ultrasound (POCUS) in Critical Emergencies",
-    slug: "point-of-care-ultrasound-pocus-emergencies",
-    short_description: "E-FAST, cardiac echo, lung ultrasound for pneumothorax, and vascular access guidance in shock resuscitation.",
-    description: "Hands-on diagnostic ultrasound protocols for rapid triage and hemodynamics.",
-    thumbnail: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=800&auto=format&fit=crop&q=80",
-    category: "Medicine",
-    subcategory: "Emergency Care",
-    profession: "Doctor / Physician",
-    specialization: "Emergency Medicine",
-    level: "intermediate",
-    language: "English",
-    duration_minutes: 300,
-    price: 0,
-    currency: "INR",
-    is_free: true,
-    certificate_enabled: true,
-    status: "published",
-    enrollment_count: 2150,
-    rating_avg: 4.9,
-    rating_count: 210,
-    published_at: "2026-01-01T00:00:00.000Z",
-    created_at: "2026-01-01T00:00:00.000Z",
-    updated_at: "2026-01-01T00:00:00.000Z",
-    instructor: {
-      id: "inst-3",
-      name: "Dr. Amitav Banerjee, MD, FACEE",
-      email: "amitav.banerjee@apollohospitals.com",
-      image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&auto=format&fit=crop&q=80",
-      profession: "Emergency & Trauma Specialist",
-      specialization: "Emergency Medicine",
-      organization: "Apollo Hospitals",
-      identity_verified: true,
-      education_verified: true,
-      registration_verified: true,
-    },
-  },
-  {
-    id: "icu-mech-vent-401",
-    instructor_id: "inst-4",
-    organization_id: null,
-    title: "Mechanical Ventilation Essentials & ARDS Management",
-    slug: "mechanical-ventilation-essentials-ards",
-    short_description: "Modes of ventilation, waveform analysis, lung-protective strategies, and weaning protocols in respiratory failure.",
-    description: "Essential ICU ventilation skills with interactive graphic interpretations.",
-    thumbnail: "https://images.unsplash.com/photo-1516549655169-df83a0774514?w=800&auto=format&fit=crop&q=80",
-    category: "Nursing",
-    subcategory: "Critical Care",
-    profession: "Nurse Practitioner",
-    specialization: "Critical Care Nursing",
-    level: "intermediate",
-    language: "English",
-    duration_minutes: 210,
-    price: 0,
-    currency: "INR",
-    is_free: true,
-    certificate_enabled: true,
-    status: "published",
-    enrollment_count: 1890,
-    rating_avg: 4.9,
-    rating_count: 142,
-    published_at: "2026-01-01T00:00:00.000Z",
-    created_at: "2026-01-01T00:00:00.000Z",
-    updated_at: "2026-01-01T00:00:00.000Z",
-    instructor: {
-      id: "inst-4",
-      name: "Prof. Anita George, MSc Nursing",
-      email: "anita.george@maxhealthcare.com",
-      image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&auto=format&fit=crop&q=80",
-      profession: "Lead Clinical Specialist",
-      specialization: "Critical Care",
-      organization: "Max Healthcare",
-      identity_verified: true,
-      education_verified: true,
-      registration_verified: true,
-    },
-  },
-  {
-    id: "ortho-arthroscopy-501",
-    instructor_id: "inst-5",
-    organization_id: null,
-    title: "Modern Joint Preservation & Arthroscopy Surgical Principles",
-    slug: "modern-joint-preservation-arthroscopy-principles",
-    short_description: "Minimally invasive arthroscopic techniques for shoulder instability, rotator cuff tears, and meniscus repairs.",
-    description: "Surgical video demonstrations and step-by-step anatomic portal placements.",
-    thumbnail: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&auto=format&fit=crop&q=80",
-    category: "Orthopedics",
-    subcategory: "Surgical Mastery",
-    profession: "Surgeon",
-    specialization: "Orthopedic Surgery",
-    level: "advanced",
-    language: "English",
-    duration_minutes: 360,
-    price: 2499,
-    currency: "INR",
-    is_free: false,
-    certificate_enabled: true,
-    status: "published",
-    enrollment_count: 640,
-    rating_avg: 4.9,
-    rating_count: 78,
-    published_at: "2026-01-01T00:00:00.000Z",
-    created_at: "2026-01-01T00:00:00.000Z",
-    updated_at: "2026-01-01T00:00:00.000Z",
-    instructor: {
-      id: "inst-5",
-      name: "Dr. Vikramaditya Rathore, MS, MCh",
-      email: "vikram.rathore@fortis.com",
-      image: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=400&auto=format&fit=crop&q=80",
-      profession: "Senior Consultant Orthopedic Surgeon",
-      specialization: "Joint Replacement & Arthroscopy",
-      organization: "Fortis Escorts Hospital",
-      identity_verified: true,
-      education_verified: true,
-      registration_verified: true,
-    },
-  },
-  {
-    id: "pharm-steward-601",
-    instructor_id: "inst-6",
-    organization_id: null,
-    title: "Clinical Pharmacology & Antimicrobial Stewardship Protocols",
-    slug: "clinical-pharmacology-antimicrobial-stewardship",
-    short_description: "Combating multidrug resistance (MDR), tailored empiric regimens, PK/PD dosing in renal impairment.",
-    description: "Evidence-based antibiotic selection for hospital-acquired and community infections.",
-    thumbnail: "https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=800&auto=format&fit=crop&q=80",
-    category: "Clinical Research",
-    subcategory: "Infectious Diseases",
-    profession: "Doctor / Physician",
-    specialization: "Pharmacology & ID",
-    level: "all_levels",
-    language: "English",
-    duration_minutes: 150,
-    price: 999,
-    currency: "INR",
-    is_free: false,
-    certificate_enabled: true,
-    status: "published",
-    enrollment_count: 760,
-    rating_avg: 4.7,
-    rating_count: 84,
-    published_at: "2026-01-01T00:00:00.000Z",
-    created_at: "2026-01-01T00:00:00.000Z",
-    updated_at: "2026-01-01T00:00:00.000Z",
-    instructor: {
-      id: "inst-6",
-      name: "Dr. Sneha Kulkarni, MD, PhD",
-      email: "sneha.kulkarni@cmcvellore.ac.in",
-      image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&auto=format&fit=crop&q=80",
-      profession: "Professor of Clinical Pharmacology",
-      specialization: "Infectious Diseases",
-      organization: "CMC Vellore",
-      identity_verified: true,
-      education_verified: true,
-      registration_verified: true,
-    },
-  },
-];
-
 export default function LearnPage() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
@@ -298,19 +54,15 @@ export default function LearnPage() {
         // 1. Fetch recommended courses
         const recRes = await fetch("/api/learn/courses?recommended=true&pageSize=4");
         const recData = await recRes.json();
-        if (recRes.ok && recData.courses && recData.courses.length > 0) {
+        if (recRes.ok && Array.isArray(recData.courses)) {
           setRecommendedCourses(recData.courses);
-        } else {
-          setRecommendedCourses(SAMPLE_COURSES.slice(0, 4));
         }
 
         // 2. Fetch popular courses
         const popRes = await fetch("/api/learn/courses?sort=popular&pageSize=8");
         const popData = await popRes.json();
-        if (popRes.ok && popData.courses && popData.courses.length > 0) {
+        if (popRes.ok && Array.isArray(popData.courses)) {
           setPopularCourses(popData.courses);
-        } else {
-          setPopularCourses(SAMPLE_COURSES);
         }
 
         // 3. Fetch user's my-learning enrollments
@@ -321,8 +73,6 @@ export default function LearnPage() {
         }
       } catch (err) {
         console.error("Failed to load learn data:", err);
-        setRecommendedCourses(SAMPLE_COURSES.slice(0, 4));
-        setPopularCourses(SAMPLE_COURSES);
       } finally {
         setIsLoading(false);
       }
@@ -357,14 +107,16 @@ export default function LearnPage() {
     { name: "Nursing", icon: Syringe, count: "ICU & Acute Care", color: "from-sky-500/10 to-blue-500/10 text-sky-600 border-sky-200" },
   ];
 
-  const allDisplayCourses = popularCourses.length > 0 ? popularCourses : SAMPLE_COURSES;
+  const allDisplayCourses = popularCourses;
   
   const filteredTabCourses = React.useMemo(() => {
     if (activeTab === "all") return allDisplayCourses;
     if (activeTab === "free") return allDisplayCourses.filter((c) => c.is_free);
     if (activeTab === "top_rated") return allDisplayCourses.filter((c) => (c.rating_avg || 0) >= 4.8);
-    return allDisplayCourses.filter((c) => c.category.toLowerCase() === activeTab.toLowerCase());
+    return allDisplayCourses.filter((c) => c.category?.toLowerCase() === activeTab.toLowerCase());
   }, [activeTab, allDisplayCourses]);
+
+  const featuredCourse = recommendedCourses[0] || popularCourses[0] || null;
 
   if (isPending || !session) {
     return (
@@ -558,82 +310,95 @@ export default function LearnPage() {
         {/* -------------------------------------------------------------
             3. FEATURED SPOTLIGHT CLINICAL MASTERCLASS
             ------------------------------------------------------------- */}
-        <section aria-label="Featured Spotlight Masterclass">
-          <div className="relative overflow-hidden rounded-3xl border border-[#ded8d1] bg-gradient-to-r from-[#1769c2] to-[#0d3b66] text-white shadow-md">
-            <div className="grid grid-cols-1 gap-6 p-6 sm:p-8 lg:grid-cols-12 lg:items-center">
-              <div className="space-y-4 lg:col-span-7">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-black text-[#171717] uppercase tracking-wide">
-                    ★ Featured Masterclass
-                  </span>
-                  <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs">
-                    4.9 / 5.0 (128 Reviews)
-                  </span>
-                  <span className="rounded-full bg-emerald-500/20 border border-emerald-400/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-200">
-                    Free CME Certificate
-                  </span>
-                </div>
+        {featuredCourse ? (
+          <section aria-label="Featured Spotlight Masterclass">
+            <div className="relative overflow-hidden rounded-3xl border border-[#ded8d1] bg-gradient-to-r from-[#1769c2] to-[#0d3b66] text-white shadow-md">
+              <div className="grid grid-cols-1 gap-6 p-6 sm:p-8 lg:grid-cols-12 lg:items-center">
+                <div className="space-y-4 lg:col-span-7">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-black text-[#171717] uppercase tracking-wide">
+                      ★ Featured Masterclass
+                    </span>
+                    {featuredCourse.rating_avg ? (
+                      <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs">
+                        {featuredCourse.rating_avg.toFixed(1)} / 5.0 ({featuredCourse.rating_count || 0} Reviews)
+                      </span>
+                    ) : null}
+                    {featuredCourse.certificate_enabled && (
+                      <span className="rounded-full bg-emerald-500/20 border border-emerald-400/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-200">
+                        Accredited Certificate
+                      </span>
+                    )}
+                  </div>
 
-                <h2 className="text-xl font-black tracking-tight text-white sm:text-2xl lg:text-3xl leading-snug">
-                  Advanced 12-Lead ECG & Arrhythmia Masterclass in Acute Care
-                </h2>
+                  <h2 className="text-xl font-black tracking-tight text-white sm:text-2xl lg:text-3xl leading-snug">
+                    {featuredCourse.title}
+                  </h2>
 
-                <p className="text-xs text-white/90 sm:text-sm leading-relaxed max-w-xl">
-                  Master STEMI equivalents, conduction blocks, channelopathies, and rapid resuscitation algorithms with high-yield clinical tracing walkthroughs.
-                </p>
+                  <p className="text-xs text-white/90 sm:text-sm leading-relaxed max-w-xl">
+                    {featuredCourse.short_description || featuredCourse.description}
+                  </p>
 
-                <div className="flex items-center gap-3 pt-1">
-                  <img
-                    src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&auto=format&fit=crop&q=80"
-                    alt="Dr. Rajesh Sharma"
-                    className="h-10 w-10 rounded-full border border-white/30 object-cover ring-2 ring-white/20"
-                  />
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-xs font-bold text-white">Dr. Rajesh Sharma, MD, DM</p>
-                      <ShieldCheck className="h-3.5 w-3.5 text-blue-300" />
+                  {featuredCourse.instructor && (
+                    <div className="flex items-center gap-3 pt-1">
+                      {featuredCourse.instructor.image && (
+                        <img
+                          src={featuredCourse.instructor.image}
+                          alt={featuredCourse.instructor.name}
+                          className="h-10 w-10 rounded-full border border-white/30 object-cover ring-2 ring-white/20"
+                        />
+                      )}
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-xs font-bold text-white">{featuredCourse.instructor.name}</p>
+                          <ShieldCheck className="h-3.5 w-3.5 text-blue-300" />
+                        </div>
+                        <p className="text-[11px] text-white/80">
+                          {[featuredCourse.instructor.profession, featuredCourse.instructor.organization].filter(Boolean).join(" • ")}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-[11px] text-white/80">Senior Interventional Cardiologist • AIIMS New Delhi</p>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/learn/course/${featuredCourse.id}`)}
+                      className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-xs font-bold text-[#1769c2] shadow-sm hover:bg-[#eef5fc] transition"
+                    >
+                      <PlayCircle className="h-4 w-4 text-[#1769c2]" />
+                      <span>{featuredCourse.is_free ? "Enroll Free & Start Learning" : `Enroll for ₹${featuredCourse.price}`}</span>
+                    </button>
+                    {featuredCourse.duration_minutes && (
+                      <span className="text-xs text-white/80 font-medium">⏱ {Math.round(featuredCourse.duration_minutes / 60)} Hours Duration</span>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/learn/course/cardio-ecg-101`)}
-                    className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-xs font-bold text-[#1769c2] shadow-sm hover:bg-[#eef5fc] transition"
-                  >
-                    <PlayCircle className="h-4 w-4 text-[#1769c2]" />
-                    <span>Enroll Free & Start Learning</span>
-                  </button>
-                  <span className="text-xs text-white/80 font-medium">⏱ 4 Hours • 18 Modules • Free CME</span>
-                </div>
-              </div>
-
-              {/* Video Preview Thumbnail */}
-              <div className="relative lg:col-span-5">
-                <div
-                  onClick={() => router.push(`/learn/course/cardio-ecg-101`)}
-                  className="group relative aspect-video cursor-pointer overflow-hidden rounded-2xl border border-white/20 shadow-xl"
-                >
-                  <img
-                    src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80"
-                    alt="ECG Masterclass Preview"
-                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/30 transition">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white text-[#1769c2] shadow-lg group-hover:scale-110 transition">
-                      <PlayCircle className="h-7 w-7 fill-[#1769c2] text-white" />
+                {/* Video Preview Thumbnail */}
+                {featuredCourse.thumbnail && (
+                  <div className="relative lg:col-span-5">
+                    <div
+                      onClick={() => router.push(`/learn/course/${featuredCourse.id}`)}
+                      className="group relative aspect-video cursor-pointer overflow-hidden rounded-2xl border border-white/20 shadow-xl"
+                    >
+                      <img
+                        src={featuredCourse.thumbnail}
+                        alt={featuredCourse.title}
+                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/30 transition">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white text-[#1769c2] shadow-lg group-hover:scale-110 transition">
+                          <PlayCircle className="h-7 w-7 fill-[#1769c2] text-white" />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-black/70 px-2 py-1 text-[10px] font-bold text-white backdrop-blur-xs">
-                    Video Masterclass
-                  </span>
-                </div>
+                )}
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        ) : null}
 
         {/* -------------------------------------------------------------
             4. CLINICAL SPECIALTY EXPLORER
@@ -731,24 +496,44 @@ export default function LearnPage() {
             </div>
           </div>
 
-          {/* Courses Grid (2-column on mobile) */}
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredTabCourses.map((course) => (
-              <CourseCard key={course.id} course={course} />
-            ))}
-          </div>
+          {/* Courses Grid */}
+          {filteredTabCourses.length > 0 ? (
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredTabCourses.map((course) => (
+                <CourseCard key={course.id} course={course} />
+              ))}
+            </div>
+          ) : !isLoading ? (
+            <div className="rounded-3xl border border-dashed border-[#ded8d1] bg-white p-12 text-center">
+              <GraduationCap className="mx-auto h-12 w-12 text-[#a09890]" />
+              <h3 className="mt-3 text-base font-bold text-[#171717]">No Courses in this Category Yet</h3>
+              <p className="mt-1 text-xs text-[#77716b] max-w-sm mx-auto">
+                Accredited CME masterclasses and clinical training modules are being added soon. Are you a healthcare educator?
+              </p>
+              <button
+                type="button"
+                onClick={() => router.push("/learn/instructor")}
+                className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#12569f] transition"
+              >
+                <PlusCircle className="h-4 w-4" />
+                <span>Teach on MGN Learn</span>
+              </button>
+            </div>
+          ) : null}
 
           {/* Catalog Footer Link */}
-          <div className="mt-8 flex items-center justify-center">
-            <button
-              type="button"
-              onClick={() => router.push("/learn/courses")}
-              className="inline-flex items-center gap-2 rounded-2xl border border-[#ded8d1] bg-white px-6 py-3 text-xs font-bold text-[#1769c2] shadow-xs hover:border-[#1769c2] hover:bg-[#eef5fc] transition"
-            >
-              <span>Explore All {allDisplayCourses.length}+ Accredited Courses</span>
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
+          {allDisplayCourses.length > 0 && (
+            <div className="mt-8 flex items-center justify-center">
+              <button
+                type="button"
+                onClick={() => router.push("/learn/courses")}
+                className="inline-flex items-center gap-2 rounded-2xl border border-[#ded8d1] bg-white px-6 py-3 text-xs font-bold text-[#1769c2] shadow-xs hover:border-[#1769c2] hover:bg-[#eef5fc] transition"
+              >
+                <span>Explore All {allDisplayCourses.length}+ Accredited Courses</span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </section>
 
         {/* -------------------------------------------------------------

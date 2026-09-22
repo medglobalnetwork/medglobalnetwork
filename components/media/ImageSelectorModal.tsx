@@ -177,7 +177,7 @@ export function ImageSelectorModal({
                   )}
                 </div>
                 <p className="text-xs font-bold text-[#171717]">
-                  {isUploading ? "Uploading directly to Cloudflare R2..." : "Click or drag image to upload"}
+                  {isUploading ? "Uploading..." : "Click or drag image to upload"}
                 </p>
                 <p className="mt-1 text-[11px] text-[#77716b]">
                   Supports JPG, PNG, WebP or GIF (Up to 10MB)
@@ -205,7 +205,7 @@ export function ImageSelectorModal({
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-[#5d5854] mb-1">
-                  Direct Web Image URL
+                  Web Image URL
                 </label>
                 <div className="flex gap-2">
                   <input

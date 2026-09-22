@@ -149,7 +149,7 @@ export function KnowMoreDrawer({ isOpen, onClose, profile }: KnowMoreDrawerProps
               <span>Personal Summary & Identity</span>
             </div>
             <p className="text-xs sm:text-sm text-[#44403c] leading-relaxed">
-              {profile.bio || "Dedicated healthcare clinician focused on delivering exceptional patient care and continuous evidence-based rehabilitation."}
+              {profile.bio || "No summary provided yet."}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 pt-4 border-t border-[#f0efee] text-xs">
@@ -174,7 +174,7 @@ export function KnowMoreDrawer({ isOpen, onClose, profile }: KnowMoreDrawerProps
               </div>
               <div className="flex items-center gap-2 text-[#5d5854]">
                 <Briefcase className="h-4 w-4 text-[#1769c2]" />
-                <span>Experience: <strong>{profile.experience_years ?? 5}+ Years</strong></span>
+                <span>Experience: <strong>{profile.experience_years ? `${profile.experience_years} Years` : "Not specified"}</strong></span>
               </div>
             </div>
           </section>
@@ -188,7 +188,7 @@ export function KnowMoreDrawer({ isOpen, onClose, profile }: KnowMoreDrawerProps
             <div className="space-y-2 text-xs">
               <div className="flex justify-between py-1 border-b border-[#f4f2ee]">
                 <span className="text-[#77716b]">Primary Profession</span>
-                <span className="font-semibold text-[#171717]">{profile.profession}</span>
+                <span className="font-semibold text-[#171717]">{profile.profession || "Healthcare Professional"}</span>
               </div>
               {profile.designation && (
                 <div className="flex justify-between py-1 border-b border-[#f4f2ee]">
@@ -218,27 +218,30 @@ export function KnowMoreDrawer({ isOpen, onClose, profile }: KnowMoreDrawerProps
                 <FileText className="h-4 w-4 text-emerald-600" />
                 <span>Medical Council & Registration</span>
               </div>
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
-                <CheckCircle2 className="h-3 w-3" /> Verified
-              </span>
+              {profile.registration_number ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                  <CheckCircle2 className="h-3 w-3" /> Verified
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700 border border-amber-200">
+                  Pending Verification
+                </span>
+              )}
             </div>
 
             <div className="space-y-3 bg-[#f8fcf9] p-4 rounded-xl border border-emerald-100 text-xs">
               <div>
                 <span className="text-[#77716b] block text-[11px]">Registering Statutory Authority:</span>
                 <span className="font-bold text-[#171717] text-sm">
-                  {profile.medical_council || "State Medical / Physiotherapy Council of Karnataka"}
+                  {profile.medical_council || "Not submitted yet"}
                 </span>
               </div>
               <div>
                 <span className="text-[#77716b] block text-[11px]">Registration Number:</span>
                 <span className="font-mono font-bold text-[#171717] text-sm bg-white px-2 py-1 rounded border border-[#ded8d1] inline-block">
-                  {profile.registration_number || "KAR-PT-2018-09842"}
+                  {profile.registration_number || "Under Review"}
                 </span>
               </div>
-              <p className="text-[10px] text-[#77716b] italic pt-1">
-                * Official registration verified against council database.
-              </p>
             </div>
           </section>
 
@@ -258,21 +261,14 @@ export function KnowMoreDrawer({ isOpen, onClose, profile }: KnowMoreDrawerProps
                     </div>
                     <div>
                       <p className="text-xs font-bold text-[#171717]">{deg}</p>
-                      <p className="text-[11px] text-[#77716b]">Premier Medical Institute & University</p>
-                      <p className="text-[10px] text-[#a09890]">Graduated with Honors · Verified Degree</p>
+                      <p className="text-[11px] text-[#77716b]">Verified Degree</p>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#f8f7f6]">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#eef5fc] text-[#1769c2] font-bold">
-                    🎓
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-[#171717]">{profile.profession} Graduate</p>
-                    <p className="text-[11px] text-[#77716b]">Accredited Health Sciences University</p>
-                  </div>
-                </div>
+                <p className="text-xs text-[#8a8784] italic p-3 bg-[#f8f7f6] rounded-xl">
+                  No academic qualifications added yet.
+                </p>
               )}
             </div>
           </section>
@@ -281,121 +277,60 @@ export function KnowMoreDrawer({ isOpen, onClose, profile }: KnowMoreDrawerProps
           <section id="section-experience" className="rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-xs">
             <div className="flex items-center gap-2 mb-3 text-sm font-bold text-[#171717]">
               <Building2 className="h-4 w-4 text-[#1769c2]" />
-              <span>Clinical Experience & Hospitals</span>
+              <span>Clinical Experience & Affiliations</span>
             </div>
 
             <div className="space-y-3">
-              <div className="border-l-2 border-[#1769c2] pl-4 space-y-1">
-                <span className="text-[10px] font-bold text-[#1769c2] uppercase tracking-wider">Present Role</span>
-                <p className="text-xs font-bold text-[#171717]">{profile.designation || profile.profession}</p>
-                <p className="text-xs text-[#5d5854]">{profile.organization || "Department of Clinical Health & Rehabilitation"}</p>
-                <p className="text-[11px] text-[#a09890]">{profile.city || "Bangalore"}, India · Full-time</p>
-              </div>
-
-              <div className="border-l-2 border-[#ded8d1] pl-4 space-y-1 pt-2">
-                <span className="text-[10px] font-bold text-[#77716b] uppercase tracking-wider">Previous Affiliation</span>
-                <p className="text-xs font-bold text-[#171717]">Resident Clinical Specialist</p>
-                <p className="text-xs text-[#5d5854]">Apex Multispecialty Hospital</p>
-                <p className="text-[11px] text-[#a09890]">2019 – 2022 · 3 yrs</p>
-              </div>
-            </div>
-          </section>
-
-          {/* 6. Certifications & CME */}
-          <section id="section-certifications" className="rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-xs">
-            <div className="flex items-center gap-2 mb-3 text-sm font-bold text-[#171717]">
-              <Award className="h-4 w-4 text-amber-500" />
-              <span>Accredited Certifications & CME</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {[
-                { title: "Advanced Dry Needling (Level 2)", issuer: "Global Physio Institute", date: "2023" },
-                { title: "Manual Therapy & Mulligan Concept", issuer: "Mulligan Association", date: "2022" },
-                { title: "Sports Taping & Biomechanics", issuer: "Kinesio Association", date: "2021" },
-                { title: "BLS / ACLS Healthcare Provider", issuer: "American Heart Association", date: "2024" },
-              ].map((c, i) => (
-                <div key={i} className="p-3 rounded-xl border border-[#e8e6e3] bg-[#fcfbf9]">
-                  <p className="text-xs font-bold text-[#171717]">{c.title}</p>
-                  <p className="text-[11px] text-[#77716b]">{c.issuer}</p>
-                  <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full inline-block mt-1">
-                    Issued {c.date} · Verified
-                  </span>
+              {profile.organization || profile.designation ? (
+                <div className="border-l-2 border-[#1769c2] pl-4 space-y-1">
+                  <span className="text-[10px] font-bold text-[#1769c2] uppercase tracking-wider">Current Role</span>
+                  <p className="text-xs font-bold text-[#171717]">{profile.designation || profile.profession}</p>
+                  <p className="text-xs text-[#5d5854]">{profile.organization || "Private Practice"}</p>
+                  <p className="text-[11px] text-[#a09890]">{[profile.city, "India"].filter(Boolean).join(", ")}</p>
                 </div>
-              ))}
+              ) : (
+                <p className="text-xs text-[#8a8784] italic p-3 bg-[#f8f7f6] rounded-xl">
+                  No clinical experience records listed yet.
+                </p>
+              )}
             </div>
           </section>
 
-          {/* 7. Clinical Skills */}
+          {/* 6. Clinical Skills */}
           <section id="section-skills" className="rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-xs">
             <div className="flex items-center gap-2 mb-3 text-sm font-bold text-[#171717]">
               <Zap className="h-4 w-4 text-amber-500" />
               <span>Core Clinical Skills & Competencies</span>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {(profile.skills && profile.skills.length > 0
-                ? profile.skills
-                : [
-                    "Musculoskeletal Assessment",
-                    "Spine Mobilization",
-                    "Post-Surgical Protocols",
-                    "Dry Needling",
-                    "Gait & Posture Analysis",
-                    "Ergonomic Assessment",
-                    "Sports Rehab",
-                    "Neurological Facilitation",
-                    "Pain Management",
-                  ]
-              ).map((skill) => (
-                <span
-                  key={skill}
-                  className="rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-3 py-1.5 text-xs font-semibold text-[#171717] hover:border-[#1769c2] transition"
-                >
-                  ⚡ {skill}
-                </span>
-              ))}
-            </div>
+            {profile.skills && profile.skills.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {profile.skills.map((skill) => (
+                  <span
+                    key={skill}
+                    className="rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-3 py-1.5 text-xs font-semibold text-[#171717]"
+                  >
+                    ⚡ {skill}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-[#8a8784] italic p-3 bg-[#f8f7f6] rounded-xl">
+                No clinical skills listed yet.
+              </p>
+            )}
           </section>
 
           {/* 8. Research & Publications */}
           <section id="section-research" className="rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-xs">
             <div className="flex items-center gap-2 mb-3 text-sm font-bold text-[#171717]">
               <Microscope className="h-4 w-4 text-purple-600" />
-              <span>Research, Clinical Papers & Case Studies</span>
+              <span>Research & Publications</span>
             </div>
 
-            <div className="space-y-3">
-              <div className="p-3.5 rounded-xl border border-[#e8e6e3] bg-white hover:border-[#1769c2] transition">
-                <p className="text-xs font-bold text-[#171717]">
-                  Comparative Efficacy of High-Load Eccentric vs Isometric Loading in Chronic Patellar Tendinopathy
-                </p>
-                <p className="text-[11px] text-[#5d5854] mt-1">
-                  Journal of Orthopaedic & Sports Physical Therapy · 2023 · DOI: 10.1016/j.jospt.2023.04.012
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded">
-                    Peer Reviewed
-                  </span>
-                  <span className="text-[10px] text-[#77716b]">Primary Author</span>
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-xl border border-[#e8e6e3] bg-white hover:border-[#1769c2] transition">
-                <p className="text-xs font-bold text-[#171717]">
-                  Workplace Ergonomic Interventions and Reduction in Spinal Discomfort among IT Professionals: A Cohort Study
-                </p>
-                <p className="text-[11px] text-[#5d5854] mt-1">
-                  Indian Journal of Occupational Health · 2022
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
-                    Clinical Trial
-                  </span>
-                  <span className="text-[10px] text-[#77716b]">Co-Investigator</span>
-                </div>
-              </div>
-            </div>
+            <p className="text-xs text-[#8a8784] italic p-3 bg-[#f8f7f6] rounded-xl">
+              No clinical research publications or preprints listed yet.
+            </p>
           </section>
 
           {/* 9. Courses from MGN Learn */}
@@ -403,76 +338,37 @@ export function KnowMoreDrawer({ isOpen, onClose, profile }: KnowMoreDrawerProps
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 text-sm font-bold text-[#171717]">
                 <BookOpen className="h-4 w-4 text-[#1769c2]" />
-                <span>MGN Learn & CME Modules</span>
+                <span>MGN Learn & CME</span>
               </div>
-              <span className="text-xs text-[#1769c2] font-semibold">Continuous CME</span>
             </div>
 
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-[#f8f7f6]">
-                <div>
-                  <p className="text-xs font-bold text-[#171717]">Advanced Neuro-Rehab Protocols 2024</p>
-                  <p className="text-[11px] text-[#77716b]">MGN Learn Masterclass · 12 Credit Hours</p>
-                </div>
-                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100/70 px-2.5 py-1 rounded-lg">
-                  Completed
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-xl bg-[#f8f7f6]">
-                <div>
-                  <p className="text-xs font-bold text-[#171717]">Tele-Rehabilitation Clinical Guidelines</p>
-                  <p className="text-[11px] text-[#77716b]">Digital Health Academy · 6 Credit Hours</p>
-                </div>
-                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100/70 px-2.5 py-1 rounded-lg">
-                  Completed
-                </span>
-              </div>
-            </div>
+            <p className="text-xs text-[#8a8784] italic p-3 bg-[#f8f7f6] rounded-xl">
+              No CME courses completed yet on MGN Learn.
+            </p>
           </section>
 
           {/* 10. Achievements & Awards */}
           <section id="section-achievements" className="rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-xs">
             <div className="flex items-center gap-2 mb-3 text-sm font-bold text-[#171717]">
               <Trophy className="h-4 w-4 text-amber-500" />
-              <span>Honors, Keynotes & Awards</span>
+              <span>Honors & Keynotes</span>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-start gap-3 p-3 rounded-xl bg-amber-50/50 border border-amber-100">
-                <div className="text-xl">🏆</div>
-                <div>
-                  <p className="text-xs font-bold text-[#171717]">Excellence in Clinical Rehabilitation Award 2023</p>
-                  <p className="text-[11px] text-[#77716b]">State Physiotherapy Association Annual Conclave</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-xl bg-[#f8f7f6]">
-                <div className="text-xl">🎤</div>
-                <div>
-                  <p className="text-xs font-bold text-[#171717]">Keynote Speaker — National Sports Medicine Summit 2022</p>
-                  <p className="text-[11px] text-[#77716b]">Topic: Return-to-Play Protocols in Elite Athletes</p>
-                </div>
-              </div>
-            </div>
+            <p className="text-xs text-[#8a8784] italic p-3 bg-[#f8f7f6] rounded-xl">
+              No honors or keynote recognitions listed yet.
+            </p>
           </section>
 
           {/* 11. Communities */}
           <section id="section-communities" className="rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-xs">
             <div className="flex items-center gap-2 mb-3 text-sm font-bold text-[#171717]">
               <Users className="h-4 w-4 text-[#1769c2]" />
-              <span>Joined Healthcare Communities</span>
+              <span>Healthcare Network</span>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              <span className="rounded-full bg-[#eff6ff] border border-[#bfdbfe] px-3 py-1.5 text-xs font-bold text-[#1769c2]">
-                👥 Sports Physio India
-              </span>
-              <span className="rounded-full bg-[#fdf4ff] border border-[#e9d5ff] px-3 py-1.5 text-xs font-bold text-[#7e22ce]">
-                👥 Neuro Rehabilitation Circle
-              </span>
-              <span className="rounded-full bg-[#f0fdf4] border border-[#bbf7d0] px-3 py-1.5 text-xs font-bold text-[#15803d]">
-                👥 Healthcare Innovations & AI
-              </span>
-            </div>
+            <p className="text-xs text-[#5d5854] leading-relaxed p-3 bg-[#f8f7f6] rounded-xl">
+              Connected across the <strong>MedGlobal Network</strong> multidisciplinary clinical community.
+            </p>
           </section>
         </div>
 

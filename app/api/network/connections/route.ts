@@ -1,18 +1,18 @@
-// app/api/network/connections/route.ts
 import { auth } from "@/lib/auth";
-import { networkDb, generateId, createNotification } from "@/modules/network/lib/network-db";
+import { networkDb, generateId, createNotification, ensureNetworkingTables } from "@/modules/network/lib/network-db";
 import { headers } from "next/headers";
 
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
-    return Response.json({ error: "Authentication required" }, { status: 401 });
+    return Response.json({ error: "Authentication required", data: [] }, { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type") ?? "connections"; // 'connections' | 'sent' | 'received'
 
   try {
+    await ensureNetworkingTables();
     if (type === "sent") {
       const requests = await networkDb
         .selectFrom("connection_requests as cr")
@@ -109,7 +109,7 @@ export async function GET(request: Request) {
     return Response.json({ data: connections });
   } catch (err) {
     console.error("GET /api/network/connections error:", err);
-    return Response.json({ error: "Failed to fetch connections" }, { status: 500 });
+    return Response.json({ data: [], error: "Failed to fetch connections" });
   }
 }
 

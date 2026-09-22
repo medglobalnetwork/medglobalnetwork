@@ -10,58 +10,13 @@ export interface HighlightItem {
   storiesCount?: number;
 }
 
-const DEFAULT_HIGHLIGHTS: HighlightItem[] = [
-  {
-    id: "hl-college",
-    title: "College Life",
-    coverImage: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400&auto=format&fit=crop&q=80",
-    storiesCount: 4,
-  },
-  {
-    id: "hl-cases",
-    title: "Clinical Cases",
-    coverImage: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&auto=format&fit=crop&q=80",
-    storiesCount: 6,
-  },
-  {
-    id: "hl-events",
-    title: "Events",
-    coverImage: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=400&auto=format&fit=crop&q=80",
-    storiesCount: 3,
-  },
-  {
-    id: "hl-learning",
-    title: "Learning",
-    coverImage: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=400&auto=format&fit=crop&q=80",
-    storiesCount: 8,
-  },
-  {
-    id: "hl-achievements",
-    title: "Achievements",
-    coverImage: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=400&auto=format&fit=crop&q=80",
-    storiesCount: 5,
-  },
-  {
-    id: "hl-travel",
-    title: "Travel",
-    coverImage: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&auto=format&fit=crop&q=80",
-    storiesCount: 2,
-  },
-  {
-    id: "hl-motivation",
-    title: "Motivation",
-    coverImage: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&auto=format&fit=crop&q=80",
-    storiesCount: 7,
-  },
-];
-
 interface ProfileHighlightsProps {
   isOwnProfile?: boolean;
   userId: string;
 }
 
 export function ProfileHighlights({ isOwnProfile, userId }: ProfileHighlightsProps) {
-  const [highlights, setHighlights] = React.useState<HighlightItem[]>(DEFAULT_HIGHLIGHTS);
+  const [highlights, setHighlights] = React.useState<HighlightItem[]>([]);
   const [activeHighlight, setActiveHighlight] = React.useState<HighlightItem | null>(null);
   const [isCreating, setIsCreating] = React.useState(false);
   const [newTitle, setNewTitle] = React.useState("");
@@ -104,6 +59,11 @@ export function ProfileHighlights({ isOwnProfile, userId }: ProfileHighlightsPro
     setNewImage("");
     setIsCreating(false);
   };
+
+  // If visitor and no highlights, don't show empty highlight container
+  if (!isOwnProfile && highlights.length === 0) {
+    return null;
+  }
 
   return (
     <div className="relative py-2">

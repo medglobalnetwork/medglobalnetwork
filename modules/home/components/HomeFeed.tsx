@@ -205,47 +205,6 @@ export function HomeFeed({
                   </div>
                 </div>
               )}
-
-              {/* IN-FEED RECOMMENDED CLINICIAN CARD after 2nd post */}
-              {index === 1 && (
-                <div className="rounded-3xl border border-[#ded8d1] bg-white p-5 shadow-2xs">
-                  <div className="flex items-center justify-between border-b border-[#f5f4f3] pb-3 mb-3">
-                    <div className="flex items-center gap-2">
-                      <Bookmark className="h-4 w-4 text-[#1769c2]" />
-                      <span className="text-xs font-bold text-[#171717]">Recommended for You</span>
-                    </div>
-                    <ChevronDown className="h-4 w-4 text-[#77716b]" />
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#eef5fc] font-bold text-[#1769c2] text-sm">
-                        DR
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <h4 className="font-bold text-sm text-[#171717]">Dr. Rohan Mehta</h4>
-                          <ShieldCheck className="h-4 w-4 fill-[#1769c2]/15 text-[#1769c2]" />
-                        </div>
-                        <p className="text-xs text-[#77716b]">Orthopedic Surgeon · AIIMS Delhi</p>
-                        <p className="text-[11px] text-[#a8a29e] mt-0.5">👥 24 mutual connections</p>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setRecommendedConnected(true)}
-                      className={`rounded-xl px-4 py-2 text-xs font-bold transition shadow-xs ${
-                        recommendedConnected
-                          ? "border border-[#ded8d1] bg-white text-emerald-700"
-                          : "bg-[#1769c2] text-white hover:bg-[#12569f]"
-                      }`}
-                    >
-                      {recommendedConnected ? "Requested" : "Connect"}
-                    </button>
-                  </div>
-                </div>
-              )}
             </React.Fragment>
           ))}
 

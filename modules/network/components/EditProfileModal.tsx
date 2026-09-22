@@ -285,7 +285,7 @@ export function EditProfileModal({
                 <div className="space-y-1">
                   <p className="text-xs font-bold text-[#171717]">Profile Picture</p>
                   <p className="text-[11px] text-[#77716b]">
-                    Upload a local image (R2) or paste a direct web image URL.
+                    Upload a photo from your device or enter an image URL.
                   </p>
                   <div className="flex items-center gap-2 pt-1">
                     <button

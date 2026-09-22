@@ -39,97 +39,7 @@ export interface MediaPost {
   }>;
 }
 
-const SAMPLE_POSTS: MediaPost[] = [
-  {
-    id: "p1",
-    type: "post",
-    mediaUrl: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=80",
-    caption: "Post-op ACL Rehabilitation Phase 2: Restoring active knee flexion and quadriceps activation with eccentric loading protocols. 🦵⚡",
-    likes: 342,
-    commentsCount: 28,
-    views: "2.4K",
-    isPinned: true,
-    isVideo: false,
-    timestamp: "2 days ago",
-    tags: ["#ACLRehab", "#SportsPhysio", "#KneeRecovery"],
-    comments: [
-      { id: "c1", author: "Dr. Ananya Sharma", text: "Great protocol! At what week did you introduce open chain?", time: "1d ago" },
-      { id: "c2", author: "Dr. Rajesh V.", text: "Clean execution and clear gait mechanics.", time: "18h ago" }
-    ]
-  },
-  {
-    id: "p2",
-    type: "reel",
-    mediaUrl: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=800&auto=format&fit=crop&q=80",
-    caption: "Cervical Spine Mobilization Masterclass: Segmental C5-C6 glide techniques to relieve acute radiculopathy symptoms. 🧠👨‍⚕️",
-    likes: 819,
-    commentsCount: 54,
-    views: "8.1K",
-    isPinned: true,
-    isVideo: true,
-    timestamp: "4 days ago",
-    tags: ["#CervicalSpine", "#ManualTherapy", "#SpineCare"],
-    comments: [
-      { id: "c3", author: "Physio Vikas", text: "Very smooth technique doctor!", time: "3d ago" }
-    ]
-  },
-  {
-    id: "p3",
-    type: "post",
-    mediaUrl: "https://images.unsplash.com/photo-1516549655169-df83a0774514?w=800&auto=format&fit=crop&q=80",
-    caption: "Ergonomic Desk Setup for Tech Workers: 5 simple adjustments to eliminate lower back & neck fatigue during prolonged sitting. 💻🪑",
-    likes: 512,
-    commentsCount: 42,
-    views: "4.7K",
-    isPinned: true,
-    isVideo: false,
-    timestamp: "1 week ago",
-    tags: ["#Ergonomics", "#PosturalHealth", "#WorkplaceWellness"],
-    comments: []
-  },
-  {
-    id: "p4",
-    type: "reel",
-    mediaUrl: "https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=800&auto=format&fit=crop&q=80",
-    caption: "Dry Needling for Trapezius Trigger Points: Immediate myofascial release and range of motion improvement demonstration. 🎯",
-    likes: 1240,
-    commentsCount: 89,
-    views: "12.3K",
-    isPinned: false,
-    isVideo: true,
-    timestamp: "2 weeks ago",
-    tags: ["#DryNeedling", "#MyofascialRelease", "#Physiotherapy"],
-    comments: []
-  },
-  {
-    id: "p5",
-    type: "post",
-    mediaUrl: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=800&auto=format&fit=crop&q=80",
-    caption: "Clinical Workshop on Sports Biomechanics & Gait Analysis: Facilitating 30+ young clinicians on 3D motion capture interpretation. 🏃‍♂️📊",
-    likes: 478,
-    commentsCount: 31,
-    views: "3.2K",
-    isPinned: false,
-    isVideo: false,
-    timestamp: "3 weeks ago",
-    tags: ["#Biomechanics", "#GaitAnalysis", "#ContinuingEducation"],
-    comments: []
-  },
-  {
-    id: "p6",
-    type: "reel",
-    mediaUrl: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&auto=format&fit=crop&q=80",
-    caption: "Shoulder Impingement vs Rotator Cuff Tendinopathy: Differential clinical tests in under 60 seconds! 🩺",
-    likes: 950,
-    commentsCount: 63,
-    views: "9.8K",
-    isPinned: false,
-    isVideo: true,
-    timestamp: "1 month ago",
-    tags: ["#ShoulderRehab", "#ClinicalDifferential", "#OrthoPhysio"],
-    comments: []
-  }
-];
+import { useRouter } from "next/navigation";
 
 interface ProfileContentGridProps {
   userId: string;
@@ -137,14 +47,67 @@ interface ProfileContentGridProps {
 }
 
 export function ProfileContentGrid({ userId, isOwnProfile }: ProfileContentGridProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = React.useState<"posts" | "reels" | "saved" | "tagged">("posts");
   const [sortBy, setSortBy] = React.useState<"latest" | "popular" | "oldest">("latest");
   const [selectedPost, setSelectedPost] = React.useState<MediaPost | null>(null);
   const [commentInput, setCommentInput] = React.useState("");
+  const [posts, setPosts] = React.useState<MediaPost[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  // Fetch real posts for this user
+  React.useEffect(() => {
+    if (!userId) return;
+    setLoading(true);
+    fetch(`/api/network/posts?userId=${userId}`, { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.data && Array.isArray(data.data)) {
+          const formatted: MediaPost[] = data.data.map((p: any) => {
+            let media = "";
+            let isVideo = false;
+            if (p.media_urls) {
+              try {
+                const parsed = typeof p.media_urls === "string" ? JSON.parse(p.media_urls) : p.media_urls;
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  media = parsed[0];
+                  isVideo = media.endsWith(".mp4") || media.endsWith(".webm") || p.post_type === "video";
+                }
+              } catch {}
+            }
+            if (!media) {
+              // Standard medical card background placeholder if text post
+              media = "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80";
+            }
+
+            return {
+              id: p.id,
+              type: isVideo ? "reel" : "post",
+              mediaUrl: media,
+              caption: p.content,
+              likes: p.reaction_count || 0,
+              commentsCount: p.comment_count || 0,
+              isVideo,
+              timestamp: new Date(p.created_at).toLocaleDateString(undefined, {
+                month: "short",
+                day: "numeric",
+              }),
+            };
+          });
+          setPosts(formatted);
+        } else {
+          setPosts([]);
+        }
+      })
+      .catch(() => {
+        setPosts([]);
+      })
+      .finally(() => setLoading(false));
+  }, [userId]);
 
   // Filter posts based on active tab
   const filteredPosts = React.useMemo(() => {
-    let list = [...SAMPLE_POSTS];
+    let list = [...posts];
     if (activeTab === "reels") {
       list = list.filter((p) => p.type === "reel" || p.isVideo);
     } else if (activeTab === "saved") {
@@ -159,7 +122,7 @@ export function ProfileContentGrid({ userId, isOwnProfile }: ProfileContentGridP
       list.reverse();
     }
     return list;
-  }, [activeTab, sortBy]);
+  }, [posts, activeTab, sortBy]);
 
   const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -237,11 +200,58 @@ export function ProfileContentGrid({ userId, isOwnProfile }: ProfileContentGridP
         </button>
       </div>
 
-      {/* 3-Column Instagram-Style Media Grid */}
+      {/* 3-Column Instagram-Style Media Grid or Clean Empty State */}
       <div className="p-1 sm:p-4">
-        {filteredPosts.length === 0 ? (
-          <div className="py-16 text-center">
-            <p className="text-sm font-semibold text-[#77716b]">No media items in this section.</p>
+        {loading ? (
+          <div className="grid grid-cols-3 gap-1 sm:gap-2">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="aspect-square sm:aspect-4/5 w-full rounded-2xl bg-[#f5f4f3] animate-pulse"
+              />
+            ))}
+          </div>
+        ) : filteredPosts.length === 0 ? (
+          <div className="py-14 sm:py-16 px-4 text-center flex flex-col items-center justify-center">
+            <div className="h-14 w-14 rounded-2xl bg-[#f4f8fe] text-[#1769c2] flex items-center justify-center mb-3">
+              {activeTab === "posts" && <Grid3X3 className="h-6 w-6" />}
+              {activeTab === "reels" && <Film className="h-6 w-6" />}
+              {activeTab === "saved" && <Bookmark className="h-6 w-6" />}
+              {activeTab === "tagged" && <Tag className="h-6 w-6" />}
+            </div>
+
+            <h3 className="text-sm sm:text-base font-bold text-[#171717] mb-1">
+              {activeTab === "posts" && (isOwnProfile ? "Share Your First Post" : "No posts yet")}
+              {activeTab === "reels" && (isOwnProfile ? "No Clinical Videos Yet" : "No video updates")}
+              {activeTab === "saved" && (isOwnProfile ? "No Saved Content" : "Saved items are private")}
+              {activeTab === "tagged" && "No Tagged Posts"}
+            </h3>
+
+            <p className="text-xs text-[#5d5854] max-w-sm leading-relaxed mb-4">
+              {activeTab === "posts" &&
+                (isOwnProfile
+                  ? "Publish case observations, rehabilitation protocols, or medical insights to engage with the network."
+                  : "When this clinician shares clinical observations or research updates, they will appear here.")}
+              {activeTab === "reels" &&
+                (isOwnProfile
+                  ? "Share technique demonstrations, exercise walk-throughs, or surgery clips with peers."
+                  : "No short clinical video clips have been published yet.")}
+              {activeTab === "saved" &&
+                (isOwnProfile
+                  ? "Bookmark insightful clinical posts, research links, and discussions to reference later."
+                  : "Only the profile owner can view their saved bookmarks.")}
+              {activeTab === "tagged" && "Posts and discussions mentioning this profile will appear here."}
+            </p>
+
+            {isOwnProfile && (activeTab === "posts" || activeTab === "reels") && (
+              <button
+                type="button"
+                onClick={() => router.push("/network/feed")}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#1769c2] hover:bg-[#12569f] px-4 py-2 text-xs font-bold text-white shadow-xs transition active:scale-95"
+              >
+                <span>Create Post</span>
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-1 sm:gap-2">
@@ -249,7 +259,7 @@ export function ProfileContentGrid({ userId, isOwnProfile }: ProfileContentGridP
               <div
                 key={post.id}
                 onClick={() => setSelectedPost(post)}
-                className="group relative aspect-square sm:aspect-4/5 w-full overflow-hidden cursor-pointer bg-black/5 transition-transform active:scale-98"
+                className="group relative aspect-square sm:aspect-4/5 w-full overflow-hidden cursor-pointer bg-black/5 transition-transform active:scale-98 rounded-xl sm:rounded-2xl"
               >
                 {/* Image Thumbnail */}
                 <img

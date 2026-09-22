@@ -22,14 +22,20 @@ import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl } from "@/lib/avatar";
 import { StoriesBar } from "@/modules/home/components/StoriesBar";
 import { QuickLinksBar } from "@/modules/home/components/QuickLinksBar";
 import { HomeFeed } from "@/modules/home/components/HomeFeed";
+import { PeopleYouMayKnow } from "@/modules/network/components/PeopleYouMayKnow";
+import type { ProfessionalProfile } from "@/modules/network/types";
 
 export default function HomePage() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
-  // Dynamic Avatar sync
+  // Dynamic Avatar & Profile Stats sync
   const [avatarUrl, setAvatarUrl] = React.useState<string>(DEFAULT_BLANK_AVATAR);
-  const [peopleStates, setPeopleStates] = React.useState<{ [id: string]: boolean }>({});
+  const [userProfile, setUserProfile] = React.useState<(ProfessionalProfile & {
+    connection_count?: number;
+    follower_count?: number;
+    post_count?: number;
+  }) | null>(null);
 
   React.useEffect(() => {
     const updateAvatar = () => {
@@ -45,6 +51,16 @@ export default function HomePage() {
     window.addEventListener("mgn-avatar-updated", updateAvatar);
     return () => window.removeEventListener("mgn-avatar-updated", updateAvatar);
   }, [session?.user?.email, session?.user?.name, session?.user?.image]);
+
+  React.useEffect(() => {
+    if (!session?.user?.id) return;
+    fetch(`/api/network/profiles/${session.user.id}`, { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.data) setUserProfile(d.data);
+      })
+      .catch(() => {});
+  }, [session?.user?.id]);
 
   React.useEffect(() => {
     if (!isPending && !session) {
@@ -71,37 +87,6 @@ export default function HomePage() {
     .slice(0, 2)
     .join("")
     .toUpperCase();
-
-  const handleConnectPeer = (id: string) => {
-    setPeopleStates((prev) => ({ ...prev, [id]: true }));
-  };
-
-  const samplePeople = [
-    {
-      id: "p1",
-      name: "Dr. Aisha Khan",
-      profession: "Physician",
-      city: "Raipur, CG",
-      verified: true,
-      initials: "AK",
-    },
-    {
-      id: "p2",
-      name: "Dr. Vikram Sahu",
-      profession: "Physiotherapist",
-      city: "Bilaspur, CG",
-      verified: true,
-      initials: "VS",
-    },
-    {
-      id: "p3",
-      name: "Dr. Meera Nair",
-      profession: "Researcher",
-      city: "Bengaluru, KA",
-      verified: false,
-      initials: "MN",
-    },
-  ];
 
   return (
     <main className="min-h-screen bg-[#f8f7f6] pb-24 text-[#171717]">
@@ -137,9 +122,20 @@ export default function HomePage() {
             {/* 1. USER PROFILE SUMMARY CARD */}
             <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-[#e8e6e3] bg-white shadow-2xs">
               {/* Graphic Top Banner */}
-              <div className="relative h-14 sm:h-24 w-full bg-gradient-to-r from-[#1769c2] via-[#0284c7] to-[#0ea5e9] p-2.5 sm:p-4 text-white">
-                <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:12px_12px] opacity-20" />
-                <p className="relative text-right text-[9px] sm:text-[11px] font-semibold text-white/90 leading-tight">
+              <div className="relative h-14 sm:h-24 w-full bg-gradient-to-r from-[#1769c2] via-[#0284c7] to-[#0ea5e9] p-2.5 sm:p-4 text-white overflow-hidden">
+                {userProfile?.cover_image_url ? (
+                  <>
+                    <img
+                      src={userProfile.cover_image_url}
+                      alt="Profile Cover"
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  </>
+                ) : (
+                  <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:12px_12px] opacity-20" />
+                )}
+                <p className="relative text-right text-[9px] sm:text-[11px] font-semibold text-white/90 leading-tight drop-shadow-xs">
                   Better Professionals<br />Better Healthcare
                 </p>
               </div>
@@ -161,21 +157,31 @@ export default function HomePage() {
                   <h3 className="font-bold text-sm sm:text-base text-[#171717]">{displayName}</h3>
                   <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-[#1769c2]/15 text-[#1769c2]" />
                 </div>
-                <p className="text-[11px] sm:text-xs text-[#77716b] font-medium">Clinician / Member</p>
-                <p className="text-[10px] sm:text-xs text-[#a09890] mt-0.5">Physiotherapist · Raipur, CG</p>
+                <p className="text-[11px] sm:text-xs text-[#77716b] font-medium">
+                  {userProfile?.designation || userProfile?.profession || "Clinician / Member"}
+                </p>
+                <p className="text-[10px] sm:text-xs text-[#a09890] mt-0.5">
+                  {[userProfile?.specialization, userProfile?.city, userProfile?.state].filter(Boolean).join(" · ") || "MedGlobal Network"}
+                </p>
 
                 {/* 3 Metric Stats */}
                 <div className="mt-2.5 sm:mt-4 grid grid-cols-3 divide-x divide-[#f0efee] border-t border-b border-[#f5f4f3] py-2 sm:py-3 text-center">
                   <div>
-                    <span className="block text-xs sm:text-sm font-bold text-[#171717]">184</span>
+                    <span className="block text-xs sm:text-sm font-bold text-[#1769c2]">
+                      {(userProfile?.connection_count ?? 0).toLocaleString()}
+                    </span>
                     <span className="text-[9px] sm:text-[10px] text-[#77716b]">Connections</span>
                   </div>
                   <div>
-                    <span className="block text-xs sm:text-sm font-bold text-[#171717]">327</span>
+                    <span className="block text-xs sm:text-sm font-bold text-[#171717]">
+                      {(userProfile?.follower_count ?? 0).toLocaleString()}
+                    </span>
                     <span className="text-[9px] sm:text-[10px] text-[#77716b]">Followers</span>
                   </div>
                   <div>
-                    <span className="block text-xs sm:text-sm font-bold text-[#171717]">52</span>
+                    <span className="block text-xs sm:text-sm font-bold text-[#171717]">
+                      {(userProfile?.post_count ?? 0).toLocaleString()}
+                    </span>
                     <span className="text-[9px] sm:text-[10px] text-[#77716b]">Posts</span>
                   </div>
                 </div>
@@ -183,20 +189,17 @@ export default function HomePage() {
                 {/* Complete Profile Progress */}
                 <div className="mt-2.5 sm:mt-4 text-left">
                   <div className="flex items-center justify-between text-[11px] sm:text-xs mb-1">
-                    <span className="font-bold text-[#171717]">Complete your profile</span>
+                    <span className="font-bold text-[#171717]">Your Profile</span>
                     <Link
-                      href="/settings/account"
+                      href={`/profile/${userProfile?.username || session.user.id}`}
                       className="text-[11px] sm:text-xs font-bold text-[#1769c2] hover:underline"
                     >
-                      20% &gt;
+                      View &gt;
                     </Link>
                   </div>
                   <p className="text-[10px] sm:text-[11px] text-[#77716b] mb-1.5 sm:mb-2">
-                    Add credentials, skills and more to get discovered
+                    Keep your clinical dossier up-to-date
                   </p>
-                  <div className="h-1.5 w-full rounded-full bg-[#f0efee] overflow-hidden">
-                    <div className="h-full w-[20%] rounded-full bg-[#1769c2]" />
-                  </div>
                 </div>
               </div>
             </div>
@@ -224,86 +227,28 @@ export default function HomePage() {
                   <div className="flex items-start gap-2 flex-1">
                     <span className="mt-0.5 h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
                     <div>
-                      <p className="font-bold text-[#171717] leading-snug">Case Review Meeting</p>
-                      <p className="text-[10px] text-[#77716b]">Online (Google Meet)</p>
+                      <p className="font-bold text-[#171717] leading-snug">Clinical Case Discussion</p>
+                      <p className="text-[10px] text-[#77716b]">MGN Medical Network</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Item 2 */}
                 <div className="flex items-start gap-3">
-                  <span className="font-bold text-[#5d5854] shrink-0 text-[11px]">12:00 PM</span>
+                  <span className="font-bold text-[#5d5854] shrink-0 text-[11px]">02:30 PM</span>
                   <div className="flex items-start gap-2 flex-1">
                     <span className="mt-0.5 h-2 w-2 rounded-full bg-blue-500 shrink-0" />
                     <div>
-                      <p className="font-bold text-[#171717] leading-snug">CME Webinar</p>
-                      <p className="text-[10px] text-[#77716b]">Advances in Sports Rehabilitation</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Item 3 */}
-                <div className="flex items-start gap-3">
-                  <span className="font-bold text-[#5d5854] shrink-0 text-[11px]">04:00 PM</span>
-                  <div className="flex items-start gap-2 flex-1">
-                    <span className="mt-0.5 h-2 w-2 rounded-full bg-purple-500 shrink-0" />
-                    <div>
-                      <p className="font-bold text-[#171717] leading-snug">Patient Consultation</p>
-                      <p className="text-[10px] text-[#77716b]">City Care Clinic, Raipur</p>
+                      <p className="font-bold text-[#171717] leading-snug">CME Learning Module</p>
+                      <p className="text-[10px] text-[#77716b]">MGN Learn Portal</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* 3. PEOPLE YOU MAY KNOW WIDGET */}
-            <div className="rounded-3xl border border-[#e8e6e3] bg-white p-5 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-[#f5f4f3] pb-3 mb-4">
-                <h3 className="font-bold text-xs text-[#171717]">People You May Know</h3>
-                <button
-                  type="button"
-                  onClick={() => router.push("/network")}
-                  className="text-[11px] font-bold text-[#1769c2] hover:underline"
-                >
-                  See All &gt;
-                </button>
-              </div>
-
-              <div className="space-y-3.5">
-                {samplePeople.map((person) => (
-                  <div key={person.id} className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#eef5fc] text-xs font-bold text-[#1769c2]">
-                        {person.initials}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1">
-                          <h4 className="font-bold text-xs text-[#171717]">{person.name}</h4>
-                          {person.verified && (
-                            <ShieldCheck className="h-3.5 w-3.5 fill-[#1769c2]/15 text-[#1769c2]" />
-                          )}
-                        </div>
-                        <p className="text-[10px] text-[#77716b]">
-                          {person.profession} · {person.city}
-                        </p>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleConnectPeer(person.id)}
-                      className={`rounded-xl px-3 py-1 text-xs font-bold transition ${
-                        peopleStates[person.id]
-                          ? "border border-[#ded8d1] bg-white text-emerald-700"
-                          : "border border-[#ded8d1] bg-white text-[#1769c2] hover:bg-[#eef5fc]"
-                      }`}
-                    >
-                      {peopleStates[person.id] ? "Requested" : "Connect"}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* 3. DYNAMIC PEOPLE YOU MAY KNOW WIDGET */}
+            <PeopleYouMayKnow currentUserId={session.user.id} limit={4} />
 
             {/* 4. UPGRADE TO MGN PRO CARD */}
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e40af] via-[#3b82f6] to-[#6366f1] p-5 text-white shadow-md">

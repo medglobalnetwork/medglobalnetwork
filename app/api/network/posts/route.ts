@@ -14,6 +14,7 @@ export async function GET(request: Request) {
   const pageSize = Math.min(parseInt(searchParams.get("pageSize") ?? "20", 10), 50);
   const offset = (page - 1) * pageSize;
   const communityId = searchParams.get("communityId");
+  const authorId = searchParams.get("userId") || searchParams.get("authorId");
 
   try {
     let q = networkDb
@@ -45,6 +46,10 @@ export async function GET(request: Request) {
 
     if (communityId) {
       q = q.where("np.community_id", "=", communityId);
+    }
+
+    if (authorId) {
+      q = q.where("np.author_id", "=", authorId);
     }
 
     const posts = await q.limit(pageSize).offset(offset).execute();

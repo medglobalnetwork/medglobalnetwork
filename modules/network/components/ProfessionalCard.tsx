@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Heart, MessageSquare, MoreHorizontal, Share2, Copy, Check } from "lucide-react";
 import type { ProfessionalProfile, ConnectionStatus } from "../types";
 import { VerificationBadge } from "./VerificationBadge";
-import { MemberBadge } from "./MemberBadge";
 import { ConnectionButton } from "./ConnectionButton";
 import { ConnectionRequestModal } from "./ConnectionRequestModal";
 import { getProfessionColor } from "../lib/network-data";
@@ -68,7 +67,8 @@ export function ProfessionalCard({
 
   const handleCopyLink = () => {
     if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(`${window.location.origin}/profile/${profile.user_id}`);
+      const slug = profile.username || profile.user_id;
+      navigator.clipboard.writeText(`${window.location.origin}/profile/${slug}`);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       setShowMenu(false);
@@ -76,10 +76,11 @@ export function ProfessionalCard({
   };
 
   const handleShare = () => {
+    const slug = profile.username || profile.user_id;
     if (typeof window !== "undefined" && navigator.share) {
       navigator.share({
         title: `${profile.name} - MGN Professional`,
-        url: `${window.location.origin}/profile/${profile.user_id}`,
+        url: `${window.location.origin}/profile/${slug}`,
       }).catch(() => {});
     } else {
       handleCopyLink();
@@ -141,13 +142,6 @@ export function ProfessionalCard({
               {profile.name}
             </button>
             {isVerified && <VerificationBadge size="sm" />}
-            <MemberBadge
-              memberId={profile.member_id}
-              isFoundingMember={profile.is_founding_member}
-              membershipTier={profile.membership_tier}
-              size="xs"
-              showCopy={false}
-            />
           </div>
           <p className="truncate text-xs text-[#77716b]">
             {profile.designation || profile.profession}
@@ -299,7 +293,7 @@ export function ProfessionalCard({
       {/* 2. BOTTOM CARD CONTENT */}
       <div className="flex flex-1 flex-col justify-between p-2.5 sm:p-3.5">
         <div>
-          {/* Name with Blue Verified Badge & Member ID */}
+          {/* Name with Blue Verified Badge */}
           <div className="flex items-center gap-1 flex-wrap">
             <button
               type="button"
@@ -311,19 +305,8 @@ export function ProfessionalCard({
             <VerificationBadge size="sm" />
           </div>
 
-          {/* Member ID Tag */}
-          <div className="mt-1">
-            <MemberBadge
-              memberId={profile.member_id}
-              isFoundingMember={profile.is_founding_member}
-              membershipTier={profile.membership_tier}
-              size="xs"
-              showCopy={false}
-            />
-          </div>
-
           {/* Profession Subtitle */}
-          <p className="mt-0.5 truncate text-left text-[10px] sm:text-xs font-medium text-[#77716b]">
+          <p className="mt-1 truncate text-left text-[10px] sm:text-xs font-medium text-[#77716b]">
             {profile.designation || profile.profession || "Healthcare"}
           </p>
 

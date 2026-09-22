@@ -22,51 +22,57 @@ interface NetworkSidebarProps {
   currentUserId?: string;
 }
 
-const DEFAULT_COMMUNITIES = [
-  {
-    slug: "physiotherapy-india",
-    name: "Physiotherapy India",
-    specialty: "Physiotherapy",
-    member_count: 2450,
-    icon: <Bone className="h-4 w-4 text-[#1769c2]" />,
-  },
-  {
-    slug: "cardiology-network",
-    name: "Cardiology Network",
-    specialty: "Cardiology",
-    member_count: 1820,
-    icon: <HeartPulse className="h-4 w-4 text-[#e11d48]" />,
-  },
-  {
-    slug: "medical-students-forum",
-    name: "Medical Students Forum",
-    specialty: "Medical Students",
-    member_count: 3100,
-    icon: <GraduationCap className="h-4 w-4 text-[#047857]" />,
-  },
-  {
-    slug: "clinical-research-hub",
-    name: "Clinical Research Hub",
-    specialty: "Clinical Research",
-    member_count: 980,
-    icon: <FlaskConical className="h-4 w-4 text-[#8b5cf6]" />,
-  },
-];
-
 export function NetworkSidebar({ currentUserId }: NetworkSidebarProps) {
   const router = useRouter();
+  const [communities, setCommunities] = React.useState<any[]>([]);
   const [joinedSlugs, setJoinedSlugs] = React.useState<Set<string>>(new Set());
+  const [isLoading, setIsLoading] = React.useState(true);
 
-  const handleJoinToggle = (slug: string) => {
+  React.useEffect(() => {
+    fetch("/api/network/communities", { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => {
+        const list = d?.communities || d?.data || [];
+        if (Array.isArray(list)) {
+          setCommunities(list.slice(0, 4));
+          const joined = new Set<string>();
+          list.forEach((c: any) => {
+            if (c.is_member) joined.add(c.slug);
+          });
+          setJoinedSlugs(joined);
+        }
+      })
+      .catch((err) => console.error("NetworkSidebar communities fetch error:", err))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const handleJoinToggle = async (community: any) => {
+    const isCurrentlyJoined = joinedSlugs.has(community.slug);
     setJoinedSlugs((prev) => {
       const next = new Set(prev);
-      if (next.has(slug)) {
-        next.delete(slug);
+      if (isCurrentlyJoined) {
+        next.delete(community.slug);
       } else {
-        next.add(slug);
+        next.add(community.slug);
       }
       return next;
     });
+
+    try {
+      if (isCurrentlyJoined) {
+        await fetch(`/api/network/communities/${community.slug}/members`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+      } else {
+        await fetch(`/api/network/communities/${community.slug}/members`, {
+          method: "POST",
+          credentials: "include",
+        });
+      }
+    } catch (err) {
+      console.error("Failed to toggle join:", err);
+    }
   };
 
   return (
@@ -104,56 +110,81 @@ export function NetworkSidebar({ currentUserId }: NetworkSidebarProps) {
             <Users className="h-4 w-4 text-[#1769c2]" />
             Suggested Communities
           </h3>
-          <button
-            type="button"
-            onClick={() => router.push("/network/communities")}
-            className="text-[11px] font-semibold text-[#1769c2] transition hover:underline"
-          >
-            See all →
-          </button>
+          {communities.length > 0 && (
+            <button
+              type="button"
+              onClick={() => router.push("/network/communities")}
+              className="text-[11px] font-semibold text-[#1769c2] transition hover:underline"
+            >
+              See all →
+            </button>
+          )}
         </div>
 
-        <ul className="space-y-3">
-          {DEFAULT_COMMUNITIES.map((c) => {
-            const isJoined = joinedSlugs.has(c.slug);
-            return (
-              <li key={c.slug} className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f4f3f0]">
-                  {c.icon}
-                </div>
-                <div className="min-w-0 flex-1">
+        {communities.length > 0 ? (
+          <ul className="space-y-3">
+            {communities.map((c) => {
+              const isJoined = joinedSlugs.has(c.slug);
+              return (
+                <li key={c.id || c.slug} className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f4f3f0] text-[#1769c2] overflow-hidden">
+                    {c.cover_url ? (
+                      <img src={c.cover_url} alt={c.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <Users className="h-4 w-4 text-[#1769c2]" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/network/communities/${c.slug}`)}
+                      className="block truncate text-xs font-semibold text-[#171717] hover:text-[#1769c2]"
+                    >
+                      {c.name}
+                    </button>
+                    <p className="text-[11px] text-[#a09890]">
+                      {(c.member_count ?? 0).toLocaleString()} {c.member_count === 1 ? "member" : "members"}
+                    </p>
+                  </div>
                   <button
                     type="button"
-                    onClick={() => router.push(`/network/communities/${c.slug}`)}
-                    className="block truncate text-xs font-semibold text-[#171717] hover:text-[#1769c2]"
+                    onClick={() => handleJoinToggle(c)}
+                    className={`shrink-0 rounded-xl px-2.5 py-1 text-xs font-semibold transition ${
+                      isJoined
+                        ? "bg-[#eef5fc] text-[#1769c2] border border-[#1769c2]/20"
+                        : "border border-[#ded8d1] bg-white text-[#5d5854] hover:border-[#1769c2] hover:text-[#1769c2]"
+                    }`}
                   >
-                    {c.name}
+                    {isJoined ? (
+                      <span className="flex items-center gap-1">
+                        <Check className="h-3 w-3" /> Joined
+                      </span>
+                    ) : (
+                      "Join"
+                    )}
                   </button>
-                  <p className="text-[11px] text-[#a09890]">
-                    {c.member_count.toLocaleString()} members
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleJoinToggle(c.slug)}
-                  className={`shrink-0 rounded-xl px-2.5 py-1 text-xs font-semibold transition ${
-                    isJoined
-                      ? "bg-[#eef5fc] text-[#1769c2] border border-[#1769c2]/20"
-                      : "border border-[#ded8d1] bg-white text-[#5d5854] hover:border-[#1769c2] hover:text-[#1769c2]"
-                  }`}
-                >
-                  {isJoined ? (
-                    <span className="flex items-center gap-1">
-                      <Check className="h-3 w-3" /> Joined
-                    </span>
-                  ) : (
-                    "Join"
-                  )}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+                </li>
+              );
+            })}
+          </ul>
+        ) : !isLoading ? (
+          <div className="py-4 text-center">
+            <p className="text-xs text-[#77716b]">No communities created yet.</p>
+            <button
+              type="button"
+              onClick={() => router.push("/network")}
+              className="mt-2 text-xs font-semibold text-[#1769c2] hover:underline"
+            >
+              Explore Specialty Hubs →
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {[1, 2].map((i) => (
+              <div key={i} className="h-10 rounded-xl bg-slate-100 animate-pulse" />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 4. Upgrade to MGN Pro */}

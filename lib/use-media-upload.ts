@@ -79,12 +79,12 @@ export function useMediaUpload(options: UseMediaUploadOptions = {}) {
               setProgress(100);
               resolve();
             } else {
-              reject(new Error(`R2 upload failed with status ${xhr.status}`));
+              reject(new Error(`Upload failed with status ${xhr.status}`));
             }
           };
 
           xhr.onerror = () => {
-            reject(new Error("Network error during direct Cloudflare R2 upload. Check bucket CORS."));
+            reject(new Error("Network error during file upload. Please check your connection."));
           };
 
           xhr.send(file);

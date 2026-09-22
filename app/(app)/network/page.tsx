@@ -15,6 +15,7 @@ import {
   Stethoscope,
   Activity,
   ArrowRight,
+  CheckCircle2,
 } from "lucide-react";
 
 import { NetworkTabs, type NetworkTab } from "@/modules/network/components/NetworkTabs";
@@ -413,67 +414,74 @@ function FollowingTab() {
 // ─────────────────────────────────────────────
 function CommunitiesTab() {
   const router = useRouter();
+  const [communities, setCommunities] = React.useState<any[]>([]);
   const [joinedSlugs, setJoinedSlugs] = React.useState<Set<string>>(new Set());
+  const [loading, setLoading] = React.useState(true);
 
-  const communities = [
-    {
-      slug: "physiotherapy-india",
-      name: "Physiotherapy India",
-      specialty: "Physiotherapy",
-      members: 2450,
-      description: "National hub for physical therapists, rehabilitation specialists, and sports physios across India.",
-      icon: <Bone className="h-5 w-5 text-[#1769c2]" />,
-    },
-    {
-      slug: "cardiology-network",
-      name: "Cardiology Network",
-      specialty: "Cardiology",
-      members: 1820,
-      description: "Interventional cardiologists, surgeons, and cardiovascular researchers discussing clinical cases.",
-      icon: <HeartPulse className="h-5 w-5 text-[#e11d48]" />,
-    },
-    {
-      slug: "medical-students-forum",
-      name: "Medical Students Forum",
-      specialty: "Medical Students",
-      members: 3100,
-      description: "MBBS students and interns sharing study notes, clinical guidelines, and PG entrance guidance.",
-      icon: <GraduationCap className="h-5 w-5 text-[#047857]" />,
-    },
-    {
-      slug: "clinical-research-hub",
-      name: "Clinical Research Hub",
-      specialty: "Clinical Research",
-      members: 980,
-      description: "Peer-reviewed medical trials, observational research, GCP guidelines, and trial collaborations.",
-      icon: <FlaskConical className="h-5 w-5 text-[#8b5cf6]" />,
-    },
-    {
-      slug: "nursing-professionals",
-      name: "Nursing & Critical Care",
-      specialty: "Nursing",
-      members: 1420,
-      description: "ICU, OT, and general ward nurses sharing best clinical protocols and care standards.",
-      icon: <Stethoscope className="h-5 w-5 text-[#0284c7]" />,
-    },
-    {
-      slug: "sports-medicine-association",
-      name: "Sports Medicine Association",
-      specialty: "Sports Medicine",
-      members: 760,
-      description: "Athletic performance rehabilitation, biomechanics, and sports injury management.",
-      icon: <Activity className="h-5 w-5 text-[#d97706]" />,
-    },
-  ];
+  React.useEffect(() => {
+    fetch("/api/network/communities", { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.communities) {
+          setCommunities(d.communities);
+          const initialJoined = new Set<string>();
+          d.communities.forEach((c: any) => {
+            if (c.is_member) initialJoined.add(c.slug);
+          });
+          setJoinedSlugs(initialJoined);
+        }
+      })
+      .catch((err) => console.error("Error fetching communities:", err))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const handleJoin = (slug: string) => {
+  const handleJoin = async (community: any) => {
+    const isCurrentlyJoined = joinedSlugs.has(community.slug);
     setJoinedSlugs((prev) => {
       const next = new Set(prev);
-      if (next.has(slug)) next.delete(slug);
-      else next.add(slug);
+      if (isCurrentlyJoined) next.delete(community.slug);
+      else next.add(community.slug);
       return next;
     });
+
+    try {
+      if (isCurrentlyJoined) {
+        await fetch(`/api/network/communities/${community.slug}/members`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+      } else {
+        await fetch(`/api/network/communities/${community.slug}/members`, {
+          method: "POST",
+          credentials: "include",
+        });
+      }
+    } catch (err) {
+      console.error("Failed to toggle community membership:", err);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="grid gap-4 sm:grid-cols-2">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-36 rounded-2xl bg-white border border-[#e8e6e3] p-4 animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (communities.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-[#ded8d1] bg-white p-12 text-center">
+        <Users className="mx-auto h-12 w-12 text-[#a09890]" />
+        <h3 className="mt-3 text-base font-bold text-[#171717]">No Communities Yet</h3>
+        <p className="mt-1 text-xs text-[#77716b] max-w-sm mx-auto">
+          Clinical specialty hubs and verified practitioner groups will appear here once created.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -481,27 +489,35 @@ function CommunitiesTab() {
         const isJoined = joinedSlugs.has(c.slug);
         return (
           <div
-            key={c.slug}
+            key={c.id || c.slug}
             className="flex flex-col justify-between rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs transition hover:border-[#1769c2]/30 hover:shadow-sm"
           >
             <div>
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#f4f3f0]">
-                  {c.icon}
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#f4f3f0] text-[#1769c2] font-bold overflow-hidden">
+                  {c.cover_url ? (
+                    <img src={c.cover_url} alt={c.name} className="h-full w-full rounded-xl object-cover" />
+                  ) : (
+                    <Users className="h-5 w-5 text-[#1769c2]" />
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <h4 className="truncate text-sm font-bold text-[#171717]">{c.name}</h4>
-                  <p className="text-xs text-[#77716b]">{c.members.toLocaleString()} members</p>
+                  <p className="text-xs text-[#77716b]">
+                    {(c.member_count ?? 0).toLocaleString()} {c.member_count === 1 ? "member" : "members"}
+                  </p>
                 </div>
               </div>
-              <p className="mt-2.5 line-clamp-2 text-xs text-[#5d5854] leading-relaxed">
-                {c.description}
-              </p>
+              {c.description && (
+                <p className="mt-2.5 line-clamp-2 text-xs text-[#5d5854] leading-relaxed">
+                  {c.description}
+                </p>
+              )}
             </div>
             <div className="mt-4 flex items-center gap-2 pt-2 border-t border-[#f0efee]">
               <button
                 type="button"
-                onClick={() => handleJoin(c.slug)}
+                onClick={() => handleJoin(c)}
                 className={`flex-1 rounded-xl py-2 text-center text-xs font-semibold transition ${
                   isJoined
                     ? "bg-[#eef5fc] text-[#1769c2] border border-[#1769c2]/20"
@@ -530,55 +546,24 @@ function CommunitiesTab() {
 // ─────────────────────────────────────────────
 function OrganizationsTab() {
   const router = useRouter();
-  const [followedSlugs, setFollowedSlugs] = React.useState<Set<string>>(new Set());
+  const [organizations, setOrganizations] = React.useState<any[]>([]);
+  const [followedIds, setFollowedIds] = React.useState<Set<string>>(new Set());
+  const [loading, setLoading] = React.useState(true);
 
-  const organizations = [
-    {
-      id: "aiims-delhi",
-      name: "AIIMS New Delhi",
-      type: "Apex Medical Institute",
-      location: "New Delhi, Delhi",
-      doctors: "2,400+ Clinicians",
-    },
-    {
-      id: "apollo-hospitals",
-      name: "Apollo Hospitals Group",
-      type: "Multi-Specialty Hospital Network",
-      location: "Pan-India",
-      doctors: "8,500+ Clinicians",
-    },
-    {
-      id: "fortis-healthcare",
-      name: "Fortis Healthcare",
-      type: "Super Specialty Healthcare",
-      location: "Gurugram, Haryana",
-      doctors: "4,200+ Clinicians",
-    },
-    {
-      id: "medanta",
-      name: "Medanta - The Medicity",
-      type: "Multi-Super Specialty Hospital",
-      location: "Gurugram, Haryana",
-      doctors: "1,600+ Clinicians",
-    },
-    {
-      id: "cmc-vellore",
-      name: "Christian Medical College (CMC)",
-      type: "Medical College & Research Hospital",
-      location: "Vellore, Tamil Nadu",
-      doctors: "1,900+ Clinicians",
-    },
-    {
-      id: "tata-memorial",
-      name: "Tata Memorial Centre",
-      type: "Comprehensive Cancer Centre",
-      location: "Mumbai, Maharashtra",
-      doctors: "1,100+ Clinicians",
-    },
-  ];
+  React.useEffect(() => {
+    fetch("/api/opportunities/organizations", { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.organizations) {
+          setOrganizations(d.organizations);
+        }
+      })
+      .catch((err) => console.error("Error fetching organizations:", err))
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleFollow = (id: string) => {
-    setFollowedSlugs((prev) => {
+    setFollowedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -586,23 +571,59 @@ function OrganizationsTab() {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="grid gap-4 sm:grid-cols-2">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-36 rounded-2xl bg-white border border-[#e8e6e3] p-4 animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (organizations.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-[#ded8d1] bg-white p-12 text-center">
+        <Building2 className="mx-auto h-12 w-12 text-[#a09890]" />
+        <h3 className="mt-3 text-base font-bold text-[#171717]">No Organizations Listed Yet</h3>
+        <p className="mt-1 text-xs text-[#77716b] max-w-sm mx-auto">
+          Hospitals, clinics, and medical institutes will appear here once registered and verified.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       {organizations.map((org) => {
-        const isFollowed = followedSlugs.has(org.id);
+        const isFollowed = followedIds.has(org.id);
+        const locationStr = [org.city, org.state].filter(Boolean).join(", ");
         return (
           <div
             key={org.id}
             className="flex flex-col justify-between rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs transition hover:border-[#1769c2]/30 hover:shadow-sm"
           >
             <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#eef5fc] text-[#1769c2]">
-                <Building2 className="h-5 w-5" />
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#eef5fc] text-[#1769c2] overflow-hidden">
+                {org.logo_url ? (
+                  <img src={org.logo_url} alt={org.name} className="h-full w-full object-cover" />
+                ) : (
+                  <Building2 className="h-5 w-5" />
+                )}
               </div>
               <div className="min-w-0 flex-1">
-                <h4 className="truncate text-sm font-bold text-[#171717]">{org.name}</h4>
-                <p className="text-xs font-medium text-[#77716b]">{org.type}</p>
-                <p className="mt-1 text-[11px] text-[#a09890]">{org.location} · {org.doctors}</p>
+                <div className="flex items-center gap-1">
+                  <h4 className="truncate text-sm font-bold text-[#171717]">{org.name}</h4>
+                  {org.verification_status === "verified" && (
+                    <CheckCircle2 className="h-3.5 w-3.5 fill-[#1769c2]/10 text-[#1769c2]" />
+                  )}
+                </div>
+                <p className="text-xs font-medium text-[#77716b]">{org.organization_type || "Healthcare Organization"}</p>
+                {(locationStr || org.active_jobs_count > 0) && (
+                  <p className="mt-1 text-[11px] text-[#a09890]">
+                    {[locationStr, org.active_jobs_count > 0 ? `${org.active_jobs_count} open jobs` : null].filter(Boolean).join(" · ")}
+                  </p>
+                )}
               </div>
             </div>
             <div className="mt-4 flex items-center gap-2 pt-2 border-t border-[#f0efee]">

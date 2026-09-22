@@ -1,12 +1,11 @@
-// app/api/network/communities/route.ts
 import { auth } from "@/lib/auth";
-import { networkDb } from "@/modules/network/lib/network-db";
+import { networkDb, ensureNetworkingTables } from "@/modules/network/lib/network-db";
 import { headers } from "next/headers";
 
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
-    return Response.json({ error: "Authentication required" }, { status: 401 });
+    return Response.json({ error: "Authentication required", communities: [], data: [] }, { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);
@@ -15,6 +14,8 @@ export async function GET(request: Request) {
   const joined = searchParams.get("joined") === "true";
 
   try {
+    await ensureNetworkingTables();
+
     let q = networkDb
       .selectFrom("communities as c")
       .select([
@@ -62,14 +63,14 @@ export async function GET(request: Request) {
       .execute();
     const memberSet = new Set(memberCommunityIds.map((m) => m.community_id));
 
-    const enriched = communities.map((c) => ({
+    const enriched = (communities || []).map((c) => ({
       ...c,
       is_member: memberSet.has(c.id),
     }));
 
-    return Response.json({ data: enriched });
+    return Response.json({ communities: enriched, data: enriched });
   } catch (err) {
     console.error("GET /api/network/communities error:", err);
-    return Response.json({ error: "Failed to fetch communities" }, { status: 500 });
+    return Response.json({ communities: [], data: [], error: "Failed to fetch communities" });
   }
 }

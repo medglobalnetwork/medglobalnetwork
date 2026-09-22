@@ -5,15 +5,15 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
 const products = [
-  { id: 1, name: "Premium Budget Planner", price: "₹499", category: "Tools", emoji: "📊", tag: "Bestseller", tagColor: "#dbeafe", tagText: "#1769c2" },
-  { id: 2, name: "Investment Starter Kit", price: "₹999", category: "Courses", emoji: "💼", tag: "Popular", tagColor: "#dcfce7", tagText: "#15803d" },
-  { id: 3, name: "Tax Filing Guide 2024", price: "₹299", category: "Guides", emoji: "📋", tag: null, tagColor: "", tagText: "" },
-  { id: 4, name: "Crypto Portfolio Tracker", price: "₹749", category: "Tools", emoji: "📈", tag: "New", tagColor: "#fce7f3", tagText: "#9d174d" },
-  { id: 5, name: "Wealth Management eBook", price: "₹199", category: "Books", emoji: "📖", tag: null, tagColor: "", tagText: "" },
-  { id: 6, name: "1-on-1 Financial Coaching", price: "₹2,499", category: "Services", emoji: "🎯", tag: "Limited", tagColor: "#fef9c3", tagText: "#854d0e" },
+  { id: 1, name: "Precision Clinical Stethoscope", price: "₹2,499", category: "Clinical Equipment", emoji: "🩺", tag: "Bestseller", tagColor: "#dbeafe", tagText: "#1769c2" },
+  { id: 2, name: "Advanced Dry Needling Kit & Guide", price: "₹1,899", category: "Rehab Tools", emoji: "🎯", tag: "Popular", tagColor: "#dcfce7", tagText: "#15803d" },
+  { id: 3, name: "Sports Rehabilitation Protocols 2026", price: "₹799", category: "Books & Guides", emoji: "📖", tag: "Essential", tagColor: "#fef9c3", tagText: "#854d0e" },
+  { id: 4, name: "Digital Goniometer & Joint Angle Sensor", price: "₹3,299", category: "Clinical Equipment", emoji: "📐", tag: "Top Rated", tagColor: "#fce7f3", tagText: "#9d174d" },
+  { id: 5, name: "Clinical Trial Documentation Kit", price: "₹499", category: "Templates", emoji: "📋", tag: null, tagColor: "", tagText: "" },
+  { id: 6, name: "Myofascial Release & Cupping Set", price: "₹1,499", category: "Rehab Tools", emoji: "⚡", tag: "Pro Pick", tagColor: "#e0f2fe", tagText: "#0369a1" },
 ];
 
-const categories = ["All", "Tools", "Courses", "Guides", "Books", "Services"];
+const categories = ["All", "Clinical Equipment", "Rehab Tools", "Books & Guides", "Templates"];
 
 export default function MarketplacePage() {
   const router = useRouter();

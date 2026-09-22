@@ -3,8 +3,59 @@ import { auth } from "@/lib/auth";
 import { database } from "@/lib/auth";
 import { sql } from "kysely";
 
+let opportunitiesTablesInitialized = false;
+
+async function ensureOpportunitiesTables() {
+  if (opportunitiesTablesInitialized) return;
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS organizations (
+        id                  TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+        name                TEXT NOT NULL,
+        slug                TEXT NOT NULL UNIQUE,
+        logo_url            TEXT,
+        cover_url           TEXT,
+        description         TEXT,
+        organization_type   TEXT NOT NULL DEFAULT 'Hospital',
+        website             TEXT,
+        email               TEXT,
+        phone               TEXT,
+        address             TEXT,
+        city                TEXT,
+        state               TEXT,
+        country             TEXT DEFAULT 'India',
+        specialties         TEXT[],
+        verification_status TEXT NOT NULL DEFAULT 'unverified',
+        created_by          TEXT REFERENCES "user"(id) ON DELETE SET NULL,
+        created_at          TIMESTAMPTZ DEFAULT now(),
+        updated_at          TIMESTAMPTZ DEFAULT now()
+      );
+    `.execute(database);
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS jobs (
+        id                  TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+        organization_id     TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+        recruiter_id        TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+        title               TEXT NOT NULL,
+        slug                TEXT NOT NULL UNIQUE,
+        job_type            TEXT NOT NULL DEFAULT 'full_time',
+        status              TEXT NOT NULL DEFAULT 'draft',
+        created_at          TIMESTAMPTZ DEFAULT now(),
+        updated_at          TIMESTAMPTZ DEFAULT now()
+      );
+    `.execute(database);
+
+    opportunitiesTablesInitialized = true;
+  } catch (err) {
+    console.warn("ensureOpportunitiesTables warning:", err);
+  }
+}
+
 export async function GET(req: NextRequest) {
   try {
+    await ensureOpportunitiesTables();
+
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("query")?.trim() || "";
     const type = searchParams.get("type") || "";
@@ -34,7 +85,7 @@ export async function GET(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("Failed to fetch organizations:", error);
-    return NextResponse.json({ error: error.message || "Failed to fetch organizations" }, { status: 500 });
+    return NextResponse.json({ organizations: [], error: error.message || "Failed to fetch organizations" });
   }
 }
 

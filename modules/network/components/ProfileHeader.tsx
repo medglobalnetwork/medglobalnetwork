@@ -139,9 +139,7 @@ export function ProfileHeader({
     profile.experience_verified;
 
   const color = getProfessionColor(profile.profession);
-  const tags = profile.skills && profile.skills.length > 0 
-    ? profile.skills 
-    : [profile.profession, profile.specialization, "Evidence-Based Care", "Clinical Rehab"].filter(Boolean) as string[];
+  const tags = profile.skills && profile.skills.length > 0 ? profile.skills : [];
 
   const formatCount = (count?: number) => {
     if (!count) return "0";
@@ -189,7 +187,7 @@ export function ProfileHeader({
                 >
                   <img
                     src={avatarUrl || DEFAULT_BLANK_AVATAR}
-                    alt={profile.name}
+                    alt={profile.name || "User Avatar"}
                     className="h-full w-full object-cover"
                   />
                   {/* Camera overlay on hover for own profile */}
@@ -231,28 +229,28 @@ export function ProfileHeader({
             <div className="flex-1 flex items-center justify-around text-center max-w-md sm:max-w-lg ml-1 sm:ml-4 pt-1 sm:pt-2">
               <div className="cursor-pointer hover:opacity-80 transition-opacity">
                 <span className="block text-sm sm:text-base lg:text-lg font-black text-[#171717] tracking-tight leading-none mb-0.5">
-                  {(profile.post_count ?? 142).toLocaleString()}
+                  {(profile.post_count ?? 0).toLocaleString()}
                 </span>
                 <span className="text-[11px] sm:text-xs text-[#5d5854] font-medium leading-none">posts</span>
               </div>
 
               <div className="cursor-pointer hover:opacity-80 transition-opacity">
                 <span className="block text-sm sm:text-base lg:text-lg font-black text-[#171717] tracking-tight leading-none mb-0.5">
-                  {formatCount(profile.follower_count ?? 1240)}
+                  {formatCount(profile.follower_count ?? 0)}
                 </span>
                 <span className="text-[11px] sm:text-xs text-[#5d5854] font-medium leading-none">followers</span>
               </div>
 
               <div className="cursor-pointer hover:opacity-80 transition-opacity">
                 <span className="block text-sm sm:text-base lg:text-lg font-black text-[#171717] tracking-tight leading-none mb-0.5">
-                  {formatCount(profile.following_count ?? 320)}
+                  {formatCount(profile.following_count ?? 0)}
                 </span>
                 <span className="text-[11px] sm:text-xs text-[#5d5854] font-medium leading-none">following</span>
               </div>
 
               <div className="cursor-pointer hover:opacity-80 transition-opacity">
                 <span className="block text-sm sm:text-base lg:text-lg font-black text-[#1769c2] tracking-tight leading-none mb-0.5">
-                  {formatCount(profile.connection_count ?? 584)}
+                  {formatCount(profile.connection_count ?? 0)}
                 </span>
                 <span className="text-[11px] sm:text-xs text-[#5d5854] font-medium leading-none">connections</span>
               </div>
@@ -264,13 +262,14 @@ export function ProfileHeader({
             {/* Name with Blue Verification Badge & Member ID Badge */}
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-base sm:text-lg font-black text-[#171717] tracking-tight leading-none">
-                {profile.name}
+                {profile.name || "Medical Professional"}
               </h1>
-              <CheckCircle2 className="h-4 w-4 text-blue-500 fill-blue-500 text-white shrink-0" />
-              {isVerified && (
+              {isVerified ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700 leading-none">
                   <ShieldCheck className="h-3 w-3" /> Verified Clinician
                 </span>
+              ) : (
+                <CheckCircle2 className="h-4 w-4 text-blue-500 fill-blue-500 text-white shrink-0" />
               )}
               {/* Unique Member ID Badge */}
               <MemberBadge
@@ -289,21 +288,40 @@ export function ProfileHeader({
                   @{profile.username}
                 </span>
               )}
-              {(profile.designation || profile.profession || profile.specialization) && (
+              {(profile.designation || profile.profession || profile.specialization) ? (
                 <p className="font-semibold leading-snug">
                   {profile.username ? "· " : ""}
                   {profile.designation ? `${profile.designation} · ` : ""}
                   {profile.profession || ""}
                   {profile.specialization ? ` (${profile.specialization})` : ""}
                 </p>
-              )}
+              ) : isOwnProfile ? (
+                <button
+                  type="button"
+                  onClick={onEditProfileClick}
+                  className="text-xs font-semibold text-[#1769c2] hover:underline"
+                >
+                  · + Add designation & specialty
+                </button>
+              ) : null}
             </div>
 
             {/* Bio Text */}
-            <p className="text-xs sm:text-sm text-[#262626] leading-snug">
-              {profile.bio ||
-                "Specialized in Clinical Healthcare, Rehabilitation & Patient Wellness. Helping patients regain strength & health with evidence-based modern medical practices."}
-            </p>
+            {profile.bio ? (
+              <p className="text-xs sm:text-sm text-[#262626] leading-snug">
+                {profile.bio}
+              </p>
+            ) : isOwnProfile ? (
+              <button
+                type="button"
+                onClick={onEditProfileClick}
+                className="text-xs text-[#1769c2] font-semibold hover:underline inline-flex items-center gap-1 py-0.5"
+              >
+                <span>+ Add your clinical bio & background</span>
+              </button>
+            ) : (
+              <p className="text-xs text-[#8a8784] italic">No bio provided yet.</p>
+            )}
 
             {/* Location & Links (only if present) */}
             {(profile.city || profile.state || profile.organization || (profile.experience_years !== undefined && profile.experience_years > 0)) && (
@@ -328,7 +346,7 @@ export function ProfileHeader({
             )}
 
             {/* Specialty Tag Pills */}
-            {tags.length > 0 && (
+            {tags.length > 0 ? (
               <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
                 {tags.slice(0, 4).map((tag, idx) => (
                   <span
@@ -344,7 +362,17 @@ export function ProfileHeader({
                   </span>
                 )}
               </div>
-            )}
+            ) : isOwnProfile ? (
+              <div className="pt-0.5">
+                <button
+                  type="button"
+                  onClick={onEditProfileClick}
+                  className="inline-flex items-center gap-1 rounded-lg border border-dashed border-[#cbdff7] bg-[#f4f8fe] px-2.5 py-1 text-[11px] font-semibold text-[#1769c2] hover:bg-[#eef5fc] transition"
+                >
+                  <span>+ Add Clinical Specialties & Skills</span>
+                </button>
+              </div>
+            ) : null}
           </div>
 
           {/* 4. ACTION BUTTONS ROW (Instagram / LinkedIn Hybrid Style) */}

@@ -341,6 +341,129 @@ export async function ensureNetworkingTables(): Promise<void> {
       }
     }
 
+    // 1. Connection Requests
+    await sql`
+      CREATE TABLE IF NOT EXISTS connection_requests (
+        id              TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+        sender_id       TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+        receiver_id     TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+        message         TEXT,
+        status          TEXT NOT NULL DEFAULT 'pending',
+        created_at      TIMESTAMPTZ DEFAULT now(),
+        updated_at      TIMESTAMPTZ DEFAULT now()
+      );
+    `.execute(networkDb);
+
+    // 2. Connections
+    await sql`
+      CREATE TABLE IF NOT EXISTS connections (
+        id              TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+        user_a_id       TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+        user_b_id       TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+        connected_at    TIMESTAMPTZ DEFAULT now()
+      );
+    `.execute(networkDb);
+
+    // 3. Follows
+    await sql`
+      CREATE TABLE IF NOT EXISTS follows (
+        id              TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+        follower_id     TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+        following_id    TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+        created_at      TIMESTAMPTZ DEFAULT now()
+      );
+    `.execute(networkDb);
+
+    // 4. Communities
+    await sql`
+      CREATE TABLE IF NOT EXISTS communities (
+        id              TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+        slug            TEXT NOT NULL UNIQUE,
+        name            TEXT NOT NULL,
+        description     TEXT,
+        specialty       TEXT,
+        cover_url       TEXT,
+        icon_url        TEXT,
+        visibility      TEXT DEFAULT 'public',
+        join_mode       TEXT DEFAULT 'open',
+        created_by      TEXT REFERENCES "user"(id) ON DELETE SET NULL,
+        member_count    INTEGER DEFAULT 0,
+        post_count      INTEGER DEFAULT 0,
+        created_at      TIMESTAMPTZ DEFAULT now(),
+        updated_at      TIMESTAMPTZ DEFAULT now()
+      );
+    `.execute(networkDb);
+
+    // 5. Community Members
+    await sql`
+      CREATE TABLE IF NOT EXISTS community_members (
+        id              TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+        community_id    TEXT NOT NULL REFERENCES communities(id) ON DELETE CASCADE,
+        user_id         TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+        role            TEXT DEFAULT 'member',
+        joined_at       TIMESTAMPTZ DEFAULT now()
+      );
+    `.execute(networkDb);
+
+    // 6. Network Posts
+    await sql`
+      CREATE TABLE IF NOT EXISTS network_posts (
+        id              TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+        author_id       TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+        post_type       TEXT NOT NULL DEFAULT 'text',
+        content         TEXT NOT NULL,
+        media_urls      TEXT[],
+        poll_options    JSONB,
+        poll_ends_at    TIMESTAMPTZ,
+        community_id    TEXT,
+        visibility      TEXT DEFAULT 'public',
+        reaction_count  INTEGER DEFAULT 0,
+        comment_count   INTEGER DEFAULT 0,
+        share_count     INTEGER DEFAULT 0,
+        created_at      TIMESTAMPTZ DEFAULT now(),
+        updated_at      TIMESTAMPTZ DEFAULT now()
+      );
+    `.execute(networkDb);
+
+    // 7. Post Reactions
+    await sql`
+      CREATE TABLE IF NOT EXISTS post_reactions (
+        id              TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+        post_id         TEXT NOT NULL REFERENCES network_posts(id) ON DELETE CASCADE,
+        user_id         TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+        reaction_type   TEXT NOT NULL DEFAULT 'like',
+        created_at      TIMESTAMPTZ DEFAULT now()
+      );
+    `.execute(networkDb);
+
+    // 8. Post Comments
+    await sql`
+      CREATE TABLE IF NOT EXISTS post_comments (
+        id              TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+        post_id         TEXT NOT NULL REFERENCES network_posts(id) ON DELETE CASCADE,
+        author_id       TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+        parent_id       TEXT REFERENCES post_comments(id) ON DELETE CASCADE,
+        content         TEXT NOT NULL,
+        created_at      TIMESTAMPTZ DEFAULT now(),
+        updated_at      TIMESTAMPTZ DEFAULT now()
+      );
+    `.execute(networkDb);
+
+    // 9. Network Notifications
+    await sql`
+      CREATE TABLE IF NOT EXISTS network_notifications (
+        id              TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+        user_id         TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+        actor_id        TEXT REFERENCES "user"(id) ON DELETE SET NULL,
+        type            TEXT NOT NULL,
+        entity_type     TEXT,
+        entity_id       TEXT,
+        message         TEXT,
+        is_read         BOOLEAN DEFAULT false,
+        created_at      TIMESTAMPTZ DEFAULT now()
+      );
+    `.execute(networkDb);
+
     networkingTablesInitialized = true;
   } catch (err) {
     console.warn("ensureNetworkingTables warning:", err);

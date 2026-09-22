@@ -25,6 +25,7 @@ export async function GET(request: Request) {
   const offset = (page - 1) * pageSize;
 
   try {
+    await ensureNetworkingTables();
     let base = networkDb
       .selectFrom("user as u")
       .leftJoin("professional_profiles as pp", "pp.user_id", "u.id")
@@ -164,7 +165,7 @@ export async function GET(request: Request) {
     });
   } catch (err) {
     console.error("GET /api/network/profiles error:", err);
-    return Response.json({ error: "Failed to fetch profiles" }, { status: 500 });
+    return Response.json({ data: [], total: 0, page: 1, pageSize, hasMore: false, error: "Failed to fetch profiles" });
   }
 }
 

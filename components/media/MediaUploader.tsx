@@ -176,7 +176,7 @@ export function MediaUploader({
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-blue-400 flex items-center gap-1.5">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Uploading directly to R2...
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Uploading...
                 </span>
                 <span className="font-mono text-slate-400">{progress}%</span>
               </div>
@@ -196,7 +196,7 @@ export function MediaUploader({
               <div className="space-y-1 overflow-hidden">
                 <span className="font-bold block">Upload Complete!</span>
                 <p className="text-[11px] font-mono text-emerald-400/90 truncate">
-                  CDN URL: {uploadedResult.publicUrl}
+                  URL: {uploadedResult.publicUrl}
                 </p>
               </div>
             </div>
@@ -230,7 +230,7 @@ export function MediaUploader({
                 ) : (
                   <>
                     <UploadCloud className="h-3.5 w-3.5" />
-                    <span>Upload to Cloudflare R2</span>
+                    <span>Upload File</span>
                   </>
                 )}
               </button>

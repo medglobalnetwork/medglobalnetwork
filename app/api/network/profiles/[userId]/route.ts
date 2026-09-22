@@ -222,8 +222,8 @@ export async function GET(
 
     const targetUserId = profile.user_id;
 
-    // Count connections and followers
-    const [connCount, followerCount, followingCount] = await Promise.all([
+    // Count connections, followers, and posts
+    const [connCount, followerCount, followingCount, postCount] = await Promise.all([
       networkDb
         .selectFrom("connections")
         .where((eb) =>
@@ -241,6 +241,12 @@ export async function GET(
         .where("follower_id", "=", targetUserId)
         .select((eb) => eb.fn.countAll<string>().as("total"))
         .executeTakeFirst(),
+      networkDb
+        .selectFrom("network_posts")
+        .where("author_id", "=", targetUserId)
+        .select((eb) => eb.fn.countAll<string>().as("total"))
+        .executeTakeFirst()
+        .catch(() => ({ total: "0" })),
     ]);
 
     // Check relationship with session user
@@ -285,6 +291,7 @@ export async function GET(
         connection_count: parseInt(connCount?.total ?? "0", 10),
         follower_count: parseInt(followerCount?.total ?? "0", 10),
         following_count: parseInt(followingCount?.total ?? "0", 10),
+        post_count: parseInt(postCount?.total ?? "0", 10),
         connection_status,
         connection_request_id: req?.id,
         follow_status: follow ? "following" : "not_following",
