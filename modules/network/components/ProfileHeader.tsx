@@ -16,6 +16,7 @@ import {
   Users,
   Sparkles
 } from "lucide-react";
+import { MemberBadge } from "@/modules/network/components/MemberBadge";
 import { VerificationBadge } from "@/modules/network/components/VerificationBadge";
 import { ConnectionButton } from "@/modules/network/components/ConnectionButton";
 import type { ProfessionalProfile, ConnectionStatus } from "@/modules/network/types";
@@ -260,8 +261,8 @@ export function ProfileHeader({
 
           {/* 3. NAME, PROFESSION, BIO & LINKS */}
           <div className="space-y-1.5 mb-2.5 sm:mb-3">
-            {/* Name with Blue Verification Badge */}
-            <div className="flex items-center gap-1.5 flex-wrap">
+            {/* Name with Blue Verification Badge & Member ID Badge */}
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-base sm:text-lg font-black text-[#171717] tracking-tight leading-none">
                 {profile.name}
               </h1>
@@ -271,16 +272,32 @@ export function ProfileHeader({
                   <ShieldCheck className="h-3 w-3" /> Verified Clinician
                 </span>
               )}
+              {/* Unique Member ID Badge */}
+              <MemberBadge
+                memberId={profile.member_id}
+                isFoundingMember={profile.is_founding_member}
+                membershipTier={profile.membership_tier}
+                size="sm"
+                variant={profile.is_founding_member ? "full" : "pill"}
+              />
             </div>
 
-            {/* Profession & Specialization (only if present) */}
-            {(profile.designation || profile.profession || profile.specialization) && (
-              <p className="text-xs font-semibold text-[#5d5854] leading-snug">
-                {profile.designation ? `${profile.designation} · ` : ""}
-                {profile.profession || ""}
-                {profile.specialization ? ` (${profile.specialization})` : ""}
-              </p>
-            )}
+            {/* Handle & Profession & Specialization */}
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-[#5d5854]">
+              {profile.username && (
+                <span className="font-mono font-semibold text-[#1769c2]">
+                  @{profile.username}
+                </span>
+              )}
+              {(profile.designation || profile.profession || profile.specialization) && (
+                <p className="font-semibold leading-snug">
+                  {profile.username ? "· " : ""}
+                  {profile.designation ? `${profile.designation} · ` : ""}
+                  {profile.profession || ""}
+                  {profile.specialization ? ` (${profile.specialization})` : ""}
+                </p>
+              )}
+            </div>
 
             {/* Bio Text */}
             <p className="text-xs sm:text-sm text-[#262626] leading-snug">

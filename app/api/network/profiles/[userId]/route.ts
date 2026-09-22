@@ -1,6 +1,7 @@
 // app/api/network/profiles/[userId]/route.ts
 import { auth } from "@/lib/auth";
 import { networkDb, ensureNetworkingTables, slugifyUsername, generateId } from "@/modules/network/lib/network-db";
+import { generateRegularMemberId, generateFoundingMemberId, isDesignatedFounderEmail } from "@/modules/network/lib/member-id";
 import { headers } from "next/headers";
 
 export async function GET(
@@ -25,6 +26,9 @@ export async function GET(
         "pp.id",
         "pp.user_id",
         "pp.username",
+        "pp.member_id",
+        "pp.is_founding_member",
+        "pp.membership_tier",
         "u.name",
         "u.email",
         "u.image",
@@ -56,13 +60,14 @@ export async function GET(
         eb.or([
           eb("pp.user_id", "=", userId),
           eb("pp.username", "=", normalizedId),
+          eb("pp.member_id", "ilike", normalizedId),
           eb("pp.id", "=", userId),
           eb("u.id", "=", userId),
         ])
       )
       .executeTakeFirst();
 
-    // If no professional profile exists, find the user and auto-create professional profile with username
+    // If no professional profile exists, find the user and auto-create professional profile with username & member_id
     if (!profile) {
       const user = await networkDb
         .selectFrom("user")
@@ -94,6 +99,9 @@ export async function GET(
         usernameCandidate = `${baseUsername}-${user.id.slice(0, 5).toLowerCase()}`;
       }
 
+      const isFounder = isDesignatedFounderEmail(user.email);
+      const memberId = isFounder ? generateFoundingMemberId(1) : generateRegularMemberId();
+
       const now = new Date();
       await networkDb
         .insertInto("professional_profiles")
@@ -101,6 +109,9 @@ export async function GET(
           id: generateId(),
           user_id: user.id,
           username: usernameCandidate,
+          member_id: memberId,
+          is_founding_member: isFounder,
+          membership_tier: isFounder ? "FOUNDING_MEMBER" : "MEMBER",
           profession: "Physiotherapy",
           specialization: null,
           sub_specialization: null,
@@ -132,6 +143,9 @@ export async function GET(
         id: user.id,
         user_id: user.id,
         username: usernameCandidate,
+        member_id: memberId,
+        is_founding_member: isFounder,
+        membership_tier: isFounder ? "FOUNDING_MEMBER" : "MEMBER",
         name: user.name,
         email: user.email,
         image: user.image,
@@ -183,6 +197,27 @@ export async function GET(
         .execute();
 
       profile.username = cleanUsername;
+    }
+
+    // Auto-assign member_id if missing in existing profile
+    if (!profile.member_id) {
+      const isFounder = isDesignatedFounderEmail(profile.email) || Boolean(profile.is_founding_member);
+      const generatedMemberId = isFounder ? generateFoundingMemberId(1) : generateRegularMemberId();
+
+      await networkDb
+        .updateTable("professional_profiles")
+        .set({
+          member_id: generatedMemberId,
+          is_founding_member: isFounder,
+          membership_tier: isFounder ? "FOUNDING_MEMBER" : (profile.membership_tier || "MEMBER"),
+          updated_at: new Date(),
+        })
+        .where("user_id", "=", profile.user_id)
+        .execute();
+
+      profile.member_id = generatedMemberId;
+      profile.is_founding_member = isFounder;
+      profile.membership_tier = isFounder ? "FOUNDING_MEMBER" : (profile.membership_tier || "MEMBER");
     }
 
     const targetUserId = profile.user_id;

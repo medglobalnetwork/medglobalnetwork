@@ -10,6 +10,7 @@ import path from "path";
 import os from "os";
 import { mkdir, writeFile } from "fs/promises";
 import { verifDb } from "./verification-db";
+import { networkDb } from "@/modules/network/lib/network-db";
 
 export interface UserStoragePaths {
   rootDir: string;
@@ -72,6 +73,13 @@ export async function syncUserDossier(userId: string): Promise<void> {
       .where("id", "=", userId)
       .executeTakeFirst();
 
+    const profProfile = await networkDb
+      .selectFrom("professional_profiles")
+      .select(["member_id", "is_founding_member", "membership_tier", "profession", "specialization"])
+      .where("user_id", "=", userId)
+      .executeTakeFirst()
+      .catch(() => null);
+
     const identity = await verifDb
       .selectFrom("mgn_identities")
       .selectAll()
@@ -112,6 +120,9 @@ export async function syncUserDossier(userId: string): Promise<void> {
     const dossier = {
       generated_at: new Date().toISOString(),
       user: user || { id: userId },
+      member_id: profProfile?.member_id || null,
+      is_founding_member: profProfile?.is_founding_member ?? false,
+      membership_tier: profProfile?.membership_tier || "MEMBER",
       identity: identity || null,
       claimed_titles: titles || [],
       qualifications: qualifications || [],
@@ -141,6 +152,8 @@ export async function syncUserDossier(userId: string): Promise<void> {
     const summaryText = `================================================================================
 MGN.LIFE USER PROFILE & VERIFICATION DOSSIER
 User ID: ${userId}
+Member ID: ${profProfile?.member_id || "PENDING"}
+Membership Tier: ${profProfile?.is_founding_member ? "FOUNDING MEMBER 👑" : profProfile?.membership_tier || "MEMBER"}
 Generated: ${new Date().toLocaleString()}
 ================================================================================
 
@@ -148,13 +161,15 @@ Generated: ${new Date().toLocaleString()}
 --------------------------------------------------------------------------------
 - Full Name:           ${fullName}
 - Display Name:        ${identity?.display_name || "N/A"}
+- Member ID:           ${profProfile?.member_id || "Pending Allocation"}
+- Membership Tier:     ${profProfile?.is_founding_member ? "FOUNDING_MEMBER (Founder Tier 👑)" : profProfile?.membership_tier || "MEMBER"}
 - Email:               ${user?.email || identity?.official_email || "N/A"}
 - Account Type:        ${identity?.account_type || "N/A"}
 - Category:            ${identity?.category || "N/A"}
-- Profession/Type:     ${identity?.profession_or_type || "N/A"}
+- Profession/Type:     ${identity?.profession_or_type || profProfile?.profession || "N/A"}
 - Location:            ${[identity?.city, identity?.state, identity?.country].filter(Boolean).join(", ") || "N/A"}
 - Organization:        ${identity?.current_organization || "N/A"}
-- Specialization:      ${identity?.specialization || "N/A"}
+- Specialization:      ${identity?.specialization || profProfile?.specialization || "N/A"}
 - Experience (Years):  ${identity?.experience_years ?? "N/A"}
 
 2. VERIFICATION STATUS

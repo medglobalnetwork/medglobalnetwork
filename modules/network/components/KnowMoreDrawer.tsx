@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import type { ProfessionalProfile } from "@/modules/network/types";
 import { VerificationBadge } from "@/modules/network/components/VerificationBadge";
+import { MemberBadge } from "@/modules/network/components/MemberBadge";
 
 interface KnowMoreDrawerProps {
   isOpen: boolean;
@@ -74,11 +75,17 @@ export function KnowMoreDrawer({ isOpen, onClose, profile }: KnowMoreDrawerProps
               MGN
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <h2 className="text-base font-extrabold text-[#171717]">
-                  {profile.name} — Credentials & Dossier
+                  {profile.name}
                 </h2>
                 {isVerified && <VerificationBadge size="sm" type="full" />}
+                <MemberBadge
+                  memberId={profile.member_id}
+                  isFoundingMember={profile.is_founding_member}
+                  membershipTier={profile.membership_tier}
+                  size="xs"
+                />
               </div>
               <p className="text-xs text-[#77716b]">
                 {profile.profession} · Full Clinical Portfolio
@@ -139,13 +146,28 @@ export function KnowMoreDrawer({ isOpen, onClose, profile }: KnowMoreDrawerProps
           <section id="section-overview" className="rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-xs">
             <div className="flex items-center gap-2 mb-3 text-sm font-bold text-[#171717]">
               <User className="h-4 w-4 text-[#1769c2]" />
-              <span>Personal Summary & Bio</span>
+              <span>Personal Summary & Identity</span>
             </div>
             <p className="text-xs sm:text-sm text-[#44403c] leading-relaxed">
               {profile.bio || "Dedicated healthcare clinician focused on delivering exceptional patient care and continuous evidence-based rehabilitation."}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 pt-4 border-t border-[#f0efee] text-xs">
+              <div className="flex items-center gap-2 text-[#5d5854]">
+                <span className="font-semibold text-[#171717]">Member ID:</span>
+                <MemberBadge
+                  memberId={profile.member_id}
+                  isFoundingMember={profile.is_founding_member}
+                  membershipTier={profile.membership_tier}
+                  size="xs"
+                />
+              </div>
+              <div className="flex items-center gap-2 text-[#5d5854]">
+                <span className="font-semibold text-[#171717]">Membership Tier:</span>
+                <span className="font-bold text-[#1769c2]">
+                  {profile.is_founding_member ? "Founding Member 👑" : "Verified Member"}
+                </span>
+              </div>
               <div className="flex items-center gap-2 text-[#5d5854]">
                 <MapPin className="h-4 w-4 text-[#1769c2]" />
                 <span>Location: <strong>{[profile.city, profile.state, "India"].filter(Boolean).join(", ")}</strong></span>

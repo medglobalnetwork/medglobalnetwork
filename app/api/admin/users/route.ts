@@ -27,6 +27,9 @@ export async function GET(req: NextRequest) {
         u."emailVerified",
         u.image,
         u."createdAt",
+        pp.member_id,
+        pp.is_founding_member,
+        pp.membership_tier,
         pp.profession,
         pp.specialization,
         pp.designation,
@@ -56,6 +59,9 @@ export async function GET(req: NextRequest) {
       emailVerified: Boolean(row.emailVerified),
       image: row.image,
       createdAt: row.createdAt,
+      memberId: row.member_id || (row.email?.toLowerCase() === "patreshubham141@gmail.com" ? "MGN-FOUNDER-001" : `MGN-${row.id.slice(0, 6).toUpperCase()}`),
+      isFoundingMember: Boolean(row.is_founding_member || row.email?.toLowerCase() === "patreshubham141@gmail.com"),
+      membershipTier: row.membership_tier || (row.email?.toLowerCase() === "patreshubham141@gmail.com" ? "FOUNDING_MEMBER" : "MEMBER"),
       profession: row.profession || "General Member",
       specialization: row.specialization || "General Medicine",
       designation: row.designation || null,
@@ -86,7 +92,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { action, userId, role, reason } = body;
+    const { action, userId, role, reason, memberId, isFoundingMember } = body;
 
     if (action === "assign_role") {
       if (!admin.isSuperAdmin && !hasPermission(admin, "rbac.manage")) {
@@ -132,6 +138,56 @@ export async function POST(req: NextRequest) {
       });
 
       return NextResponse.json({ success: true, message: `Role ${role} removed` });
+    }
+
+    if (action === "update_member_id") {
+      const cleanMemberId = String(memberId || "").trim().toUpperCase();
+      if (!cleanMemberId) {
+        return NextResponse.json({ error: "Member ID cannot be empty" }, { status: 400 });
+      }
+
+      await sql`
+        INSERT INTO professional_profiles (id, user_id, member_id, created_at, updated_at)
+        VALUES (gen_random_uuid()::text, ${userId}, ${cleanMemberId}, NOW(), NOW())
+        ON CONFLICT (user_id) DO UPDATE
+        SET member_id = ${cleanMemberId}, updated_at = NOW()
+      `.execute(database);
+
+      await recordAuditLog({
+        admin,
+        action: "user.member_id_updated",
+        entityType: "user",
+        entityId: userId,
+        newState: { member_id: cleanMemberId },
+        reason: reason || "Admin manual update",
+      });
+
+      return NextResponse.json({ success: true, message: `Member ID updated to ${cleanMemberId}` });
+    }
+
+    if (action === "toggle_founding_member") {
+      const isFounder = Boolean(isFoundingMember);
+      const tier = isFounder ? "FOUNDING_MEMBER" : "MEMBER";
+
+      await sql`
+        INSERT INTO professional_profiles (id, user_id, is_founding_member, membership_tier, created_at, updated_at)
+        VALUES (gen_random_uuid()::text, ${userId}, ${isFounder}, ${tier}, NOW(), NOW())
+        ON CONFLICT (user_id) DO UPDATE
+        SET is_founding_member = ${isFounder},
+            membership_tier = ${tier},
+            updated_at = NOW()
+      `.execute(database);
+
+      await recordAuditLog({
+        admin,
+        action: "user.founding_status_updated",
+        entityType: "user",
+        entityId: userId,
+        newState: { is_founding_member: isFounder, membership_tier: tier },
+        reason: reason || "Admin toggle founding status",
+      });
+
+      return NextResponse.json({ success: true, message: `Founding member status updated to ${isFounder}` });
     }
 
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });

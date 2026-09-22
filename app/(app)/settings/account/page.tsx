@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl, setUserCustomAvatar } from "@/lib/avatar";
-import { Trash2, User, Camera, Check, ExternalLink, Loader2 } from "lucide-react";
+import { Trash2, User, Camera, Check, ExternalLink, Loader2, Sparkles, ShieldCheck } from "lucide-react";
 import { ImageSelectorModal } from "@/components/media/ImageSelectorModal";
+import { MemberBadge } from "@/modules/network/components/MemberBadge";
 
 export default function AccountSettingsPage() {
   const router = useRouter();
@@ -18,9 +19,12 @@ export default function AccountSettingsPage() {
   const [hasPassword, setHasPassword] = React.useState<boolean | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   
-  // Name & Avatar & Username
+  // Name & Avatar & Username & Member ID
   const [name, setName] = React.useState("");
   const [username, setUsername] = React.useState("");
+  const [memberId, setMemberId] = React.useState<string | null>(null);
+  const [isFoundingMember, setIsFoundingMember] = React.useState(false);
+  const [membershipTier, setMembershipTier] = React.useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = React.useState<string>(DEFAULT_BLANK_AVATAR);
   const [isSavingName, setIsSavingName] = React.useState(false);
   const [isSavingUsername, setIsSavingUsername] = React.useState(false);
@@ -40,12 +44,22 @@ export default function AccountSettingsPage() {
     if (session?.user?.id) {
       fetch(`/api/network/profiles/${session.user.id}`, { credentials: "include" })
         .then((res) => res.json())
-        .then((data) => {
-          if (data?.profile?.username) {
-            setUsername(data.profile.username);
+        .then((resData) => {
+          const prof = resData?.data || resData?.profile;
+          if (prof?.username) {
+            setUsername(prof.username);
+          }
+          if (prof?.member_id) {
+            setMemberId(prof.member_id);
+          }
+          if (prof?.is_founding_member !== undefined) {
+            setIsFoundingMember(Boolean(prof.is_founding_member));
+          }
+          if (prof?.membership_tier) {
+            setMembershipTier(prof.membership_tier);
           }
         })
-        .catch((err) => console.error("Error fetching username:", err));
+        .catch((err) => console.error("Error fetching profile details:", err));
     }
   }, [isPending, router, session]);
 
@@ -292,6 +306,48 @@ export default function AccountSettingsPage() {
               <p className="mt-2 text-xs font-bold text-emerald-700">{photoSuccess}</p>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* MGN Member ID & Healthcare Identity Card */}
+      <div className={`rounded-2xl border p-5 sm:p-6 mb-6 shadow-xs ${
+        isFoundingMember
+          ? "border-amber-300 bg-gradient-to-br from-amber-50/70 via-white to-yellow-50/50"
+          : "border-[#ded8d1] bg-white"
+      }`}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-[#171717]">MGN Healthcare Member ID</h2>
+              {isFoundingMember && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-black text-amber-900 border border-amber-300">
+                  <Sparkles className="h-3 w-3 text-amber-600 fill-amber-500" />
+                  Founding Member
+                </span>
+              )}
+            </div>
+            <p className="mt-0.5 text-xs text-[#77716b]">
+              Your unique, official identifier across the MedGlobalNetwork clinical registry and CME transcripts.
+            </p>
+          </div>
+
+          <div>
+            <MemberBadge
+              memberId={memberId}
+              isFoundingMember={isFoundingMember}
+              membershipTier={membershipTier}
+              size="md"
+              variant={isFoundingMember ? "full" : "pill"}
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 pt-3 border-t border-[#f0efee] flex flex-wrap items-center justify-between gap-2 text-xs text-[#5d5854]">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-emerald-600" />
+            <span>Membership Status: <strong className="text-[#171717]">{isFoundingMember ? "Founding Member Cohort (Lifetime)" : "Standard Healthcare Member"}</strong></span>
+          </div>
+          <span className="text-[11px] text-[#77716b]">Assigned to: {session.user.email}</span>
         </div>
       </div>
 

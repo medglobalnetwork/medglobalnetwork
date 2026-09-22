@@ -17,6 +17,9 @@ export interface ProfessionalProfileTable {
   id: string;
   user_id: string;
   username: string | null;
+  member_id: string | null;
+  is_founding_member: boolean;
+  membership_tier: string | null;
   profession: string | null;
   specialization: string | null;
   sub_specialization: string | null;
@@ -270,6 +273,9 @@ export async function ensureNetworkingTables(): Promise<void> {
         experience_verified       BOOLEAN DEFAULT false,
         profile_visibility        TEXT DEFAULT 'public',
         cover_image_url           TEXT,
+        member_id                 TEXT,
+        is_founding_member        BOOLEAN DEFAULT false,
+        membership_tier           TEXT DEFAULT 'MEMBER',
         created_at                TIMESTAMPTZ DEFAULT now(),
         updated_at                TIMESTAMPTZ DEFAULT now()
       );
@@ -280,12 +286,65 @@ export async function ensureNetworkingTables(): Promise<void> {
     `.execute(networkDb);
 
     await sql`
+      ALTER TABLE professional_profiles ADD COLUMN IF NOT EXISTS member_id TEXT;
+    `.execute(networkDb);
+
+    await sql`
+      ALTER TABLE professional_profiles ADD COLUMN IF NOT EXISTS is_founding_member BOOLEAN DEFAULT false;
+    `.execute(networkDb);
+
+    await sql`
+      ALTER TABLE professional_profiles ADD COLUMN IF NOT EXISTS membership_tier TEXT DEFAULT 'MEMBER';
+    `.execute(networkDb);
+
+    await sql`
       CREATE UNIQUE INDEX IF NOT EXISTS idx_professional_profiles_username ON professional_profiles(username);
     `.execute(networkDb);
+
+    await sql`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_professional_profiles_member_id ON professional_profiles(member_id);
+    `.execute(networkDb);
+
+    // Auto-backfill founder ID for patreshubham141@gmail.com if not already assigned
+    await sql`
+      UPDATE professional_profiles pp
+      SET member_id = 'MGN-FOUNDER-001',
+          is_founding_member = true,
+          membership_tier = 'FOUNDING_MEMBER'
+      FROM "user" u
+      WHERE pp.user_id = u.id
+        AND LOWER(u.email) = 'patreshubham141@gmail.com'
+        AND (pp.member_id IS NULL OR pp.member_id = '' OR pp.is_founding_member = false);
+    `.execute(networkDb);
+
+    // Backfill any remaining profiles missing a member_id
+    const unassigned: any = await sql`
+      SELECT pp.id, pp.user_id, pp.is_founding_member, u.email
+      FROM professional_profiles pp
+      LEFT JOIN "user" u ON u.id = pp.user_id
+      WHERE pp.member_id IS NULL OR pp.member_id = ''
+      LIMIT 200;
+    `.execute(networkDb);
+
+    if (unassigned?.rows && unassigned.rows.length > 0) {
+      const { generateRegularMemberId, generateFoundingMemberId, isDesignatedFounderEmail } = await import("./member-id");
+      for (const row of unassigned.rows) {
+        const isFounder = isDesignatedFounderEmail(row.email) || Boolean(row.is_founding_member);
+        const newMemberId = isFounder ? generateFoundingMemberId(1) : generateRegularMemberId();
+        await sql`
+          UPDATE professional_profiles
+          SET member_id = ${newMemberId},
+              is_founding_member = ${isFounder},
+              membership_tier = ${isFounder ? "FOUNDING_MEMBER" : "MEMBER"}
+          WHERE id = ${row.id}
+        `.execute(networkDb);
+      }
+    }
 
     networkingTablesInitialized = true;
   } catch (err) {
     console.warn("ensureNetworkingTables warning:", err);
   }
 }
+
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Heart, MessageSquare, MoreHorizontal, Share2, Copy, Check } from "lucide-react";
 import type { ProfessionalProfile, ConnectionStatus } from "../types";
 import { VerificationBadge } from "./VerificationBadge";
+import { MemberBadge } from "./MemberBadge";
 import { ConnectionButton } from "./ConnectionButton";
 import { ConnectionRequestModal } from "./ConnectionRequestModal";
 import { getProfessionColor } from "../lib/network-data";
@@ -131,7 +132,7 @@ export function ProfessionalCard({
 
         {/* Info */}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <button
               type="button"
               onClick={() => router.push(`/profile/${profile.user_id}`)}
@@ -140,6 +141,13 @@ export function ProfessionalCard({
               {profile.name}
             </button>
             {isVerified && <VerificationBadge size="sm" />}
+            <MemberBadge
+              memberId={profile.member_id}
+              isFoundingMember={profile.is_founding_member}
+              membershipTier={profile.membership_tier}
+              size="xs"
+              showCopy={false}
+            />
           </div>
           <p className="truncate text-xs text-[#77716b]">
             {profile.designation || profile.profession}
@@ -212,15 +220,20 @@ export function ProfessionalCard({
           )}
         </button>
 
-        {/* Top-Left: Verified Badge Overlay */}
-        {isVerified && (
-          <div className="absolute left-2 top-2 sm:left-3 sm:top-3">
+        {/* Top-Left: Verified Badge Overlay & Founder Badge */}
+        <div className="absolute left-2 top-2 sm:left-3 sm:top-3 flex flex-col items-start gap-1">
+          {profile.is_founding_member && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 px-2 py-0.5 text-[9px] sm:text-[10px] font-black text-amber-950 shadow-xs backdrop-blur-xs">
+              👑 Founder
+            </span>
+          )}
+          {isVerified && (
             <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[11px] font-bold text-emerald-700 shadow-xs backdrop-blur-xs">
               <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-emerald-500" />
               Verified
             </span>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Top-Right: Options and Bookmark Stack */}
         <div className="absolute right-2 top-2 sm:right-3 sm:top-3 flex flex-col items-center gap-1 sm:gap-1.5">
@@ -286,8 +299,8 @@ export function ProfessionalCard({
       {/* 2. BOTTOM CARD CONTENT */}
       <div className="flex flex-1 flex-col justify-between p-2.5 sm:p-3.5">
         <div>
-          {/* Name with Blue Verified Badge */}
-          <div className="flex items-center gap-1">
+          {/* Name with Blue Verified Badge & Member ID */}
+          <div className="flex items-center gap-1 flex-wrap">
             <button
               type="button"
               onClick={() => router.push(`/profile/${profile.user_id}`)}
@@ -296,6 +309,17 @@ export function ProfessionalCard({
               {profile.name}
             </button>
             <VerificationBadge size="sm" />
+          </div>
+
+          {/* Member ID Tag */}
+          <div className="mt-1">
+            <MemberBadge
+              memberId={profile.member_id}
+              isFoundingMember={profile.is_founding_member}
+              membershipTier={profile.membership_tier}
+              size="xs"
+              showCopy={false}
+            />
           </div>
 
           {/* Profession Subtitle */}

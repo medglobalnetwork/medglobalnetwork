@@ -4,12 +4,16 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl } from "@/lib/avatar";
+import { MemberBadge } from "@/modules/network/components/MemberBadge";
 
 export default function UserMenu() {
   const router = useRouter();
   const { data: session } = authClient.useSession();
   const [open, setOpen] = React.useState(false);
   const [avatarUrl, setAvatarUrl] = React.useState<string>(DEFAULT_BLANK_AVATAR);
+  const [memberId, setMemberId] = React.useState<string | null>(null);
+  const [isFoundingMember, setIsFoundingMember] = React.useState(false);
+  const [membershipTier, setMembershipTier] = React.useState<string | null>(null);
   const ref = React.useRef<HTMLDivElement>(null);
 
   // Sync avatar on mount and on custom avatar change
@@ -27,6 +31,21 @@ export default function UserMenu() {
     window.addEventListener("mgn-avatar-updated", updateAvatar);
     return () => window.removeEventListener("mgn-avatar-updated", updateAvatar);
   }, [session?.user?.email, session?.user?.name, session?.user?.image]);
+
+  // Fetch Member ID
+  React.useEffect(() => {
+    if (session?.user?.id) {
+      fetch(`/api/network/profiles/${session.user.id}`, { credentials: "include" })
+        .then((res) => res.json())
+        .then((resData) => {
+          const prof = resData?.data || resData?.profile;
+          if (prof?.member_id) setMemberId(prof.member_id);
+          if (prof?.is_founding_member !== undefined) setIsFoundingMember(Boolean(prof.is_founding_member));
+          if (prof?.membership_tier) setMembershipTier(prof.membership_tier);
+        })
+        .catch(() => {});
+    }
+  }, [session?.user?.id]);
 
   // Close on outside click
   React.useEffect(() => {
@@ -69,31 +88,34 @@ export default function UserMenu() {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-11 lg:top-14 z-50 w-[280px] lg:w-[300px] overflow-hidden rounded-2xl border border-[#ebebeb] bg-white shadow-[0_8px_40px_rgba(0,0,0,0.12)]">
+        <div className="absolute right-0 top-11 lg:top-14 z-50 w-[280px] lg:w-[310px] overflow-hidden rounded-2xl border border-[#ebebeb] bg-white shadow-[0_8px_40px_rgba(0,0,0,0.12)]">
           {/* User info */}
           <div
             onClick={() => session?.user?.id && navTo(`/profile/${session.user.id}`)}
             role="button"
             tabIndex={0}
-            className="flex cursor-pointer items-center gap-3 px-5 py-4 transition hover:bg-[#f8f7f6]"
+            className="flex cursor-pointer items-start gap-3 px-4 py-3.5 transition hover:bg-[#f8f7f6]"
           >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#ded8d1] bg-[#eef5fc]">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#ded8d1] bg-[#eef5fc] mt-0.5">
               <img
                 src={avatarUrl || DEFAULT_BLANK_AVATAR}
                 alt={session?.user?.name || "User Avatar"}
                 className="h-full w-full rounded-full object-cover"
               />
             </span>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-[#171717]">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-bold text-[#171717]">
                 {session?.user.name || "User"}
               </p>
-              <p className="truncate text-[12px] text-[#8a8784]">
+              <p className="truncate text-[11px] text-[#8a8784] mb-1">
                 {session?.user.email}
               </p>
-              <p className="mt-0.5 text-[11px] font-medium text-[#1769c2]">
-                View Profile →
-              </p>
+              <MemberBadge
+                memberId={memberId}
+                isFoundingMember={isFoundingMember}
+                membershipTier={membershipTier}
+                size="xs"
+              />
             </div>
           </div>
 

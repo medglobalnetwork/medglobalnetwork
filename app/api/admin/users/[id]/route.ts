@@ -90,6 +90,56 @@ export async function PATCH(
       return NextResponse.json({ success: true, message: `Updated ${type} verification to ${value}` });
     }
 
+    if (action === "update_member_id") {
+      const cleanMemberId = String(updates?.memberId || updates?.member_id || "").trim().toUpperCase();
+      if (!cleanMemberId) {
+        return NextResponse.json({ error: "Member ID cannot be empty" }, { status: 400 });
+      }
+
+      await sql`
+        INSERT INTO professional_profiles (id, user_id, member_id, created_at, updated_at)
+        VALUES (gen_random_uuid()::text, ${id}, ${cleanMemberId}, NOW(), NOW())
+        ON CONFLICT (user_id) DO UPDATE
+        SET member_id = ${cleanMemberId}, updated_at = NOW()
+      `.execute(database);
+
+      await recordAuditLog({
+        admin,
+        action: "user.member_id_updated",
+        entityType: "professional_profile",
+        entityId: id,
+        newState: { member_id: cleanMemberId },
+        reason: reason || "Admin manual update",
+      });
+
+      return NextResponse.json({ success: true, message: `Member ID updated to ${cleanMemberId}` });
+    }
+
+    if (action === "toggle_founding_member") {
+      const isFounder = Boolean(updates?.isFoundingMember ?? updates?.is_founding_member);
+      const tier = isFounder ? "FOUNDING_MEMBER" : "MEMBER";
+
+      await sql`
+        INSERT INTO professional_profiles (id, user_id, is_founding_member, membership_tier, created_at, updated_at)
+        VALUES (gen_random_uuid()::text, ${id}, ${isFounder}, ${tier}, NOW(), NOW())
+        ON CONFLICT (user_id) DO UPDATE
+        SET is_founding_member = ${isFounder},
+            membership_tier = ${tier},
+            updated_at = NOW()
+      `.execute(database);
+
+      await recordAuditLog({
+        admin,
+        action: "user.founding_status_updated",
+        entityType: "professional_profile",
+        entityId: id,
+        newState: { is_founding_member: isFounder, membership_tier: tier },
+        reason: reason || "Admin toggle founding status",
+      });
+
+      return NextResponse.json({ success: true, message: `Founding status updated to ${isFounder}` });
+    }
+
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (error: any) {
     console.error("Error updating user:", error);

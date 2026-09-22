@@ -52,6 +52,9 @@ export interface ProfessionalProfile {
   id: string;
   user_id: string;
   username?: string;
+  member_id?: string;
+  is_founding_member?: boolean;
+  membership_tier?: "FOUNDING_MEMBER" | "MEMBER" | "PRO_MEMBER" | string;
   // User fields (joined)
   name: string;
   email: string;

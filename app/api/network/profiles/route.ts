@@ -1,6 +1,7 @@
 // app/api/network/profiles/route.ts
 import { auth } from "@/lib/auth";
 import { networkDb, generateId, ensureNetworkingTables, slugifyUsername } from "@/modules/network/lib/network-db";
+import { generateRegularMemberId, generateFoundingMemberId, isDesignatedFounderEmail } from "@/modules/network/lib/member-id";
 import { headers } from "next/headers";
 import { sql } from "kysely";
 
@@ -59,6 +60,8 @@ export async function GET(request: Request) {
         eb.or([
           eb("u.name", "ilike", `%${query}%`),
           eb("u.email", "ilike", `%${query}%`),
+          eb("pp.username", "ilike", `%${query}%`),
+          eb("pp.member_id", "ilike", `%${query}%`),
           eb("pp.profession", "ilike", `%${query}%`),
           eb("pp.specialization", "ilike", `%${query}%`),
           eb("pp.organization", "ilike", `%${query}%`),
@@ -74,6 +77,10 @@ export async function GET(request: Request) {
           "u.id as user_id",
           "u.name",
           "u.image",
+          "pp.username",
+          "pp.member_id",
+          "pp.is_founding_member",
+          "pp.membership_tier",
           "pp.profession",
           "pp.specialization",
           "pp.designation",
@@ -224,10 +231,16 @@ export async function POST(request: Request) {
       : existing?.additional_degrees ?? null;
 
     if (existing) {
+      const isFounder = existing.is_founding_member || isDesignatedFounderEmail(session.user.email);
+      const memberId = existing.member_id || (isFounder ? generateFoundingMemberId(1) : generateRegularMemberId());
+
       await networkDb
         .updateTable("professional_profiles")
         .set({
           username: sanitizedUsername !== undefined ? sanitizedUsername : existing.username,
+          member_id: memberId,
+          is_founding_member: isFounder,
+          membership_tier: isFounder ? "FOUNDING_MEMBER" : (existing.membership_tier || "MEMBER"),
           profession: body.profession ?? existing.profession,
           specialization: body.specialization ?? existing.specialization,
           sub_specialization: body.subSpecialization ?? body.sub_specialization ?? existing.sub_specialization,
@@ -255,12 +268,18 @@ export async function POST(request: Request) {
         .where("user_id", "=", session.user.id)
         .execute();
     } else {
+      const isFounder = isDesignatedFounderEmail(session.user.email);
+      const memberId = isFounder ? generateFoundingMemberId(1) : generateRegularMemberId();
+
       await networkDb
         .insertInto("professional_profiles")
         .values({
           id: generateId(),
           user_id: session.user.id,
           username: sanitizedUsername ?? slugifyUsername(body.name || session.user.name || "user"),
+          member_id: memberId,
+          is_founding_member: isFounder,
+          membership_tier: isFounder ? "FOUNDING_MEMBER" : "MEMBER",
           profession: body.profession ?? null,
           specialization: body.specialization ?? null,
           sub_specialization: body.subSpecialization ?? body.sub_specialization ?? null,

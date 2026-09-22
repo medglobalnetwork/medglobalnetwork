@@ -23,6 +23,8 @@ import {
   XCircle,
 } from "lucide-react";
 
+import { MemberBadge } from "@/modules/network/components/MemberBadge";
+
 interface UserRecord {
   id: string;
   name: string;
@@ -30,6 +32,9 @@ interface UserRecord {
   emailVerified: boolean;
   image: string | null;
   createdAt: string;
+  memberId?: string;
+  isFoundingMember?: boolean;
+  membershipTier?: string;
   profession: string;
   specialization: string;
   designation?: string;
@@ -50,6 +55,8 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UserRecord | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editingMemberId, setEditingMemberId] = useState(false);
+  const [customMemberIdInput, setCustomMemberIdInput] = useState("");
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -121,6 +128,58 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleToggleFounding = async (userId: string, isFounder: boolean, reason?: string) => {
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "toggle_founding_member",
+          userId,
+          isFoundingMember: isFounder,
+          reason,
+        }),
+      });
+      if (res.ok) {
+        fetchUsers();
+        if (selectedUser && selectedUser.id === userId) {
+          setSelectedUser((prev) =>
+            prev ? { ...prev, isFoundingMember: isFounder, membershipTier: isFounder ? "FOUNDING_MEMBER" : "MEMBER" } : null
+          );
+        }
+        setConfirmDialog((p) => ({ ...p, isOpen: false }));
+      }
+    } catch (err) {
+      console.error("Error updating founding status:", err);
+    }
+  };
+
+  const handleUpdateMemberId = async (userId: string, newMemberId: string) => {
+    if (!newMemberId.trim()) return;
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_member_id",
+          userId,
+          memberId: newMemberId.trim().toUpperCase(),
+        }),
+      });
+      if (res.ok) {
+        fetchUsers();
+        if (selectedUser && selectedUser.id === userId) {
+          setSelectedUser((prev) =>
+            prev ? { ...prev, memberId: newMemberId.trim().toUpperCase() } : null
+          );
+        }
+        setEditingMemberId(false);
+      }
+    } catch (err) {
+      console.error("Error updating member id:", err);
+    }
+  };
+
   const handleAssignRole = async (userId: string, role: string, reason?: string) => {
     try {
       const res = await fetch("/api/admin/users", {
@@ -161,7 +220,7 @@ export default function AdminUsersPage() {
             </div>
           )}
           <div>
-            <div className="flex items-center gap-1.5 font-bold text-white">
+            <div className="flex items-center gap-1.5 font-bold text-white flex-wrap">
               <span>{row.name}</span>
               {row.registrationVerified && (
                 <span title="Council Verified">
@@ -172,6 +231,19 @@ export default function AdminUsersPage() {
             <span className="text-[11px] text-slate-400">{row.email}</span>
           </div>
         </div>
+      ),
+    },
+    {
+      key: "memberId",
+      header: "Member ID",
+      sortable: true,
+      render: (row) => (
+        <MemberBadge
+          memberId={row.memberId}
+          isFoundingMember={row.isFoundingMember}
+          membershipTier={row.membershipTier}
+          size="xs"
+        />
       ),
     },
     {
@@ -356,6 +428,104 @@ export default function AdminUsersPage() {
                 <p className="mt-1 font-medium text-blue-400">
                   {selectedUser.profession} • {selectedUser.specialization}
                 </p>
+              </div>
+            </div>
+
+            {/* Member ID & Founding Tier */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  MGN Member Identity & Tier
+                </h4>
+                {selectedUser.memberId && (
+                  <MemberBadge
+                    memberId={selectedUser.memberId}
+                    isFoundingMember={selectedUser.isFoundingMember}
+                    size="sm"
+                  />
+                )}
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl border border-slate-800/80 bg-slate-900/60 p-3">
+                <div>
+                  <span className="font-semibold text-white">Member ID</span>
+                  {editingMemberId ? (
+                    <div className="mt-1 flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={customMemberIdInput}
+                        onChange={(e) => setCustomMemberIdInput(e.target.value)}
+                        className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-1 font-mono text-xs text-white uppercase focus:border-blue-500 focus:outline-none"
+                        placeholder="e.g. MGN-FOUNDER-001"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleUpdateMemberId(selectedUser.id, customMemberIdInput);
+                        }}
+                        className="rounded-lg bg-blue-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-blue-500"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingMemberId(false)}
+                        className="rounded-lg bg-slate-700 px-2 py-1 text-xs text-slate-300 hover:text-white"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="font-mono text-sm font-bold text-blue-400">
+                      {selectedUser.memberId || "Pending Allocation"}
+                    </p>
+                  )}
+                </div>
+                {!editingMemberId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomMemberIdInput(selectedUser.memberId || "");
+                      setEditingMemberId(true);
+                    }}
+                    className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white"
+                  >
+                    Edit ID
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl border border-slate-800/80 bg-slate-900/60 p-3">
+                <div>
+                  <span className="font-semibold text-white">Founding Member Status</span>
+                  <p className="text-[11px] text-slate-400">
+                    {selectedUser.isFoundingMember
+                      ? "Designated Founding Member with exclusive crown identity"
+                      : "Regular Verified Member"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmDialog({
+                      isOpen: true,
+                      title: selectedUser.isFoundingMember ? "Revoke Founding Member Status" : "Grant Founding Member Status",
+                      description: selectedUser.isFoundingMember
+                        ? `Are you sure you want to revert ${selectedUser.name} to regular member status?`
+                        : `Grant special Founding Member status and ID sequence to ${selectedUser.name}.`,
+                      variant: selectedUser.isFoundingMember ? "warning" : "success",
+                      requireReason: true,
+                      action: () => handleToggleFounding(selectedUser.id, !selectedUser.isFoundingMember),
+                    });
+                  }}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                    selectedUser.isFoundingMember
+                      ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                      : "bg-slate-800 text-slate-400 hover:text-white"
+                  }`}
+                >
+                  {selectedUser.isFoundingMember ? "👑 Founding Member (Active)" : "Make Founding Member"}
+                </button>
               </div>
             </div>
 
