@@ -1,6 +1,6 @@
 // app/api/network/profiles/route.ts
 import { auth } from "@/lib/auth";
-import { networkDb, generateId } from "@/modules/network/lib/network-db";
+import { networkDb, generateId, ensureNetworkingTables, slugifyUsername } from "@/modules/network/lib/network-db";
 import { headers } from "next/headers";
 import { sql } from "kysely";
 
@@ -184,7 +184,27 @@ export async function POST(request: Request) {
         .execute();
     }
 
-    // 2. Update/Insert Professional Profile
+    // 2. Validate and format username if supplied
+    let sanitizedUsername: string | undefined = undefined;
+    if (body.username !== undefined && body.username !== null) {
+      const candidate = slugifyUsername(body.username);
+      if (candidate) {
+        // Check uniqueness
+        const collision = await networkDb
+          .selectFrom("professional_profiles")
+          .selectAll()
+          .where("username", "=", candidate)
+          .where("user_id", "<>", session.user.id)
+          .executeTakeFirst();
+
+        if (collision) {
+          return Response.json({ error: "This username is already taken. Please choose another." }, { status: 400 });
+        }
+        sanitizedUsername = candidate;
+      }
+    }
+
+    // 3. Update/Insert Professional Profile
     const existing = await networkDb
       .selectFrom("professional_profiles")
       .where("user_id", "=", session.user.id)
@@ -207,6 +227,7 @@ export async function POST(request: Request) {
       await networkDb
         .updateTable("professional_profiles")
         .set({
+          username: sanitizedUsername !== undefined ? sanitizedUsername : existing.username,
           profession: body.profession ?? existing.profession,
           specialization: body.specialization ?? existing.specialization,
           sub_specialization: body.subSpecialization ?? body.sub_specialization ?? existing.sub_specialization,
@@ -239,6 +260,7 @@ export async function POST(request: Request) {
         .values({
           id: generateId(),
           user_id: session.user.id,
+          username: sanitizedUsername ?? slugifyUsername(body.name || session.user.name || "user"),
           profession: body.profession ?? null,
           specialization: body.specialization ?? null,
           sub_specialization: body.subSpecialization ?? body.sub_specialization ?? null,

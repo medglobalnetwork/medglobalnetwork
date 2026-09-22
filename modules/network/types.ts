@@ -51,6 +51,7 @@ export interface VerificationStatus {
 export interface ProfessionalProfile {
   id: string;
   user_id: string;
+  username?: string;
   // User fields (joined)
   name: string;
   email: string;

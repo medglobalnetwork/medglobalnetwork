@@ -64,11 +64,17 @@ export default function ProfilePage() {
           setProfile(p);
           setConnectionStatus(p.connection_status ?? "none");
           setIsFollowing(p.follow_status === "following");
+
+          // Update URL bar to clean GitHub-style username slug if available
+          if (p.username && typeof window !== "undefined" && window.location.pathname !== `/profile/${p.username}`) {
+            window.history.replaceState(null, "", `/profile/${p.username}`);
+          }
         } else {
           // Fallback demo profile for immediate visual rendering if mock user
           setProfile({
             id: params.userId,
             user_id: params.userId,
+            username: params.userId,
             name: session.user.id === params.userId ? session.user.name || "Dr. Professional" : "Dr. Rajesh Varma",
             email: session.user.email || "professional@medglobalnetwork.com",
             image: session.user.id === params.userId ? session.user.image || "" : "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&auto=format&fit=crop&q=80",
@@ -133,7 +139,8 @@ export default function ProfilePage() {
 
   const handleShareProfile = () => {
     if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(window.location.href);
+      const cleanUrl = `${window.location.origin}/profile/${profile?.username || profile?.user_id}`;
+      navigator.clipboard.writeText(cleanUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     }

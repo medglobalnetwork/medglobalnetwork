@@ -49,6 +49,7 @@ export function EditProfileModal({
   
   // Basic Identity
   const [name, setName] = React.useState(profile.name || "");
+  const [username, setUsername] = React.useState(profile.username || "");
   const [designation, setDesignation] = React.useState(profile.designation || "");
   const [profession, setProfession] = React.useState(profile.profession || "Physiotherapy");
   const [specialization, setSpecialization] = React.useState(profile.specialization || "");
@@ -97,6 +98,7 @@ export function EditProfileModal({
       setImage(profile.image || "");
       setCoverImageUrl(profile.cover_image_url || "");
       setName(profile.name || "");
+      setUsername(profile.username || "");
       setDesignation(profile.designation || "");
       setProfession(profile.profession || "Physiotherapy");
       setSpecialization(profile.specialization || "");
@@ -152,6 +154,7 @@ export function EditProfileModal({
 
     const payload: Partial<ProfessionalProfile> = {
       name: name.trim(),
+      username: username.trim().toLowerCase().replace(/^@+/, "").replace(/[^a-z0-9_-]/g, "-") || undefined,
       image: image || undefined,
       cover_image_url: coverImageUrl || undefined,
       designation: designation.trim() || undefined,
@@ -329,6 +332,25 @@ export function EditProfileModal({
 
                 <div>
                   <label className="block text-xs font-bold text-[#5d5854] mb-1">
+                    Profile Handle / Username (GitHub-style URL)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-2.5 text-xs font-bold text-[#77716b]">@</span>
+                    <input
+                      type="text"
+                      placeholder="e.g. shubham-patre"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+                      className="w-full pl-8 rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm font-mono text-[#171717] focus:border-[#1769c2] focus:outline-none"
+                    />
+                  </div>
+                  <p className="mt-1 text-[11px] text-[#77716b]">
+                    URL: <span className="font-mono text-[#1769c2]">mgn.life/profile/{username || "username"}</span>
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#5d5854] mb-1">
                     Designation / Title
                   </label>
                   <input
@@ -361,7 +383,7 @@ export function EditProfileModal({
                   </select>
                 </div>
 
-                <div>
+                <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-[#5d5854] mb-1">
                     Primary Specialization
                   </label>

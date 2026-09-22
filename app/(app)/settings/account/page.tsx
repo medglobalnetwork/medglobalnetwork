@@ -18,11 +18,15 @@ export default function AccountSettingsPage() {
   const [hasPassword, setHasPassword] = React.useState<boolean | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   
-  // Name & Avatar
+  // Name & Avatar & Username
   const [name, setName] = React.useState("");
+  const [username, setUsername] = React.useState("");
   const [avatarUrl, setAvatarUrl] = React.useState<string>(DEFAULT_BLANK_AVATAR);
   const [isSavingName, setIsSavingName] = React.useState(false);
+  const [isSavingUsername, setIsSavingUsername] = React.useState(false);
   const [nameSuccess, setNameSuccess] = React.useState<string | null>(null);
+  const [usernameSuccess, setUsernameSuccess] = React.useState<string | null>(null);
+  const [usernameError, setUsernameError] = React.useState<string | null>(null);
   const [photoSuccess, setPhotoSuccess] = React.useState<string | null>(null);
   const [showAvatarSelector, setShowAvatarSelector] = React.useState(false);
 
@@ -32,6 +36,16 @@ export default function AccountSettingsPage() {
     }
     if (session?.user?.name) {
       setName(session.user.name);
+    }
+    if (session?.user?.id) {
+      fetch(`/api/network/profiles/${session.user.id}`, { credentials: "include" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.profile?.username) {
+            setUsername(data.profile.username);
+          }
+        })
+        .catch((err) => console.error("Error fetching username:", err));
     }
   }, [isPending, router, session]);
 
@@ -122,7 +136,10 @@ export default function AccountSettingsPage() {
         body: JSON.stringify({ name: name.trim() }),
       });
 
-      if (!res.ok) throw new Error("Failed to update name");
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.error || "Failed to update name");
+      }
 
       setNameSuccess("Name updated successfully!");
       setTimeout(() => setNameSuccess(null), 3000);
@@ -130,6 +147,41 @@ export default function AccountSettingsPage() {
       setError(err.message || "Failed to update name");
     } finally {
       setIsSavingName(false);
+    }
+  };
+
+  const handleSaveUsername = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanUsername = username.trim().toLowerCase().replace(/^@+/, "").replace(/[^a-z0-9_-]/g, "-");
+    if (!cleanUsername) {
+      setUsernameError("Please enter a valid username (letters, numbers, hyphens)");
+      return;
+    }
+
+    setIsSavingUsername(true);
+    setUsernameSuccess(null);
+    setUsernameError(null);
+
+    try {
+      const res = await fetch("/api/network/profiles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ username: cleanUsername }),
+      });
+
+      const d = await res.json();
+      if (!res.ok) {
+        throw new Error(d.error || "Failed to update username");
+      }
+
+      setUsername(cleanUsername);
+      setUsernameSuccess("Username updated! Your public profile is now available at the new link.");
+      setTimeout(() => setUsernameSuccess(null), 4000);
+    } catch (err: any) {
+      setUsernameError(err.message || "Failed to update username");
+    } finally {
+      setIsSavingUsername(false);
     }
   };
 
@@ -189,7 +241,7 @@ export default function AccountSettingsPage() {
         </div>
 
         <Link
-          href={`/profile/${session.user.id}`}
+          href={`/profile/${username || session.user.id}`}
           className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-white px-3.5 py-2 text-xs font-bold text-[#1769c2] hover:bg-[#f8f7f6] transition shadow-2xs"
         >
           <span>View Public Profile</span>
@@ -272,6 +324,69 @@ export default function AccountSettingsPage() {
 
         {nameSuccess && (
           <p className="mt-2 text-xs font-bold text-emerald-700">{nameSuccess}</p>
+        )}
+      </form>
+
+      {/* Profile Handle / Username Card */}
+      <form onSubmit={handleSaveUsername} className="rounded-2xl border border-[#ded8d1] bg-white p-5 sm:p-6 mb-6 shadow-xs">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="text-sm font-semibold text-[#171717]">Profile Handle & Custom URL</h2>
+            <p className="mt-0.5 text-xs text-[#77716b]">
+              Your personalized GitHub-style handle for your public profile link.
+            </p>
+          </div>
+          {username && (
+            <Link
+              href={`/profile/${username}`}
+              className="text-xs font-semibold text-[#1769c2] hover:underline inline-flex items-center gap-1"
+            >
+              <span>Preview Link</span>
+              <ExternalLink className="h-3 w-3" />
+            </Link>
+          )}
+        </div>
+
+        <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="relative w-full max-w-md">
+            <span className="absolute left-3.5 top-2.5 text-xs font-bold text-[#77716b]">@</span>
+            <input
+              type="text"
+              required
+              value={username}
+              onChange={(e) => {
+                setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""));
+                setUsernameError(null);
+              }}
+              placeholder="e.g. shubham-patre"
+              className="w-full pl-8 rounded-xl border border-[#ded8d1] px-3.5 py-2 text-xs sm:text-sm font-mono text-[#171717] focus:border-[#1769c2] focus:outline-none"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSavingUsername || !username.trim()}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#12569f] transition disabled:opacity-50"
+          >
+            {isSavingUsername ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+            <span>Save Handle</span>
+          </button>
+        </div>
+
+        <div className="mt-2.5 flex items-center gap-2">
+          <p className="text-xs text-[#77716b]">
+            Your public link:{" "}
+            <span className="font-mono font-semibold text-[#1769c2]">
+              https://mgn.life/profile/{username || "username"}
+            </span>
+          </p>
+        </div>
+
+        {usernameError && (
+          <p className="mt-2 text-xs font-bold text-rose-700">{usernameError}</p>
+        )}
+        {usernameSuccess && (
+          <p className="mt-2 text-xs font-bold text-emerald-700">{usernameSuccess}</p>
         )}
       </form>
 

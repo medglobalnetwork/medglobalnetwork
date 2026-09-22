@@ -1,6 +1,6 @@
 // app/api/network/profiles/[userId]/route.ts
 import { auth } from "@/lib/auth";
-import { networkDb } from "@/modules/network/lib/network-db";
+import { networkDb, ensureNetworkingTables, slugifyUsername, generateId } from "@/modules/network/lib/network-db";
 import { headers } from "next/headers";
 
 export async function GET(
@@ -13,15 +13,20 @@ export async function GET(
   }
 
   const { userId } = await params;
+  const normalizedId = userId.toLowerCase().trim();
 
   try {
-    const profile = await networkDb
+    await ensureNetworkingTables();
+
+    let profile = await networkDb
       .selectFrom("professional_profiles as pp")
       .innerJoin("user as u", "u.id", "pp.user_id")
       .select([
         "pp.id",
         "pp.user_id",
+        "pp.username",
         "u.name",
+        "u.email",
         "u.image",
         "pp.profession",
         "pp.specialization",
@@ -47,63 +52,170 @@ export async function GET(
         "pp.profile_visibility",
         "pp.created_at",
       ])
-      .where("pp.user_id", "=", userId)
+      .where((eb) =>
+        eb.or([
+          eb("pp.user_id", "=", userId),
+          eb("pp.username", "=", normalizedId),
+          eb("pp.id", "=", userId),
+          eb("u.id", "=", userId),
+        ])
+      )
       .executeTakeFirst();
 
+    // If no professional profile exists, find the user and auto-create professional profile with username
     if (!profile) {
-      // Return basic user info if no professional profile exists
       const user = await networkDb
         .selectFrom("user")
-        .select(["id", "name", "image"])
-        .where("id", "=", userId)
+        .select(["id", "name", "email", "image"])
+        .where((eb) =>
+          eb.or([
+            eb("id", "=", userId),
+            eb("name", "ilike", normalizedId),
+          ])
+        )
         .executeTakeFirst();
 
       if (!user) {
         return Response.json({ error: "User not found" }, { status: 404 });
       }
 
-      return Response.json({
-        data: {
+      // Generate clean username from name or email
+      const baseUsername = slugifyUsername(user.name || user.email.split("@")[0] || "user");
+      let usernameCandidate = baseUsername;
+
+      // Check collision
+      const collision = await networkDb
+        .selectFrom("professional_profiles")
+        .select(["user_id"])
+        .where("username", "=", usernameCandidate)
+        .executeTakeFirst();
+
+      if (collision && collision.user_id !== user.id) {
+        usernameCandidate = `${baseUsername}-${user.id.slice(0, 5).toLowerCase()}`;
+      }
+
+      const now = new Date();
+      await networkDb
+        .insertInto("professional_profiles")
+        .values({
+          id: generateId(),
           user_id: user.id,
-          name: user.name,
-          image: user.image,
+          username: usernameCandidate,
+          profession: "Physiotherapy",
+          specialization: null,
+          sub_specialization: null,
+          designation: null,
+          primary_degree: null,
+          additional_degrees: null,
+          medical_council: null,
+          registration_number: null,
+          organization: null,
+          city: null,
+          state: null,
+          country: "India",
+          experience_years: 0,
+          bio: null,
+          skills: null,
+          languages: null,
           identity_verified: false,
           education_verified: false,
           registration_verified: false,
           experience_verified: false,
-        },
-      });
+          profile_visibility: "public",
+          cover_image_url: null,
+          created_at: now,
+          updated_at: now,
+        })
+        .execute();
+
+      profile = {
+        id: user.id,
+        user_id: user.id,
+        username: usernameCandidate,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        profession: "Physiotherapy",
+        specialization: null,
+        sub_specialization: null,
+        designation: null,
+        primary_degree: null,
+        additional_degrees: null,
+        medical_council: null,
+        registration_number: null,
+        organization: null,
+        city: null,
+        state: null,
+        country: "India",
+        experience_years: 0,
+        bio: null,
+        skills: null,
+        languages: null,
+        identity_verified: false,
+        education_verified: false,
+        registration_verified: false,
+        experience_verified: false,
+        cover_image_url: null,
+        profile_visibility: "public",
+        created_at: now,
+      };
     }
+
+    // Auto-generate username if missing in existing profile
+    if (!profile.username) {
+      const generated = slugifyUsername(profile.name || profile.email.split("@")[0] || "user");
+      let cleanUsername = generated;
+
+      const collision = await networkDb
+        .selectFrom("professional_profiles")
+        .where("username", "=", cleanUsername)
+        .where("user_id", "<>", profile.user_id)
+        .executeTakeFirst();
+
+      if (collision) {
+        cleanUsername = `${generated}-${profile.user_id.slice(0, 5).toLowerCase()}`;
+      }
+
+      await networkDb
+        .updateTable("professional_profiles")
+        .set({ username: cleanUsername, updated_at: new Date() })
+        .where("user_id", "=", profile.user_id)
+        .execute();
+
+      profile.username = cleanUsername;
+    }
+
+    const targetUserId = profile.user_id;
 
     // Count connections and followers
     const [connCount, followerCount, followingCount] = await Promise.all([
       networkDb
         .selectFrom("connections")
         .where((eb) =>
-          eb.or([eb("user_a_id", "=", userId), eb("user_b_id", "=", userId)])
+          eb.or([eb("user_a_id", "=", targetUserId), eb("user_b_id", "=", targetUserId)])
         )
         .select((eb) => eb.fn.countAll<string>().as("total"))
         .executeTakeFirst(),
       networkDb
         .selectFrom("follows")
-        .where("following_id", "=", userId)
+        .where("following_id", "=", targetUserId)
         .select((eb) => eb.fn.countAll<string>().as("total"))
         .executeTakeFirst(),
       networkDb
         .selectFrom("follows")
-        .where("follower_id", "=", userId)
+        .where("follower_id", "=", targetUserId)
         .select((eb) => eb.fn.countAll<string>().as("total"))
         .executeTakeFirst(),
     ]);
 
-    // Check current user's relationship with this profile
+    // Check relationship with session user
     const [conn, req, follow] = await Promise.all([
       networkDb
         .selectFrom("connections")
         .where((eb) =>
           eb.or([
-            eb.and([eb("user_a_id", "=", session.user.id), eb("user_b_id", "=", userId)]),
-            eb.and([eb("user_b_id", "=", session.user.id), eb("user_a_id", "=", userId)]),
+            eb.and([eb("user_a_id", "=", session.user.id), eb("user_b_id", "=", targetUserId)]),
+            eb.and([eb("user_b_id", "=", session.user.id), eb("user_a_id", "=", targetUserId)]),
           ])
         )
         .selectAll()
@@ -112,8 +224,8 @@ export async function GET(
         .selectFrom("connection_requests")
         .where((eb) =>
           eb.or([
-            eb.and([eb("sender_id", "=", session.user.id), eb("receiver_id", "=", userId)]),
-            eb.and([eb("receiver_id", "=", session.user.id), eb("sender_id", "=", userId)]),
+            eb.and([eb("sender_id", "=", session.user.id), eb("receiver_id", "=", targetUserId)]),
+            eb.and([eb("receiver_id", "=", session.user.id), eb("sender_id", "=", targetUserId)]),
           ])
         )
         .where("status", "=", "pending")
@@ -122,7 +234,7 @@ export async function GET(
       networkDb
         .selectFrom("follows")
         .where("follower_id", "=", session.user.id)
-        .where("following_id", "=", userId)
+        .where("following_id", "=", targetUserId)
         .selectAll()
         .executeTakeFirst(),
     ]);
@@ -141,14 +253,13 @@ export async function GET(
         connection_status,
         connection_request_id: req?.id,
         follow_status: follow ? "following" : "not_following",
-        is_own_profile: session.user.id === userId,
+        is_own_profile: session.user.id === targetUserId,
       },
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error(`GET /api/network/profiles/${userId} error:`, err);
-    return Response.json({ error: "Failed to fetch profile" }, { status: 500 });
+    return Response.json({ error: err.message || "Failed to fetch profile" }, { status: 500 });
   }
 }
 
 export { POST as PATCH, POST as PUT } from "../route";
-

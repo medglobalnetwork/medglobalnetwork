@@ -16,6 +16,7 @@ import { Kysely } from "kysely";
 export interface ProfessionalProfileTable {
   id: string;
   user_id: string;
+  username: string | null;
   profession: string | null;
   specialization: string | null;
   sub_specialization: string | null;
@@ -217,3 +218,74 @@ export async function createNotification({
     console.error("Failed to create notification:", err);
   }
 }
+
+// ─────────────────────────────────────────────
+// HELPER: Slugify Username
+// ─────────────────────────────────────────────
+export function slugifyUsername(input: string): string {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/^@+/, "")
+    .replace(/[^a-z0-9_-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+// ─────────────────────────────────────────────
+// SELF-HEALING: Ensure Professional Profiles Table & Username Column
+// ─────────────────────────────────────────────
+let networkingTablesInitialized = false;
+
+export async function ensureNetworkingTables(): Promise<void> {
+  if (networkingTablesInitialized) return;
+
+  try {
+    const { sql } = await import("kysely");
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS professional_profiles (
+        id                        TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+        user_id                   TEXT NOT NULL UNIQUE REFERENCES "user"(id) ON DELETE CASCADE,
+        username                  TEXT,
+        profession                TEXT,
+        specialization            TEXT,
+        sub_specialization        TEXT,
+        designation               TEXT,
+        primary_degree            TEXT,
+        additional_degrees        TEXT[],
+        medical_council           TEXT,
+        registration_number       TEXT,
+        organization              TEXT,
+        city                      TEXT,
+        state                     TEXT,
+        country                   TEXT DEFAULT 'India',
+        experience_years          INTEGER DEFAULT 0,
+        bio                       TEXT,
+        skills                    TEXT[],
+        languages                 TEXT[],
+        identity_verified         BOOLEAN DEFAULT false,
+        education_verified        BOOLEAN DEFAULT false,
+        registration_verified     BOOLEAN DEFAULT false,
+        experience_verified       BOOLEAN DEFAULT false,
+        profile_visibility        TEXT DEFAULT 'public',
+        cover_image_url           TEXT,
+        created_at                TIMESTAMPTZ DEFAULT now(),
+        updated_at                TIMESTAMPTZ DEFAULT now()
+      );
+    `.execute(networkDb);
+
+    await sql`
+      ALTER TABLE professional_profiles ADD COLUMN IF NOT EXISTS username TEXT;
+    `.execute(networkDb);
+
+    await sql`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_professional_profiles_username ON professional_profiles(username);
+    `.execute(networkDb);
+
+    networkingTablesInitialized = true;
+  } catch (err) {
+    console.warn("ensureNetworkingTables warning:", err);
+  }
+}
+
