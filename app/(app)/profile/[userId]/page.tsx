@@ -71,8 +71,19 @@ export default function ProfilePage() {
             window.history.replaceState(null, "", `/profile/${p.username}`);
           }
         } else {
-          // If session user, initialize clean authentic blank profile
-          if (session.user.id === params.userId || session.user.name?.toLowerCase() === params.userId.toLowerCase()) {
+          // Check if requested slug matches current session user
+          const paramId = (params.userId || "").toLowerCase().trim();
+          const strippedParam = paramId.replace(/[^a-z0-9]/g, "");
+          const isSelf =
+            session.user.id === params.userId ||
+            paramId === "me" ||
+            paramId === "self" ||
+            (session.user.name || "").toLowerCase().trim() === paramId ||
+            (session.user.name || "").toLowerCase().replace(/[^a-z0-9]/g, "") === strippedParam ||
+            (session.user.email || "").split("@")[0].toLowerCase().trim() === paramId ||
+            (session.user.email || "").split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "") === strippedParam;
+
+          if (isSelf) {
             setProfile({
               id: session.user.id,
               user_id: session.user.id,
@@ -110,7 +121,18 @@ export default function ProfilePage() {
         }
       })
       .catch(() => {
-        if (session.user.id === params.userId) {
+        const paramId = (params.userId || "").toLowerCase().trim();
+        const strippedParam = paramId.replace(/[^a-z0-9]/g, "");
+        const isSelf =
+          session.user.id === params.userId ||
+          paramId === "me" ||
+          paramId === "self" ||
+          (session.user.name || "").toLowerCase().trim() === paramId ||
+          (session.user.name || "").toLowerCase().replace(/[^a-z0-9]/g, "") === strippedParam ||
+          (session.user.email || "").split("@")[0].toLowerCase().trim() === paramId ||
+          (session.user.email || "").split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "") === strippedParam;
+
+        if (isSelf) {
           setProfile({
             id: session.user.id,
             user_id: session.user.id,

@@ -15,6 +15,16 @@ export async function GET(
 
   const { userId } = await params;
   const normalizedId = userId.toLowerCase().trim();
+  const strippedId = normalizedId.replace(/[^a-z0-9]/g, "");
+
+  const isSelf =
+    userId === "me" ||
+    userId === "self" ||
+    userId === session.user.id ||
+    normalizedId === (session.user.name || "").toLowerCase().trim() ||
+    strippedId === (session.user.name || "").toLowerCase().replace(/[^a-z0-9]/g, "") ||
+    normalizedId === (session.user.email || "").split("@")[0].toLowerCase().trim() ||
+    strippedId === (session.user.email || "").split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "");
 
   try {
     await ensureNetworkingTables();
@@ -56,29 +66,51 @@ export async function GET(
         "pp.profile_visibility",
         "pp.created_at",
       ])
-      .where((eb) =>
-        eb.or([
+      .where((eb) => {
+        const conditions = [
           eb("pp.user_id", "=", userId),
           eb("pp.username", "=", normalizedId),
           eb("pp.member_id", "ilike", normalizedId),
           eb("pp.id", "=", userId),
           eb("u.id", "=", userId),
-        ])
-      )
+          eb("u.email", "ilike", normalizedId),
+          eb("u.email", "ilike", `${normalizedId}@%`),
+          eb("u.name", "ilike", normalizedId),
+        ];
+        if (isSelf && session.user.id) {
+          conditions.push(eb("pp.user_id", "=", session.user.id));
+        }
+        return eb.or(conditions);
+      })
       .executeTakeFirst();
 
     // If no professional profile exists, find the user and auto-create professional profile with username & member_id
     if (!profile) {
-      const user = await networkDb
-        .selectFrom("user")
-        .select(["id", "name", "email", "image"])
-        .where((eb) =>
-          eb.or([
-            eb("id", "=", userId),
-            eb("name", "ilike", normalizedId),
-          ])
-        )
-        .executeTakeFirst();
+      let user = null;
+
+      if (isSelf && session.user.id) {
+        user = await networkDb
+          .selectFrom("user")
+          .select(["id", "name", "email", "image"])
+          .where("id", "=", session.user.id)
+          .executeTakeFirst();
+      }
+
+      if (!user) {
+        user = await networkDb
+          .selectFrom("user")
+          .select(["id", "name", "email", "image"])
+          .where((eb) =>
+            eb.or([
+              eb("id", "=", userId),
+              eb("email", "ilike", normalizedId),
+              eb("email", "ilike", `${normalizedId}@%`),
+              eb("name", "ilike", normalizedId),
+              eb("name", "ilike", `%${normalizedId}%`),
+            ])
+          )
+          .executeTakeFirst();
+      }
 
       if (!user) {
         return Response.json({ error: "User not found" }, { status: 404 });
