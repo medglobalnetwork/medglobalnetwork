@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { useScrollDirection } from "@/lib/useScrollDirection";
 
 type NavTab = "home" | "network" | "learn" | "opportunities" | "marketplace";
 
@@ -87,6 +88,7 @@ const iconMap = {
 export default function AppBottomNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const hidden = useScrollDirection();
 
   const activeTab: NavTab =
     navItems.find((n) => pathname.startsWith(`/${n.id}`))?.id ?? "home";
@@ -94,7 +96,9 @@ export default function AppBottomNav() {
   return (
     <nav
       aria-label="Primary navigation"
-      className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden w-full items-center justify-around border-t border-[#e8e6e3] bg-white/95 backdrop-blur-md px-1 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] shadow-[0_-2px_12px_rgba(0,0,0,0.06)]"
+      className={`fixed bottom-0 left-0 right-0 z-50 flex md:hidden w-full items-center justify-around border-t border-[#e8e6e3] bg-white/95 backdrop-blur-md px-1 pt-1.5 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] transition-transform duration-300 ease-in-out ${
+        hidden ? "translate-y-full pointer-events-none" : "translate-y-0"
+      }`}
       style={{
         paddingBottom: "max(0.4rem, env(safe-area-inset-bottom, 0px))",
       }}
