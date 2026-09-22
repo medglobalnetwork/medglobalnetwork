@@ -375,21 +375,21 @@ export function ProfileHeader({
             ) : null}
           </div>
 
-          {/* 4. ACTION BUTTONS ROW (Instagram / LinkedIn Hybrid Style) */}
-          <div className="flex items-center gap-2">
+          {/* 4. ACTION BUTTONS ROW (Instagram / Modern Social Style) */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {isOwnProfile ? (
               <>
                 <button
                   type="button"
                   onClick={onEditProfileClick}
-                  className="flex-1 rounded-xl bg-[#efefef] hover:bg-[#e4e4e4] py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-[#171717] transition active:scale-98 text-center"
+                  className="flex-1 min-w-0 h-9 sm:h-10 rounded-xl bg-[#efefef] hover:bg-[#e4e4e4] px-2 sm:px-3 text-xs sm:text-sm font-bold text-[#171717] truncate whitespace-nowrap flex items-center justify-center transition active:scale-98 text-center"
                 >
                   Edit profile
                 </button>
                 <button
                   type="button"
                   onClick={onOpenKnowMore}
-                  className="flex-1 rounded-xl bg-[#efefef] hover:bg-[#e4e4e4] py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-[#171717] transition active:scale-98 text-center"
+                  className="flex-1 min-w-0 h-9 sm:h-10 rounded-xl bg-[#efefef] hover:bg-[#e4e4e4] px-2 sm:px-3 text-xs sm:text-sm font-bold text-[#171717] truncate whitespace-nowrap flex items-center justify-center transition active:scale-98 text-center"
                 >
                   Know More
                 </button>
@@ -404,18 +404,11 @@ export function ProfileHeader({
               </>
             ) : (
               <>
-                <ConnectionButton
-                  targetUserId={profile.user_id}
-                  initialStatus={connectionStatus}
-                  onStatusChange={onStatusChange}
-                  onConnectClick={onConnectClick}
-                  size="md"
-                />
                 <button
                   type="button"
                   onClick={onFollowToggle}
                   disabled={followLoading}
-                  className={`flex-1 rounded-xl py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition active:scale-98 text-center ${
+                  className={`flex-1 min-w-0 h-9 sm:h-10 rounded-xl px-2 sm:px-3 text-xs sm:text-sm font-bold truncate whitespace-nowrap flex items-center justify-center transition active:scale-98 text-center ${
                     isFollowing
                       ? "bg-[#efefef] hover:bg-[#e4e4e4] text-[#171717]"
                       : "bg-[#1769c2] hover:bg-[#12569f] text-white shadow-xs"
@@ -423,10 +416,18 @@ export function ProfileHeader({
                 >
                   {followLoading ? "..." : isFollowing ? "Following" : "Follow"}
                 </button>
+                <ConnectionButton
+                  targetUserId={profile.user_id}
+                  initialStatus={connectionStatus}
+                  onStatusChange={onStatusChange}
+                  onConnectClick={onConnectClick}
+                  size="md"
+                  className="flex-1 min-w-0 h-9 sm:h-10 rounded-xl px-2 sm:px-3 text-xs sm:text-sm font-bold truncate whitespace-nowrap flex items-center justify-center transition active:scale-98 text-center"
+                />
                 <button
                   type="button"
                   onClick={onOpenKnowMore}
-                  className="flex-1 rounded-xl bg-[#efefef] hover:bg-[#e4e4e4] py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-[#171717] transition active:scale-98 text-center"
+                  className="flex-1 min-w-0 h-9 sm:h-10 rounded-xl bg-[#efefef] hover:bg-[#e4e4e4] px-2 sm:px-3 text-xs sm:text-sm font-bold text-[#171717] truncate whitespace-nowrap flex items-center justify-center transition active:scale-98 text-center"
                 >
                   Know More
                 </button>

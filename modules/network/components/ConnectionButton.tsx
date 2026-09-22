@@ -10,6 +10,7 @@ interface ConnectionButtonProps {
   onStatusChange?: (newStatus: ConnectionStatus) => void;
   onConnectClick?: () => void; // opens the modal instead of direct send
   size?: "sm" | "md";
+  className?: string;
 }
 
 export function ConnectionButton({
@@ -19,14 +20,15 @@ export function ConnectionButton({
   onStatusChange,
   onConnectClick,
   size = "sm",
+  className,
 }: ConnectionButtonProps) {
   const [status, setStatus] = React.useState<ConnectionStatus>(initialStatus);
   const [loading, setLoading] = React.useState(false);
 
-  const sizeClasses =
+  const baseSize =
     size === "sm"
-      ? "px-3 py-1.5 text-xs"
-      : "px-4 py-2 text-sm";
+      ? "px-3 py-1.5 text-xs font-semibold"
+      : "px-3.5 py-2 text-xs sm:text-sm font-bold";
 
   const handleAction = async (action: string) => {
     if (action === "connect" && onConnectClick) {
@@ -105,7 +107,10 @@ export function ConnectionButton({
         type="button"
         onClick={() => handleAction("connect")}
         disabled={loading}
-        className={`w-full text-center justify-center rounded-xl bg-[#1769c2] font-semibold text-white transition hover:bg-[#12569f] disabled:opacity-50 ${sizeClasses}`}
+        className={
+          className ??
+          `w-full text-center justify-center rounded-xl bg-[#1769c2] font-semibold text-white transition hover:bg-[#12569f] disabled:opacity-50 ${baseSize}`
+        }
       >
         {loading ? "…" : "+ Connect"}
       </button>
@@ -119,21 +124,24 @@ export function ConnectionButton({
         onClick={() => handleAction("withdraw")}
         disabled={loading}
         title="Click to withdraw request"
-        className={`w-full text-center justify-center rounded-xl border border-[#ded8d1] font-medium text-[#5d5854] transition hover:border-red-300 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 ${sizeClasses}`}
+        className={
+          className ??
+          `w-full text-center justify-center rounded-xl border border-[#ded8d1] bg-[#f8f7f6] font-medium text-[#5d5854] transition hover:border-red-300 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 ${baseSize}`
+        }
       >
-        {loading ? "…" : "Requested"}
+        {loading ? "…" : "Pending"}
       </button>
     );
   }
 
   if (status === "received") {
     return (
-      <div className="flex w-full gap-1.5">
+      <div className={className ? `flex ${className} gap-1.5` : "flex w-full gap-1.5"}>
         <button
           type="button"
           onClick={() => handleAction("accept")}
           disabled={loading}
-          className={`flex-1 text-center justify-center rounded-xl bg-[#1769c2] font-semibold text-white transition hover:bg-[#12569f] disabled:opacity-50 ${sizeClasses}`}
+          className={`flex-1 text-center justify-center rounded-xl bg-[#1769c2] font-semibold text-white transition hover:bg-[#12569f] disabled:opacity-50 ${baseSize}`}
         >
           {loading ? "…" : "Accept"}
         </button>
@@ -141,7 +149,7 @@ export function ConnectionButton({
           type="button"
           onClick={() => handleAction("ignore")}
           disabled={loading}
-          className={`flex-1 text-center justify-center rounded-xl border border-[#ded8d1] font-medium text-[#5d5854] transition hover:bg-[#f8f7f6] disabled:opacity-50 ${sizeClasses}`}
+          className={`flex-1 text-center justify-center rounded-xl border border-[#ded8d1] bg-[#f8f7f6] font-medium text-[#5d5854] transition hover:bg-[#f0efee] disabled:opacity-50 ${baseSize}`}
         >
           Ignore
         </button>
@@ -152,9 +160,12 @@ export function ConnectionButton({
   if (status === "connected") {
     return (
       <span
-        className={`inline-flex w-full items-center justify-center gap-1 rounded-xl border border-[#ded8d1] font-medium text-[#15803d] ${sizeClasses}`}
+        className={
+          className ??
+          `inline-flex w-full items-center justify-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50 font-semibold text-[#15803d] ${baseSize}`
+        }
       >
-        <svg className="h-3 w-3 fill-[#15803d]" viewBox="0 0 20 20">
+        <svg className="h-3.5 w-3.5 fill-[#15803d]" viewBox="0 0 20 20">
           <path
             fillRule="evenodd"
             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
