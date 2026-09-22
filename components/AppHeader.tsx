@@ -20,6 +20,7 @@ import { authClient } from "@/lib/auth-client";
 import UserMenu from "@/components/UserMenu";
 import { useScrollDirection } from "@/lib/useScrollDirection";
 import { formatRelativeTime } from "@/modules/network/lib/network-data";
+import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
 
 /* ── Notification popup ─────────────────────────── */
 function NotifPopup({
@@ -167,10 +168,7 @@ export default function AppHeader() {
   const { data: session } = authClient.useSession();
   const [notifOpen, setNotifOpen] = React.useState(false);
   const [unreadCount, setUnreadCount] = React.useState(0);
-  const [searchQuery, setSearchQuery] = React.useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = React.useState(false);
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const mobileInputRef = React.useRef<HTMLInputElement>(null);
   const hidden = useScrollDirection();
 
   React.useEffect(() => {
@@ -201,35 +199,6 @@ export default function AppHeader() {
     });
   };
 
-  // Ctrl+K / Cmd+K → focus search
-  React.useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
-        e.preventDefault();
-        if (window.innerWidth < 768) {
-          setMobileSearchOpen(true);
-          setTimeout(() => mobileInputRef.current?.focus(), 50);
-        } else {
-          inputRef.current?.focus();
-        }
-      }
-      if (e.key === "Escape") {
-        inputRef.current?.blur();
-        setMobileSearchOpen(false);
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, []);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/network?q=${encodeURIComponent(searchQuery.trim())}`);
-      setMobileSearchOpen(false);
-    }
-  };
-
   const navItems = [
     { id: "home", label: "Home", href: "/home", icon: Home },
     { id: "network", label: "Network", href: "/network", icon: Users },
@@ -249,34 +218,18 @@ export default function AppHeader() {
       <div className="mx-auto flex h-14 sm:h-16 max-w-[1440px] items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6 lg:px-8">
         {/* MOBILE SEARCH OVERLAY (when toggled on mobile) */}
         {mobileSearchOpen ? (
-          <div className="flex w-full items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150">
-            <form onSubmit={handleSearchSubmit} className="relative flex flex-1 items-center">
-              <Search className="pointer-events-none absolute left-3 h-4 w-4 text-[#8a8784]" />
-              <input
-                ref={mobileInputRef}
-                type="search"
-                autoFocus
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+          <div className="flex w-full items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150 py-1">
+            <div className="flex-1">
+              <GlobalSearchBar
+                isMobile={true}
+                onCloseMobile={() => setMobileSearchOpen(false)}
                 placeholder="Search doctors, specialties, jobs, courses..."
-                aria-label="Mobile global search"
-                className="h-10 w-full rounded-xl border border-[#1769c2] bg-[#f8f7f6] pl-9 pr-8 text-xs text-[#171717] placeholder:text-[#8a8784] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1769c2]/20"
               />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-2.5 p-1 text-[#8a8784] hover:text-[#171717]"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </form>
-
+            </div>
             <button
               type="button"
               onClick={() => setMobileSearchOpen(false)}
-              className="rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-3 py-2 text-xs font-semibold text-[#5d5854] hover:bg-white hover:text-[#171717]"
+              className="shrink-0 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-3 py-2 text-xs font-semibold text-[#5d5854] hover:bg-white hover:text-[#171717]"
             >
               Cancel
             </button>
@@ -304,8 +257,17 @@ export default function AppHeader() {
                 />
               </Link>
 
-              {/* Right: Notifications & Messages */}
+              {/* Right: Search, Notifications & Messages */}
               <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  aria-label="Open search"
+                  onClick={() => setMobileSearchOpen(true)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-[#5d5854] hover:bg-[#f0efee] hover:text-[#171717] transition"
+                >
+                  <Search className="h-4.5 w-4.5 stroke-[2]" />
+                </button>
+
                 <div className="relative">
                   <button
                     type="button"
@@ -359,23 +321,7 @@ export default function AppHeader() {
 
               {/* Center: Global Search */}
               <div className="flex-1 max-w-xl">
-                <form onSubmit={handleSearchSubmit} className="relative flex w-full items-center">
-                  <Search className="pointer-events-none absolute left-3.5 h-4 w-4 text-[#8a8784]" />
-                  <input
-                    ref={inputRef}
-                    type="search"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search professionals, specialties, organizations, jobs, courses..."
-                    aria-label="Global search"
-                    className="h-9.5 w-full rounded-2xl border border-[#e8e6e3] bg-[#f8f7f6] pl-10 pr-14 text-xs text-[#171717] placeholder:text-[#8a8784] transition focus:border-[#1769c2] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1769c2]/15"
-                  />
-                  {!searchQuery && (
-                    <kbd className="pointer-events-none absolute right-3 flex items-center rounded-md border border-[#ded8d1] bg-white px-1.5 py-0.5 font-mono text-[10px] text-[#8a8784] shadow-2xs">
-                      ⌘ K
-                    </kbd>
-                  )}
-                </form>
+                <GlobalSearchBar />
               </div>
 
               {/* Right: Navigation Tabs & Utilities */}
@@ -466,23 +412,7 @@ export default function AppHeader() {
 
             {/* 2. CENTER: GLOBAL SEARCH BAR (Desktop) */}
             <div className="hidden md:block flex-1 max-w-xl">
-              <form onSubmit={handleSearchSubmit} className="relative flex w-full items-center">
-                <Search className="pointer-events-none absolute left-3.5 h-4 w-4 text-[#8a8784]" />
-                <input
-                  ref={inputRef}
-                  type="search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search professionals, specialties, organizations, jobs, courses..."
-                  aria-label="Global search"
-                  className="h-9.5 w-full rounded-2xl border border-[#e8e6e3] bg-[#f8f7f6] pl-10 pr-14 text-xs text-[#171717] placeholder:text-[#8a8784] transition focus:border-[#1769c2] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1769c2]/15"
-                />
-                {!searchQuery && (
-                  <kbd className="pointer-events-none absolute right-3 flex items-center rounded-md border border-[#ded8d1] bg-white px-1.5 py-0.5 font-mono text-[10px] text-[#8a8784] shadow-2xs">
-                    ⌘ K
-                  </kbd>
-                )}
-              </form>
+              <GlobalSearchBar />
             </div>
 
             {/* 3. RIGHT: MOBILE SEARCH ICON + NAVIGATION TABS & UTILITIES */}
@@ -491,10 +421,7 @@ export default function AppHeader() {
               <button
                 type="button"
                 aria-label="Open search"
-                onClick={() => {
-                  setMobileSearchOpen(true);
-                  setTimeout(() => mobileInputRef.current?.focus(), 50);
-                }}
+                onClick={() => setMobileSearchOpen(true)}
                 className="flex md:hidden h-9 w-9 items-center justify-center rounded-full text-[#5d5854] hover:bg-[#f0efee] hover:text-[#171717] transition"
               >
                 <Search className="h-4.5 w-4.5 stroke-[2]" />
