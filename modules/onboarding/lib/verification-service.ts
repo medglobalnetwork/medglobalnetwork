@@ -6,7 +6,7 @@
 // claim verification, document auditing, and canonical identity sync.
 // ============================================================
 
-import { verifDb } from "./verification-db";
+import { verifDb, ensureVerificationTables } from "./verification-db";
 import { getProfessionSchema, getOrganisationSchema } from "../config/schemas";
 import { syncUserDossier } from "./user-storage";
 import { nanoid } from "nanoid";
@@ -16,45 +16,52 @@ export class VerificationService {
    * Retrieves or automatically checks the verification status and deadline for a user.
    */
   static async getIdentity(userId: string) {
-    const identity = await verifDb
-      .selectFrom("mgn_identities")
-      .selectAll()
-      .where("user_id", "=", userId)
-      .executeTakeFirst();
+    try {
+      await ensureVerificationTables();
 
-    if (!identity) return null;
-
-    // Server-side check for 72-hour deadline expiration
-    if (
-      (identity.verification_status === "ENROLLED" || identity.verification_status === "DRAFT") &&
-      identity.verification_deadline &&
-      new Date(identity.verification_deadline) < new Date()
-    ) {
-      await verifDb
-        .updateTable("mgn_identities")
-        .set({ verification_status: "VERIFICATION_INCOMPLETE", updated_at: new Date() })
+      const identity = await verifDb
+        .selectFrom("mgn_identities")
+        .selectAll()
         .where("user_id", "=", userId)
-        .execute();
+        .executeTakeFirst();
 
-      await verifDb
-        .insertInto("mgn_verification_audit_logs")
-        .values({
-          id: nanoid(),
-          target_user_id: userId,
-          actor_id: "SYSTEM_DEADLINE_DAEMON",
-          action: "verification.deadline_expired",
-          reason: "User failed to submit required KYC documents within 72 hours window",
-          previous_state: identity.verification_status,
-          new_state: "VERIFICATION_INCOMPLETE",
-          metadata: JSON.stringify({ deadline: identity.verification_deadline }),
-          created_at: new Date(),
-        })
-        .execute();
+      if (!identity) return null;
 
-      return { ...identity, verification_status: "VERIFICATION_INCOMPLETE" };
+      // Server-side check for 72-hour deadline expiration
+      if (
+        (identity.verification_status === "ENROLLED" || identity.verification_status === "DRAFT") &&
+        identity.verification_deadline &&
+        new Date(identity.verification_deadline) < new Date()
+      ) {
+        await verifDb
+          .updateTable("mgn_identities")
+          .set({ verification_status: "VERIFICATION_INCOMPLETE", updated_at: new Date() })
+          .where("user_id", "=", userId)
+          .execute();
+
+        await verifDb
+          .insertInto("mgn_verification_audit_logs" as any)
+          .values({
+            id: nanoid(),
+            target_user_id: userId,
+            actor_id: "SYSTEM_DEADLINE_DAEMON",
+            action: "verification.deadline_expired",
+            reason: "User failed to submit required KYC documents within 72 hours window",
+            previous_state: identity.verification_status,
+            new_state: "VERIFICATION_INCOMPLETE",
+            metadata: JSON.stringify({ deadline: identity.verification_deadline }),
+            created_at: new Date(),
+          })
+          .execute();
+
+        return { ...identity, verification_status: "VERIFICATION_INCOMPLETE" };
+      }
+
+      return identity;
+    } catch (err) {
+      console.warn("VerificationService.getIdentity warning:", err);
+      return null;
     }
-
-    return identity;
   }
 
   /**
@@ -66,6 +73,8 @@ export class VerificationService {
     category: string;
     profession_or_type: string;
   }) {
+    await ensureVerificationTables();
+
     const existing = await verifDb
       .selectFrom("mgn_identities")
       .selectAll()
