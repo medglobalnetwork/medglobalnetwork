@@ -1,24 +1,13 @@
 // app/api/admin/verification/review/route.ts
-import { auth } from "@/lib/auth";
+import { getAdminSession, hasPermission } from "@/modules/admin/lib/rbac";
 import { headers } from "next/headers";
 import { VerificationService } from "@/modules/onboarding/lib/verification-service";
 import { verifDb } from "@/modules/onboarding/lib/verification-db";
 import { nanoid } from "nanoid";
 
 export async function POST(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    return Response.json({ error: "Authentication required" }, { status: 401 });
-  }
-
-  // Admin authorization check
-  const isAdmin =
-    session.user.email?.toLowerCase() === "patreshubham141@gmail.com" ||
-    (session.user as any).role === "SUPER_ADMIN" ||
-    (session.user as any).role === "ADMIN" ||
-    (session.user as any).role === "VERIFICATION_ADMIN";
-
-  if (!isAdmin) {
+  const admin = await getAdminSession(await headers());
+  if (!admin || (!hasPermission(admin, "verification.approve") && !hasPermission(admin, "verification.reject"))) {
     return Response.json({ error: "Access denied. Admin permissions required." }, { status: 403 });
   }
 
@@ -31,7 +20,7 @@ export async function POST(request: Request) {
     }
 
     const result = await VerificationService.processAdminReview(
-      session.user.id,
+      admin.userId,
       targetUserId,
       action,
       { reason, correctionFields }

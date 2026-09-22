@@ -155,61 +155,66 @@ export interface AdminSessionContext {
 }
 
 export async function getAdminSession(reqHeaders?: Headers): Promise<AdminSessionContext | null> {
-  await ensureAdminTables();
-  const h = reqHeaders || (await headers());
-  const session = await auth.api.getSession({ headers: h });
-
-  if (!session?.user?.email) {
-    return null;
-  }
-
-  const email = session.user.email.toLowerCase();
-  const userId = session.user.id;
-  const isSuperAdminFallback = superAdminEmails.has(email);
-
-  // Fetch roles from database
-  let dbRoles: AdminRole[] = [];
   try {
-    const rolesRes: any = await sql`
-      SELECT role FROM admin_user_roles WHERE user_id = ${userId} OR LOWER(user_email) = ${email}
-    `.execute(database);
+    await ensureAdminTables();
+    const h = reqHeaders || (await headers());
+    const session = await auth.api.getSession({ headers: h });
 
-    if (rolesRes?.rows) {
-      dbRoles = rolesRes.rows.map((r: any) => r.role as AdminRole);
+    if (!session?.user?.email) {
+      return null;
     }
-  } catch (err) {
-    // table might not be queryable yet or network error
-  }
 
-  if (isSuperAdminFallback && !dbRoles.includes("SUPER_ADMIN")) {
-    dbRoles.push("SUPER_ADMIN");
-  }
+    const email = session.user.email.toLowerCase();
+    const userId = session.user.id;
+    const isSuperAdminFallback = superAdminEmails.has(email);
 
-  if (dbRoles.length === 0) {
+    // Fetch roles from database
+    let dbRoles: AdminRole[] = [];
+    try {
+      const rolesRes: any = await sql`
+        SELECT role FROM admin_user_roles WHERE user_id = ${userId} OR LOWER(user_email) = ${email}
+      `.execute(database);
+
+      if (rolesRes?.rows) {
+        dbRoles = rolesRes.rows.map((r: any) => r.role as AdminRole);
+      }
+    } catch (err) {
+      // table might not be queryable yet or network error
+    }
+
+    if (isSuperAdminFallback && !dbRoles.includes("SUPER_ADMIN")) {
+      dbRoles.push("SUPER_ADMIN");
+    }
+
+    if (dbRoles.length === 0) {
+      return null;
+    }
+
+    const isSuperAdmin = dbRoles.includes("SUPER_ADMIN") || isSuperAdminFallback;
+
+    // Aggregate permissions
+    const permissionsSet = new Set<AdminPermission>();
+    if (isSuperAdmin) {
+      permissionsSet.add("*");
+    } else {
+      for (const r of dbRoles) {
+        const perms = ROLE_PERMISSIONS[r] || [];
+        perms.forEach((p) => permissionsSet.add(p));
+      }
+    }
+
+    return {
+      userId,
+      email,
+      name: session.user.name || "Administrator",
+      roles: dbRoles,
+      permissions: Array.from(permissionsSet),
+      isSuperAdmin,
+    };
+  } catch (error) {
+    console.error("Error evaluating admin session:", error);
     return null;
   }
-
-  const isSuperAdmin = dbRoles.includes("SUPER_ADMIN") || isSuperAdminFallback;
-
-  // Aggregate permissions
-  const permissionsSet = new Set<AdminPermission>();
-  if (isSuperAdmin) {
-    permissionsSet.add("*");
-  } else {
-    for (const r of dbRoles) {
-      const perms = ROLE_PERMISSIONS[r] || [];
-      perms.forEach((p) => permissionsSet.add(p));
-    }
-  }
-
-  return {
-    userId,
-    email,
-    name: session.user.name || "Administrator",
-    roles: dbRoles,
-    permissions: Array.from(permissionsSet),
-    isSuperAdmin,
-  };
 }
 
 export function hasPermission(

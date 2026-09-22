@@ -1,22 +1,11 @@
 // app/api/admin/verification/queue/route.ts
-import { auth } from "@/lib/auth";
+import { getAdminSession, hasPermission } from "@/modules/admin/lib/rbac";
 import { headers } from "next/headers";
 import { verifDb } from "@/modules/onboarding/lib/verification-db";
 
 export async function GET(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    return Response.json({ error: "Authentication required" }, { status: 401 });
-  }
-
-  // Admin permission check
-  const isAdmin =
-    session.user.email?.toLowerCase() === "patreshubham141@gmail.com" ||
-    (session.user as any).role === "SUPER_ADMIN" ||
-    (session.user as any).role === "ADMIN" ||
-    (session.user as any).role === "VERIFICATION_ADMIN";
-
-  if (!isAdmin) {
+  const admin = await getAdminSession(await headers());
+  if (!admin || !hasPermission(admin, "verification.read")) {
     return Response.json({ error: "Access denied. Admin permissions required." }, { status: 403 });
   }
 

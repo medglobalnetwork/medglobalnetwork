@@ -1,5 +1,5 @@
 // app/api/admin/verification/[userId]/route.ts
-import { auth } from "@/lib/auth";
+import { getAdminSession, hasPermission } from "@/modules/admin/lib/rbac";
 import { headers } from "next/headers";
 import { verifDb } from "@/modules/onboarding/lib/verification-db";
 import { getUserStoragePaths } from "@/modules/onboarding/lib/user-storage";
@@ -8,9 +8,9 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ userId: string }> }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    return Response.json({ error: "Authentication required" }, { status: 401 });
+  const admin = await getAdminSession(await headers());
+  if (!admin || !hasPermission(admin, "verification.read")) {
+    return Response.json({ error: "Access denied. Admin permissions required." }, { status: 403 });
   }
 
   const { userId } = await params;

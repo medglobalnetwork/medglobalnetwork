@@ -72,29 +72,8 @@ export default function AdminDashboardPage() {
   }
 
   if (error === "ACCESS_DENIED") {
-    return (
-      <div className="flex min-h-[70vh] items-center justify-center p-4">
-        <div className="max-w-md w-full rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center shadow-2xl">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-rose-500/20 bg-rose-500/10 text-rose-400">
-            <ShieldAlert className="h-7 w-7" />
-          </div>
-          <h2 className="mt-4 text-lg font-bold text-white tracking-tight">
-            Admin Access Restricted
-          </h2>
-          <p className="mt-2 text-xs text-slate-400 leading-relaxed">
-            Your account (<strong className="text-slate-200">{session?.user?.email}</strong>) does
-            not possess verified platform administration privileges.
-          </p>
-          <button
-            type="button"
-            onClick={() => router.push("/home")}
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md hover:bg-blue-500 transition-colors"
-          >
-            Return to User Dashboard
-          </button>
-        </div>
-      </div>
-    );
+    router.replace("/home");
+    return null;
   }
 
   return (
