@@ -216,34 +216,22 @@ export default function HomePage() {
                   onClick={() => router.push("/network")}
                   className="text-[11px] font-bold text-[#1769c2] hover:underline"
                 >
-                  View Calendar &gt;
+                  Explore Events &gt;
                 </button>
               </div>
 
-              <div className="space-y-3.5 text-xs">
-                {/* Item 1 */}
-                <div className="flex items-start gap-3">
-                  <span className="font-bold text-[#5d5854] shrink-0 text-[11px]">10:00 AM</span>
-                  <div className="flex items-start gap-2 flex-1">
-                    <span className="mt-0.5 h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
-                    <div>
-                      <p className="font-bold text-[#171717] leading-snug">Clinical Case Discussion</p>
-                      <p className="text-[10px] text-[#77716b]">MGN Medical Network</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Item 2 */}
-                <div className="flex items-start gap-3">
-                  <span className="font-bold text-[#5d5854] shrink-0 text-[11px]">02:30 PM</span>
-                  <div className="flex items-start gap-2 flex-1">
-                    <span className="mt-0.5 h-2 w-2 rounded-full bg-blue-500 shrink-0" />
-                    <div>
-                      <p className="font-bold text-[#171717] leading-snug">CME Learning Module</p>
-                      <p className="text-[10px] text-[#77716b]">MGN Learn Portal</p>
-                    </div>
-                  </div>
-                </div>
+              <div className="py-2 text-center">
+                <p className="text-xs text-[#77716b] font-medium">No events scheduled for today</p>
+                <p className="text-[10px] text-[#a09890] mt-0.5">
+                  Join medical webinars and community case reviews
+                </p>
+                <button
+                  type="button"
+                  onClick={() => router.push("/network")}
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-[#e8e6e3] bg-[#faf9f8] px-3 py-1.5 text-[11px] font-semibold text-[#171717] hover:bg-[#f0efee] transition"
+                >
+                  Browse Communities
+                </button>
               </div>
             </div>
 
