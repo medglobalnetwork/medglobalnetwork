@@ -29,7 +29,9 @@ export class VerificationService {
 
       // Server-side check for 72-hour deadline expiration
       if (
-        (identity.verification_status === "ENROLLED" || identity.verification_status === "DRAFT") &&
+        (identity.verification_status === "ENROLLED" ||
+          identity.verification_status === "DRAFT" ||
+          identity.verification_status === "CORRECTION_REQUIRED") &&
         identity.verification_deadline &&
         new Date(identity.verification_deadline) < new Date()
       ) {
@@ -444,10 +446,16 @@ export class VerificationService {
       newStatus = "SUSPENDED";
     }
 
+    const freshDeadline =
+      action === "REQUEST_CORRECTION"
+        ? new Date(now.getTime() + 72 * 60 * 60 * 1000)
+        : identity.verification_deadline;
+
     await verifDb
       .updateTable("mgn_identities")
       .set({
         verification_status: newStatus,
+        verification_deadline: freshDeadline,
         reviewed_at: now,
         reviewed_by: adminUserId,
         correction_reason: action === "REQUEST_CORRECTION" ? details.reason : null,

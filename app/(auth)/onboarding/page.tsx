@@ -63,6 +63,8 @@ export default function OnboardingPage() {
   // Documents
   const [uploadedDocs, setUploadedDocs] = React.useState<Record<string, { id: string; name: string; size: number }>>({});
   const [uploadingDocId, setUploadingDocId] = React.useState<string | null>(null);
+  // Correction notes & identity state
+  const [correctionNote, setCorrectionNote] = React.useState<string | null>(null);
 
   // Load existing draft
   React.useEffect(() => {
@@ -77,11 +79,16 @@ export default function OnboardingPage() {
           }
           if (
             id.verification_status === "UNDER_REVIEW" ||
-            id.verification_status === "CORRECTION_REQUIRED" ||
-            id.verification_status === "VERIFICATION_INCOMPLETE"
+            id.verification_status === "VERIFICATION_INCOMPLETE" ||
+            id.verification_status === "REJECTED" ||
+            id.verification_status === "SUSPENDED"
           ) {
             router.replace("/onboarding/status");
             return;
+          }
+
+          if (id.verification_status === "CORRECTION_REQUIRED") {
+            setCorrectionNote(id.correction_reason || "Reviewer requested corrections to your uploaded KYC documents.");
           }
 
           setAccountType(id.account_type || "INDIVIDUAL");
@@ -112,7 +119,11 @@ export default function OnboardingPage() {
           });
           setUploadedDocs(existingDocs);
 
-          if (id.legal_first_name) setStep(2);
+          if (id.verification_status === "CORRECTION_REQUIRED") {
+            setStep(4);
+          } else if (id.legal_first_name) {
+            setStep(2);
+          }
         }
       })
       .catch(() => {})
@@ -785,8 +796,39 @@ export default function OnboardingPage() {
         {/* STEP 4: DOCUMENT UPLOAD */}
         {step === 4 && (
           <div className="rounded-3xl border border-[#e8e6e3] bg-white p-6 sm:p-8 shadow-xs">
+            {correctionNote && (
+              <div className="mb-6 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-xs text-amber-900">
+                <div className="flex items-center gap-2 font-bold mb-1">
+                  <AlertCircle className="h-4 w-4 text-amber-700" />
+                  <span>Reviewer Requested Corrections:</span>
+                </div>
+                <p className="leading-relaxed">{correctionNote}</p>
+              </div>
+            )}
+
+            <div className="mb-6 rounded-2xl bg-[#f0f7ff] border border-[#d0e5fc] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <Clock className="h-5 w-5 text-[#1769c2] shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="text-xs font-bold text-[#1769c2] uppercase tracking-wide">
+                    3-Day Verification Grace Period
+                  </h3>
+                  <p className="text-xs text-[#5d5854] mt-0.5">
+                    Document upload is not mandatory right now. You can skip and enjoy full platform access for 72 hours!
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => router.push("/home")}
+                className="shrink-0 rounded-xl bg-white border border-[#1769c2] px-3.5 py-1.5 text-xs font-bold text-[#1769c2] hover:bg-blue-50 transition shadow-2xs"
+              >
+                Skip & Start Exploring →
+              </button>
+            </div>
+
             <h2 className="text-xl font-black text-[#171717] tracking-tight">
-              Required KYC Documents
+              Verification KYC Documents
             </h2>
             <p className="mt-1 text-xs text-[#77716b] mb-6">
               Upload clear PDF or image copies. Documents are stored in secure private storage.
@@ -861,8 +903,8 @@ export default function OnboardingPage() {
                               className="hidden"
                               accept=".pdf,image/jpeg,image/png"
                               onChange={(e) => {
-                                const f = e.target.files?.[0];
-                                if (f) handleFileUpload(docReq.id, f);
+                                  const f = e.target.files?.[0];
+                                  if (f) handleFileUpload(docReq.id, f);
                               }}
                             />
                           </label>
@@ -874,7 +916,7 @@ export default function OnboardingPage() {
               })}
             </div>
 
-            <div className="flex items-center justify-between pt-4 border-t border-[#f0efee]">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-[#f0efee]">
               <button
                 type="button"
                 onClick={() => setStep(3)}
@@ -884,14 +926,25 @@ export default function OnboardingPage() {
                 <span>Back</span>
               </button>
 
-              <button
-                type="button"
-                onClick={() => setStep(5)}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#1769c2] px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow hover:bg-[#12569f] transition active:scale-95"
-              >
-                <span>Proceed to Review</span>
-                <ArrowRight className="h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => router.push("/home")}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-4 py-2.5 text-xs font-bold text-[#5d5854] hover:bg-[#eae8e5] transition"
+                >
+                  <Clock className="h-3.5 w-3.5 text-[#1769c2]" />
+                  <span>Skip for now</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setStep(5)}
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#1769c2] px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow hover:bg-[#12569f] transition active:scale-95"
+                >
+                  <span>Proceed to Review</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
         )}

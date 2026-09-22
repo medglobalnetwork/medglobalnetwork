@@ -121,8 +121,18 @@ export default function OnboardingStatusPage() {
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-[#5d5854] leading-relaxed mb-6">
-                Your credentials and KYC documents have been submitted to the MGN Verification Center. Our clinical verification team is reviewing your details (typically takes 24–48 hours).
+                Your credentials and KYC documents have been submitted to the MGN Verification Center. Our clinical verification team is reviewing your details (typically takes 24–48 hours). You can continue using all platform features in the meantime.
               </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => router.push("/home")}
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#1769c2] px-6 py-3 text-xs sm:text-sm font-bold text-white shadow hover:bg-[#12569f] transition"
+                >
+                  <span>Go to Platform Feed</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           )}
 
@@ -137,26 +147,77 @@ export default function OnboardingStatusPage() {
                   Correction Requested by Reviewer
                 </h1>
                 <span className="rounded-full bg-rose-100 border border-rose-200 px-2.5 py-0.5 text-[11px] font-bold text-rose-800">
-                  Action Required
+                  Action Required (3-Day Window)
                 </span>
               </div>
               <div className="my-4 rounded-2xl bg-rose-50 border border-rose-200 p-4 text-xs font-medium text-rose-900">
                 <p className="font-bold mb-1">Reviewer Note:</p>
                 <p>{identity?.correction_reason || "Please update your uploaded documents with clear, valid copies."}</p>
               </div>
+
+              {/* Countdown */}
+              {timeLeft && (
+                <div className="mb-4 rounded-2xl bg-rose-50/50 border border-rose-200 p-3 sm:p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <Clock className="h-5 w-5 text-rose-600 shrink-0" />
+                    <div>
+                      <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider block">
+                        Time Remaining to Re-Submit
+                      </span>
+                      <span className="text-sm sm:text-base font-bold text-rose-950">
+                        {timeLeft.days} days {timeLeft.hours} hours {timeLeft.minutes} mins remaining
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => router.push("/onboarding")}
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#1769c2] px-6 py-3 text-xs sm:text-sm font-bold text-white shadow hover:bg-[#12569f]"
+                >
+                  <span>Edit & Resubmit Documents</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push("/home")}
+                  className="inline-flex items-center gap-2 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-5 py-3 text-xs sm:text-sm font-semibold text-[#5d5854] hover:bg-[#eae8e5]"
+                >
+                  <span>Continue to App</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* VERIFICATION INCOMPLETE / EXPIRED STATE */}
+          {isExpired && (
+            <div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 mb-4">
+                <AlertTriangle className="h-7 w-7 stroke-[2.2]" />
+              </div>
+              <h1 className="text-xl sm:text-2xl font-black text-rose-950 tracking-tight mb-1">
+                Verification Window Expired
+              </h1>
+              <p className="text-xs sm:text-sm text-[#5d5854] leading-relaxed mb-6">
+                Your 72-hour verification grace period has expired. To restore access to network feeds, messages, and opportunities, please upload your required KYC documents.
+              </p>
+
               <button
                 type="button"
                 onClick={() => router.push("/onboarding")}
                 className="inline-flex items-center gap-2 rounded-xl bg-[#1769c2] px-6 py-3 text-xs sm:text-sm font-bold text-white shadow hover:bg-[#12569f]"
               >
-                <span>Edit & Resubmit Application</span>
+                <span>Upload Documents Now</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
           )}
 
-          {/* VERIFICATION INCOMPLETE / EXPIRED STATE */}
-          {(isExpired || status === "ENROLLED" || status === "DRAFT") && (
+          {/* ENROLLED / DRAFT STATE */}
+          {(status === "ENROLLED" || status === "DRAFT") && (
             <div>
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 text-[#1769c2] mb-4">
                 <ShieldCheck className="h-7 w-7 stroke-[2.2]" />
@@ -165,7 +226,7 @@ export default function OnboardingStatusPage() {
                 Complete Your MGN Identity Verification
               </h1>
               <p className="text-xs sm:text-sm text-[#5d5854] leading-relaxed mb-6">
-                To access feeds, network with clinicians, and view opportunities, you must complete your verified identity.
+                You have active 3-day access. Upload your documents before the window expires to keep full platform features.
               </p>
 
               {/* 72h Countdown Box */}
@@ -175,7 +236,7 @@ export default function OnboardingStatusPage() {
                     <Clock className="h-6 w-6 text-[#1769c2] shrink-0" />
                     <div>
                       <span className="text-[11px] font-bold text-[#1769c2] uppercase tracking-wider block">
-                        Server-Enforced Verification Window
+                        Grace Period Window
                       </span>
                       <span className="text-base sm:text-lg font-black text-[#171717]">
                         {timeLeft.days} days {timeLeft.hours} hours {timeLeft.minutes} mins remaining
@@ -185,14 +246,23 @@ export default function OnboardingStatusPage() {
                 </div>
               )}
 
-              <button
-                type="button"
-                onClick={() => router.push("/onboarding")}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#1769c2] px-6 py-3 text-xs sm:text-sm font-bold text-white shadow hover:bg-[#12569f]"
-              >
-                <span>Continue Verification</span>
-                <ArrowRight className="h-4 w-4" />
-              </button>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => router.push("/onboarding")}
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#1769c2] px-6 py-3 text-xs sm:text-sm font-bold text-white shadow hover:bg-[#12569f]"
+                >
+                  <span>Upload Documents</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push("/home")}
+                  className="inline-flex items-center gap-2 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-5 py-3 text-xs sm:text-sm font-semibold text-[#5d5854] hover:bg-[#eae8e5]"
+                >
+                  <span>Explore Platform</span>
+                </button>
+              </div>
             </div>
           )}
 
