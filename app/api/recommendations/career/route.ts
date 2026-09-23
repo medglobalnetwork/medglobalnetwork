@@ -1,14 +1,11 @@
 // ============================================================
-// MGN Networking System — User Recommendations API
-// app/api/network/recommendations/route.ts
-//
-// Delegates directly to the centralized Recommendation Engine.
+// MGN Recommendation Engine — Career Connections API
+// app/api/recommendations/career/route.ts
 // ============================================================
 
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { getPersonalizedRecommendations } from "@/modules/recommendations/lib/engine";
-import type { RecommendationCategory } from "@/modules/recommendations/types";
 
 export async function GET(request: Request) {
   try {
@@ -16,30 +13,22 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
 
     const limit = Math.min(parseInt(searchParams.get("limit") ?? "10", 10), 30);
-    const category = (searchParams.get("category") as RecommendationCategory) || "people-you-may-know";
     const offset = Math.max(parseInt(searchParams.get("offset") ?? "0", 10), 0);
 
     const result = await getPersonalizedRecommendations({
       userId: session?.user?.id,
-      category,
+      category: "career-connections",
       limit,
       offset,
-      source: "network_sidebar",
+      source: "jobs_page",
     });
 
-    return Response.json({
-      data: result.data,
-      recommendations: result.data,
-      total: result.total,
-      hasMore: result.hasMore,
-      category: result.category,
-    });
+    return Response.json(result);
   } catch (err) {
-    console.error("GET /api/network/recommendations error:", err);
-    return Response.json({
-      data: [],
-      recommendations: [],
-      error: "Failed to fetch recommendations",
-    });
+    console.error("GET /api/recommendations/career error:", err);
+    return Response.json(
+      { data: [], total: 0, hasMore: false, error: "Failed to fetch career recommendations" },
+      { status: 500 }
+    );
   }
 }

@@ -1,10 +1,15 @@
 "use client";
+// ============================================================
+// MGN Networking System — Network Tabs Component
 // modules/network/components/NetworkTabs.tsx
+// ============================================================
+
 import * as React from "react";
-import { LayoutGrid, List } from "lucide-react";
+import { LayoutGrid, List, Sparkles } from "lucide-react";
 
 export type NetworkTab =
   | "discover"
+  | "suggestions"
   | "connections"
   | "invitations"
   | "following"
@@ -15,6 +20,7 @@ interface Tab {
   id: NetworkTab;
   label: string;
   badge?: number;
+  icon?: boolean;
 }
 
 interface NetworkTabsProps {
@@ -34,6 +40,7 @@ export function NetworkTabs({
 }: NetworkTabsProps) {
   const tabs: Tab[] = [
     { id: "discover", label: "Discover" },
+    { id: "suggestions", label: "Suggestions", icon: true },
     { id: "connections", label: "My Network" },
     {
       id: "invitations",
@@ -62,6 +69,7 @@ export function NetworkTabs({
                   : "text-[#77716b] hover:text-[#171717]"
               }`}
             >
+              {tab.icon && <Sparkles className="h-3.5 w-3.5 text-[#1769c2]" />}
               {tab.label}
               {tab.badge !== undefined && (
                 <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[#1769c2] px-1 text-[9px] font-bold text-white">
@@ -73,7 +81,7 @@ export function NetworkTabs({
         })}
       </div>
 
-      {/* Grid / List View Mode Switcher (visible for discover/connections) */}
+      {/* Grid / List View Mode Switcher (visible for discover/connections/suggestions) */}
       {onViewModeChange && (
         <div className="hidden sm:flex items-center gap-1 rounded-xl border border-[#e8e6e3] bg-[#f8f7f6] p-1">
           <button

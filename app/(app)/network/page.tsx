@@ -647,6 +647,121 @@ function OrganizationsTab() {
 }
 
 // ─────────────────────────────────────────────
+// Suggestions Tab Component (Powered by Recommendation Engine)
+// ─────────────────────────────────────────────
+function SuggestionsTab({ viewMode }: { viewMode: "grid" | "list" }) {
+  const router = useRouter();
+  const [category, setCategory] = React.useState<string>("people-you-may-know");
+  const [people, setPeople] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  const categories = [
+    { id: "people-you-may-know", label: "For You" },
+    { id: "similar-professionals", label: "Similar Clinicians" },
+    { id: "same-organization", label: "Colleagues" },
+    { id: "alumni", label: "Alumni" },
+    { id: "research-connections", label: "Research" },
+    { id: "community-connections", label: "Communities" },
+    { id: "event-connections", label: "Events & CME" },
+    { id: "career-connections", label: "Career" },
+    { id: "learning-connections", label: "Learning" },
+    { id: "location-based", label: "Nearby" },
+  ];
+
+  const load = React.useCallback(async (cat: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/recommendations/people?category=${cat}&limit=12`, {
+        credentials: "include",
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setPeople(d.data ?? []);
+      } else {
+        setPeople([]);
+      }
+    } catch {
+      setPeople([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    load(category);
+  }, [category, load]);
+
+  const handleDismiss = async (candidateId: string) => {
+    setPeople((prev) => prev.filter((p) => p.user_id !== candidateId));
+    try {
+      await fetch("/api/recommendations/not-interested", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ candidateId, category }),
+      });
+    } catch {}
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Category Pills Bar */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        {categories.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => setCategory(c.id)}
+            className={`shrink-0 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition ${
+              category === c.id
+                ? "bg-[#1769c2] text-white shadow-xs"
+                : "border border-[#e8e6e3] bg-white text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
+            }`}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className={viewMode === "grid" ? "grid grid-cols-2 gap-2.5 sm:gap-4" : "space-y-3"}>
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <ProfessionalCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : people.length === 0 ? (
+        <EmptyState
+          icon="✨"
+          title="No recommendations in this category yet"
+          description="As you connect, learn, and interact with the platform, we'll discover more relevant professionals for you."
+        />
+      ) : (
+        <div className={viewMode === "grid" ? "grid grid-cols-2 gap-2.5 sm:gap-4" : "space-y-3"}>
+          {people.map((p) => (
+            <div key={p.user_id} className="relative">
+              <ProfessionalCard profile={p} variant={viewMode} />
+              {p.primary_reason && (
+                <div className="mt-1 flex items-center justify-between rounded-lg bg-[#eef5fc] px-2.5 py-1 text-[10px] font-medium text-[#1769c2]">
+                  <span className="truncate">{p.primary_reason}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleDismiss(p.user_id)}
+                    className="ml-2 shrink-0 text-[#8a8784] hover:text-red-500"
+                    title="Not interested"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // MAIN NETWORK PAGE (3-Column Layout)
 // ─────────────────────────────────────────────
 export default function NetworkPage() {
@@ -730,6 +845,9 @@ export default function NetworkPage() {
                 searchQuery={searchQuery}
                 viewMode={viewMode}
               />
+            )}
+            {activeTab === "suggestions" && (
+              <SuggestionsTab viewMode={viewMode} />
             )}
             {activeTab === "connections" && <ConnectionsTab />}
             {activeTab === "invitations" && <InvitationsTab />}

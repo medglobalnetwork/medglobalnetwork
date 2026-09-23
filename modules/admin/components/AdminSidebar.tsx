@@ -84,6 +84,11 @@ export function AdminSidebar({ badgeCounts = {}, isOpen, onClose }: AdminSidebar
           href: "/admin/network",
           icon: Share2,
         },
+        {
+          name: "Suggestion Engine",
+          href: "/admin/recommendations",
+          icon: Sparkles,
+        },
       ],
     },
     {
