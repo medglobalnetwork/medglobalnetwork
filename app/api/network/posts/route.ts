@@ -103,15 +103,16 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { content, postType, communityId, visibility } = await request.json() as {
+    const { content, postType, communityId, visibility, mediaUrls } = await request.json() as {
       content: string;
       postType?: string;
       communityId?: string;
       visibility?: string;
+      mediaUrls?: string[];
     };
 
-    if (!content?.trim()) {
-      return Response.json({ error: "Content is required" }, { status: 400 });
+    if (!content?.trim() && (!mediaUrls || mediaUrls.length === 0)) {
+      return Response.json({ error: "Content or media is required" }, { status: 400 });
     }
 
     const id = generateId();
@@ -122,9 +123,9 @@ export async function POST(request: Request) {
       .values({
         id,
         author_id: session.user.id,
-        post_type: postType ?? "text",
-        content: content.trim(),
-        media_urls: null,
+        post_type: postType ?? (mediaUrls && mediaUrls.length > 0 ? "image" : "text"),
+        content: (content || "").trim(),
+        media_urls: mediaUrls && mediaUrls.length > 0 ? mediaUrls : null,
         poll_options: null,
         poll_ends_at: null,
         community_id: communityId ?? null,

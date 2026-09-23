@@ -68,19 +68,24 @@ export function ImageSelectorModal({
     }
 
     setUrlError(null);
+    // Instant preview while upload is in progress
+    const tempUrl = URL.createObjectURL(file);
+    setPreviewUrl(tempUrl);
+    setUrlInput(tempUrl);
+
     const result = await uploadFile(file);
-    if (result) {
+    if (result && result.publicUrl) {
       setPreviewUrl(result.publicUrl);
       setUrlInput(result.publicUrl);
     }
   };
 
   const handleApply = () => {
-    if (!previewUrl && !urlInput) {
+    const finalUrl = previewUrl || urlInput.trim();
+    if (!finalUrl) {
       setUrlError("Please upload an image or enter a valid URL");
       return;
     }
-    const finalUrl = previewUrl || urlInput.trim();
     onSelect(finalUrl);
     onClose();
   };
