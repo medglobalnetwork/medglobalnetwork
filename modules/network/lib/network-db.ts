@@ -166,6 +166,7 @@ export interface NetworkDatabase {
   communities: CommunityTable;
   community_members: CommunityMemberTable;
   network_notifications: NetworkNotificationTable;
+  mgn_identities: any;
 }
 
 // ─────────────────────────────────────────────

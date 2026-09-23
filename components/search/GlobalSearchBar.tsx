@@ -20,6 +20,7 @@ import {
   Compass,
 } from "lucide-react";
 import { DEFAULT_BLANK_AVATAR } from "@/lib/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { MemberBadge } from "@/modules/network/components/MemberBadge";
 
 type SearchCategory = "all" | "people" | "jobs" | "courses" | "communities";
@@ -545,13 +546,14 @@ export function GlobalSearchBar({
                             }}
                             className="flex items-center gap-3 rounded-2xl border border-transparent p-2.5 transition hover:border-[#cbdff7] hover:bg-[#f4f8fe]"
                           >
-                            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-[#ded8d1] bg-slate-100">
-                              <img
-                                src={p.image || DEFAULT_BLANK_AVATAR}
-                                alt={p.name}
-                                className="h-full w-full object-cover"
-                              />
-                            </div>
+                            <UserAvatar
+                              src={p.image}
+                              name={p.name}
+                              email={p.email}
+                              userId={p.user_id}
+                              size="md"
+                              className="h-10 w-10 shrink-0 text-sm"
+                            />
 
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-1.5">

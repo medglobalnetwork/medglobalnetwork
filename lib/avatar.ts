@@ -7,7 +7,46 @@
 export const DEFAULT_BLANK_AVATAR = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" fill="%23f1f5f9"/><circle cx="50" cy="38" r="18" fill="%2394a3b8"/><path d="M22 84c0-15.464 12.536-28 28-28s28 12.536 28 28" stroke="%2394a3b8" stroke-width="12" stroke-linecap="round" fill="none"/></svg>`;
 
 /**
- * Detects whether an avatar image URL is an automatic Google/Gmail OAuth or external aggregator image.
+ * Deterministic color palette for initials avatars (vibrant, accessible healthcare tones)
+ */
+export const AVATAR_PALETTES = [
+  { bg: "bg-blue-600", text: "text-white" },
+  { bg: "bg-indigo-600", text: "text-white" },
+  { bg: "bg-emerald-600", text: "text-white" },
+  { bg: "bg-teal-600", text: "text-white" },
+  { bg: "bg-purple-600", text: "text-white" },
+  { bg: "bg-rose-600", text: "text-white" },
+  { bg: "bg-amber-600", text: "text-white" },
+  { bg: "bg-cyan-600", text: "text-white" },
+  { bg: "bg-violet-600", text: "text-white" },
+];
+
+export function getAvatarColor(identifier?: string | null): { bg: string; text: string } {
+  if (!identifier) return AVATAR_PALETTES[0];
+  let hash = 0;
+  for (let i = 0; i < identifier.length; i++) {
+    hash = identifier.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % AVATAR_PALETTES.length;
+  return AVATAR_PALETTES[index];
+}
+
+export function getInitials(name?: string | null, email?: string | null): string {
+  if (name && name.trim()) {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  if (email && email.trim()) {
+    return email.trim()[0].toUpperCase();
+  }
+  return "M";
+}
+
+/**
+ * Detects whether an avatar image URL is an external aggregator image.
  */
 export function isGoogleOrExternalAvatar(url?: string | null): boolean {
   if (!url) return false;
@@ -23,9 +62,9 @@ export function isGoogleOrExternalAvatar(url?: string | null): boolean {
 
 /**
  * Utility to get user avatar:
- * 1. Checks localStorage for a custom uploaded avatar photo.
- * 2. If a custom user image is present and NOT a Google/Gmail picture, uses it.
- * 3. Otherwise returns DEFAULT_BLANK_AVATAR. Gmail pictures are completely hidden.
+ * 1. Checks localStorage for a custom uploaded avatar photo (`mgn_user_custom_avatar`).
+ * 2. If serverImage exists, returns it.
+ * 3. Otherwise returns DEFAULT_BLANK_AVATAR.
  */
 export function getUserAvatarUrl(
   email?: string | null,
@@ -39,8 +78,7 @@ export function getUserAvatarUrl(
     }
   }
 
-  // If a custom image exists on server and is NOT an automatic Google/Gmail picture
-  if (serverImage && !isGoogleOrExternalAvatar(serverImage)) {
+  if (serverImage) {
     return serverImage;
   }
 
@@ -97,4 +135,3 @@ export function setUserCustomCover(userId: string, coverUrl: string | null) {
   }
   window.dispatchEvent(new Event("mgn-cover-updated"));
 }
-

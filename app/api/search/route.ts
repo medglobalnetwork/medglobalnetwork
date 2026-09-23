@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
             COALESCE(pp.id, u.id) as id,
             u.name,
             u.email,
-            u.image,
+            COALESCE(u.image, mi.profile_photo_url) as image,
             pp.username,
             pp.member_id,
             pp.is_founding_member,
@@ -46,6 +46,7 @@ export async function GET(req: NextRequest) {
             pp.identity_verified
           FROM "user" u
           LEFT JOIN professional_profiles pp ON pp.user_id = u.id
+          LEFT JOIN mgn_identities mi ON mi.user_id = u.id
           WHERE 
             (
               u.name ILIKE ${searchPattern} OR

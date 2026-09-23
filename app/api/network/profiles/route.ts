@@ -29,6 +29,7 @@ export async function GET(request: Request) {
     let base = networkDb
       .selectFrom("user as u")
       .leftJoin("professional_profiles as pp", "pp.user_id", "u.id")
+      .leftJoin("mgn_identities as mi", "mi.user_id", "u.id")
       .where("u.id", "<>", session.user.id)
       .where((eb) =>
         eb.or([
@@ -77,7 +78,7 @@ export async function GET(request: Request) {
           sql<string>`COALESCE(pp.id, u.id)`.as("id"),
           "u.id as user_id",
           "u.name",
-          "u.image",
+          sql<string | null>`COALESCE(u.image, mi.profile_photo_url)`.as("image"),
           "pp.username",
           "pp.member_id",
           "pp.is_founding_member",
@@ -190,6 +191,16 @@ export async function POST(request: Request) {
         .set(userUpdates)
         .where("id", "=", session.user.id)
         .execute();
+
+      if (body.image) {
+        try {
+          await networkDb
+            .updateTable("mgn_identities" as any)
+            .set({ profile_photo_url: body.image, updated_at: now })
+            .where("user_id", "=", session.user.id)
+            .execute();
+        } catch {}
+      }
     }
 
     // 2. Validate and format username if supplied
