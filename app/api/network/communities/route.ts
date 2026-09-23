@@ -1,6 +1,18 @@
 import { auth } from "@/lib/auth";
 import { networkDb, ensureNetworkingTables } from "@/modules/network/lib/network-db";
 import { headers } from "next/headers";
+import { sql } from "kysely";
+
+const DUMMY_SLUGS = [
+  "physiotherapy-india",
+  "cardiology-network",
+  "medical-students-forum",
+  "clinical-research-hub",
+  "nursing-excellence",
+  "sports-medicine-rehab",
+  "radiology-imaging",
+  "pediatrics-india",
+];
 
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -15,6 +27,16 @@ export async function GET(request: Request) {
 
   try {
     await ensureNetworkingTables();
+
+    // Auto-purge any seed dummy communities from database
+    try {
+      await sql`
+        DELETE FROM communities 
+        WHERE slug = ANY(${DUMMY_SLUGS}) OR created_by IS NULL
+      `.execute(networkDb);
+    } catch {
+      // Ignore if table or constraints prevent immediate deletion
+    }
 
     let q = networkDb
       .selectFrom("communities as c")
@@ -31,7 +53,9 @@ export async function GET(request: Request) {
         "c.post_count",
         "c.created_at",
       ])
-      .where("c.visibility", "<>", "private");
+      .where("c.visibility", "<>", "private")
+      .where("c.slug", "not in", DUMMY_SLUGS)
+      .where("c.created_by", "is not", null);
 
     if (query) {
       q = q.where((eb) =>

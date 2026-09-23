@@ -291,19 +291,6 @@ CREATE INDEX IF NOT EXISTS idx_network_notifications_user ON network_notificatio
 CREATE INDEX IF NOT EXISTS idx_network_notifications_read ON network_notifications(user_id, is_read);
 CREATE INDEX IF NOT EXISTS idx_network_notifications_created ON network_notifications(created_at DESC);
 
--- Seed Default Communities
-INSERT INTO communities (id, slug, name, description, specialty, visibility, join_mode, member_count)
-VALUES
-  (gen_random_uuid()::TEXT, 'physiotherapy-india',      'Physiotherapy India',          'For physiotherapists, physical therapists, and rehab professionals across India.',         'Physiotherapy',      'public', 'open', 0),
-  (gen_random_uuid()::TEXT, 'cardiology-network',        'Cardiology Network',           'Clinical cardiology discussions, research, and ECG interpretation.',                       'Cardiology',         'public', 'open', 0),
-  (gen_random_uuid()::TEXT, 'medical-students-forum',    'Medical Students Forum',       'For MBBS, BDS, BPT, BSN and allied health students across India.',                        'Medical Students',   'public', 'open', 0),
-  (gen_random_uuid()::TEXT, 'clinical-research-hub',     'Clinical Research Hub',        'Multi-center trial collaboration, research methodology, and publication support.',         'Clinical Research',  'public', 'open', 0),
-  (gen_random_uuid()::TEXT, 'nursing-excellence',         'Nursing Excellence',           'For nurses, nurse practitioners, and nursing educators.',                                  'Nursing',            'public', 'open', 0),
-  (gen_random_uuid()::TEXT, 'sports-medicine-rehab',     'Sports Medicine & Rehab',      'Sports injuries, exercise science, and athletic rehabilitation professionals.',             'Sports Medicine',    'public', 'open', 0),
-  (gen_random_uuid()::TEXT, 'radiology-imaging',          'Radiology & Imaging',          'Diagnostic radiology, CT, MRI, and interventional radiology discussions.',                'Radiology',          'public', 'open', 0),
-  (gen_random_uuid()::TEXT, 'pediatrics-india',           'Pediatrics India',             'For pediatricians, neonatologists, and child health specialists.',                         'Pediatrics',         'public', 'open', 0)
-ON CONFLICT (slug) DO NOTHING;
-
 
 -- ─────────────────────────────────────────────────────────────
 -- SECTION 3: LEARN & LMS ACADEMY SYSTEM

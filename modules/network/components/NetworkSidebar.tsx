@@ -103,14 +103,14 @@ export function NetworkSidebar({ currentUserId }: NetworkSidebarProps) {
       {/* 2. People You May Know */}
       <PeopleYouMayKnow currentUserId={currentUserId} limit={4} />
 
-      {/* 3. Suggested Communities */}
-      <div className="rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="flex items-center gap-1.5 text-sm font-bold text-[#171717]">
-            <Users className="h-4 w-4 text-[#1769c2]" />
-            Suggested Communities
-          </h3>
-          {communities.length > 0 && (
+      {/* 3. Suggested Communities (Only displayed when real communities exist) */}
+      {communities.length > 0 && (
+        <div className="rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="flex items-center gap-1.5 text-sm font-bold text-[#171717]">
+              <Users className="h-4 w-4 text-[#1769c2]" />
+              Suggested Communities
+            </h3>
             <button
               type="button"
               onClick={() => router.push("/network/communities")}
@@ -118,10 +118,8 @@ export function NetworkSidebar({ currentUserId }: NetworkSidebarProps) {
             >
               See all →
             </button>
-          )}
-        </div>
+          </div>
 
-        {communities.length > 0 ? (
           <ul className="space-y-3">
             {communities.map((c) => {
               const isJoined = joinedSlugs.has(c.slug);
@@ -167,25 +165,8 @@ export function NetworkSidebar({ currentUserId }: NetworkSidebarProps) {
               );
             })}
           </ul>
-        ) : !isLoading ? (
-          <div className="py-4 text-center">
-            <p className="text-xs text-[#77716b]">No communities created yet.</p>
-            <button
-              type="button"
-              onClick={() => router.push("/network")}
-              className="mt-2 text-xs font-semibold text-[#1769c2] hover:underline"
-            >
-              Explore Specialty Hubs →
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {[1, 2].map((i) => (
-              <div key={i} className="h-10 rounded-xl bg-slate-100 animate-pulse" />
-            ))}
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* 4. Upgrade to MGN Pro */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0a1b33] via-[#0f2c52] to-[#17487d] p-4 text-white shadow-sm">
