@@ -2,9 +2,8 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { VerificationService } from "@/modules/onboarding/lib/verification-service";
-import AppHeader from "@/components/AppHeader";
-import AppBottomNav from "@/components/AppBottomNav";
 import GracePeriodBanner from "@/components/GracePeriodBanner";
+import { AppShell } from "@/components/AppShell";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -36,9 +35,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <>
       <GracePeriodBanner />
-      <AppHeader />
-      <div className="flex-1 pb-18 md:pb-0">{children}</div>
-      <AppBottomNav />
+      <AppShell>{children}</AppShell>
     </>
   );
 }

@@ -5,18 +5,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
-  Briefcase,
-  Calendar,
-  FlaskConical,
-  GraduationCap,
-  Home,
   MessageSquare,
   Search,
-  ShoppingBag,
-  Tent,
-  Users,
-  X,
-  ArrowRight,
+  Menu,
   ArrowLeft,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
@@ -164,8 +155,12 @@ function NotifPopup({
   );
 }
 
+interface AppHeaderProps {
+  onOpenMobileDrawer?: () => void;
+}
+
 /* ── Main App Header ────────────────────────────── */
-export default function AppHeader() {
+export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
   const router = useRouter();
   const pathname = usePathname();
   const { data: session } = authClient.useSession();
@@ -202,22 +197,11 @@ export default function AppHeader() {
     });
   };
 
-  const navItems = [
-    { id: "home", label: "Home", href: "/home", icon: Home },
-    { id: "network", label: "Network", href: "/network", icon: Users },
-    { id: "learn", label: "Learn", href: "/learn", icon: GraduationCap },
-    { id: "opportunities", label: "Opportunities", href: "/opportunities", icon: Briefcase },
-    { id: "events", label: "Events", href: "/events", icon: Calendar },
-    { id: "camps", label: "Camps", href: "/camps", icon: Tent },
-    { id: "research", label: "Research", href: "/research", icon: FlaskConical },
-    { id: "marketplace", label: "Marketplace", href: "/marketplace", icon: ShoppingBag },
-  ];
-
   const isProfilePage = pathname?.startsWith("/profile");
 
   return (
     <header
-      className={`sticky top-0 z-40 border-b border-[#e8e6e3] bg-white transition-transform duration-300 ease-in-out ${
+      className={`sticky top-0 z-30 border-b border-[#e8e6e3] bg-white transition-transform duration-300 ease-in-out ${
         hidden ? "-translate-y-full" : "translate-y-0"
       }`}
     >
@@ -242,17 +226,29 @@ export default function AppHeader() {
           </div>
         ) : isProfilePage ? (
           <>
-            {/* 1. MOBILE-ONLY PROFILE HEADER (< md) */}
+            {/* 1. MOBILE PROFILE HEADER (< md) */}
             <div className="flex md:hidden w-full items-center justify-between">
-              {/* Left: Back Arrow */}
-              <button
-                type="button"
-                onClick={() => router.back()}
-                aria-label="Go back"
-                className="flex h-9 w-9 items-center justify-center rounded-xl text-[#5d5854] hover:bg-[#f0efee] hover:text-[#171717] transition active:scale-95"
-              >
-                <ArrowLeft className="h-5 w-5 stroke-[2.2]" />
-              </button>
+              {/* Left: Hamburger & Back Arrow */}
+              <div className="flex items-center gap-1">
+                {onOpenMobileDrawer && (
+                  <button
+                    type="button"
+                    aria-label="Open Navigation Menu"
+                    onClick={onOpenMobileDrawer}
+                    className="flex h-9 w-9 items-center justify-center rounded-xl text-[#5d5854] hover:bg-[#f0efee] hover:text-[#171717] transition active:scale-95"
+                  >
+                    <Menu className="h-5 w-5 stroke-[2]" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => router.back()}
+                  aria-label="Go back"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl text-[#5d5854] hover:bg-[#f0efee] hover:text-[#171717] transition active:scale-95"
+                >
+                  <ArrowLeft className="h-5 w-5 stroke-[2.2]" />
+                </button>
+              </div>
 
               {/* Center: Website Logo */}
               <Link href="/home" className="flex items-center focus:outline-none" aria-label="MGN Home">
@@ -312,53 +308,15 @@ export default function AppHeader() {
               </div>
             </div>
 
-            {/* 2. DESKTOP PROFILE HEADER (>= md) — Identical to standard desktop navbar */}
+            {/* 2. DESKTOP PROFILE HEADER (>= md) */}
             <div className="hidden md:flex w-full items-center justify-between gap-4">
-              {/* Left: Logo */}
-              <div className="flex shrink-0 items-center gap-4">
-                <Link href="/home" className="flex items-center gap-2 focus:outline-none" aria-label="MGN Home">
-                  <img
-                    src="/logo.png"
-                    alt="MGN - Med Global Network"
-                    className="h-6 sm:h-7.5 lg:h-8 w-auto object-contain transition-transform"
-                  />
-                </Link>
-              </div>
-
-              {/* Center: Global Search */}
+              {/* Center/Left: Global Search */}
               <div className="flex-1 max-w-xl">
                 <GlobalSearchBar />
               </div>
 
-              {/* Right: Navigation Tabs & Utilities */}
+              {/* Right: Notifications, Messages & User Menu */}
               <div className="flex items-center gap-1 sm:gap-2">
-                <nav className="flex items-center gap-1 mr-2">
-                  {navItems.map((item) => {
-                    const isActive =
-                      item.href === "/home"
-                        ? pathname === "/home" || pathname === "/"
-                        : pathname.startsWith(item.href);
-                    const IconComp = item.icon;
-
-                    return (
-                      <Link
-                        key={item.id}
-                        href={item.href}
-                        className={`flex flex-col items-center justify-center rounded-xl px-3 py-1.5 text-center transition ${
-                          isActive
-                            ? "bg-[#eef5fc] text-[#1769c2] font-bold"
-                            : "text-[#77716b] hover:bg-[#f8f7f6] hover:text-[#171717]"
-                        }`}
-                      >
-                        <IconComp className={`h-4 w-4 stroke-[2] ${isActive ? "text-[#1769c2]" : ""}`} />
-                        <span className="text-[10px] mt-0.5">{item.label}</span>
-                      </Link>
-                    );
-                  })}
-                </nav>
-
-                <div className="h-6 w-px bg-[#e8e6e3] mx-1" />
-
                 {/* Notifications */}
                 <div className="relative">
                   <button
@@ -405,103 +363,130 @@ export default function AppHeader() {
         ) : (
           /* STANDARD HEADER FOR ALL OTHER PAGES */
           <>
-            {/* 1. LEFT: LOGO */}
-            <div className="flex shrink-0 items-center gap-4">
-              <Link href="/home" className="flex items-center gap-2 focus:outline-none" aria-label="MGN Home">
-                <img
-                  src="/logo.png"
-                  alt="MGN - Med Global Network"
-                  className="h-6 sm:h-7.5 lg:h-8 w-auto object-contain transition-transform"
-                />
-              </Link>
-            </div>
-
-            {/* 2. CENTER: GLOBAL SEARCH BAR (Desktop) */}
-            <div className="hidden md:block flex-1 max-w-xl">
-              <GlobalSearchBar />
-            </div>
-
-            {/* 3. RIGHT: MOBILE SEARCH ICON + NAVIGATION TABS & UTILITIES */}
-            <div className="flex items-center gap-1 sm:gap-2">
-              {/* Mobile Search Icon Trigger */}
-              <button
-                type="button"
-                aria-label="Open search"
-                onClick={() => setMobileSearchOpen(true)}
-                className="flex md:hidden h-9 w-9 items-center justify-center rounded-full text-[#5d5854] hover:bg-[#f0efee] hover:text-[#171717] transition"
-              >
-                <Search className="h-4.5 w-4.5 stroke-[2]" />
-              </button>
-
-              {/* Navigation Links (Desktop) */}
-              <nav className="hidden md:flex items-center gap-1 mr-2">
-                {navItems.map((item) => {
-                  const isActive =
-                    item.href === "/home"
-                      ? pathname === "/home" || pathname === "/"
-                      : pathname.startsWith(item.href);
-                  const IconComp = item.icon;
-
-                  return (
-                    <Link
-                      key={item.id}
-                      href={item.href}
-                      className={`flex flex-col items-center justify-center rounded-xl px-3 py-1.5 text-center transition ${
-                        isActive
-                          ? "bg-[#eef5fc] text-[#1769c2] font-bold"
-                          : "text-[#77716b] hover:bg-[#f8f7f6] hover:text-[#171717]"
-                      }`}
-                    >
-                      <IconComp className={`h-4 w-4 stroke-[2] ${isActive ? "text-[#1769c2]" : ""}`} />
-                      <span className="text-[10px] mt-0.5">{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
-
-              {/* Vertical Divider */}
-              <div className="hidden md:block h-6 w-px bg-[#e8e6e3] mx-1" />
-
-              {/* Notifications */}
-              <div className="relative">
-                <button
-                  type="button"
-                  aria-label="Notifications"
-                  aria-expanded={notifOpen}
-                  onClick={handleToggleNotifications}
-                  className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
-                >
-                  <Bell className="h-4.5 w-4.5 sm:h-5 sm:w-5 stroke-[1.8]" />
-                  {unreadCount > 0 && (
-                    <span className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 flex h-3.5 min-w-3.5 sm:h-4 sm:min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] sm:text-[9px] font-bold text-white ring-2 ring-white">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
-                {notifOpen && (
-                  <NotifPopup
-                    onClose={() => setNotifOpen(false)}
-                    onMarkAllRead={() => setUnreadCount(0)}
-                    onViewAll={() => {
-                      setNotifOpen(false);
-                      router.push("/network/connections");
-                    }}
-                  />
+            {/* 1. MOBILE HEADER (< md) */}
+            <div className="flex md:hidden w-full items-center justify-between">
+              {/* Left: Hamburger Menu & Logo */}
+              <div className="flex items-center gap-2">
+                {onOpenMobileDrawer && (
+                  <button
+                    type="button"
+                    aria-label="Open Navigation Menu"
+                    onClick={onOpenMobileDrawer}
+                    className="flex h-9 w-9 items-center justify-center rounded-xl text-[#5d5854] hover:bg-[#f0efee] hover:text-[#171717] transition active:scale-95"
+                  >
+                    <Menu className="h-5.5 w-5.5 stroke-[2]" />
+                  </button>
                 )}
+                <Link href="/home" className="flex items-center focus:outline-none" aria-label="MGN Home">
+                  <img
+                    src="/logo.png"
+                    alt="MGN - Med Global Network"
+                    className="h-6.5 w-auto object-contain"
+                  />
+                </Link>
               </div>
 
-              {/* Messages */}
-              <button
-                type="button"
-                aria-label="Messages"
-                onClick={() => router.push("/messages")}
-                className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
-              >
-                <MessageSquare className="h-4.5 w-4.5 sm:h-5 sm:w-5 stroke-[1.8]" />
-              </button>
+              {/* Right: Search, Notifications & Messages */}
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  aria-label="Open search"
+                  onClick={() => setMobileSearchOpen(true)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-[#5d5854] hover:bg-[#f0efee] hover:text-[#171717] transition"
+                >
+                  <Search className="h-4.5 w-4.5 stroke-[2]" />
+                </button>
 
-              {/* User Menu Avatar */}
-              <UserMenu />
+                {/* Notifications */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    aria-label="Notifications"
+                    aria-expanded={notifOpen}
+                    onClick={handleToggleNotifications}
+                    className="relative flex h-9 w-9 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
+                  >
+                    <Bell className="h-5 w-5 stroke-[1.8]" />
+                    {unreadCount > 0 && (
+                      <span className="absolute right-1 top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] font-bold text-white ring-2 ring-white">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+                  {notifOpen && (
+                    <NotifPopup
+                      onClose={() => setNotifOpen(false)}
+                      onMarkAllRead={() => setUnreadCount(0)}
+                      onViewAll={() => {
+                        setNotifOpen(false);
+                        router.push("/network/connections");
+                      }}
+                    />
+                  )}
+                </div>
+
+                {/* Messages */}
+                <button
+                  type="button"
+                  aria-label="Messages"
+                  onClick={() => router.push("/messages")}
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
+                >
+                  <MessageSquare className="h-5 w-5 stroke-[1.8]" />
+                </button>
+              </div>
+            </div>
+
+            {/* 2. DESKTOP HEADER (>= md) */}
+            <div className="hidden md:flex w-full items-center justify-between gap-4">
+              {/* Left / Center: Global Search Bar */}
+              <div className="flex-1 max-w-xl">
+                <GlobalSearchBar />
+              </div>
+
+              {/* Right: Notifications, Messages, User Menu */}
+              <div className="flex items-center gap-1 sm:gap-2">
+                {/* Notifications */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    aria-label="Notifications"
+                    aria-expanded={notifOpen}
+                    onClick={handleToggleNotifications}
+                    className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
+                  >
+                    <Bell className="h-4.5 w-4.5 sm:h-5 sm:w-5 stroke-[1.8]" />
+                    {unreadCount > 0 && (
+                      <span className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 flex h-3.5 min-w-3.5 sm:h-4 sm:min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] sm:text-[9px] font-bold text-white ring-2 ring-white">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+                  {notifOpen && (
+                    <NotifPopup
+                      onClose={() => setNotifOpen(false)}
+                      onMarkAllRead={() => setUnreadCount(0)}
+                      onViewAll={() => {
+                        setNotifOpen(false);
+                        router.push("/network/connections");
+                      }}
+                    />
+                  )}
+                </div>
+
+                {/* Messages */}
+                <button
+                  type="button"
+                  aria-label="Messages"
+                  onClick={() => router.push("/messages")}
+                  className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
+                >
+                  <MessageSquare className="h-4.5 w-4.5 sm:h-5 sm:w-5 stroke-[1.8]" />
+                </button>
+
+                {/* User Menu Avatar */}
+                <UserMenu />
+              </div>
             </div>
           </>
         )}

@@ -3,14 +3,13 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useScrollDirection } from "@/lib/useScrollDirection";
 
-type NavTab = "home" | "network" | "learn" | "opportunities" | "marketplace";
+type NavTab = "home" | "network" | "learn" | "opportunities";
 
 const navItems: Array<{ id: NavTab; label: string }> = [
   { id: "home",          label: "Home" },
   { id: "network",       label: "Network" },
   { id: "learn",         label: "Learn" },
   { id: "opportunities", label: "Opportunities" },
-  { id: "marketplace",   label: "Marketplace" },
 ];
 
 /* ── Icons (filled = active, outline = inactive) ── */
