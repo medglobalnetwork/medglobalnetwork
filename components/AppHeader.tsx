@@ -6,11 +6,14 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
   Briefcase,
+  Calendar,
+  FlaskConical,
   GraduationCap,
   Home,
   MessageSquare,
   Search,
   ShoppingBag,
+  Tent,
   Users,
   X,
   ArrowRight,
@@ -204,6 +207,9 @@ export default function AppHeader() {
     { id: "network", label: "Network", href: "/network", icon: Users },
     { id: "learn", label: "Learn", href: "/learn", icon: GraduationCap },
     { id: "opportunities", label: "Opportunities", href: "/opportunities", icon: Briefcase },
+    { id: "events", label: "Events", href: "/events", icon: Calendar },
+    { id: "camps", label: "Camps", href: "/camps", icon: Tent },
+    { id: "research", label: "Research", href: "/research", icon: FlaskConical },
     { id: "marketplace", label: "Marketplace", href: "/marketplace", icon: ShoppingBag },
   ];
 

@@ -49,6 +49,13 @@ export type AdminPermission =
   | "jobs.write"
   | "jobs.approve"
   | "organizations.verify"
+  // Events, Camps & Research
+  | "events.read"
+  | "events.approve"
+  | "camps.read"
+  | "camps.approve"
+  | "research.read"
+  | "research.approve"
   // Analytics
   | "analytics.read"
   | "analytics.export"
@@ -83,6 +90,12 @@ export const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
     "jobs.write",
     "jobs.approve",
     "organizations.verify",
+    "events.read",
+    "events.approve",
+    "camps.read",
+    "camps.approve",
+    "research.read",
+    "research.approve",
     "analytics.read",
     "analytics.export",
     "audit.read",

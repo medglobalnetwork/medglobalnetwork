@@ -10,6 +10,9 @@ import {
   AlertTriangle,
   GraduationCap,
   Briefcase,
+  Calendar,
+  Tent,
+  FlaskConical,
   Share2,
   BarChart3,
   ScrollText,
@@ -78,6 +81,21 @@ export function AdminSidebar({ badgeCounts = {}, isOpen, onClose }: AdminSidebar
           icon: Briefcase,
           badge: badgeCounts.pendingJobs ? `${badgeCounts.pendingJobs}` : undefined,
           badgeColor: "blue",
+        },
+        {
+          name: "Events & CME",
+          href: "/admin/events",
+          icon: Calendar,
+        },
+        {
+          name: "Medical Camps",
+          href: "/admin/camps",
+          icon: Tent,
+        },
+        {
+          name: "Research & Trials",
+          href: "/admin/research",
+          icon: FlaskConical,
         },
         {
           name: "Network & Feed",
