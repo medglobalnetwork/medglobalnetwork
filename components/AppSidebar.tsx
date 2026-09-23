@@ -81,9 +81,13 @@ export function AppSidebar({
 
   const userAvatar = getUserAvatarUrl(session?.user?.image, session?.user?.name);
 
-  // Close mobile drawer on route change
+  // Close mobile drawer only when navigating to a new route
+  const prevPathname = React.useRef(pathname);
   React.useEffect(() => {
-    onCloseMobileDrawer();
+    if (prevPathname.current !== pathname) {
+      prevPathname.current = pathname;
+      onCloseMobileDrawer();
+    }
   }, [pathname, onCloseMobileDrawer]);
 
   return (

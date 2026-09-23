@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { AppSidebar } from "@/components/AppSidebar";
 import AppHeader from "@/components/AppHeader";
 import AppBottomNav from "@/components/AppBottomNav";
@@ -13,14 +13,26 @@ export function AppShell({ children }: AppShellProps) {
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  const handleOpenMobileDrawer = useCallback(() => {
+    setIsMobileDrawerOpen(true);
+  }, []);
+
+  const handleCloseMobileDrawer = useCallback(() => {
+    setIsMobileDrawerOpen(false);
+  }, []);
+
+  const handleToggleCollapse = useCallback(() => {
+    setIsCollapsed((prev) => !prev);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#faf9f8] flex">
       {/* 1. SIDEBAR (Desktop fixed side-nav + Mobile slide-over drawer) */}
       <AppSidebar
         isMobileDrawerOpen={isMobileDrawerOpen}
-        onCloseMobileDrawer={() => setIsMobileDrawerOpen(false)}
+        onCloseMobileDrawer={handleCloseMobileDrawer}
         isCollapsed={isCollapsed}
-        onToggleCollapse={() => setIsCollapsed((prev) => !prev)}
+        onToggleCollapse={handleToggleCollapse}
       />
 
       {/* 2. MAIN CONTENT WRAPPER */}
@@ -30,7 +42,7 @@ export function AppShell({ children }: AppShellProps) {
         }`}
       >
         {/* Top Header with Hamburger trigger for mobile and clean search/actions for desktop */}
-        <AppHeader onOpenMobileDrawer={() => setIsMobileDrawerOpen(true)} />
+        <AppHeader onOpenMobileDrawer={handleOpenMobileDrawer} />
 
         {/* Page Content */}
         <main className="flex-1 pb-20 md:pb-6">{children}</main>
