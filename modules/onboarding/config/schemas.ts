@@ -713,9 +713,43 @@ export const GENERIC_PROFESSION_SCHEMA: ProfessionSchema = {
   ],
 };
 
+export const CATEGORY_PROFESSIONS: Record<string, { id: string; label: string }[]> = {
+  healthcare_professional: [
+    { id: "doctor", label: "Doctor / Medical Practitioner (MBBS, MD, MS, DM, MCh)" },
+    { id: "physiotherapist", label: "Physiotherapist / Physical Therapist (BPT, MPT, DPT)" },
+    { id: "nurse", label: "Nursing Professional (RN, RM, B.Sc Nursing)" },
+    { id: "other", label: "Other Allied Health Professional" },
+  ],
+  student: [
+    { id: "student", label: "Medical / Health Science Student (All Streams)" },
+    { id: "mbbs_student", label: "MBBS Student / Medical Undergraduate" },
+    { id: "physio_student", label: "Physiotherapy Student (BPT / MPT)" },
+    { id: "nursing_student", label: "Nursing Student (B.Sc / GNM)" },
+    { id: "dental_student", label: "Dental Student (BDS / MDS)" },
+    { id: "pharmacy_student", label: "Pharmacy Student (B.Pharm / Pharm.D)" },
+  ],
+  researcher: [
+    { id: "researcher", label: "Medical Researcher / Scientist / PostDoc" },
+  ],
+  educator: [
+    { id: "doctor", label: "Medical Faculty / Professor / Lecturer" },
+    { id: "physiotherapist", label: "Physiotherapy Faculty" },
+    { id: "nurse", label: "Nursing Educator" },
+  ],
+  healthcare_worker: [
+    { id: "other", label: "Healthcare Technician / Radiographer / Lab Tech" },
+  ],
+  other: [
+    { id: "other", label: "Health Science / Wellness Professional" },
+  ],
+};
+
 export function getProfessionSchema(professionId?: string): ProfessionSchema {
   if (!professionId) return PROFESSION_SCHEMAS.doctor;
   const key = professionId.toLowerCase().replace(/[^a-z0-9]/g, "_");
+  if (key.includes("student")) {
+    return PROFESSION_SCHEMAS.student;
+  }
   return PROFESSION_SCHEMAS[key] || GENERIC_PROFESSION_SCHEMA;
 }
 

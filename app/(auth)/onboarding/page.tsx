@@ -22,6 +22,7 @@ import {
 import {
   INDIVIDUAL_CATEGORIES,
   ORGANISATION_TYPES,
+  CATEGORY_PROFESSIONS,
   PROFESSION_SCHEMAS,
   ORGANISATION_SCHEMAS,
   getProfessionSchema,
@@ -31,6 +32,8 @@ import {
   type DocumentRequirement,
   type ProfessionSchema,
 } from "@/modules/onboarding/config/schemas";
+
+const DRAFT_STORAGE_KEY = "mgn_onboarding_form_draft";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -66,8 +69,41 @@ export default function OnboardingPage() {
   // Correction notes & identity state
   const [correctionNote, setCorrectionNote] = React.useState<string | null>(null);
 
-  // Load existing draft
+  // 1. Initial Load: Hydrate from localStorage first, then sync with Server DB
   React.useEffect(() => {
+    // Read local cache immediately to prevent blank forms on refresh
+    let savedLocalStep = 1;
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem(DRAFT_STORAGE_KEY);
+        if (cached) {
+          const p = JSON.parse(cached);
+          if (p.accountType) setAccountType(p.accountType);
+          if (p.category) setCategory(p.category);
+          if (p.professionOrType) setProfessionOrType(p.professionOrType);
+          if (p.legalFirstName) setLegalFirstName(p.legalFirstName);
+          if (p.legalMiddleName) setLegalMiddleName(p.legalMiddleName);
+          if (p.legalLastName) setLegalLastName(p.legalLastName);
+          if (p.dob) setDob(p.dob);
+          if (p.gender) setGender(p.gender);
+          if (p.country) setCountry(p.country);
+          if (p.state) setState(p.state);
+          if (p.city) setCity(p.city);
+          if (p.phone) setPhone(p.phone);
+          if (p.claimedTitle !== undefined) setClaimedTitle(p.claimedTitle);
+          if (p.titleType) setTitleType(p.titleType);
+          if (p.dynamicValues) setDynamicValues(p.dynamicValues);
+          if (p.step && p.step >= 1 && p.step <= 5) {
+            savedLocalStep = p.step;
+            setStep(p.step);
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to load local onboarding draft:", e);
+      }
+    }
+
+    // Fetch server record
     fetch("/api/onboarding", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
@@ -89,25 +125,55 @@ export default function OnboardingPage() {
 
           if (id.verification_status === "CORRECTION_REQUIRED") {
             setCorrectionNote(id.correction_reason || "Reviewer requested corrections to your uploaded KYC documents.");
+            setStep(4);
+            return;
           }
 
-          setAccountType(id.account_type || "INDIVIDUAL");
-          setCategory(id.category || "healthcare_professional");
-          setProfessionOrType(id.profession_or_type || "doctor");
-          setLegalFirstName(id.legal_first_name || "");
-          setLegalMiddleName(id.legal_middle_name || "");
-          setLegalLastName(id.legal_last_name || "");
-          setDob(id.dob ? id.dob.slice(0, 10) : "");
-          setGender(id.gender || "male");
-          setCountry(id.country || "India");
-          setState(id.state || "");
-          setCity(id.city || "");
-          setPhone(id.phone || "");
+          if (id.account_type) setAccountType(id.account_type);
+          if (id.category) setCategory(id.category);
+          if (id.profession_or_type) setProfessionOrType(id.profession_or_type);
+          if (id.legal_first_name) setLegalFirstName(id.legal_first_name);
+          if (id.legal_middle_name) setLegalMiddleName(id.legal_middle_name);
+          if (id.legal_last_name) setLegalLastName(id.legal_last_name);
+          if (id.dob) setDob(id.dob.slice(0, 10));
+          if (id.gender) setGender(id.gender);
+          if (id.country) setCountry(id.country);
+          if (id.state) setState(id.state);
+          if (id.city) setCity(id.city);
+          if (id.phone) setPhone(id.phone);
 
           if (data.titles && data.titles.length > 0) {
             setClaimedTitle(data.titles[0].claimed_title);
             setTitleType(data.titles[0].title_type);
+          } else if (id.category === "student" || id.profession_or_type?.includes("student")) {
+            setClaimedTitle("");
           }
+
+          // Merge qualifications/registrations into dynamicValues if available
+          const dynUpdates: Record<string, any> = {};
+          if (data.qualifications && data.qualifications.length > 0) {
+            const q = data.qualifications[0];
+            if (q.degree) dynUpdates.primary_degree = q.degree;
+            if (q.institution) dynUpdates.institution = q.institution;
+            if (q.graduation_year) dynUpdates.graduation_year = q.graduation_year;
+            if (q.specialization) dynUpdates.specialization = q.specialization;
+          }
+          if (data.registrations && data.registrations.length > 0) {
+            const reg = data.registrations[0];
+            if (reg.council_name) dynUpdates.medical_council = reg.council_name;
+            if (reg.registration_number) dynUpdates.registration_number = reg.registration_number;
+          }
+          if (id.current_organization) {
+            dynUpdates.current_organization = id.current_organization;
+          }
+          if (id.specialization) {
+            dynUpdates.specialization = id.specialization;
+          }
+          if (id.experience_years !== undefined && id.experience_years !== null) {
+            dynUpdates.experience_years = id.experience_years;
+          }
+
+          setDynamicValues((prev) => ({ ...dynUpdates, ...prev }));
 
           const existingDocs: Record<string, any> = {};
           data.documents?.forEach((d: any) => {
@@ -117,28 +183,103 @@ export default function OnboardingPage() {
               size: d.file_size,
             };
           });
-          setUploadedDocs(existingDocs);
+          setUploadedDocs((prev) => ({ ...existingDocs, ...prev }));
 
-          if (id.verification_status === "CORRECTION_REQUIRED") {
-            setStep(4);
-          } else if (id.legal_first_name) {
-            setStep(2);
+          // Determine step if local didn't specify higher
+          if (savedLocalStep <= 1) {
+            if (data.documents && data.documents.length > 0) {
+              setStep(4);
+            } else if (data.qualifications && data.qualifications.length > 0) {
+              setStep(4);
+            } else if (id.legal_first_name && id.city) {
+              setStep(3);
+            } else if (id.profession_or_type) {
+              setStep(2);
+            }
           }
         }
       })
-      .catch(() => {})
+      .catch((err) => console.error("Error loading onboarding state:", err))
       .finally(() => setLoading(false));
   }, [router]);
 
+  // 2. Persist to localStorage whenever form values change
+  React.useEffect(() => {
+    if (loading) return;
+    if (typeof window === "undefined") return;
+    try {
+      const draft = {
+        step,
+        accountType,
+        category,
+        professionOrType,
+        legalFirstName,
+        legalMiddleName,
+        legalLastName,
+        dob,
+        gender,
+        country,
+        state,
+        city,
+        phone,
+        claimedTitle,
+        titleType,
+        dynamicValues,
+        updatedAt: Date.now(),
+      };
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+    } catch {
+      // Ignore quota errors
+    }
+  }, [
+    step,
+    accountType,
+    category,
+    professionOrType,
+    legalFirstName,
+    legalMiddleName,
+    legalLastName,
+    dob,
+    gender,
+    country,
+    state,
+    city,
+    phone,
+    claimedTitle,
+    titleType,
+    dynamicValues,
+    loading,
+  ]);
+
+  // Handle Category Switch
+  const handleCategoryChange = (newCategory: string) => {
+    setCategory(newCategory);
+    if (newCategory === "student") {
+      setProfessionOrType("student");
+      setClaimedTitle("");
+    } else {
+      const availableProfs = CATEGORY_PROFESSIONS[newCategory] || [];
+      if (availableProfs.length > 0) {
+        setProfessionOrType(availableProfs[0].id);
+        if (availableProfs[0].id === "doctor") setClaimedTitle("Dr.");
+        else if (availableProfs[0].id === "nurse") setClaimedTitle("RN");
+        else setClaimedTitle("");
+      }
+    }
+  };
+
+  const isStudentMode = category === "student" || professionOrType.includes("student");
+
   const activeSchema =
     accountType === "INDIVIDUAL"
-      ? getProfessionSchema(professionOrType)
+      ? (isStudentMode ? PROFESSION_SCHEMAS.student : getProfessionSchema(professionOrType))
       : getOrganisationSchema(professionOrType);
 
   const handleStartEnrollment = async () => {
     setError(null);
     setSubmitting(true);
     try {
+      const effectiveProfession = isStudentMode ? "student" : professionOrType;
       const res = await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -147,7 +288,7 @@ export default function OnboardingPage() {
           action: "START",
           account_type: accountType,
           category,
-          profession_or_type: professionOrType,
+          profession_or_type: effectiveProfession,
         }),
       });
       const d = await res.json();
@@ -216,7 +357,7 @@ export default function OnboardingPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          claimed_title: claimedTitle || null,
+          claimed_title: isStudentMode ? null : (claimedTitle || null),
           title_type: titleType,
           ...dynamicValues,
         }),
@@ -280,6 +421,12 @@ export default function OnboardingPage() {
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || "Failed to submit for review");
+
+      // Clean local storage draft upon successful completion
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      }
+
       router.push("/onboarding/status");
     } catch (err: any) {
       setError(err.message);
@@ -293,7 +440,7 @@ export default function OnboardingPage() {
       <div className="flex min-h-screen items-center justify-center bg-[#faf9f8]">
         <div className="flex flex-col items-center gap-3">
           <div className="h-9 w-9 animate-spin rounded-full border-3 border-[#1769c2] border-t-transparent" />
-          <p className="text-xs font-semibold text-[#77716b]">Loading MGN Identity Portal...</p>
+          <p className="text-xs font-semibold text-[#77716b]">Restoring MGN Identity Portal...</p>
         </div>
       </div>
     );
@@ -302,10 +449,20 @@ export default function OnboardingPage() {
   const stepsList = [
     { num: 1, title: "Account Type" },
     { num: 2, title: "Basic Identity" },
-    { num: 3, title: "Credentials" },
+    { num: 3, title: isStudentMode ? "Enrollment" : "Credentials" },
     { num: 4, title: "Documents" },
     { num: 5, title: "Review & Submit" },
   ];
+
+  const availableProfessions =
+    CATEGORY_PROFESSIONS[category] || [
+      { id: "doctor", label: "Doctor / Medical Practitioner" },
+      { id: "physiotherapist", label: "Physiotherapist" },
+      { id: "nurse", label: "Nursing Professional" },
+      { id: "student", label: "Medical / Health Science Student" },
+      { id: "researcher", label: "Medical Researcher / Scientist" },
+      { id: "other", label: "Other Health Science Professional" },
+    ];
 
   return (
     <div className="min-h-screen bg-[#faf9f8] text-[#171717]">
@@ -334,17 +491,21 @@ export default function OnboardingPage() {
             {stepsList.map((s, idx) => (
               <div key={s.num} className="flex flex-1 items-center">
                 <div className="flex flex-col items-center">
-                  <div
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (step > s.num) setStep(s.num);
+                    }}
                     className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-xs font-bold transition ${
                       step > s.num
-                        ? "bg-emerald-600 text-white"
+                        ? "bg-emerald-600 text-white cursor-pointer hover:bg-emerald-700"
                         : step === s.num
                         ? "bg-[#1769c2] text-white shadow-md ring-4 ring-[#1769c2]/15"
                         : "bg-[#e8e6e3] text-[#77716b]"
                     }`}
                   >
                     {step > s.num ? <Check className="h-4 w-4 stroke-[3]" /> : s.num}
-                  </div>
+                  </button>
                   <span
                     className={`mt-1 text-[10px] sm:text-xs font-semibold hidden md:block ${
                       step === s.num ? "text-[#1769c2]" : "text-[#77716b]"
@@ -399,7 +560,7 @@ export default function OnboardingPage() {
                   </div>
                   <h3 className="text-base font-bold text-[#171717]">Individual</h3>
                   <p className="mt-1 text-xs text-[#77716b]">
-                    Doctor, Physiotherapist, Nurse, Researcher, Student or Healthcare Practitioner.
+                    Doctor, Physiotherapist, Nurse, Researcher, Medical Student or Healthcare Practitioner.
                   </p>
                 </div>
                 {accountType === "INDIVIDUAL" && (
@@ -444,8 +605,8 @@ export default function OnboardingPage() {
                   </label>
                   <select
                     value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm font-medium focus:border-[#1769c2] focus:outline-none"
+                    onChange={(e) => handleCategoryChange(e.target.value)}
+                    className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm font-medium focus:border-[#1769c2] focus:outline-none bg-white"
                   >
                     {INDIVIDUAL_CATEGORIES.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -457,19 +618,18 @@ export default function OnboardingPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-[#5d5854] mb-1.5">
-                    Specific Profession
+                    {category === "student" ? "Course / Student Stream" : "Specific Profession"}
                   </label>
                   <select
                     value={professionOrType}
                     onChange={(e) => setProfessionOrType(e.target.value)}
-                    className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm font-medium focus:border-[#1769c2] focus:outline-none"
+                    className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm font-medium focus:border-[#1769c2] focus:outline-none bg-white"
                   >
-                    <option value="doctor">Doctor / Medical Practitioner</option>
-                    <option value="physiotherapist">Physiotherapist / Physical Therapist</option>
-                    <option value="nurse">Nursing Professional (RN / RM)</option>
-                    <option value="student">Medical / Allied Health Student</option>
-                    <option value="researcher">Medical Researcher / Scientist</option>
-                    <option value="other">Other Health Science Professional</option>
+                    {availableProfessions.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -482,7 +642,7 @@ export default function OnboardingPage() {
                   <select
                     value={professionOrType}
                     onChange={(e) => setProfessionOrType(e.target.value)}
-                    className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm font-medium focus:border-[#1769c2] focus:outline-none"
+                    className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm font-medium focus:border-[#1769c2] focus:outline-none bg-white"
                   >
                     {ORGANISATION_TYPES.map((o) => (
                       <option key={o.id} value={o.id}>
@@ -553,7 +713,7 @@ export default function OnboardingPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Patre"
+                  placeholder="e.g. Sharma"
                   value={legalLastName}
                   onChange={(e) => setLegalLastName(e.target.value)}
                   className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none"
@@ -561,7 +721,7 @@ export default function OnboardingPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
               <div>
                 <label className="block text-xs font-bold text-[#5d5854] mb-1">
                   Date of Birth
@@ -581,12 +741,26 @@ export default function OnboardingPage() {
                 <select
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
-                  className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none"
+                  className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none bg-white"
                 >
                   <option value="male">Male</option>
                   <option value="female">Female</option>
-                  <option value="other">Other / Prefer not to say</option>
+                  <option value="other">Other</option>
+                  <option value="prefer_not_to_say">Prefer not to say</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#5d5854] mb-1">
+                  Contact Phone Number
+                </label>
+                <input
+                  type="tel"
+                  placeholder="e.g. +91 9876543210"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none"
+                />
               </div>
             </div>
 
@@ -654,18 +828,20 @@ export default function OnboardingPage() {
           </form>
         )}
 
-        {/* STEP 3: DYNAMIC PROFESSIONAL CREDENTIALS & TITLES */}
+        {/* STEP 3: DYNAMIC PROFESSIONAL CREDENTIALS / STUDENT ENROLLMENT */}
         {step === 3 && (
           <form onSubmit={handleSaveProfessionalDetails} className="rounded-3xl border border-[#e8e6e3] bg-white p-6 sm:p-8 shadow-xs">
             <h2 className="text-xl font-black text-[#171717] tracking-tight">
-              {activeSchema.name} Credentials
+              {isStudentMode ? "Student Enrollment & Academic Details" : `${activeSchema.name} Credentials`}
             </h2>
             <p className="mt-1 text-xs text-[#77716b] mb-6">
-              Provide your verified qualification and council registration details.
+              {isStudentMode
+                ? "Provide your current college and expected year of graduation. (No license or council registration required for students)"
+                : "Provide your verified qualification and council registration details."}
             </p>
 
-            {/* Title Selection for Individual */}
-            {accountType === "INDIVIDUAL" && (() => {
+            {/* Title Selection for Individual (Skipped for students) */}
+            {accountType === "INDIVIDUAL" && !isStudentMode && (() => {
               const indSchema = activeSchema as ProfessionSchema;
               if (!indSchema.allowedPrefixes?.length && !indSchema.allowedSuffixes?.length) return null;
               return (
@@ -745,7 +921,7 @@ export default function OnboardingPage() {
                       onChange={(e) =>
                         setDynamicValues((prev) => ({ ...prev, [f.name]: e.target.value }))
                       }
-                      className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none"
+                      className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none bg-white"
                     >
                       <option value="">Select {f.label}</option>
                       {f.options?.map((opt) => (
@@ -764,8 +940,7 @@ export default function OnboardingPage() {
                         setDynamicValues((prev) => ({ ...prev, [f.name]: e.target.value }))
                       }
                       className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none"
-                    >
-                    </input>
+                    />
                   )}
                 </div>
               ))}
@@ -903,8 +1078,8 @@ export default function OnboardingPage() {
                               className="hidden"
                               accept=".pdf,image/jpeg,image/png"
                               onChange={(e) => {
-                                  const f = e.target.files?.[0];
-                                  if (f) handleFileUpload(docReq.id, f);
+                                const f = e.target.files?.[0];
+                                if (f) handleFileUpload(docReq.id, f);
                               }}
                             />
                           </label>
@@ -984,8 +1159,20 @@ export default function OnboardingPage() {
                   </div>
                   {dynamicValues.primary_degree && (
                     <div>
-                      <span className="text-[#77716b]">Degree:</span>{" "}
+                      <span className="text-[#77716b]">{isStudentMode ? "Course Enrolled:" : "Degree:"}</span>{" "}
                       <strong className="text-[#171717]">{dynamicValues.primary_degree}</strong>
+                    </div>
+                  )}
+                  {dynamicValues.institution && (
+                    <div>
+                      <span className="text-[#77716b]">College / University:</span>{" "}
+                      <strong className="text-[#171717]">{dynamicValues.institution}</strong>
+                    </div>
+                  )}
+                  {dynamicValues.graduation_year && (
+                    <div>
+                      <span className="text-[#77716b]">{isStudentMode ? "Expected Graduation:" : "Graduation Year:"}</span>{" "}
+                      <strong className="text-[#171717]">{dynamicValues.graduation_year}</strong>
                     </div>
                   )}
                   {dynamicValues.medical_council && (
