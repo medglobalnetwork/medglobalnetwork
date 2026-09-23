@@ -21,7 +21,7 @@ import { VerificationBadge } from "@/modules/network/components/VerificationBadg
 import { ConnectionButton } from "@/modules/network/components/ConnectionButton";
 import type { ProfessionalProfile, ConnectionStatus } from "@/modules/network/types";
 import { getProfessionColor } from "@/modules/network/lib/network-data";
-import { DEFAULT_BLANK_AVATAR, isGoogleOrExternalAvatar } from "@/lib/avatar";
+import { DEFAULT_BLANK_AVATAR, isGoogleOrExternalAvatar, setUserCustomCover, setUserCustomAvatar } from "@/lib/avatar";
 import { ImageSelectorModal } from "@/components/media/ImageSelectorModal";
 
 interface ProfileHeaderProps {
@@ -95,8 +95,8 @@ export function ProfileHeader({
 
   const handleUpdateCover = async (newUrl: string) => {
     setCoverUrl(newUrl);
-    if (typeof window !== "undefined") {
-      localStorage.setItem(`mgn_cover_${profile.user_id}`, newUrl);
+    if (profile.user_id) {
+      setUserCustomCover(profile.user_id, newUrl);
     }
 
     // Persist to server
@@ -114,10 +114,7 @@ export function ProfileHeader({
 
   const handleUpdateAvatar = async (newUrl: string) => {
     setAvatarUrl(newUrl);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("mgn_user_custom_avatar", newUrl);
-      window.dispatchEvent(new Event("mgn-avatar-updated"));
-    }
+    setUserCustomAvatar(newUrl);
 
     // Persist to server
     try {

@@ -18,7 +18,7 @@ import {
   Video,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl } from "@/lib/avatar";
+import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl, getUserCoverUrl, DEFAULT_COVER_BANNER } from "@/lib/avatar";
 import { StoriesBar } from "@/modules/home/components/StoriesBar";
 import { QuickLinksBar } from "@/modules/home/components/QuickLinksBar";
 import { HomeFeed } from "@/modules/home/components/HomeFeed";
@@ -29,8 +29,9 @@ export default function HomePage() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
-  // Dynamic Avatar & Profile Stats sync
+  // Dynamic Avatar & Cover & Profile Stats sync
   const [avatarUrl, setAvatarUrl] = React.useState<string>(DEFAULT_BLANK_AVATAR);
+  const [coverUrl, setCoverUrl] = React.useState<string>(DEFAULT_COVER_BANNER);
   const [userProfile, setUserProfile] = React.useState<(ProfessionalProfile & {
     connection_count?: number;
     follower_count?: number;
@@ -53,11 +54,25 @@ export default function HomePage() {
   }, [session?.user?.email, session?.user?.name, session?.user?.image]);
 
   React.useEffect(() => {
+    const updateCover = () => {
+      setCoverUrl(getUserCoverUrl(session?.user?.id, userProfile?.cover_image_url));
+    };
+    updateCover();
+    window.addEventListener("mgn-cover-updated", updateCover);
+    return () => window.removeEventListener("mgn-cover-updated", updateCover);
+  }, [session?.user?.id, userProfile?.cover_image_url]);
+
+  React.useEffect(() => {
     if (!session?.user?.id) return;
     fetch(`/api/network/profiles/${session.user.id}`, { credentials: "include" })
       .then((r) => r.json())
       .then((d) => {
-        if (d?.data) setUserProfile(d.data);
+        if (d?.data) {
+          setUserProfile(d.data);
+          if (d.data.cover_image_url) {
+            setCoverUrl(d.data.cover_image_url);
+          }
+        }
       })
       .catch(() => {});
   }, [session?.user?.id]);
@@ -122,20 +137,14 @@ export default function HomePage() {
             {/* 1. USER PROFILE SUMMARY CARD */}
             <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-[#e8e6e3] bg-white shadow-2xs">
               {/* Graphic Top Banner */}
-              <div className="relative h-14 sm:h-24 w-full bg-gradient-to-r from-[#1769c2] via-[#0284c7] to-[#0ea5e9] p-2.5 sm:p-4 text-white overflow-hidden">
-                {userProfile?.cover_image_url ? (
-                  <>
-                    <img
-                      src={userProfile.cover_image_url}
-                      alt="Profile Cover"
-                      className="absolute inset-0 h-full w-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                  </>
-                ) : (
-                  <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:12px_12px] opacity-20" />
-                )}
-                <p className="relative text-right text-[9px] sm:text-[11px] font-semibold text-white/90 leading-tight drop-shadow-xs">
+              <div className="relative h-20 sm:h-28 w-full overflow-hidden bg-gradient-to-r from-teal-900 via-emerald-800 to-cyan-900 text-white">
+                <img
+                  src={coverUrl}
+                  alt="Profile Cover"
+                  className="absolute inset-0 h-full w-full object-cover opacity-90 transition-transform duration-500 hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                <p className="relative p-2.5 sm:p-4 text-right text-[9px] sm:text-[11px] font-semibold text-white/90 leading-tight drop-shadow-md">
                   Better Professionals<br />Better Healthcare
                 </p>
               </div>

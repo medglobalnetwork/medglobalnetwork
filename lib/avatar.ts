@@ -57,3 +57,44 @@ export function setUserCustomAvatar(dataUrl: string | null) {
   // Dispatch custom storage event so all components update instantly
   window.dispatchEvent(new Event("mgn-avatar-updated"));
 }
+
+/**
+ * Default scenic medical cover banner when user has not set a custom cover.
+ */
+export const DEFAULT_COVER_BANNER =
+  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1600&auto=format&fit=crop&q=80";
+
+/**
+ * Utility to get user cover image:
+ * 1. Checks localStorage for a custom cover image (`mgn_cover_<userId>`).
+ * 2. Checks serverProfile cover_image_url.
+ * 3. Falls back to DEFAULT_COVER_BANNER.
+ */
+export function getUserCoverUrl(
+  userId?: string | null,
+  serverCover?: string | null
+): string {
+  if (typeof window !== "undefined" && userId) {
+    const customCover = localStorage.getItem(`mgn_cover_${userId}`);
+    if (customCover) {
+      return customCover;
+    }
+  }
+
+  if (serverCover) {
+    return serverCover;
+  }
+
+  return DEFAULT_COVER_BANNER;
+}
+
+export function setUserCustomCover(userId: string, coverUrl: string | null) {
+  if (typeof window === "undefined" || !userId) return;
+  if (coverUrl) {
+    localStorage.setItem(`mgn_cover_${userId}`, coverUrl);
+  } else {
+    localStorage.removeItem(`mgn_cover_${userId}`);
+  }
+  window.dispatchEvent(new Event("mgn-cover-updated"));
+}
+
