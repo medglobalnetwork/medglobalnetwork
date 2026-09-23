@@ -1,9 +1,12 @@
+// ============================================================
+// Legacy Network Conversations Route — Powered by MGN Communication Engine
 // app/api/network/messages/conversations/route.ts
-import { auth } from "@/lib/auth";
-import { database } from "@/lib/auth";
-import { ensureNetworkingTables } from "@/modules/network/lib/network-db";
+// ============================================================
+
+import { auth, database } from "@/lib/auth";
 import { headers } from "next/headers";
 import { sql } from "kysely";
+import { CommunicationService } from "@/modules/communication/lib/communication-service";
 
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -14,56 +17,32 @@ export async function GET(request: Request) {
   const currentUserId = session.user.id;
 
   try {
-    await ensureNetworkingTables();
+    // 1. Fetch conversations from central communication engine
+    const conversations = await CommunicationService.listConversations(currentUserId);
 
-    // 1. Get peers with message history
-    const conversationPeersRes: any = await sql`
-      WITH user_peers AS (
-        SELECT 
-          CASE WHEN sender_id = ${currentUserId} THEN receiver_id ELSE sender_id END AS peer_id,
-          id AS message_id,
-          content,
-          created_at,
-          sender_id,
-          receiver_id,
-          is_read,
-          ROW_NUMBER() OVER (
-            PARTITION BY (CASE WHEN sender_id = ${currentUserId} THEN receiver_id ELSE sender_id END)
-            ORDER BY created_at DESC
-          ) as rn
-        FROM direct_messages
-        WHERE sender_id = ${currentUserId} OR receiver_id = ${currentUserId}
-      )
-      SELECT 
-        p.peer_id,
-        p.content AS last_message,
-        p.created_at AS last_message_at,
-        p.sender_id AS last_sender_id,
-        u.name AS peer_name,
-        u.image AS peer_image,
-        prof.profession AS peer_profession,
-        prof.specialization AS peer_specialization,
-        prof.designation AS peer_designation,
-        prof.member_id AS peer_member_id,
-        prof.is_founding_member AS peer_is_founding,
-        (
-          SELECT COUNT(*)::INT 
-          FROM direct_messages 
-          WHERE sender_id = p.peer_id 
-            AND receiver_id = ${currentUserId} 
-            AND is_read = false
-        ) AS unread_count
-      FROM user_peers p
-      JOIN "user" u ON u.id = p.peer_id
-      LEFT JOIN professional_profiles prof ON prof.user_id = p.peer_id
-      WHERE p.rn = 1
-      ORDER BY p.created_at DESC
-    `.execute(database);
+    // Map to legacy format expected by existing consumers
+    const messageConversations = conversations
+      .filter((c) => c.type === "DIRECT" && c.peerIdentity)
+      .map((c) => ({
+        conversation_id: c.id,
+        peer_id: c.peerIdentity!.userId,
+        peer_name: c.peerIdentity!.name,
+        peer_image: c.peerIdentity!.image,
+        peer_profession: c.peerIdentity!.profession,
+        peer_specialization: c.peerIdentity!.specialization,
+        peer_designation: c.peerIdentity!.designation,
+        peer_member_id: c.peerIdentity!.memberId,
+        peer_is_founding: c.peerIdentity!.isFoundingMember,
+        last_message: c.lastMessageContent,
+        last_message_at: c.lastMessageAt,
+        last_sender_id: c.lastSenderId,
+        unread_count: c.unreadCount,
+        is_connection_only: false,
+      }));
 
-    const messageConversations = conversationPeersRes.rows || [];
-    const existingPeerIds = new Set(messageConversations.map((c: any) => c.peer_id));
+    const existingPeerIds = new Set(messageConversations.map((c) => c.peer_id));
 
-    // 2. Also fetch active connections so users can start chatting with connections seamlessly
+    // 2. Fetch connections so users can start chatting directly with their connections
     const connectionsRes: any = await sql`
       SELECT 
         CASE WHEN c.user_a_id = ${currentUserId} THEN c.user_b_id ELSE c.user_a_id END AS peer_id,
@@ -84,8 +63,18 @@ export async function GET(request: Request) {
     const connectionPeers = (connectionsRes.rows || [])
       .filter((c: any) => !existingPeerIds.has(c.peer_id))
       .map((c: any) => ({
-        ...c,
+        conversation_id: null,
+        peer_id: c.peer_id,
+        peer_name: c.peer_name,
+        peer_image: c.peer_image,
+        peer_profession: c.peer_profession,
+        peer_specialization: c.peer_specialization,
+        peer_designation: c.peer_designation,
+        peer_member_id: c.peer_member_id,
+        peer_is_founding: Boolean(c.peer_is_founding),
         last_message: null,
+        last_message_at: c.last_message_at,
+        last_sender_id: null,
         unread_count: 0,
         is_connection_only: true,
       }));

@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Sparkles,
   Layers,
+  MessageSquare,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -106,6 +107,11 @@ export function AdminSidebar({ badgeCounts = {}, isOpen, onClose }: AdminSidebar
           name: "Suggestion Engine",
           href: "/admin/recommendations",
           icon: Sparkles,
+        },
+        {
+          name: "Communication Engine",
+          href: "/admin/communication",
+          icon: MessageSquare,
         },
       ],
     },

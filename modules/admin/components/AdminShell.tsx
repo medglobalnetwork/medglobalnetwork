@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
-import { Search, Users, ShieldCheck, GraduationCap, Briefcase, FileText, X } from "lucide-react";
+import { Search, Users, ShieldCheck, GraduationCap, Briefcase, FileText, X, MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface AdminShellProps {
@@ -35,6 +35,7 @@ export function AdminShell({ children }: AdminShellProps) {
     { title: "Pending Doctor KYC Verifications", path: "/admin/verification", icon: ShieldCheck, desc: "Review council numbers, degree certificates" },
     { title: "Course & Quiz Catalogue", path: "/admin/learn", icon: GraduationCap, desc: "Publish courses, approve instructors" },
     { title: "Job Postings & Recruiters", path: "/admin/opportunities", icon: Briefcase, desc: "Verify organizations, review job applications" },
+    { title: "Communication Engine & Moderation", path: "/admin/communication", icon: MessageSquare, desc: "Manage contextual channels, calls, reports, and message audit logs" },
     { title: "Audit Trail & Activity Logs", path: "/admin/audit-logs", icon: FileText, desc: "Inspect immutable admin activity stream" },
   ];
 
