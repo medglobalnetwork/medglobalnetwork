@@ -15,7 +15,8 @@ const databaseUrl =
 
 const isProduction = process.env.NODE_ENV === "production";
 
-const rawBaseUrl =
+// Determine canonical Base URL with intelligent production fallback
+let rawBaseUrl =
   process.env.BETTER_AUTH_URL ||
   process.env.NEXT_PUBLIC_APP_URL ||
   (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "") ||
@@ -23,6 +24,15 @@ const rawBaseUrl =
   "http://localhost:3000";
 
 let cleanBaseUrl = rawBaseUrl.replace(/\/api\/auth\/?$/, "").replace(/\/+$/, "");
+
+// If in production and baseURL accidentally pointed to localhost or empty, fallback to production domain
+if (isProduction && (!cleanBaseUrl || cleanBaseUrl.includes("localhost") || cleanBaseUrl.includes("127.0.0.1"))) {
+  cleanBaseUrl =
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "") ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "") ||
+    "https://www.mgn.life";
+}
+
 if (
   (cleanBaseUrl.includes("mgn.life") || cleanBaseUrl.includes("vercel.app") || isProduction) &&
   cleanBaseUrl.startsWith("http://") &&
@@ -87,6 +97,13 @@ export const auth = betterAuth({
       maxAge: 5 * 60,
     },
   },
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
+      requireLocalEmailVerified: false,
+    },
+  },
   plugins: process.env.BETTER_AUTH_API_KEY ? [dash()] : [],
   emailAndPassword: {
     enabled: true,
@@ -99,6 +116,7 @@ export const auth = betterAuth({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
       prompt: "select_account",
+      accessType: "offline",
     },
   },
   secret:

@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { JSX, SVGProps } from "react";
-import { useRouter } from "next/navigation";
+import { JSX, SVGProps, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
 function cn(...inputs: Array<string | false | null | undefined>) {
@@ -58,26 +58,29 @@ function Separator({ className }: { className?: string }) {
 const GoogleIcon = (props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) => (
   <svg
     viewBox="0 0 48 48"
-    preserveAspectRatio="xMidYMid meet"
-    shapeRendering="geometricPrecision"
-    {...props}
+    className="h-5 w-5"
     aria-hidden="true"
+    {...props}
   >
     <path
       fill="#EA4335"
-      d="M24 9.5c3.54 0 6.73 1.22 9.24 3.61l6.85-6.85C34.72 2.76 29.75 0 24 0 14.62 0 6.36 5.4 2.49 13.3l8.06 6.26C12.57 14.77 17.83 9.5 24 9.5Z"
+      d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z"
     />
     <path
       fill="#4285F4"
-      d="M46.5 24.5c0-1.63-.14-3.2-.4-4.7H24v8.96h12.83c-.56 2.98-2.2 5.52-4.7 7.24l7.62 5.92C43.4 36.64 46.5 31.26 46.5 24.5Z"
+      d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65Z"
     />
     <path
       fill="#FBBC05"
-      d="M32.13 36.99c-2.04 1.37-4.65 2.17-8.13 2.17-6.17 0-11.39-4.17-13.24-9.77l-8.06 6.27C6.36 42.6 14.62 48 24 48c7.25 0 13.35-2.39 17.8-6.46l-9.67-4.55Z"
+      d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19Z"
     />
     <path
       fill="#34A853"
-      d="M10.76 29.39A14.1 14.1 0 0 1 9.5 24c0-1.54.27-3.03.76-4.39l-8.06-6.26A23.46 23.46 0 0 0 0 24c0 3.76.9 7.32 2.49 10.46l8.27-6.07Z"
+      d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z"
+    />
+    <path
+      fill="none"
+      d="M0 0h48v48H0Z"
     />
   </svg>
 );
@@ -95,8 +98,9 @@ function EyeIcon({ open }: { open: boolean }) {
   );
 }
 
-export default function Login01() {
+function LoginFormContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, isPending: isSessionPending } = authClient.useSession();
   const [mode, setMode] = React.useState<"signin" | "signup">("signin");
   const [email, setEmail] = React.useState("");
@@ -116,6 +120,25 @@ export default function Login01() {
   const passwordInvalid = submitted && password.trim().length > 0 && mode === "signin" && !password;
   const passwordsMatch = password === confirmPassword;
   const hasPasswordMismatch = mode === "signup" && confirmPassword.length > 0 && !passwordsMatch;
+
+  // Handle URL error params returned from OAuth flows
+  React.useEffect(() => {
+    const error = searchParams?.get("error");
+    const errorDesc = searchParams?.get("error_description");
+    if (error) {
+      if (error === "access_denied") {
+        setFormError("Google sign-in was cancelled.");
+      } else if (error === "account_not_linked" || error === "OAuthAccountNotLinked") {
+        setFormError("An account with this email already exists. Sign in with your password or use your linked account.");
+      } else if (error === "state_not_found") {
+        setFormError("Sign-in session expired. Please click Sign in with Google again.");
+      } else if (error === "invalid_callback_request") {
+        setFormError("Google authentication encountered an invalid callback. Please try again.");
+      } else {
+        setFormError(errorDesc || `Authentication error: ${error}`);
+      }
+    }
+  }, [searchParams]);
 
   React.useEffect(() => {
     if (!isSessionPending && session) {
@@ -233,14 +256,9 @@ export default function Login01() {
     setSuccessMessage("");
     setIsSubmitting(true);
     try {
-      const callbackURL =
-        typeof window !== "undefined"
-          ? `${window.location.origin}/home`
-          : "http://localhost:3000/home";
-
       const result = await authClient.signIn.social({
         provider: "google",
-        callbackURL,
+        callbackURL: "/home",
       });
 
       if (result?.error) {
@@ -262,230 +280,224 @@ export default function Login01() {
     <div className="min-h-screen overflow-x-hidden bg-[#eef5fc] bg-[url('/mobbg.png')] bg-cover bg-center bg-no-repeat md:bg-[url('/loginbg.png')]">
       <div className="flex min-h-screen items-center justify-center px-7 py-8 sm:px-8 md:px-8 lg:justify-end lg:px-[8vw]">
         <div className="w-full max-w-[360px] -translate-y-6 px-1 py-2 sm:max-w-[380px] sm:px-2 lg:max-w-[420px] lg:-translate-y-12 lg:px-0">
-            <h2 className="text-[2.1rem] font-semibold tracking-[-0.06em] text-[#171717] sm:text-[2.6rem]">
-              {mode === "signin" ? "Welcome back" : "Create your account"}
-            </h2>
+          <h2 className="text-[2.1rem] font-semibold tracking-[-0.06em] text-[#171717] sm:text-[2.6rem]">
+            {mode === "signin" ? "Welcome back" : "Create your account"}
+          </h2>
 
-            <div className="mt-5 flex justify-between rounded-full border border-[#e6dfd9] bg-white/50 p-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setMode("signin");
-                  setFormError("");
-                  setSuccessMessage("");
-                }}
-                className={cn(
-                  "flex-1 rounded-full px-4 py-2 text-sm font-medium transition",
-                  mode === "signin" ? "bg-[#1769c2] text-white shadow-sm" : "text-[#5d5854]",
-                )}
-              >
-                Sign in
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setMode("signup");
-                  setFormError("");
-                  setSuccessMessage("");
-                }}
-                className={cn(
-                  "flex-1 rounded-full px-4 py-2 text-sm font-medium transition",
-                  mode === "signup" ? "bg-[#1769c2] text-white shadow-sm" : "text-[#5d5854]",
-                )}
-              >
-                Sign up
-              </button>
-            </div>
-
-            {isForgotPassword ? (
-              <form onSubmit={handleForgotPassword} className="mt-6 space-y-3.5">
-                <div>
-                  <Label htmlFor="resetEmail" className="font-medium text-[#171717]">
-                    Email
-                  </Label>
-                  <Input
-                    type="email"
-                    id="resetEmail"
-                    name="resetEmail"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="john@company.com"
-                    className="mt-2 h-11 rounded-xl border-white/70 bg-white/65 text-[15px] shadow-[0_4px_18px_rgba(36,75,112,0.08)] backdrop-blur-md"
-                  />
-                </div>
-
-                {formError && <p className="text-sm text-[#8a2f2f]">{formError}</p>}
-                {successMessage && <p className="text-sm text-[#1f6f46]">{successMessage}</p>}
-
-                <Button
-                  type="submit"
-                  className="h-11 w-full rounded-xl bg-[#1769c2] text-base text-white hover:bg-[#12569f]"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Sending..." : "Send reset link"}
-                </Button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsForgotPassword(false);
-                    setFormError("");
-                    setSuccessMessage("");
-                  }}
-                  className="w-full text-center text-sm font-medium text-[#1769c2] hover:underline"
-                >
-                  Back to sign in
-                </button>
-              </form>
-            ) : (
-            <form
-              onSubmit={handleSubmit}
-              className={cn("mt-6", mode === "signup" ? "space-y-2.5" : "space-y-3.5")}
+          <div className="mt-5 flex justify-between rounded-full border border-[#e6dfd9] bg-white/50 p-1">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("signin");
+                setFormError("");
+                setSuccessMessage("");
+              }}
+              className={cn(
+                "flex-1 rounded-full px-4 py-2 text-sm font-medium transition",
+                mode === "signin" ? "bg-[#1769c2] text-white shadow-sm" : "text-[#5d5854]",
+              )}
             >
-            {mode === "signup" && (
-              <div>
-                <Label htmlFor="fullName" className="font-medium text-[#171717]">
-                  Full name
+              Sign in
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("signup");
+                setFormError("");
+                setSuccessMessage("");
+              }}
+              className={cn(
+                "flex-1 rounded-full px-4 py-2 text-sm font-medium transition",
+                mode === "signup" ? "bg-[#1769c2] text-white shadow-sm" : "text-[#5d5854]",
+              )}
+            >
+              Sign up
+            </button>
+          </div>
+
+          {isForgotPassword ? (
+            <form onSubmit={handleForgotPassword} className="mt-6 space-y-4">
+              <div className="space-y-1">
+                <Label htmlFor="forgot-email" className="text-xs uppercase tracking-[0.14em] text-[#6c6863]">
+                  Email address
                 </Label>
                 <Input
-                  type="text"
-                  id="fullName"
-                  name="fullName"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="John Doe"
-                  className="mt-2 h-11 rounded-xl border-white/70 bg-white/65 text-[15px] shadow-[0_4px_18px_rgba(36,75,112,0.08)] backdrop-blur-md"
+                  id="forgot-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="doctor@hospital.org"
+                  className="h-11 rounded-xl border-[#d9d3ce] bg-white text-sm"
+                  required
                 />
               </div>
-            )}
 
-            <div>
-              <Label htmlFor="email" className="font-medium text-[#171717]">
-                Email
-              </Label>
-              <Input
-                type="email"
-                id="email"
-                name="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="john@company.com"
-                className="mt-2 h-11 rounded-xl border-white/70 bg-white/65 text-[15px] shadow-[0_4px_18px_rgba(36,75,112,0.08)] backdrop-blur-md"
-              />
-            </div>
+              {formError && <p className="text-sm text-[#8a2f2f]">{formError}</p>}
+              {successMessage && <p className="text-sm text-[#1f6f46]">{successMessage}</p>}
 
-            {showPasswordField && (
-              <>
-                <div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="font-medium text-[#171717]">
-                      Password
-                    </Label>
-                    {mode === "signin" && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsForgotPassword(true);
-                          setFormError("");
-                          setSuccessMessage("");
-                        }}
-                        className="text-sm font-medium text-[#1769c2] underline-offset-4 hover:underline"
-                      >
-                        Forgot password?
-                      </button>
-                    )}
-                  </div>
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      id="password"
-                      name="password"
-                      autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder={mode === "signin" ? "Enter your password" : "Create a password"}
-                      className="mt-2 h-11 rounded-xl border-white/70 bg-white/65 pr-11 text-[15px] shadow-[0_4px_18px_rgba(36,75,112,0.08)] backdrop-blur-md"
-                    />
-                    <button
-                      type="button"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                      onClick={() => setShowPassword((visible) => !visible)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1769c2]"
-                    >
-                      <EyeIcon open={showPassword} />
-                    </button>
-                  </div>
+              <Button
+                type="submit"
+                className="h-11 w-full rounded-xl bg-[#1769c2] text-base text-white hover:bg-[#12569f]"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Sending..." : "Send reset instructions"}
+              </Button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsForgotPassword(false);
+                  setFormError("");
+                  setSuccessMessage("");
+                }}
+                className="w-full text-center text-xs font-semibold text-[#5d5854] hover:text-[#171717]"
+              >
+                Back to sign in
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+              {mode === "signup" && (
+                <div className="space-y-1">
+                  <Label htmlFor="fullName" className="text-xs uppercase tracking-[0.14em] text-[#6c6863]">
+                    Full Name
+                  </Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Dr. Jane Doe"
+                    className="h-11 rounded-xl border-[#d9d3ce] bg-white text-sm"
+                    required
+                  />
                 </div>
+              )}
 
-                {mode === "signup" && (
-                  <div>
-                    <Label htmlFor="confirmPassword" className="font-medium text-[#171717]">
-                      Confirm password
-                    </Label>
+              <div className="space-y-1">
+                <Label htmlFor="email" className="text-xs uppercase tracking-[0.14em] text-[#6c6863]">
+                  Email address
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="doctor@hospital.org"
+                  className="h-11 rounded-xl border-[#d9d3ce] bg-white text-sm"
+                  required
+                />
+              </div>
+
+              {showPasswordField && (
+                <>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="password" className="text-xs uppercase tracking-[0.14em] text-[#6c6863]">
+                        Password
+                      </Label>
+                      {mode === "signin" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsForgotPassword(true);
+                            setFormError("");
+                            setSuccessMessage("");
+                          }}
+                          className="text-xs text-[#5d5854] hover:text-[#171717]"
+                        >
+                          Forgot password?
+                        </button>
+                      )}
+                    </div>
                     <div className="relative">
                       <Input
-                        type={showConfirmPassword ? "text" : "password"}
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        autoComplete="new-password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Re-enter your password"
-                        className="mt-2 h-12 rounded-xl border-white/70 bg-white/65 pr-11 text-[15px] shadow-[0_4px_18px_rgba(36,75,112,0.08)] backdrop-blur-md"
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="h-11 rounded-xl border-[#d9d3ce] bg-white pr-10 text-sm"
+                        required
                       />
                       <button
                         type="button"
-                        aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
-                        onClick={() => setShowConfirmPassword((visible) => !visible)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1769c2]"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7f7871] hover:text-[#171717]"
                       >
-                        <EyeIcon open={showConfirmPassword} />
+                        <EyeIcon open={showPassword} />
                       </button>
                     </div>
-                    {hasPasswordMismatch && (
-                      <p className="mt-1 text-xs text-[#8a2f2f]">Passwords do not match.</p>
-                    )}
                   </div>
-                )}
-              </>
-            )}
 
-            {mode === "signin" && submitted && passwordInvalid && (
-              <p className="text-sm text-[#8a2f2f]">Wrong password. Try again or reset it.</p>
-            )}
+                  {mode === "signup" && (
+                    <div className="space-y-1">
+                      <Label htmlFor="confirmPassword" className="text-xs uppercase tracking-[0.14em] text-[#6c6863]">
+                        Confirm Password
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="confirmPassword"
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className={cn(
+                            "h-11 rounded-xl border-[#d9d3ce] bg-white pr-10 text-sm",
+                            hasPasswordMismatch && "border-red-500 focus-visible:ring-red-500/30",
+                          )}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7f7871] hover:text-[#171717]"
+                        >
+                          <EyeIcon open={showConfirmPassword} />
+                        </button>
+                      </div>
+                      {hasPasswordMismatch && (
+                        <p className="text-xs text-red-500">Passwords do not match</p>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
 
-            {formError && <p className="text-sm text-[#8a2f2f]">{formError}</p>}
-            {successMessage && <p className="text-sm text-[#1f6f46]">{successMessage}</p>}
+              {mode === "signin" && submitted && passwordInvalid && (
+                <p className="text-sm text-[#8a2f2f]">Wrong password. Try again or reset it.</p>
+              )}
 
-            {mode === "signup" && (
-              <label className="flex items-start gap-3 text-sm text-[#4f4a46]">
-                <input
-                  type="checkbox"
-                  checked={agreedToTerms}
-                  onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-[#cfc6be] text-[#171717] focus:ring-[#171717]"
-                  required
-                />
-                <span>
-                  I agree to the <a href="#" className="font-medium text-[#171717] underline-offset-4 hover:underline">terms</a> and <a href="#" className="font-medium text-[#171717] underline-offset-4 hover:underline">privacy policy</a>.
-                </span>
-              </label>
-            )}
+              {formError && <p className="text-sm text-[#8a2f2f]">{formError}</p>}
+              {successMessage && <p className="text-sm text-[#1f6f46]">{successMessage}</p>}
 
-            <Button
-              type="submit"
-              className="mt-2 h-11 w-full rounded-xl bg-[#1769c2] text-base text-white hover:bg-[#12569f]"
-              disabled={
-                isSubmitting ||
-                (mode === "signup" && (!agreedToTerms || !password || !confirmPassword || !passwordsMatch))
-              }
-            >
-              {isSubmitting ? (mode === "signin" ? "Signing in..." : "Creating account...") : mode === "signin" ? "Sign in" : "Create account"}
-            </Button>
-          </form>
-            )}
+              {mode === "signup" && (
+                <label className="flex items-start gap-3 text-sm text-[#4f4a46]">
+                  <input
+                    type="checkbox"
+                    checked={agreedToTerms}
+                    onChange={(e) => setAgreedToTerms(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-[#cfc6be] text-[#171717] focus:ring-[#171717]"
+                    required
+                  />
+                  <span>
+                    I agree to the <a href="#" className="font-medium text-[#171717] underline-offset-4 hover:underline">terms</a> and <a href="#" className="font-medium text-[#171717] underline-offset-4 hover:underline">privacy policy</a>.
+                  </span>
+                </label>
+              )}
+
+              <Button
+                type="submit"
+                className="mt-2 h-11 w-full rounded-xl bg-[#1769c2] text-base text-white hover:bg-[#12569f]"
+                disabled={
+                  isSubmitting ||
+                  (mode === "signup" && (!agreedToTerms || !password || !confirmPassword || !passwordsMatch))
+                }
+              >
+                {isSubmitting ? (mode === "signin" ? "Signing in..." : "Creating account...") : mode === "signin" ? "Sign in" : "Create account"}
+              </Button>
+            </form>
+          )}
 
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
@@ -522,5 +534,13 @@ export default function Login01() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Login01() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#eef5fc]" />}>
+      <LoginFormContent />
+    </Suspense>
   );
 }
