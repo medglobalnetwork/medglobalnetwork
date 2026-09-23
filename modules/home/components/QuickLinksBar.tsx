@@ -184,20 +184,11 @@ export function QuickLinksBar() {
           </p>
         </div>
 
-        {/* Right Tagline & View All button */}
+        {/* Right Tagline */}
         <div className="flex items-center gap-3 sm:gap-4 self-start sm:self-center">
-          <span className="hidden md:inline-block text-[10px] sm:text-[11px] font-bold tracking-widest text-[#94a3b8] uppercase">
-            For a Healthier Tomorrow
+          <span className="text-[11px] sm:text-xs font-bold tracking-wider text-[#1b64da] bg-blue-50 border border-blue-100 rounded-full px-3 py-1">
+            Healthcare Ecosystem
           </span>
-          <span className="hidden md:inline-block h-4 w-px bg-[#e2e8f0]" />
-          <button
-            type="button"
-            onClick={() => router.push("/network")}
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#1b64da] px-4 py-1.5 text-xs font-bold text-[#1b64da] transition hover:bg-[#1b64da] hover:text-white active:scale-95 shadow-2xs"
-          >
-            <span>View All</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </button>
         </div>
       </div>
 
