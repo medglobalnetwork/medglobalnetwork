@@ -464,10 +464,29 @@ export async function ensureNetworkingTables(): Promise<void> {
       );
     `.execute(networkDb);
 
+    // 10. Direct Messages
+    await sql`
+      CREATE TABLE IF NOT EXISTS direct_messages (
+        id              TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
+        sender_id       TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+        receiver_id     TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+        content         TEXT NOT NULL,
+        media_urls      TEXT[],
+        is_read         BOOLEAN DEFAULT false,
+        created_at      TIMESTAMPTZ DEFAULT now()
+      );
+    `.execute(networkDb);
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_direct_messages_participants 
+      ON direct_messages(sender_id, receiver_id);
+    `.execute(networkDb);
+
     networkingTablesInitialized = true;
   } catch (err) {
     console.warn("ensureNetworkingTables warning:", err);
   }
 }
+
 
 

@@ -298,7 +298,7 @@ export default function AppHeader() {
                 <button
                   type="button"
                   aria-label="Messages"
-                  onClick={() => router.push("/network")}
+                  onClick={() => router.push("/messages")}
                   className="flex h-9 w-9 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
                 >
                   <MessageSquare className="h-5 w-5 stroke-[1.8]" />
@@ -385,7 +385,7 @@ export default function AppHeader() {
                 <button
                   type="button"
                   aria-label="Messages"
-                  onClick={() => router.push("/network")}
+                  onClick={() => router.push("/messages")}
                   className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
                 >
                   <MessageSquare className="h-4.5 w-4.5 sm:h-5 sm:w-5 stroke-[1.8]" />
@@ -488,7 +488,7 @@ export default function AppHeader() {
               <button
                 type="button"
                 aria-label="Messages"
-                onClick={() => router.push("/network")}
+                onClick={() => router.push("/messages")}
                 className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
               >
                 <MessageSquare className="h-4.5 w-4.5 sm:h-5 sm:w-5 stroke-[1.8]" />

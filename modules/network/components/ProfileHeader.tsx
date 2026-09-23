@@ -16,6 +16,7 @@ import {
   Users,
   Sparkles
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { MemberBadge } from "@/modules/network/components/MemberBadge";
 import { VerificationBadge } from "@/modules/network/components/VerificationBadge";
 import { ConnectionButton } from "@/modules/network/components/ConnectionButton";
@@ -66,6 +67,7 @@ export function ProfileHeader({
   onOpenKnowMore,
   onShareClick,
 }: ProfileHeaderProps) {
+  const router = useRouter();
   const [coverUrl, setCoverUrl] = React.useState<string>(
     profile.cover_image_url ||
     "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1600&auto=format&fit=crop&q=80"
@@ -423,8 +425,17 @@ export function ProfileHeader({
                 />
                 <button
                   type="button"
+                  onClick={() => router.push(`/messages?to=${profile.user_id}`)}
+                  className="flex-1 min-w-0 h-9 sm:h-10 rounded-xl bg-[#efefef] hover:bg-[#e4e4e4] px-2 sm:px-3 text-xs sm:text-sm font-bold text-[#171717] truncate whitespace-nowrap flex items-center justify-center gap-1 transition active:scale-98 text-center"
+                  title="Direct Message"
+                >
+                  <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#1769c2]" />
+                  <span>Message</span>
+                </button>
+                <button
+                  type="button"
                   onClick={onOpenKnowMore}
-                  className="flex-1 min-w-0 h-9 sm:h-10 rounded-xl bg-[#efefef] hover:bg-[#e4e4e4] px-2 sm:px-3 text-xs sm:text-sm font-bold text-[#171717] truncate whitespace-nowrap flex items-center justify-center transition active:scale-98 text-center"
+                  className="hidden sm:flex flex-1 min-w-0 h-9 sm:h-10 rounded-xl bg-[#efefef] hover:bg-[#e4e4e4] px-2 sm:px-3 text-xs sm:text-sm font-bold text-[#171717] truncate whitespace-nowrap items-center justify-center transition active:scale-98 text-center"
                 >
                   Know More
                 </button>
