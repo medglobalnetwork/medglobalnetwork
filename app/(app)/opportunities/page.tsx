@@ -286,13 +286,15 @@ export default function OpportunitiesPage() {
               <h2 className="text-lg font-bold text-[#171717]">Active Healthcare Openings</h2>
               <p className="text-xs text-[#77716b]">Most recent clinical and research opportunities</p>
             </div>
-            <button
-              type="button"
-              onClick={() => router.push("/opportunities/jobs")}
-              className="text-xs font-semibold text-[#1769c2] hover:underline"
-            >
-              Browse All ({featuredJobs.length}) →
-            </button>
+            {featuredJobs.length > 0 && (
+              <button
+                type="button"
+                onClick={() => router.push("/opportunities/jobs")}
+                className="text-xs font-semibold text-[#1769c2] hover:underline"
+              >
+                Browse All ({featuredJobs.length}) →
+              </button>
+            )}
           </div>
 
           {featuredJobs.length > 0 ? (

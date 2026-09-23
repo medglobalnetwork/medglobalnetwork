@@ -46,6 +46,13 @@ async function ensureOpportunitiesTables() {
       );
     `.execute(database);
 
+    // Clean up any old dummy seed organizations
+    await sql`
+      DELETE FROM organizations 
+      WHERE id IN ('org-apollo-hospitals', 'org-max-healthcare', 'org-rehab-physio-clinic', 'org-aiims-research')
+         OR slug IN ('apollo-hospitals', 'max-healthcare', 'activemotion-rehab', 'aiims-clinical-research');
+    `.execute(database);
+
     opportunitiesTablesInitialized = true;
   } catch (err) {
     console.warn("ensureOpportunitiesTables warning:", err);
@@ -66,6 +73,8 @@ export async function GET(req: NextRequest) {
         (SELECT COUNT(*) FROM jobs j WHERE j.organization_id = o.id AND j.status = 'published') as active_jobs_count
       FROM organizations o
       WHERE o.verification_status != 'suspended'
+        AND o.id NOT IN ('org-apollo-hospitals', 'org-max-healthcare', 'org-rehab-physio-clinic', 'org-aiims-research')
+        AND o.slug NOT IN ('apollo-hospitals', 'max-healthcare', 'activemotion-rehab', 'aiims-clinical-research')
     `;
 
     if (query) {

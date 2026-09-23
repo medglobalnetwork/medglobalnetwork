@@ -3,8 +3,26 @@ import { auth } from "@/lib/auth";
 import { database } from "@/lib/auth";
 import { sql } from "kysely";
 
+let dummyJobsCleaned = false;
+
+async function cleanupDummyJobs() {
+  if (dummyJobsCleaned) return;
+  try {
+    await sql`
+      DELETE FROM jobs 
+      WHERE id IN ('job-sr-sports-physio', 'job-clinical-physio-internship', 'job-cardiology-fellow', 'job-clinical-trial-coordinator')
+         OR slug IN ('senior-sports-physiotherapist-raipur', 'clinical-physiotherapy-internship-bengaluru', 'clinical-fellow-interventional-cardiology', 'clinical-research-coordinator-raipur');
+    `.execute(database);
+    dummyJobsCleaned = true;
+  } catch {
+    // Ignore if tables don't exist yet
+  }
+}
+
 export async function GET(req: NextRequest) {
   try {
+    await cleanupDummyJobs();
+
     const session = await auth.api.getSession({ headers: req.headers });
     const currentUserId = session?.user?.id;
 
@@ -68,6 +86,8 @@ export async function GET(req: NextRequest) {
       FROM jobs j
       JOIN organizations o ON j.organization_id = o.id
       WHERE j.status = 'published'
+        AND j.id NOT IN ('job-sr-sports-physio', 'job-clinical-physio-internship', 'job-cardiology-fellow', 'job-clinical-trial-coordinator')
+        AND o.id NOT IN ('org-apollo-hospitals', 'org-max-healthcare', 'org-rehab-physio-clinic', 'org-aiims-research')
     `;
 
     if (query) {
