@@ -39,13 +39,16 @@ export function UserAvatar({
     return src;
   }, [src, userId]);
 
-  const sizeClasses = {
-    xs: "h-6 w-6 text-[10px]",
-    sm: "h-8 w-8 text-xs",
-    md: "h-10 w-10 text-sm",
-    lg: "h-12 w-12 text-base",
-    xl: "h-16 w-16 text-xl",
-  }[size];
+  const hasCustomSize = /\b(h-\S+|w-\S+)\b/.test(className);
+  const sizeClasses = hasCustomSize
+    ? ""
+    : {
+        xs: "h-6 w-6 text-[10px]",
+        sm: "h-8 w-8 text-xs",
+        md: "h-10 w-10 text-sm",
+        lg: "h-12 w-12 text-base",
+        xl: "h-16 w-16 text-xl",
+      }[size || "md"];
 
   const initials = getInitials(name, email);
   const color = getAvatarColor(name || email || userId || "user");

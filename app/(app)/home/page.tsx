@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl, getUserCoverUrl, DEFAULT_COVER_BANNER } from "@/lib/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { StoriesBar } from "@/modules/home/components/StoriesBar";
 import { QuickLinksBar } from "@/modules/home/components/QuickLinksBar";
 import { HomeFeed } from "@/modules/home/components/HomeFeed";
@@ -153,12 +154,14 @@ export default function HomePage() {
               <div className="relative px-3.5 pb-3.5 sm:px-5 sm:pb-5 pt-0 text-center">
                 {/* Center avatar overlaying banner */}
                 <div className="relative -mt-7 sm:-mt-11 inline-block">
-                  <div className="flex h-14 w-14 sm:h-20 sm:w-20 items-center justify-center overflow-hidden rounded-full border-3 sm:border-4 border-white bg-[#eef5fc] text-base sm:text-xl font-bold text-[#1769c2] shadow-md mx-auto">
-                    {avatarUrl ? (
-                      <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
-                    ) : (
-                      initials
-                    )}
+                  <div className="overflow-hidden rounded-full border-3 sm:border-4 border-white shadow-md mx-auto">
+                    <UserAvatar
+                      src={avatarUrl}
+                      name={displayName}
+                      email={session.user.email}
+                      userId={session.user.id}
+                      className="h-14 w-14 sm:h-20 sm:w-20 text-base sm:text-xl font-bold"
+                    />
                   </div>
                 </div>
 

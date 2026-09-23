@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl, setUserCustomAvatar } from "@/lib/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Trash2, User, Camera, Check, ExternalLink, Loader2, Sparkles, ShieldCheck } from "lucide-react";
 import { ImageSelectorModal } from "@/components/media/ImageSelectorModal";
 import { MemberBadge } from "@/modules/network/components/MemberBadge";
@@ -271,11 +272,13 @@ export default function AccountSettingsPage() {
         </p>
 
         <div className="mt-5 flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#1769c2]/30 bg-[#eef5fc] shadow-xs">
-            <img
-              src={avatarUrl || DEFAULT_BLANK_AVATAR}
-              alt={session.user.name || "User Avatar"}
-              className="h-full w-full rounded-full object-cover"
+          <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#1769c2]/30 shadow-xs">
+            <UserAvatar
+              src={avatarUrl}
+              name={session.user.name}
+              email={session.user.email}
+              userId={session.user.id}
+              className="h-full w-full text-xl font-bold"
             />
           </div>
 

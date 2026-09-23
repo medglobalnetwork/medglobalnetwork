@@ -23,6 +23,7 @@ import { ConnectionButton } from "@/modules/network/components/ConnectionButton"
 import type { ProfessionalProfile, ConnectionStatus } from "@/modules/network/types";
 import { getProfessionColor } from "@/modules/network/lib/network-data";
 import { DEFAULT_BLANK_AVATAR, isGoogleOrExternalAvatar, setUserCustomCover, setUserCustomAvatar } from "@/lib/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { ImageSelectorModal } from "@/components/media/ImageSelectorModal";
 
 interface ProfileHeaderProps {
@@ -182,12 +183,13 @@ export function ProfileHeader({
             <div className="relative shrink-0 -mt-10 sm:-mt-12 lg:-mt-14 z-10 group">
               <div className="h-20 w-20 sm:h-24 sm:w-24 lg:h-28 lg:w-28 rounded-full p-[2.5px] bg-gradient-to-tr from-amber-500 via-rose-500 to-fuchsia-600 shadow-md">
                 <div
-                  className="h-full w-full rounded-full overflow-hidden flex items-center justify-center bg-slate-100 border-2 border-white relative"
+                  className="h-full w-full rounded-full overflow-hidden flex items-center justify-center border-2 border-white relative"
                 >
-                  <img
-                    src={avatarUrl || DEFAULT_BLANK_AVATAR}
-                    alt={profile.name || "User Avatar"}
-                    className="h-full w-full object-cover"
+                  <UserAvatar
+                    src={avatarUrl}
+                    name={profile.name}
+                    userId={profile.user_id}
+                    className="h-full w-full text-2xl sm:text-3xl font-bold"
                   />
                   {/* Camera overlay on hover for own profile */}
                   {isOwnProfile && (

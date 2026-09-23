@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl } from "@/lib/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { MemberBadge } from "@/modules/network/components/MemberBadge";
 
 export default function UserMenu() {
@@ -77,12 +78,14 @@ export default function UserMenu() {
         aria-label="Open user menu"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="flex h-9 w-9 lg:h-11 lg:w-11 items-center justify-center overflow-hidden rounded-full border border-[#ded8d1] bg-[#eef5fc] ring-2 ring-transparent transition hover:ring-[#1769c2]/30 focus:outline-none focus:ring-[#1769c2]/50"
+        className="flex h-9 w-9 lg:h-11 lg:w-11 items-center justify-center overflow-hidden rounded-full border border-[#ded8d1] ring-2 ring-transparent transition hover:ring-[#1769c2]/30 focus:outline-none focus:ring-[#1769c2]/50"
       >
-        <img
-          src={avatarUrl || DEFAULT_BLANK_AVATAR}
-          alt={session?.user?.name || "User Avatar"}
-          className="h-full w-full rounded-full object-cover"
+        <UserAvatar
+          src={avatarUrl}
+          name={session?.user?.name}
+          email={session?.user?.email}
+          userId={session?.user?.id}
+          className="h-full w-full"
         />
       </button>
 
@@ -96,11 +99,13 @@ export default function UserMenu() {
             tabIndex={0}
             className="flex cursor-pointer items-start gap-3 px-4 py-3.5 transition hover:bg-[#f8f7f6]"
           >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#ded8d1] bg-[#eef5fc] mt-0.5">
-              <img
-                src={avatarUrl || DEFAULT_BLANK_AVATAR}
-                alt={session?.user?.name || "User Avatar"}
-                className="h-full w-full rounded-full object-cover"
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#ded8d1] mt-0.5">
+              <UserAvatar
+                src={avatarUrl}
+                name={session?.user?.name}
+                email={session?.user?.email}
+                userId={session?.user?.id}
+                className="h-full w-full"
               />
             </span>
             <div className="min-w-0 flex-1">

@@ -20,6 +20,7 @@ import {
 import type { ProfessionalProfile } from "@/modules/network/types";
 import { ImageSelectorModal } from "@/components/media/ImageSelectorModal";
 import { DEFAULT_BLANK_AVATAR } from "@/lib/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -275,11 +276,11 @@ export function EditProfileModal({
 
               {/* Profile Avatar Preview & Edit */}
               <div className="flex items-center gap-4 pt-1">
-                <div className="relative h-20 w-20 shrink-0 rounded-full overflow-hidden border-2 border-[#1769c2] shadow-md bg-slate-100">
-                  <img
-                    src={image || DEFAULT_BLANK_AVATAR}
-                    alt={name || "Avatar"}
-                    className="h-full w-full object-cover"
+                <div className="relative h-20 w-20 shrink-0 rounded-full overflow-hidden border-2 border-[#1769c2] shadow-md">
+                  <UserAvatar
+                    src={image}
+                    name={name}
+                    className="h-full w-full text-xl font-bold"
                   />
                 </div>
 
