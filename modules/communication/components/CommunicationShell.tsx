@@ -32,9 +32,15 @@ import {
   Heart,
   ThumbsUp,
   SmilePlus,
+  Pencil,
+  Trash2,
+  Copy,
+  ShieldAlert,
+  CheckCircle2,
 } from "lucide-react";
 import { getUserAvatarUrl } from "@/lib/avatar";
 import { MemberBadge } from "@/modules/network/components/MemberBadge";
+import { VerificationBadge } from "@/modules/network/components/VerificationBadge";
 import { ImageSelectorModal } from "@/components/media/ImageSelectorModal";
 import { VoiceMessagePlayer } from "./VoiceMessagePlayer";
 import { RichEntityCard } from "./RichEntityCard";
@@ -47,6 +53,7 @@ import {
   CommunicationMessageItem,
   ConversationType,
   RichEntitySharePayload,
+  MessageRequestItem,
 } from "../types";
 
 export function CommunicationShell() {
@@ -62,12 +69,21 @@ export function CommunicationShell() {
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [selectedConversation, setSelectedConversation] = useState<ConversationSummary | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"ALL" | "DIRECT" | "GROUP" | "CONTEXT" | "UNREAD">("ALL");
+  const [activeTab, setActiveTab] = useState<"ALL" | "DIRECT" | "GROUP" | "CONTEXT" | "REQUESTS" | "UNREAD">("ALL");
+
+  // Message Requests State
+  const [requests, setRequests] = useState<MessageRequestItem[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
 
   const [messages, setMessages] = useState<CommunicationMessageItem[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [inputMessage, setInputMessage] = useState("");
   const [sending, setSending] = useState(false);
+
+  // Edit Message State
+  const [editingMessage, setEditingMessage] = useState<CommunicationMessageItem | null>(null);
+  const [deleteConfirmMsgId, setDeleteConfirmMsgId] = useState<string | null>(null);
+  const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
 
   // Replying state
   const [replyingTo, setReplyingTo] = useState<CommunicationMessageItem | null>(null);
@@ -79,6 +95,7 @@ export function CommunicationShell() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showCallModal, setShowCallModal] = useState(false);
   const [callType, setCallType] = useState<"VOICE" | "VIDEO">("VOICE");
+  const [activeCallId, setActiveCallId] = useState<string | null>(null);
   const [showDetailsDrawer, setShowDetailsDrawer] = useState(false);
   const [detailsData, setDetailsData] = useState<{ members: any[]; pinnedMessages: any[] }>({
     members: [],
@@ -184,9 +201,26 @@ export function CommunicationShell() {
     }
   }, [targetConvId, targetUserId, targetType, targetContextId, searchParams]);
 
+  // Fetch Message Requests
+  const fetchRequests = useCallback(async () => {
+    setLoadingRequests(true);
+    try {
+      const res = await fetch("/api/v1/communication/requests");
+      if (res.ok) {
+        const json = await res.json();
+        setRequests(json.data || []);
+      }
+    } catch (e) {
+      console.error("Error loading message requests:", e);
+    } finally {
+      setLoadingRequests(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchConversations();
-  }, [fetchConversations]);
+    fetchRequests();
+  }, [fetchConversations, fetchRequests]);
 
   // 2. Fetch Messages for Selected Conversation
   const fetchMessages = useCallback(
@@ -381,6 +415,112 @@ export function CommunicationShell() {
     }
   };
 
+  // 6B. Edit Message
+  const handleStartEdit = (msg: CommunicationMessageItem) => {
+    setEditingMessage(msg);
+    setInputMessage(msg.content);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessage(null);
+    setInputMessage("");
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingMessage || !inputMessage.trim()) return;
+    try {
+      const res = await fetch(`/api/v1/communication/messages/${editingMessage.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: inputMessage.trim() }),
+      });
+      if (res.ok) {
+        setEditingMessage(null);
+        setInputMessage("");
+        if (selectedConversation) {
+          fetchMessages(selectedConversation.id, true);
+        }
+      }
+    } catch (e) {
+      console.error("Error editing message:", e);
+    }
+  };
+
+  // 6C. Copy Message Text
+  const handleCopyMessage = (msg: CommunicationMessageItem) => {
+    if (msg.content) {
+      navigator.clipboard.writeText(msg.content);
+      setCopiedMsgId(msg.id);
+      setTimeout(() => setCopiedMsgId(null), 2000);
+    }
+  };
+
+  // 6D. Respond to Message Request
+  const handleRespondRequest = async (requestId: string, action: "ACCEPT" | "DECLINE" | "BLOCK") => {
+    try {
+      const res = await fetch(`/api/v1/communication/requests/${requestId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        await fetchRequests();
+        await fetchConversations();
+        if (action === "ACCEPT" && json.conversationId) {
+          const resConvs = await fetch("/api/v1/communication/conversations");
+          if (resConvs.ok) {
+            const cj = await resConvs.json();
+            const matched = (cj.data || []).find((c: any) => c.id === json.conversationId);
+            if (matched) {
+              setSelectedConversation(matched);
+              setActiveTab("DIRECT");
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Error responding to request:", e);
+    }
+  };
+
+  // 6E. Calls
+  const handleStartCall = async (type: "VOICE" | "VIDEO") => {
+    if (!selectedConversation) return;
+    setCallType(type);
+    setShowCallModal(true);
+
+    try {
+      const res = await fetch("/api/v1/communication/calls", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conversationId: selectedConversation.id,
+          callType: type,
+          participantIds: detailsData.members.map((m) => m.userId),
+        }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setActiveCallId(json.callId || null);
+      }
+    } catch (e) {
+      console.error("Error initiating call:", e);
+    }
+  };
+
+  const handleEndCall = async () => {
+    setShowCallModal(false);
+    if (activeCallId) {
+      fetch("/api/v1/communication/calls", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callId: activeCallId, durationSeconds: 45 }),
+      }).catch(() => {});
+      setActiveCallId(null);
+    }
+  };
+
   // 7. Create Group
   const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -566,6 +706,25 @@ export function CommunicationShell() {
             </button>
             <button
               type="button"
+              onClick={() => {
+                setActiveTab("REQUESTS");
+                fetchRequests();
+              }}
+              className={`px-2.5 py-1 rounded-lg transition shrink-0 flex items-center gap-1.5 ${
+                activeTab === "REQUESTS"
+                  ? "bg-[#1769c2] text-white"
+                  : "text-[#77716b] hover:text-[#171717] hover:bg-[#f0efee]"
+              }`}
+            >
+              <span>Requests</span>
+              {requests.length > 0 && (
+                <span className="h-4 min-w-[16px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-black flex items-center justify-center">
+                  {requests.length}
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
               onClick={() => setActiveTab("UNREAD")}
               className={`px-2.5 py-1 rounded-lg transition shrink-0 ${
                 activeTab === "UNREAD"
@@ -593,7 +752,93 @@ export function CommunicationShell() {
 
           {/* Conversations list */}
           <div className="flex-1 overflow-y-auto divide-y divide-[#f5f4f2]">
-            {loadingConversations ? (
+            {activeTab === "REQUESTS" ? (
+              loadingRequests ? (
+                <div className="flex flex-col items-center justify-center p-8 text-center text-[#77716b]">
+                  <Loader2 className="h-6 w-6 animate-spin text-[#1769c2] mb-2" />
+                  <p className="text-xs">Loading requests...</p>
+                </div>
+              ) : requests.length === 0 ? (
+                <div className="p-8 text-center text-[#77716b]">
+                  <MessageSquare className="h-10 w-10 text-[#ded8d1] mx-auto mb-2" />
+                  <p className="text-sm font-semibold text-[#171717]">No message requests</p>
+                  <p className="text-xs text-[#77716b] mt-1">
+                    Direct messages from healthcare professionals outside your network will appear here for review.
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-y divide-[#f5f4f2] p-2 space-y-2">
+                  {requests.map((req) => {
+                    const avatar = getUserAvatarUrl(req.senderIdentity.image, req.senderIdentity.name);
+                    return (
+                      <div
+                        key={req.id}
+                        className="p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs space-y-2.5"
+                      >
+                        <div className="flex items-start gap-2.5">
+                          <img
+                            src={avatar}
+                            alt={req.senderIdentity.name}
+                            className="h-10 w-10 rounded-full object-cover border border-slate-200"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-bold text-xs text-slate-900 truncate">
+                                {req.senderIdentity.name}
+                              </span>
+                              {req.senderIdentity.identityVerified && <VerificationBadge size="sm" />}
+                              {req.senderIdentity.isFoundingMember && (
+                                <MemberBadge
+                                  isFoundingMember={true}
+                                  memberId={req.senderIdentity.memberId}
+                                  size="xs"
+                                  showCopy={false}
+                                />
+                              )}
+                            </div>
+                            <p className="text-[11px] text-slate-500 truncate">
+                              {req.senderIdentity.designation ||
+                                req.senderIdentity.profession ||
+                                "Healthcare Professional"}
+                              {req.senderIdentity.organization ? ` • ${req.senderIdentity.organization}` : ""}
+                            </p>
+                          </div>
+                        </div>
+                        {req.initialMessage && (
+                          <div className="bg-slate-50 p-2 rounded-lg text-xs text-slate-700 italic border border-slate-100">
+                            &ldquo;{req.initialMessage}&rdquo;
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => handleRespondRequest(req.id, "ACCEPT")}
+                            className="flex-1 bg-[#1769c2] hover:bg-[#12569f] text-white text-xs font-bold py-1.5 rounded-lg transition text-center shadow-xs"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRespondRequest(req.id, "DECLINE")}
+                            className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-1.5 rounded-lg transition text-center"
+                          >
+                            Decline
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRespondRequest(req.id, "BLOCK")}
+                            className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition"
+                            title="Block User"
+                          >
+                            <ShieldAlert className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )
+            ) : loadingConversations ? (
               <div className="flex flex-col items-center justify-center p-8 text-center text-[#77716b]">
                 <Loader2 className="h-6 w-6 animate-spin text-[#1769c2] mb-2" />
                 <p className="text-xs">Loading conversations...</p>
@@ -753,10 +998,7 @@ export function CommunicationShell() {
                 <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                   <button
                     type="button"
-                    onClick={() => {
-                      setCallType("VOICE");
-                      setShowCallModal(true);
-                    }}
+                    onClick={() => handleStartCall("VOICE")}
                     className="p-2 text-[#77716b] hover:text-[#1769c2] hover:bg-[#f0f4f8] rounded-xl transition"
                     title="Audio Call"
                   >
@@ -765,10 +1007,7 @@ export function CommunicationShell() {
 
                   <button
                     type="button"
-                    onClick={() => {
-                      setCallType("VIDEO");
-                      setShowCallModal(true);
-                    }}
+                    onClick={() => handleStartCall("VIDEO")}
                     className="p-2 text-[#77716b] hover:text-[#1769c2] hover:bg-[#f0f4f8] rounded-xl transition"
                     title="Video Call"
                   >
@@ -935,11 +1174,16 @@ export function CommunicationShell() {
                           )}
 
                           {/* Text Content */}
-                          {msg.content && msg.type !== "VOICE" && (
+                          {msg.deletedForAll ? (
+                            <div className="flex items-center gap-1.5 italic text-xs py-0.5 opacity-70">
+                              <Trash2 className="h-3.5 w-3.5" />
+                              <span>This message was deleted</span>
+                            </div>
+                          ) : msg.content && msg.type !== "VOICE" ? (
                             <p className="text-xs sm:text-sm whitespace-pre-wrap break-words leading-relaxed">
                               {msg.content}
                             </p>
-                          )}
+                          ) : null}
 
                           {/* Footer: Time, Edited & Read Status */}
                           <div
@@ -962,7 +1206,7 @@ export function CommunicationShell() {
                         </div>
 
                         {/* Reactions Bar under message */}
-                        {msg.reactions.length > 0 && (
+                        {msg.reactions.length > 0 && !msg.deletedForAll && (
                           <div className="flex flex-wrap gap-1 mt-1">
                             {msg.reactions.map((rx) => (
                               <button
@@ -983,7 +1227,7 @@ export function CommunicationShell() {
                         )}
 
                         {/* Hover Quick Action Toolbar */}
-                        {hoveredMessageId === msg.id && (
+                        {hoveredMessageId === msg.id && !msg.deletedForAll && (
                           <div
                             className={`absolute top-0 -translate-y-1/2 flex items-center gap-1 bg-white border border-slate-200 rounded-full px-2 py-1 shadow-md z-20 ${
                               isMe ? "right-2" : "left-2"
@@ -1015,6 +1259,18 @@ export function CommunicationShell() {
                             </button>
                             <button
                               type="button"
+                              onClick={() => handleCopyMessage(msg)}
+                              className="p-1 hover:bg-slate-100 rounded text-slate-600 relative"
+                              title="Copy text"
+                            >
+                              {copiedMsgId === msg.id ? (
+                                <Check className="h-3 w-3 text-emerald-600" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </button>
+                            <button
+                              type="button"
                               onClick={() => setReplyingTo(msg)}
                               className="p-1 hover:bg-slate-100 rounded text-slate-600"
                               title="Reply"
@@ -1029,6 +1285,56 @@ export function CommunicationShell() {
                             >
                               <Pin className="h-3 w-3" />
                             </button>
+                            {isMe && (
+                              <button
+                                type="button"
+                                onClick={() => handleStartEdit(msg)}
+                                className="p-1 hover:bg-slate-100 rounded text-slate-600"
+                                title="Edit message"
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </button>
+                            )}
+                            <div className="relative">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setDeleteConfirmMsgId(deleteConfirmMsgId === msg.id ? null : msg.id)
+                                }
+                                className="p-1 hover:bg-red-50 rounded text-red-500"
+                                title="Delete message"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+
+                              {/* Delete Confirmation Options Popover */}
+                              {deleteConfirmMsgId === msg.id && (
+                                <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg p-1 flex flex-col gap-0.5 min-w-[140px] z-30 animate-in fade-in zoom-in-95 duration-100 text-left">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleDeleteMessage(msg.id, false);
+                                      setDeleteConfirmMsgId(null);
+                                    }}
+                                    className="text-left text-xs px-2.5 py-1.5 hover:bg-slate-100 rounded-lg text-slate-700 font-medium"
+                                  >
+                                    Delete for me
+                                  </button>
+                                  {isMe && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        handleDeleteMessage(msg.id, true);
+                                        setDeleteConfirmMsgId(null);
+                                      }}
+                                      className="text-left text-xs px-2.5 py-1.5 hover:bg-red-50 rounded-lg text-red-600 font-medium"
+                                    >
+                                      Delete for everyone
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -1049,6 +1355,25 @@ export function CommunicationShell() {
                     type="button"
                     onClick={() => setReplyingTo(null)}
                     className="p-1 text-blue-700 hover:text-blue-950"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Edit Message Banner */}
+              {editingMessage && (
+                <div className="px-4 py-2 bg-amber-50 border-t border-amber-200 flex items-center justify-between">
+                  <div className="text-xs text-amber-900 truncate flex items-center gap-1.5">
+                    <Pencil className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                    <span className="font-bold">Editing message: </span>
+                    <span className="truncate">{editingMessage.content}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="p-1 text-amber-700 hover:text-amber-950 rounded-full"
+                    title="Cancel edit"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -1081,7 +1406,17 @@ export function CommunicationShell() {
 
               {/* Chat Composer */}
               <div className="p-2.5 sm:p-3.5 border-t border-[#e8e6e3] bg-white">
-                <form onSubmit={(e) => handleSendMessage(e)} className="flex items-end gap-1.5 sm:gap-2">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (editingMessage) {
+                      handleSaveEdit();
+                    } else {
+                      handleSendMessage(e);
+                    }
+                  }}
+                  className="flex items-end gap-1.5 sm:gap-2"
+                >
                   <button
                     type="button"
                     onClick={() => setShowImageModal(true)}
@@ -1120,10 +1455,14 @@ export function CommunicationShell() {
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
-                        handleSendMessage();
+                        if (editingMessage) {
+                          handleSaveEdit();
+                        } else {
+                          handleSendMessage();
+                        }
                       }
                     }}
-                    placeholder={`Message ${activeTitle}...`}
+                    placeholder={editingMessage ? "Edit your message..." : `Message ${activeTitle}...`}
                     rows={1}
                     className="flex-1 max-h-32 min-h-[40px] resize-none rounded-xl bg-[#f5f4f2] px-3.5 py-2.5 text-xs sm:text-sm text-[#171717] placeholder:text-[#9c958f] border-none focus:outline-none focus:ring-2 focus:ring-[#1769c2]/30"
                   />
@@ -1135,10 +1474,12 @@ export function CommunicationShell() {
                       (!inputMessage.trim() && selectedAttachments.length === 0)
                     }
                     className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1769c2] text-white hover:bg-[#12569f] disabled:opacity-40 disabled:hover:bg-[#1769c2] transition shrink-0 shadow-xs active:scale-95"
-                    title="Send"
+                    title={editingMessage ? "Save edit" : "Send"}
                   >
                     {sending ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : editingMessage ? (
+                      <Check className="h-4 w-4" />
                     ) : (
                       <Send className="h-4 w-4" />
                     )}
@@ -1241,7 +1582,7 @@ export function CommunicationShell() {
 
       <CallModal
         isOpen={showCallModal}
-        onClose={() => setShowCallModal(false)}
+        onClose={handleEndCall}
         callType={callType}
         peerName={activeTitle}
         peerImage={activeIsDirect ? activePeer?.image : selectedConversation?.avatarUrl}

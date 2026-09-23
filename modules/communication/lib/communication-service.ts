@@ -20,6 +20,7 @@ import {
   CommunicationMessageItem,
   ScheduleMeetingInput,
   RichEntitySharePayload,
+  MessageRequestItem,
 } from "../types";
 
 export class CommunicationService {
@@ -501,6 +502,105 @@ export class CommunicationService {
   }
 
   /**
+   * Fetches a single message by ID with full metadata, sender identity, reactions, and reply snippet.
+   */
+  static async getMessageById(userId: string, messageId: string): Promise<CommunicationMessageItem | null> {
+    await ensureCommunicationTables();
+
+    const res: any = await sql`
+      SELECT 
+        m.id,
+        m.conversation_id,
+        m.sender_id,
+        m.client_message_id,
+        m.sequence_number,
+        m.type,
+        m.content,
+        m.reply_to_id,
+        m.forwarded_from_id,
+        m.media_urls,
+        m.metadata,
+        m.status,
+        m.is_pinned,
+        m.edited_at,
+        m.edit_version,
+        m.deleted_at,
+        m.deleted_for_all,
+        m.created_at,
+        m.updated_at,
+        rm.content as reply_content,
+        ru.name as reply_sender_name
+      FROM communication_messages m
+      LEFT JOIN communication_messages rm ON rm.id = m.reply_to_id
+      LEFT JOIN "user" ru ON ru.id = rm.sender_id
+      WHERE m.id = ${messageId}
+        AND NOT (${userId} = ANY(COALESCE(m.deleted_for_user_ids, '{}')))
+      LIMIT 1;
+    `.execute(database);
+
+    const row = res.rows?.[0];
+    if (!row) return null;
+
+    // Reactions
+    const rxRes: any = await sql`
+      SELECT message_id, reaction, user_id
+      FROM communication_reactions
+      WHERE message_id = ${messageId};
+    `.execute(database);
+
+    const reactionGroupMap = new Map<string, { count: number; userIds: string[]; hasReacted: boolean }>();
+    for (const r of rxRes.rows || []) {
+      if (!reactionGroupMap.has(r.reaction)) {
+        reactionGroupMap.set(r.reaction, { count: 0, userIds: [], hasReacted: false });
+      }
+      const g = reactionGroupMap.get(r.reaction)!;
+      g.count++;
+      g.userIds.push(r.user_id);
+      if (r.user_id === userId) g.hasReacted = true;
+    }
+
+    const reactions = Array.from(reactionGroupMap.entries()).map(([reaction, data]) => ({
+      reaction,
+      count: data.count,
+      userIds: data.userIds,
+      hasReacted: data.hasReacted,
+    }));
+
+    const senderIdentity = await this.getCanonicalIdentity(row.sender_id);
+
+    return {
+      id: row.id,
+      conversationId: row.conversation_id,
+      senderId: row.sender_id,
+      clientMessageId: row.client_message_id,
+      sequenceNumber: Number(row.sequence_number),
+      type: row.type,
+      content: row.content || "",
+      replyToId: row.reply_to_id,
+      replyToSnippet: row.reply_to_id
+        ? {
+            id: row.reply_to_id,
+            senderName: row.reply_sender_name || "Clinician",
+            content: row.reply_content || "",
+          }
+        : null,
+      forwardedFromId: row.forwarded_from_id,
+      mediaUrls: row.media_urls,
+      metadata: row.metadata,
+      status: row.status,
+      isPinned: Boolean(row.is_pinned),
+      editedAt: row.edited_at ? new Date(row.edited_at).toISOString() : null,
+      editVersion: Number(row.edit_version || 0),
+      deletedAt: row.deleted_at ? new Date(row.deleted_at).toISOString() : null,
+      deletedForAll: Boolean(row.deleted_for_all),
+      createdAt: new Date(row.created_at).toISOString(),
+      updatedAt: new Date(row.updated_at).toISOString(),
+      senderIdentity,
+      reactions,
+    };
+  }
+
+  /**
    * Fetches messages in a conversation.
    */
   static async getMessages(
@@ -546,7 +646,7 @@ export class CommunicationService {
       LEFT JOIN communication_messages rm ON rm.id = m.reply_to_id
       LEFT JOIN "user" ru ON ru.id = rm.sender_id
       WHERE m.conversation_id = ${conversationId}
-        AND (m.deleted_for_all = false OR m.deleted_for_all IS NULL)
+        AND NOT (${userId} = ANY(COALESCE(m.deleted_for_user_ids, '{}')))
     `;
 
     if (options?.beforeSequence) {
@@ -676,16 +776,27 @@ export class CommunicationService {
       `.execute(database);
 
       if (existingRes.rows?.[0]?.id) {
-        const msgs = await this.getMessages(userId, conversationId, { limit: 1 });
-        const existing = msgs.find((m) => m.clientMessageId === payload.clientMessageId);
+        const existing = await this.getMessageById(userId, existingRes.rows[0].id);
         if (existing) return existing;
       }
     }
 
     const messageId = generateCommId("msg");
     const now = new Date();
+    const msgType = payload.type || "TEXT";
+    const content = (payload.content || "").trim();
 
-    // Compute atomic next sequence number for this conversation
+    // Mentions safety check: Prevent @everyone notification abuse by non-moderators
+    if (content.includes("@everyone")) {
+      const canEveryone = await CommunicationPermissionService.canMentionEveryone(userId, conversationId);
+      if (!canEveryone) {
+        throw new Error("Only group administrators or moderators can mention @everyone");
+      }
+    }
+
+    // Atomic next sequence number for this conversation with row-level lock
+    await sql`SELECT id FROM conversations WHERE id = ${conversationId} FOR UPDATE;`.execute(database);
+
     const seqRes: any = await sql`
       SELECT COALESCE(MAX(sequence_number), 0) + 1 AS next_seq
       FROM communication_messages
@@ -693,8 +804,6 @@ export class CommunicationService {
     `.execute(database);
 
     const sequenceNumber = Number(seqRes.rows?.[0]?.next_seq || 1);
-    const msgType = payload.type || "TEXT";
-    const content = (payload.content || "").trim();
 
     await sql`
       INSERT INTO communication_messages (
@@ -708,6 +817,30 @@ export class CommunicationService {
         'SENT', ${now}, ${now}
       );
     `.execute(database);
+
+    // Record mentions
+    const mentionMatches = content.match(/@([a-zA-Z0-9_-]+)/g);
+    if (mentionMatches && mentionMatches.length > 0) {
+      for (const rawMention of mentionMatches) {
+        const handle = rawMention.slice(1).toLowerCase();
+        if (handle === "everyone") {
+          await sql`
+            INSERT INTO communication_mentions (id, message_id, user_id, mention_type, created_at)
+            VALUES (${generateCommId("mnt")}, ${messageId}, null, 'EVERYONE', now());
+          `.execute(database);
+        } else {
+          const userRes: any = await sql`
+            SELECT id FROM "user" WHERE LOWER(name) LIKE ${`%${handle}%`} LIMIT 1;
+          `.execute(database);
+          if (userRes.rows?.[0]?.id) {
+            await sql`
+              INSERT INTO communication_mentions (id, message_id, user_id, mention_type, created_at)
+              VALUES (${generateCommId("mnt")}, ${messageId}, ${userRes.rows[0].id}, 'USER', now());
+            `.execute(database);
+          }
+        }
+      }
+    }
 
     // Update conversation metadata
     const snippet = content || (payload.mediaUrls && payload.mediaUrls.length > 0 ? "📎 Attachment" : msgType);
@@ -820,7 +953,9 @@ export class CommunicationService {
     } else {
       await sql`
         UPDATE communication_messages
-        SET deleted_at = ${now}, updated_at = ${now}
+        SET 
+          deleted_for_user_ids = array_append(COALESCE(deleted_for_user_ids, '{}'), ${userId}),
+          updated_at = ${now}
         WHERE id = ${messageId};
       `.execute(database);
     }
@@ -1012,5 +1147,354 @@ export class CommunicationService {
     `.execute(database);
 
     return reportId;
+  }
+
+  /**
+   * Creates a message request between non-connected users.
+   */
+  static async createMessageRequest(
+    senderId: string,
+    receiverId: string,
+    initialMessage?: string
+  ): Promise<{ id: string; status: string; conversationId?: string }> {
+    await ensureCommunicationTables();
+
+    if (senderId === receiverId) {
+      throw new Error("Cannot send message request to yourself");
+    }
+
+    const blocked = await CommunicationPermissionService.isBlocked(senderId, receiverId);
+    if (blocked) {
+      throw new Error("Unable to send request due to privacy settings or block restrictions");
+    }
+
+    // Check if direct conversation already exists
+    const existingConv: any = await sql`
+      SELECT c.id 
+      FROM conversations c
+      JOIN conversation_members m1 ON m1.conversation_id = c.id AND m1.user_id = ${senderId}
+      JOIN conversation_members m2 ON m2.conversation_id = c.id AND m2.user_id = ${receiverId}
+      WHERE c.type = 'DIRECT'
+      LIMIT 1;
+    `.execute(database);
+
+    if (existingConv.rows?.[0]?.id) {
+      return { id: "", status: "EXISTING_CONVERSATION", conversationId: existingConv.rows[0].id };
+    }
+
+    const reqId = generateCommId("req");
+    const now = new Date();
+
+    await sql`
+      INSERT INTO communication_message_requests (
+        id, sender_id, receiver_id, initial_message, status, created_at, updated_at
+      ) VALUES (
+        ${reqId}, ${senderId}, ${receiverId}, ${initialMessage ? initialMessage.trim() : null}, 'PENDING', ${now}, ${now}
+      )
+      ON CONFLICT (sender_id, receiver_id) DO UPDATE
+      SET initial_message = EXCLUDED.initial_message, status = 'PENDING', updated_at = ${now};
+    `.execute(database);
+
+    return { id: reqId, status: "PENDING" };
+  }
+
+  /**
+   * Lists pending message requests for a user (as receiver).
+   */
+  static async listMessageRequests(userId: string): Promise<MessageRequestItem[]> {
+    await ensureCommunicationTables();
+
+    const res: any = await sql`
+      SELECT id, sender_id, receiver_id, initial_message, status, created_at
+      FROM communication_message_requests
+      WHERE receiver_id = ${userId} AND status = 'PENDING'
+      ORDER BY created_at DESC;
+    `.execute(database);
+
+    const items: MessageRequestItem[] = [];
+    for (const r of res.rows || []) {
+      const senderIdentity = await this.getCanonicalIdentity(r.sender_id);
+      items.push({
+        id: r.id,
+        senderId: r.sender_id,
+        receiverId: r.receiver_id,
+        initialMessage: r.initial_message,
+        status: r.status,
+        createdAt: new Date(r.created_at).toISOString(),
+        senderIdentity,
+      });
+    }
+
+    return items;
+  }
+
+  /**
+   * Responds to a message request (ACCEPT, DECLINE, BLOCK).
+   */
+  static async respondToMessageRequest(
+    requestId: string,
+    userId: string,
+    action: "ACCEPT" | "DECLINE" | "BLOCK"
+  ): Promise<{ success: boolean; conversationId?: string }> {
+    await ensureCommunicationTables();
+
+    const reqRes: any = await sql`
+      SELECT id, sender_id, receiver_id, initial_message, status
+      FROM communication_message_requests
+      WHERE id = ${requestId} AND receiver_id = ${userId}
+      LIMIT 1;
+    `.execute(database);
+
+    const req = reqRes.rows?.[0];
+    if (!req) {
+      throw new Error("Message request not found");
+    }
+
+    const now = new Date();
+
+    if (action === "ACCEPT") {
+      const convId = await this.getOrCreateDirectConversation(req.sender_id, userId);
+      if (req.initial_message) {
+        await this.sendMessage(req.sender_id, convId, {
+          content: req.initial_message,
+          type: "TEXT",
+        });
+      }
+      await sql`
+        UPDATE communication_message_requests
+        SET status = 'ACCEPTED', updated_at = ${now}
+        WHERE id = ${requestId};
+      `.execute(database);
+
+      return { success: true, conversationId: convId };
+    }
+
+    if (action === "DECLINE") {
+      await sql`
+        UPDATE communication_message_requests
+        SET status = 'DECLINED', updated_at = ${now}
+        WHERE id = ${requestId};
+      `.execute(database);
+
+      return { success: true };
+    }
+
+    if (action === "BLOCK") {
+      await sql`
+        UPDATE communication_message_requests
+        SET status = 'BLOCKED', updated_at = ${now}
+        WHERE id = ${requestId};
+      `.execute(database);
+
+      await this.blockUser(userId, req.sender_id);
+      return { success: true };
+    }
+
+    throw new Error("Invalid request action");
+  }
+
+  /**
+   * Search conversations and messages across the user's accessible scope.
+   */
+  static async searchCommunication(
+    userId: string,
+    query: string
+  ): Promise<{
+    conversations: ConversationSummary[];
+    messages: CommunicationMessageItem[];
+  }> {
+    await ensureCommunicationTables();
+    const q = query.trim().toLowerCase();
+    if (!q) return { conversations: [], messages: [] };
+
+    // Search conversations
+    const convs = await this.listConversations(userId, { search: q });
+
+    // Search messages in user's conversations
+    const msgRes: any = await sql`
+      SELECT 
+        m.id,
+        m.conversation_id,
+        m.sender_id,
+        m.client_message_id,
+        m.sequence_number,
+        m.type,
+        m.content,
+        m.reply_to_id,
+        m.forwarded_from_id,
+        m.media_urls,
+        m.metadata,
+        m.status,
+        m.is_pinned,
+        m.edited_at,
+        m.edit_version,
+        m.deleted_at,
+        m.deleted_for_all,
+        m.created_at,
+        m.updated_at
+      FROM communication_messages m
+      JOIN conversation_members cm ON cm.conversation_id = m.conversation_id AND cm.user_id = ${userId}
+      WHERE LOWER(m.content) LIKE ${`%${q}%`}
+        AND (m.deleted_for_all = false OR m.deleted_for_all IS NULL)
+        AND NOT (${userId} = ANY(COALESCE(m.deleted_for_user_ids, '{}')))
+      ORDER BY m.created_at DESC
+      LIMIT 30;
+    `.execute(database);
+
+    const messages: CommunicationMessageItem[] = [];
+    for (const row of msgRes.rows || []) {
+      const iden = await this.getCanonicalIdentity(row.sender_id);
+      messages.push({
+        id: row.id,
+        conversationId: row.conversation_id,
+        senderId: row.sender_id,
+        clientMessageId: row.client_message_id,
+        sequenceNumber: Number(row.sequence_number),
+        type: row.type,
+        content: row.content || "",
+        replyToId: row.reply_to_id,
+        replyToSnippet: null,
+        forwardedFromId: row.forwarded_from_id,
+        mediaUrls: row.media_urls,
+        metadata: row.metadata,
+        status: row.status,
+        isPinned: Boolean(row.is_pinned),
+        editedAt: row.edited_at ? new Date(row.edited_at).toISOString() : null,
+        editVersion: Number(row.edit_version || 0),
+        deletedAt: row.deleted_at ? new Date(row.deleted_at).toISOString() : null,
+        deletedForAll: Boolean(row.deleted_for_all),
+        createdAt: new Date(row.created_at).toISOString(),
+        updatedAt: new Date(row.updated_at).toISOString(),
+        senderIdentity: iden,
+        reactions: [],
+      });
+    }
+
+    return { conversations: convs, messages };
+  }
+
+  /**
+   * Get user communication settings
+   */
+  static async getSettings(userId: string) {
+    await ensureCommunicationTables();
+    const res: any = await sql`
+      SELECT * FROM communication_settings WHERE user_id = ${userId} LIMIT 1;
+    `.execute(database);
+    if (res.rows?.[0]) return res.rows[0];
+
+    return {
+      user_id: userId,
+      show_online_status: true,
+      show_last_active: true,
+      show_read_receipts: true,
+      show_typing_status: true,
+      allow_messages_from: "EVERYONE",
+      notifications_enabled: true,
+      push_enabled: true,
+      email_enabled: false,
+    };
+  }
+
+  /**
+   * Update user communication settings
+   */
+  static async updateSettings(
+    userId: string,
+    data: {
+      showOnlineStatus?: boolean;
+      showLastActive?: boolean;
+      showReadReceipts?: boolean;
+      showTypingStatus?: boolean;
+      allowMessagesFrom?: string;
+      notificationsEnabled?: boolean;
+      pushEnabled?: boolean;
+      emailEnabled?: boolean;
+    }
+  ) {
+    await ensureCommunicationTables();
+    const now = new Date();
+    await sql`
+      INSERT INTO communication_settings (
+        user_id, show_online_status, show_last_active, show_read_receipts,
+        show_typing_status, allow_messages_from, notifications_enabled,
+        push_enabled, email_enabled, updated_at
+      ) VALUES (
+        ${userId},
+        ${data.showOnlineStatus ?? true},
+        ${data.showLastActive ?? true},
+        ${data.showReadReceipts ?? true},
+        ${data.showTypingStatus ?? true},
+        ${data.allowMessagesFrom || "EVERYONE"},
+        ${data.notificationsEnabled ?? true},
+        ${data.pushEnabled ?? true},
+        ${data.emailEnabled ?? false},
+        ${now}
+      )
+      ON CONFLICT (user_id) DO UPDATE SET
+        show_online_status = EXCLUDED.show_online_status,
+        show_last_active = EXCLUDED.show_last_active,
+        show_read_receipts = EXCLUDED.show_read_receipts,
+        show_typing_status = EXCLUDED.show_typing_status,
+        allow_messages_from = EXCLUDED.allow_messages_from,
+        notifications_enabled = EXCLUDED.notifications_enabled,
+        push_enabled = EXCLUDED.push_enabled,
+        email_enabled = EXCLUDED.email_enabled,
+        updated_at = ${now};
+    `.execute(database);
+  }
+
+  /**
+   * Initiate and log a call session
+   */
+  static async logCallSession(
+    callerId: string,
+    params: {
+      conversationId: string;
+      callType: "VOICE" | "VIDEO" | "MEETING";
+      participantIds: string[];
+    }
+  ): Promise<string> {
+    await ensureCommunicationTables();
+    const callId = generateCommId("call");
+    const now = new Date();
+
+    await sql`
+      INSERT INTO communication_calls (
+        id, conversation_id, caller_id, call_type, status, started_at, created_at
+      ) VALUES (
+        ${callId}, ${params.conversationId}, ${callerId}, ${params.callType}, 'INITIATED', ${now}, ${now}
+      );
+    `.execute(database);
+
+    await sql`
+      INSERT INTO communication_call_participants (id, call_id, user_id, status, joined_at)
+      VALUES (${generateCommId("cp")}, ${callId}, ${callerId}, 'JOINED', ${now});
+    `.execute(database);
+
+    for (const pId of params.participantIds) {
+      if (pId !== callerId) {
+        await sql`
+          INSERT INTO communication_call_participants (id, call_id, user_id, status)
+          VALUES (${generateCommId("cp")}, ${callId}, ${pId}, 'INVITED')
+          ON CONFLICT DO NOTHING;
+        `.execute(database);
+      }
+    }
+
+    return callId;
+  }
+
+  /**
+   * End call session
+   */
+  static async endCallSession(callId: string, durationSeconds = 0): Promise<void> {
+    await ensureCommunicationTables();
+    const now = new Date();
+    await sql`
+      UPDATE communication_calls
+      SET status = 'ENDED', ended_at = ${now}, duration_seconds = ${durationSeconds}
+      WHERE id = ${callId};
+    `.execute(database);
   }
 }

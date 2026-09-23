@@ -97,6 +97,7 @@ CREATE TABLE IF NOT EXISTS communication_messages (
   edit_version            INTEGER DEFAULT 0,
   deleted_at              TIMESTAMPTZ,
   deleted_for_all         BOOLEAN DEFAULT false,
+  deleted_for_user_ids    TEXT[] DEFAULT '{}',
   created_at              TIMESTAMPTZ DEFAULT now(),
   updated_at              TIMESTAMPTZ DEFAULT now()
 );
@@ -106,6 +107,20 @@ CREATE INDEX IF NOT EXISTS idx_comm_messages_conv_created ON communication_messa
 CREATE INDEX IF NOT EXISTS idx_comm_messages_sender ON communication_messages(sender_id);
 CREATE INDEX IF NOT EXISTS idx_comm_messages_client_id ON communication_messages(client_message_id) WHERE client_message_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_comm_messages_pinned ON communication_messages(conversation_id) WHERE is_pinned = true;
+
+-- ─────────────────────────────────────────────────────────────
+-- 3B. COMMUNICATION MENTIONS
+-- ─────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS communication_mentions (
+  id                      VARCHAR(64) PRIMARY KEY,
+  message_id              VARCHAR(64) NOT NULL REFERENCES communication_messages(id) ON DELETE CASCADE,
+  user_id                 TEXT REFERENCES "user"(id) ON DELETE CASCADE,
+  mention_type            VARCHAR(32) NOT NULL DEFAULT 'USER',
+  created_at              TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_comm_mentions_msg ON communication_mentions(message_id);
+CREATE INDEX IF NOT EXISTS idx_comm_mentions_user ON communication_mentions(user_id);
 
 -- ─────────────────────────────────────────────────────────────
 -- 4. MESSAGE REACTIONS

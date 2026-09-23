@@ -237,4 +237,16 @@ export class CommunicationPermissionService {
     const check = await this.canSendMessage(userId, conversationId);
     return check.allowed;
   }
+
+  /**
+   * Check if user can mention @everyone in a conversation.
+   * Restricted to OWNER, ADMIN, MODERATOR to prevent notification spam.
+   */
+  static async canMentionEveryone(userId: string, conversationId: string): Promise<boolean> {
+    const record = await this.getMemberRecord(userId, conversationId);
+    if (!record || !record.isMember) return false;
+    if (record.conversationType === "DIRECT") return true;
+    return ["OWNER", "ADMIN", "MODERATOR"].includes(record.role || "");
+  }
 }
+

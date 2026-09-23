@@ -104,9 +104,14 @@ export async function ensureCommunicationTables(): Promise<void> {
         edit_version            INTEGER DEFAULT 0,
         deleted_at              TIMESTAMPTZ,
         deleted_for_all         BOOLEAN DEFAULT false,
+        deleted_for_user_ids    TEXT[] DEFAULT '{}',
         created_at              TIMESTAMPTZ DEFAULT now(),
         updated_at              TIMESTAMPTZ DEFAULT now()
       );
+    `.execute(database);
+
+    await sql`
+      ALTER TABLE communication_messages ADD COLUMN IF NOT EXISTS deleted_for_user_ids TEXT[] DEFAULT '{}';
     `.execute(database);
 
     await sql`
@@ -114,6 +119,22 @@ export async function ensureCommunicationTables(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_comm_messages_conv_created ON communication_messages(conversation_id, created_at ASC);
       CREATE INDEX IF NOT EXISTS idx_comm_messages_sender ON communication_messages(sender_id);
       CREATE INDEX IF NOT EXISTS idx_comm_messages_client_id ON communication_messages(client_message_id) WHERE client_message_id IS NOT NULL;
+    `.execute(database);
+
+    // Mentions
+    await sql`
+      CREATE TABLE IF NOT EXISTS communication_mentions (
+        id                      VARCHAR(64) PRIMARY KEY,
+        message_id              VARCHAR(64) NOT NULL REFERENCES communication_messages(id) ON DELETE CASCADE,
+        user_id                 TEXT REFERENCES "user"(id) ON DELETE CASCADE,
+        mention_type            VARCHAR(32) NOT NULL DEFAULT 'USER',
+        created_at              TIMESTAMPTZ DEFAULT now()
+      );
+    `.execute(database);
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_comm_mentions_msg ON communication_mentions(message_id);
+      CREATE INDEX IF NOT EXISTS idx_comm_mentions_user ON communication_mentions(user_id);
     `.execute(database);
 
     // 4. Reactions
