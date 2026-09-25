@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "icons8": {
+      "source": "icons8/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/icons8/SKILL.md",
+      "computedHash": "d4a3b0728038259038d7537d001c970f4d031935f82f5ef537db9b3a7644ef48"
+    }
+  }
+}

@@ -99,11 +99,11 @@ export function StoriesBar({
               onClick={handleOpenOwnStory}
               className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full p-[2px] sm:p-[2.5px] transition hover:scale-105 ${
                 ownStoryGroup
-                  ? "bg-gradient-to-tr from-[#1769c2] via-[#0284c7] to-[#38bdf8]"
+                  ? "bg-gradient-to-tr from-[#0f4c81] via-[#14559b] to-[#16804d]"
                   : "bg-slate-100"
               }`}
             >
-              <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-white bg-[#eef5fc] text-xs font-bold text-[#1769c2]">
+              <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-white bg-[#f0efee] text-xs font-bold text-[#0f4c81]">
                 {currentUserAvatar ? (
                   <img
                     src={currentUserAvatar}
@@ -124,7 +124,7 @@ export function StoriesBar({
                 setIsCreateOpen(true);
               }}
               title="Add Story"
-              className="absolute bottom-0 right-0 flex h-4.5 w-4.5 sm:h-5 sm:w-5 items-center justify-center rounded-full border-2 border-white bg-[#1769c2] text-white shadow-xs transition hover:bg-[#12569f]"
+              className="absolute bottom-0 right-0 flex h-4.5 w-4.5 sm:h-5 sm:w-5 items-center justify-center rounded-full border-2 border-white bg-[#0f4c81] text-white shadow-xs transition hover:bg-[#0c3c66]"
             >
               <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3 stroke-[3]" />
             </button>
@@ -166,7 +166,7 @@ export function StoriesBar({
                       : "bg-[#ded8d1]"
                   }`}
                 >
-                  <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-white bg-[#eef5fc] text-xs font-bold text-[#1769c2]">
+                  <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-white bg-[#f0efee] text-xs font-bold text-[#0f4c81]">
                     {group.userAvatar ? (
                       <img
                         src={group.userAvatar}
@@ -179,7 +179,7 @@ export function StoriesBar({
                   </div>
                 </div>
 
-                <span className="w-14 sm:w-16 truncate text-center text-[10px] sm:text-[11px] font-medium text-[#171717] group-hover:text-[#1769c2]">
+                <span className="w-14 sm:w-16 truncate text-center text-[10px] sm:text-[11px] font-medium text-[#171717] group-hover:text-[#0f4c81]">
                   {group.userName}
                 </span>
               </button>

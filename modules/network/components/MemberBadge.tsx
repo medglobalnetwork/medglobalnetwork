@@ -102,17 +102,17 @@ export function MemberBadge({
       className={`inline-flex items-center gap-1.5 rounded-full font-mono font-semibold shadow-2xs select-none transition-all ${sizeStyles.text} ${sizeStyles.padding} ${
         variant === "subtle"
           ? "bg-[#f8f7f6] text-[#5d5854] border border-[#e8e6e3]"
-          : "bg-[#eef5fc] text-[#1769c2] border border-[#cbdff7]"
+          : "bg-[#f0efee] text-[#0f4c81] border border-[#ded8d1]"
       } ${className}`}
       title={`MGN Member ID: ${displayId}`}
     >
-      <span className="text-[#1769c2] font-mono font-bold">ID:</span>
+      <span className="text-[#0f4c81] font-mono font-bold">ID:</span>
       <span className="font-bold">{displayId}</span>
       {showCopy && memberId && (
         <button
           type="button"
           onClick={handleCopy}
-          className="text-[#5d5854] hover:text-[#171717] transition p-0.5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1769c2] rounded"
+          className="text-[#5d5854] hover:text-[#171717] transition p-0.5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0f4c81] rounded"
           title={copied ? "Copied Member ID" : "Copy Member ID"}
         >
           {copied ? (

@@ -38,7 +38,7 @@ export function CampCard({ camp }: CampCardProps) {
     <div className="group flex flex-col justify-between rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-xs transition-all hover:border-[#ded8d1] hover:shadow-md">
       <div>
         {/* Cover or Accent header */}
-        <div className="relative mb-4 h-36 w-full overflow-hidden rounded-xl bg-[#eef5fc]">
+        <div className="relative mb-4 h-36 w-full overflow-hidden rounded-xl bg-[#f0efee]">
           {camp.cover_url ? (
             <img
               src={camp.cover_url}
@@ -47,29 +47,29 @@ export function CampCard({ camp }: CampCardProps) {
             />
           ) : (
             <div className="flex size-full flex-col items-center justify-center p-4 text-center">
-              <Tent className="mb-1 size-7 text-[#1769c2]" />
-              <span className="text-xs font-bold uppercase text-[#1769c2]">
+              <Tent className="mb-1 size-7 text-[#16804d]" />
+              <span className="text-xs font-bold uppercase text-[#16804d]">
                 {campTypeLabels[camp.camp_type] || "Medical Outreach"}
               </span>
             </div>
           )}
 
           <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5">
-            <span className="rounded-md bg-white/90 px-2 py-0.5 text-[11px] font-bold text-[#1769c2] shadow-xs backdrop-blur-xs">
+            <span className="rounded-md bg-white/90 px-2 py-0.5 text-[11px] font-bold text-[#16804d] shadow-xs backdrop-blur-xs">
               {campTypeLabels[camp.camp_type] || "Camp"}
             </span>
           </div>
 
           {camp.user_volunteer_status && (
-            <div className="absolute top-2.5 right-2.5 rounded-md bg-[#1769c2] px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
+            <div className="absolute top-2.5 right-2.5 rounded-md bg-[#16804d] px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
               Volunteer ({camp.user_volunteer_status})
             </div>
           )}
         </div>
 
         {/* Title */}
-        <Link href={`/camps/${camp.id}`} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded">
-          <h3 className="line-clamp-2 text-base font-bold text-[#171717] transition-colors group-hover:text-[#1769c2] text-balance">
+        <Link href={`/camps/${camp.id}`} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded">
+          <h3 className="line-clamp-2 text-base font-bold text-[#171717] transition-colors group-hover:text-[#0f4c81] text-balance">
             {camp.title}
           </h3>
         </Link>
@@ -86,7 +86,7 @@ export function CampCard({ camp }: CampCardProps) {
             <span>{formattedDate}</span>
           </div>
           <div className="flex items-center gap-2">
-            <MapPin className="size-3.5 text-[#1769c2]" />
+            <MapPin className="size-3.5 text-[#16804d]" />
             <span className="truncate">{camp.venue_name}, {camp.city}</span>
           </div>
         </div>
@@ -121,7 +121,7 @@ export function CampCard({ camp }: CampCardProps) {
                 {camp.organization_name || camp.organizer_name || "Medical Outreach"}
               </span>
               {(camp.organization_verification === "verified" || camp.organizer_verified) && (
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#16804d]" />
               )}
             </div>
           </div>
@@ -132,7 +132,7 @@ export function CampCard({ camp }: CampCardProps) {
       <div className="mt-4 flex items-center justify-between border-t border-[#f0efee] pt-3">
         <div>
           {openSlots > 0 ? (
-            <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-700">
+            <span className="flex items-center gap-1 text-[11px] font-medium text-[#16804d]">
               <Stethoscope className="h-3 w-3" />
               {openSlots} volunteer slot{openSlots > 1 ? "s" : ""} open
             </span>
@@ -143,7 +143,7 @@ export function CampCard({ camp }: CampCardProps) {
 
         <Link
           href={`/camps/${camp.id}`}
-          className="rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-3.5 py-1.5 text-xs font-semibold text-[#171717] transition-all hover:border-emerald-600 hover:bg-emerald-600 hover:text-white active:scale-95"
+          className="rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-3.5 py-1.5 text-xs font-semibold text-[#171717] transition-all hover:border-[#16804d] hover:bg-[#16804d] hover:text-white active:scale-95"
         >
           View Camp
         </Link>

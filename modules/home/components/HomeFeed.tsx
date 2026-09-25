@@ -97,13 +97,13 @@ export function HomeFeed({
             onClick={() => setActiveTab("for_you")}
             className={`relative pb-3 text-sm font-bold transition ${
               activeTab === "for_you"
-                ? "text-[#1769c2]"
+                ? "text-[#0f4c81]"
                 : "text-[#77716b] hover:text-[#171717]"
             }`}
           >
             For You
             {activeTab === "for_you" && (
-              <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#1769c2]" />
+              <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#0f4c81]" />
             )}
           </button>
 
@@ -112,13 +112,13 @@ export function HomeFeed({
             onClick={() => setActiveTab("following")}
             className={`relative pb-3 text-sm font-bold transition ${
               activeTab === "following"
-                ? "text-[#1769c2]"
+                ? "text-[#0f4c81]"
                 : "text-[#77716b] hover:text-[#171717]"
             }`}
           >
             Following
             {activeTab === "following" && (
-              <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#1769c2]" />
+              <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#0f4c81]" />
             )}
           </button>
 
@@ -130,13 +130,13 @@ export function HomeFeed({
             }}
             className={`relative pb-3 text-sm font-bold transition ${
               activeTab === "communities"
-                ? "text-[#1769c2]"
+                ? "text-[#0f4c81]"
                 : "text-[#77716b] hover:text-[#171717]"
             }`}
           >
             Communities
             {activeTab === "communities" && (
-              <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#1769c2]" />
+              <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#0f4c81]" />
             )}
           </button>
         </div>
@@ -150,7 +150,7 @@ export function HomeFeed({
 
       {/* 3. FEED CONTENT */}
       {/* CTA BANNER AD AT START OF FEED */}
-      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-[#ded8d1] bg-gradient-to-r from-[#0d3b66] via-[#1769c2] to-[#0d9488] p-4.5 sm:p-5 text-white shadow-xs">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-[#ded8d1] bg-gradient-to-r from-[#0a2f52] via-[#0f4c81] to-[#16804d] p-4.5 sm:p-5 text-white shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1.5 flex-1 min-w-0">
             <div className="flex items-center gap-2">
@@ -170,7 +170,7 @@ export function HomeFeed({
             <button
               type="button"
               onClick={() => router.push("/opportunities")}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-xs font-bold text-[#1769c2] shadow-sm hover:bg-[#f8f7f6] transition active:scale-95"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-xs font-bold text-[#0f4c81] shadow-sm hover:bg-[#f8f7f6] transition active:scale-95"
             >
               Explore Now <ArrowRight className="h-3.5 w-3.5" />
             </button>

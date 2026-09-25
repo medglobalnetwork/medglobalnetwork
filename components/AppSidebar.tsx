@@ -77,14 +77,14 @@ function Icons8NavIcon({
     return (
       <FallbackIcon
         className={`${className} shrink-0 stroke-[2] transition-colors ${
-          active ? "text-[#1769c2]" : "text-[#77716b] group-hover:text-[#171717]"
+          active ? "text-[#0f4c81]" : "text-[#77716b] group-hover:text-[#171717]"
         }`}
       />
     );
   }
 
   // Icons8 fluent-systems-regular pack CDN with active/inactive colors
-  const colorHex = active ? "1769C2" : "77716B";
+  const colorHex = active ? "0F4C81" : "77716B";
   const url = `https://img.icons8.com/?id=${iconId}&format=png&size=48&color=${colorHex}`;
 
   return (
@@ -209,7 +209,7 @@ export function AppSidebar({
             <button
               type="button"
               onClick={onToggleCollapse}
-              className="p-1.5 rounded-lg text-[#77716b] hover:bg-[#f5f4f2] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] transition group/pin"
+              className="p-1.5 rounded-lg text-[#77716b] hover:bg-[#f5f4f2] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] transition group/pin"
               title={
                 isCollapsed
                   ? "Pin sidebar (Keep permanently open)"
@@ -219,7 +219,7 @@ export function AppSidebar({
               {isCollapsed ? (
                 <Pin className="size-4 rotate-45 text-[#9c958f] group-hover/pin:text-[#171717]" />
               ) : (
-                <PinOff className="size-4 text-[#1769c2]" />
+                <PinOff className="size-4 text-[#0f4c81]" />
               )}
             </button>
           )}
@@ -244,9 +244,9 @@ export function AppSidebar({
                     key={item.id}
                     href={item.href}
                     onClick={handleNavClick}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold transition group relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] ${
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold transition group relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] ${
                       active
-                        ? "bg-[#eef5fc] text-[#1769c2] shadow-2xs"
+                        ? "bg-[#f0efee] text-[#171717]"
                         : "text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
                     } ${!isExpanded ? "justify-center px-2" : ""}`}
                     title={!isExpanded ? item.label : undefined}
@@ -263,7 +263,7 @@ export function AppSidebar({
                       </span>
                     )}
                     {active && isExpanded && (
-                      <span className="ml-auto size-1.5 rounded-full bg-[#1769c2]" />
+                      <span className="ml-auto size-1.5 rounded-full bg-[#16804d]" />
                     )}
                   </Link>
                 );
@@ -287,9 +287,9 @@ export function AppSidebar({
                     key={item.id}
                     href={item.href}
                     onClick={handleNavClick}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold transition group relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] ${
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold transition group relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] ${
                       active
-                        ? "bg-[#eef5fc] text-[#1769c2] shadow-2xs"
+                        ? "bg-[#f0efee] text-[#171717]"
                         : "text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
                     } ${!isExpanded ? "justify-center px-2" : ""}`}
                     title={!isExpanded ? item.label : undefined}
@@ -306,7 +306,7 @@ export function AppSidebar({
                       </span>
                     )}
                     {active && isExpanded && (
-                      <span className="ml-auto size-1.5 rounded-full bg-[#1769c2]" />
+                      <span className="ml-auto size-1.5 rounded-full bg-[#16804d]" />
                     )}
                   </Link>
                 );
@@ -320,9 +320,9 @@ export function AppSidebar({
           <Link
             href="/settings"
             onClick={handleNavClick}
-            className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-[#5d5854] hover:bg-white hover:text-[#171717] hover:shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] transition ${
-              !isExpanded ? "justify-center px-2" : ""
-            }`}
+            className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-[#5d5854] hover:bg-white hover:text-[#171717] hover:shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] transition ${
+              isLinkActive("/settings") ? "bg-[#f0efee] text-[#171717]" : ""
+            } ${!isExpanded ? "justify-center px-2" : ""}`}
             title={!isExpanded ? "Settings" : undefined}
           >
             <Icons8NavIcon
@@ -341,7 +341,7 @@ export function AppSidebar({
               <Link
                 href={`/profile/${session.user.id}`}
                 onClick={handleNavClick}
-                className="flex items-center gap-2.5 min-w-0 group hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded-lg p-0.5 transition"
+                className="flex items-center gap-2.5 min-w-0 group hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded-lg p-0.5 transition"
               >
                 <img
                   src={userAvatar}
@@ -349,7 +349,7 @@ export function AppSidebar({
                   className="size-8 rounded-full object-cover border border-[#e8e6e3] shrink-0"
                 />
                 <div className="min-w-0">
-                  <p className="text-xs font-bold text-[#171717] truncate group-hover:text-[#1769c2]">
+                  <p className="text-xs font-bold text-[#171717] truncate group-hover:text-[#0f4c81]">
                     {session.user.name}
                   </p>
                   <p className="text-[10px] text-[#77716b] truncate">View Profile</p>
@@ -364,7 +364,7 @@ export function AppSidebar({
                 href={`/profile/${session.user.id}`}
                 onClick={handleNavClick}
                 title={session.user.name || "View Profile"}
-                className="group hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded-full transition"
+                className="group hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded-full transition"
               >
                 <img
                   src={userAvatar}
@@ -393,13 +393,13 @@ export function AppSidebar({
           <div className="relative flex flex-col w-72 sm:w-80 max-w-[85vw] bg-white h-full shadow-2xl border-r border-[#ded8d1] z-10 animate-in slide-in-from-left duration-250">
             {/* Header / User Profile Banner */}
             <div className="p-4 border-b border-[#f0efee] bg-[#faf9f8] flex items-center justify-between">
-              <Link href="/home" onClick={onCloseMobileDrawer} className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded">
+              <Link href="/home" onClick={onCloseMobileDrawer} className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded">
                 <img src="/logo.png" alt="MGN" className="h-8.5 w-auto object-contain" />
               </Link>
               <button
                 type="button"
                 onClick={onCloseMobileDrawer}
-                className="p-1.5 rounded-xl text-[#77716b] hover:bg-[#efefef] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] transition"
+                className="p-1.5 rounded-xl text-[#77716b] hover:bg-[#efefef] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] transition"
                 aria-label="Close menu"
               >
                 <X className="size-5" />
@@ -412,7 +412,7 @@ export function AppSidebar({
                 <Link
                   href={`/profile/${session.user.id}`}
                   onClick={onCloseMobileDrawer}
-                  className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded-xl p-1"
+                  className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded-xl p-1"
                 >
                   <img
                     src={userAvatar}
@@ -422,12 +422,12 @@ export function AppSidebar({
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold text-[#171717] truncate flex items-center gap-1">
                       {session.user.name}
-                      <ShieldCheck className="size-3.5 text-[#1769c2] shrink-0" />
+                      <ShieldCheck className="size-3.5 text-[#16804d] shrink-0" />
                     </p>
                     <p className="text-[11px] text-[#5d5854] truncate">
                       {session.user.email}
                     </p>
-                    <span className="inline-block text-[10px] font-bold text-[#1769c2] mt-0.5">
+                    <span className="inline-block text-[10px] font-bold text-[#0f4c81] mt-0.5">
                       View Profile →
                     </span>
                   </div>
@@ -451,9 +451,9 @@ export function AppSidebar({
                         key={item.id}
                         href={item.href}
                         onClick={onCloseMobileDrawer}
-                        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] ${
+                        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] ${
                           active
-                            ? "bg-[#eef5fc] text-[#1769c2]"
+                            ? "bg-[#f0efee] text-[#171717]"
                             : "text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
                         }`}
                       >
@@ -465,7 +465,7 @@ export function AppSidebar({
                         />
                         <span className="truncate">{item.label}</span>
                         {active && (
-                          <span className="ml-auto size-1.5 rounded-full bg-[#1769c2]" />
+                          <span className="ml-auto size-1.5 rounded-full bg-[#16804d]" />
                         )}
                       </Link>
                     );
@@ -487,9 +487,9 @@ export function AppSidebar({
                         key={item.id}
                         href={item.href}
                         onClick={onCloseMobileDrawer}
-                        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] ${
+                        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] ${
                           active
-                            ? "bg-[#eef5fc] text-[#1769c2]"
+                            ? "bg-[#f0efee] text-[#171717]"
                             : "text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
                         }`}
                       >
@@ -500,6 +500,9 @@ export function AppSidebar({
                           className="size-6"
                         />
                         <span className="truncate">{item.label}</span>
+                        {active && (
+                          <span className="ml-auto size-1.5 rounded-full bg-[#16804d]" />
+                        )}
                       </Link>
                     );
                   })}
@@ -512,7 +515,7 @@ export function AppSidebar({
               <Link
                 href="/settings"
                 onClick={onCloseMobileDrawer}
-                className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-[#5d5854] hover:bg-white hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] transition"
+                className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-[#5d5854] hover:bg-white hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] transition"
               >
                 <Icons8NavIcon
                   iconId="4511GGVppfIx"

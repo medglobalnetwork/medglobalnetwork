@@ -138,7 +138,7 @@ export function CreateStoryModal({
             onClick={() => setActiveTab("text")}
             className={`flex items-center gap-2 border-b-2 py-3 px-4 text-xs font-semibold transition ${
               activeTab === "text"
-                ? "border-[#1769c2] text-[#1769c2]"
+                ? "border-[#0f4c81] text-[#0f4c81]"
                 : "border-transparent text-[#77716b] hover:text-[#171717]"
             }`}
           >
@@ -149,7 +149,7 @@ export function CreateStoryModal({
             onClick={() => setActiveTab("image")}
             className={`flex items-center gap-2 border-b-2 py-3 px-4 text-xs font-semibold transition ${
               activeTab === "image"
-                ? "border-[#1769c2] text-[#1769c2]"
+                ? "border-[#0f4c81] text-[#0f4c81]"
                 : "border-transparent text-[#77716b] hover:text-[#171717]"
             }`}
           >
@@ -160,7 +160,7 @@ export function CreateStoryModal({
             onClick={() => setActiveTab("video")}
             className={`flex items-center gap-2 border-b-2 py-3 px-4 text-xs font-semibold transition ${
               activeTab === "video"
-                ? "border-[#1769c2] text-[#1769c2]"
+                ? "border-[#0f4c81] text-[#0f4c81]"
                 : "border-transparent text-[#77716b] hover:text-[#171717]"
             }`}
           >
@@ -230,7 +230,7 @@ export function CreateStoryModal({
                   onChange={(e) => setCaption(e.target.value)}
                   maxLength={300}
                   placeholder="Share a clinical insight, quote, or daily medical update..."
-                  className="w-full rounded-xl border border-[#ded8d1] p-3 text-xs text-[#171717] focus:border-[#1769c2] focus:outline-none focus:ring-2 focus:ring-[#1769c2]/20"
+                  className="w-full rounded-xl border border-[#ded8d1] p-3 text-xs text-[#171717] focus:border-[#0f4c81] focus:outline-none focus:ring-2 focus:ring-[#0f4c81]/20"
                 />
                 <div className="flex justify-between text-[10px] text-[#77716b]">
                   <span>Supports markdown & medical symbols</span>
@@ -250,7 +250,7 @@ export function CreateStoryModal({
                     key={p.label}
                     type="button"
                     onClick={() => setCaption(p.text)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-[#ded8d1] bg-[#f8f7f6] px-2.5 py-1 text-[11px] text-[#5d5854] hover:bg-[#eef5fc] hover:text-[#1769c2]"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-[#ded8d1] bg-[#f8f7f6] px-2.5 py-1 text-[11px] text-[#5d5854] hover:bg-[#f0efee] hover:text-[#0f4c81]"
                   >
                     {p.icon}
                     {p.label}
@@ -271,7 +271,7 @@ export function CreateStoryModal({
                       onClick={() => setSelectedBg(bg)}
                       className={`h-7 w-7 rounded-full bg-gradient-to-br ${bg.value} transition ${
                         selectedBg.id === bg.id
-                          ? "ring-2 ring-[#1769c2] ring-offset-2 scale-110"
+                          ? "ring-2 ring-[#0f4c81] ring-offset-2 scale-110"
                           : "opacity-80 hover:opacity-100"
                       }`}
                       title={bg.label}
@@ -293,7 +293,7 @@ export function CreateStoryModal({
                       onClick={() => setSelectedFont(f)}
                       className={`rounded-lg border px-3 py-1 text-xs transition ${
                         selectedFont.id === f.id
-                          ? "border-[#1769c2] bg-[#eef5fc] text-[#1769c2] font-semibold"
+                          ? "border-[#0f4c81] bg-[#f0efee] text-[#0f4c81] font-semibold"
                           : "border-[#ded8d1] bg-white text-[#77716b] hover:bg-[#f8f7f6]"
                       }`}
                     >
@@ -318,7 +318,7 @@ export function CreateStoryModal({
                       ? "https://images.unsplash.com/... or direct image link"
                       : "https://example.com/video.mp4"
                   }
-                  className="h-10 w-full rounded-xl border border-[#ded8d1] px-3 text-xs text-[#171717] focus:border-[#1769c2] focus:outline-none focus:ring-2 focus:ring-[#1769c2]/20"
+                  className="h-10 w-full rounded-xl border border-[#ded8d1] px-3 text-xs text-[#171717] focus:border-[#0f4c81] focus:outline-none focus:ring-2 focus:ring-[#0f4c81]/20"
                 />
               </div>
 
@@ -332,7 +332,7 @@ export function CreateStoryModal({
                   onChange={(e) => setCaption(e.target.value)}
                   maxLength={150}
                   placeholder="Add a brief caption or medical context..."
-                  className="h-10 w-full rounded-xl border border-[#ded8d1] px-3 text-xs text-[#171717] focus:border-[#1769c2] focus:outline-none focus:ring-2 focus:ring-[#1769c2]/20"
+                  className="h-10 w-full rounded-xl border border-[#ded8d1] px-3 text-xs text-[#171717] focus:border-[#0f4c81] focus:outline-none focus:ring-2 focus:ring-[#0f4c81]/20"
                 />
               </div>
             </div>
@@ -369,7 +369,7 @@ export function CreateStoryModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#12569f] disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#0c3c66] disabled:opacity-50"
             >
               <Send className="h-3.5 w-3.5" />
               {isSubmitting ? "Sharing..." : "Share to Story"}

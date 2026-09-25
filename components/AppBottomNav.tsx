@@ -95,7 +95,7 @@ function Icons8BottomNavIcon({
   }
 
   // Icons8 fluent-systems-regular pack CDN with active/inactive colors
-  const colorHex = active ? "1769C2" : "77716B";
+  const colorHex = active ? "0F4C81" : "77716B";
   const url = `https://img.icons8.com/?id=${iconId}&format=png&size=48&color=${colorHex}`;
 
   return (
@@ -142,7 +142,7 @@ export default function AppBottomNav() {
               onClick={() => router.push(`/${item.id}`)}
               className={`flex flex-1 flex-col items-center justify-center py-1 transition-colors relative ${
                 isActive
-                  ? "text-[#1769c2]"
+                  ? "text-[#0f4c81]"
                   : "text-[#77716b] hover:text-[#171717] active:scale-95"
               }`}
             >
@@ -154,12 +154,12 @@ export default function AppBottomNav() {
                   className="size-6"
                 />
                 {isActive && (
-                  <span className="absolute -bottom-1 size-1 rounded-full bg-[#1769c2]" />
+                  <span className="absolute -bottom-1 size-1 rounded-full bg-[#16804d]" />
                 )}
               </div>
               <span
                 className={`mt-1 text-[10px] font-semibold leading-tight ${
-                  isActive ? "text-[#1769c2]" : "text-[#77716b]"
+                  isActive ? "text-[#0f4c81]" : "text-[#77716b]"
                 }`}
               >
                 {item.label}

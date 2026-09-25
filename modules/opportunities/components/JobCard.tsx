@@ -88,7 +88,7 @@ export function JobCard({ job, onSaveToggle, onApplyClick }: JobCardProps) {
   return (
     <div
       onClick={() => router.push(`/opportunities/jobs/${job.slug || job.id}`)}
-      className="group relative flex cursor-pointer flex-col justify-between rounded-3xl border border-[#ded8d1] bg-white p-5 shadow-2xs transition hover:-translate-y-0.5 hover:border-[#1769c2] hover:shadow-md"
+      className="group relative flex cursor-pointer flex-col justify-between rounded-3xl border border-[#ded8d1] bg-white p-5 shadow-2xs transition hover:-translate-y-0.5 hover:border-[#0f4c81] hover:shadow-md"
     >
       <div>
         {/* Top Header: Logo, Org Name, Save & Badges */}
@@ -101,7 +101,7 @@ export function JobCard({ job, onSaveToggle, onApplyClick }: JobCardProps) {
                 className="h-12 w-12 shrink-0 rounded-2xl border border-[#e8e6e3] object-cover shadow-2xs"
               />
             ) : (
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#e8e6e3] bg-[#eef5fc] text-base font-bold text-[#1769c2] shadow-2xs">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#e8e6e3] bg-[#f0efee] text-base font-bold text-[#0f4c81] shadow-2xs">
                 {org?.name ? org.name.slice(0, 2).toUpperCase() : <Building2 className="h-6 w-6" />}
               </div>
             )}
@@ -111,11 +111,11 @@ export function JobCard({ job, onSaveToggle, onApplyClick }: JobCardProps) {
                 <span className="truncate text-xs font-semibold text-[#77716b]">{org?.name}</span>
                 {isVerified && (
                   <span title="Verified Healthcare Employer" className="inline-flex items-center">
-                    <ShieldCheck className="h-3.5 w-3.5 fill-[#1769c2]/15 text-[#1769c2]" />
+                    <ShieldCheck className="h-3.5 w-3.5 fill-[#16804d]/15 text-[#16804d]" />
                   </span>
                 )}
               </div>
-              <h3 className="line-clamp-1 text-sm font-bold text-[#171717] transition group-hover:text-[#1769c2] sm:text-base">
+              <h3 className="line-clamp-1 text-sm font-bold text-[#171717] transition group-hover:text-[#0f4c81] sm:text-base">
                 {job.title}
               </h3>
             </div>
@@ -126,10 +126,10 @@ export function JobCard({ job, onSaveToggle, onApplyClick }: JobCardProps) {
             type="button"
             onClick={handleSave}
             title={saved ? "Saved" : "Save Job"}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#ded8d1] bg-white text-[#77716b] transition hover:border-[#1769c2] hover:text-[#1769c2]"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#ded8d1] bg-white text-[#77716b] transition hover:border-[#0f4c81] hover:text-[#0f4c81]"
           >
             {saved ? (
-              <BookmarkCheck className="h-4 w-4 text-[#1769c2] fill-[#1769c2]" />
+              <BookmarkCheck className="h-4 w-4 text-[#0f4c81] fill-[#0f4c81]" />
             ) : (
               <Bookmark className="h-4 w-4" />
             )}
@@ -159,7 +159,7 @@ export function JobCard({ job, onSaveToggle, onApplyClick }: JobCardProps) {
           )}
 
           {job.is_featured && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-[#1769c2] border border-blue-200">
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200">
               <Sparkles className="h-3 w-3" /> Featured
             </span>
           )}
@@ -168,7 +168,7 @@ export function JobCard({ job, onSaveToggle, onApplyClick }: JobCardProps) {
         {/* Location & Salary Info */}
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#f5f4f3] pt-3 text-xs text-[#5d5854]">
           <div className="flex items-center gap-1 text-[#77716b]">
-            <MapPin className="h-3.5 w-3.5 text-[#1769c2]" />
+            <MapPin className="h-3.5 w-3.5 text-[#0f4c81]" />
             <span className="truncate">{job.city ? `${job.city}, ${job.state || "India"}` : job.location || "Pan-India"}</span>
           </div>
 
@@ -185,7 +185,7 @@ export function JobCard({ job, onSaveToggle, onApplyClick }: JobCardProps) {
         </span>
 
         {job.has_applied ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#ecfdf5] px-3 py-1 text-xs font-bold text-[#047857]">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#ecfdf5] px-3 py-1 text-xs font-bold text-[#16804d]">
             <CheckCircle2 className="h-3.5 w-3.5" /> Applied
           </span>
         ) : (
@@ -199,7 +199,7 @@ export function JobCard({ job, onSaveToggle, onApplyClick }: JobCardProps) {
                 router.push(`/opportunities/jobs/${job.slug || job.id}?apply=true`);
               }
             }}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-4 py-1.5 text-xs font-bold text-white shadow-2xs transition hover:bg-[#12569f]"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] px-4 py-1.5 text-xs font-bold text-white shadow-2xs transition hover:bg-[#0c3c66]"
           >
             Easy Apply →
           </button>

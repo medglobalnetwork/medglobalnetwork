@@ -52,7 +52,7 @@ export default function GracePeriodBanner() {
 
   if (status === "ENROLLED") {
     return (
-      <div className="bg-gradient-to-r from-blue-600 via-[#1769c2] to-indigo-600 text-white px-3 sm:px-4 py-2 sm:py-2.5 text-xs shadow-xs relative z-30">
+      <div className="bg-gradient-to-r from-[#0a2f52] via-[#0f4c81] to-[#16804d] text-white px-3 sm:px-4 py-2 sm:py-2.5 text-xs shadow-xs relative z-30">
         <div className="mx-auto max-w-[1440px] flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 font-medium">
             <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
@@ -69,7 +69,7 @@ export default function GracePeriodBanner() {
           <div className="flex items-center gap-3 ml-auto">
             <Link
               href="/onboarding"
-              className="inline-flex items-center gap-1 rounded-lg bg-white px-3 py-1 text-[11px] font-bold text-[#1769c2] hover:bg-blue-50 transition shadow-2xs"
+              className="inline-flex items-center gap-1 rounded-lg bg-white px-3 py-1 text-[11px] font-bold text-[#0f4c81] hover:bg-[#f0efee] transition shadow-2xs"
             >
               <span>Upload Documents</span>
               <ArrowRight className="h-3 w-3" />

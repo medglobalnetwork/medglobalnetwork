@@ -73,7 +73,7 @@ export function ResearchProjectCard({ project }: ResearchProjectCardProps) {
                 {project.lead_name || "Lead Investigator"}
               </span>
               {project.lead_verified && (
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#1769c2]" />
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#16804d]" />
               )}
             </div>
             <p className="truncate text-[11px] text-[#77716b]">
