@@ -7,18 +7,34 @@ import { VerificationBadge } from "./VerificationBadge";
 import { getProfessionColor } from "../lib/network-data";
 import { formatContentTimestamp, formatExactDateTime } from "@/lib/date";
 import PulseHeart from "@/components/ui/PulseHeart";
+import {
+  MessageSquare,
+  Share2,
+  Bookmark,
+  BookmarkCheck,
+  FileText,
+  ExternalLink,
+  Maximize2,
+  Play,
+  Film,
+  Sparkles,
+  MoreHorizontal,
+  X,
+  Eye,
+  Check,
+} from "lucide-react";
 
-const POST_TYPE_BADGE: Record<string, { label: string; color: string }> = {
-  text:        { label: "Post",        color: "#77716b" },
-  image:       { label: "Photo",       color: "#0369a1" },
-  video:       { label: "Video",       color: "#7c3aed" },
-  document:    { label: "Document",   color: "#0369a1" },
-  poll:        { label: "Poll",        color: "#6d28d9" },
-  research:    { label: "Research",    color: "#0e7490" },
-  achievement: { label: "Achievement", color: "#b45309" },
-  question:    { label: "Question",    color: "#15803d" },
-  job:         { label: "Job",         color: "#1769c2" },
-  event:       { label: "Event",       color: "#be185d" },
+const POST_TYPE_BADGE: Record<string, { label: string; color: string; bg: string }> = {
+  text: { label: "Post", color: "#77716b", bg: "#f5f4f3" },
+  image: { label: "Photo", color: "#0369a1", bg: "#e0f2fe" },
+  video: { label: "Video", color: "#7c3aed", bg: "#ede9fe" },
+  document: { label: "Document", color: "#0d9488", bg: "#ccfbf1" },
+  poll: { label: "Poll", color: "#6d28d9", bg: "#f3e8ff" },
+  research: { label: "Research", color: "#0e7490", bg: "#e0f2fe" },
+  achievement: { label: "Achievement", color: "#b45309", bg: "#fef3c7" },
+  question: { label: "Question", color: "#15803d", bg: "#dcfce7" },
+  job: { label: "Opportunity", color: "#0f4c81", bg: "#eef5fc" },
+  event: { label: "Event", color: "#be185d", bg: "#fce7f3" },
 };
 
 interface PostCardProps {
@@ -29,7 +45,7 @@ interface PostCardProps {
 export function PostCard({ post, currentUserId }: PostCardProps) {
   const router = useRouter();
   const [reacted, setReacted] = React.useState(post.user_reacted ?? false);
-  const [reactionCount, setReactionCount] = React.useState(post.reaction_count);
+  const [reactionCount, setReactionCount] = React.useState(post.reaction_count || 0);
   const [likeLoading, setLikeLoading] = React.useState(false);
   const [showComments, setShowComments] = React.useState(false);
   const [saved, setSaved] = React.useState(post.user_saved ?? false);
@@ -38,6 +54,9 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
   const [commentLoading, setCommentLoading] = React.useState(false);
   const [commentsLoaded, setCommentsLoaded] = React.useState(false);
   const [reported, setReported] = React.useState(false);
+  const [isExpandedText, setIsExpandedText] = React.useState(false);
+  const [copiedLink, setCopiedLink] = React.useState(false);
+  const [selectedImage, setSelectedImage] = React.useState<string | null>(null);
 
   const author = post.author;
   const isVerified =
@@ -54,12 +73,33 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
 
   const badge = POST_TYPE_BADGE[post.post_type] ?? POST_TYPE_BADGE.text;
 
+  // Media list parsing
+  const mediaUrls = Array.isArray(post.media_urls)
+    ? post.media_urls.filter((u) => typeof u === "string" && u.trim().length > 0)
+    : [];
+
+  const isVideoPost =
+    post.post_type === "video" ||
+    mediaUrls.some((u) => u.match(/\.(mp4|webm|mov|m4v|mkv)$/i) || u.includes("video"));
+
+  const isDocumentPost =
+    post.post_type === "document" ||
+    mediaUrls.some((u) => u.match(/\.(pdf|doc|docx|ppt|pptx|xls|xlsx)$/i));
+
+  const isImagePost =
+    (post.post_type === "image" || (!isVideoPost && !isDocumentPost)) && mediaUrls.length > 0;
+
+  // Truncation check
+  const isLongContent = (post.content || "").length > 280;
+  const displayContent = isLongContent && !isExpandedText
+    ? post.content.slice(0, 280).trim() + "..."
+    : post.content;
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleReact = async (..._args: unknown[]) => {
     const wasReacted = reacted;
     const previousCount = reactionCount;
 
-    // Instant optimistic toggle
     setReacted(!wasReacted);
     setReactionCount((c) => (wasReacted ? Math.max(0, c - 1) : c + 1));
 
@@ -82,7 +122,6 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
       }
     } catch (err) {
       console.error("Reaction failed:", err);
-      // Revert on error
       setReacted(wasReacted);
       setReactionCount(previousCount);
     } finally {
@@ -150,6 +189,19 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
     }
   };
 
+  const handleShare = () => {
+    if (typeof window !== "undefined") {
+      const postUrl = `${window.location.origin}/feed#post-${post.id}`;
+      navigator.clipboard.writeText(postUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2200);
+    }
+  };
+
+  const handleToggleSave = () => {
+    setSaved((prev) => !prev);
+  };
+
   const handleReport = () => {
     if (confirm("Report this post for healthcare community guidelines review?")) {
       setReported(true);
@@ -158,89 +210,222 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
   };
 
   return (
-    <article className="rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs sm:p-5">
-      {/* Author header */}
-      <div className="flex items-start gap-3">
-        <button
-          type="button"
-          onClick={() => router.push(`/profile/${author?.user_id ?? ""}`)}
-          className="shrink-0"
-        >
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-[#3f3f3c]"
-            style={{ background: avatarColor }}
+    <article
+      id={`post-${post.id}`}
+      className="rounded-3xl border border-[#e8e6e3] bg-white p-4 sm:p-5 shadow-xs transition hover:border-[#ded8d1] relative overflow-hidden"
+    >
+      {/* 1. Header: Author info, Post Type Badge, Timestamp */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3 min-w-0 flex-1">
+          {/* Avatar */}
+          <button
+            type="button"
+            onClick={() => router.push(`/profile/${author?.user_id ?? post.author_id}`)}
+            className="shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded-full"
           >
-            {author?.image ? (
-              <img
-                src={author.image}
-                alt={author.name}
-                className="h-full w-full rounded-full object-cover"
-              />
-            ) : (
-              initials
-            )}
-          </div>
-        </button>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <button
-              type="button"
-              onClick={() => router.push(`/profile/${author?.user_id ?? ""}`)}
-              className="text-sm font-semibold text-[#171717] hover:text-[#1769c2] hover:underline"
+            <div
+              className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold text-[#3f3f3c] overflow-hidden border border-[#e8e6e3] shadow-2xs"
+              style={{ background: avatarColor }}
             >
-              {author?.name ?? "Healthcare Professional"}
-            </button>
-            {isVerified && <VerificationBadge size="sm" />}
-            {post.post_type !== "text" && (
-              <span
-                className="rounded-full border px-2 py-0.5 text-[10px] font-semibold"
-                style={{
-                  borderColor: badge.color + "40",
-                  background: badge.color + "15",
-                  color: badge.color,
-                }}
+              {author?.image ? (
+                <img
+                  src={author.image}
+                  alt={author.name}
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (
+                initials
+              )}
+            </div>
+          </button>
+
+          {/* Author Details */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                type="button"
+                onClick={() => router.push(`/profile/${author?.user_id ?? post.author_id}`)}
+                className="text-sm font-bold text-[#171717] hover:text-[#0f4c81] transition truncate text-left"
               >
-                {badge.label}
-              </span>
-            )}
+                {author?.name ?? "Healthcare Professional"}
+              </button>
+              {isVerified && <VerificationBadge size="sm" />}
+
+              {post.post_type !== "text" && (
+                <span
+                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold border shadow-2xs"
+                  style={{
+                    backgroundColor: badge.bg,
+                    borderColor: badge.color + "30",
+                    color: badge.color,
+                  }}
+                >
+                  {post.post_type === "video" ? (
+                    <Film className="h-3 w-3 stroke-[2.2]" />
+                  ) : post.post_type === "document" ? (
+                    <FileText className="h-3 w-3 stroke-[2.2]" />
+                  ) : null}
+                  {badge.label}
+                </span>
+              )}
+            </div>
+
+            <p className="text-[11px] text-[#77716b] truncate font-medium mt-0.5">
+              {author?.profession || "Healthcare Professional"}
+              {author?.specialization ? ` · ${author.specialization}` : ""}
+              {author?.organization ? ` · ${author.organization}` : ""}
+            </p>
+
+            <time
+              dateTime={new Date(post.created_at).toISOString()}
+              title={formatExactDateTime(post.created_at)}
+              className="text-[11px] text-[#8a8784] font-medium block mt-0.5 hover:text-[#171717] transition cursor-default"
+            >
+              {formatContentTimestamp(post.created_at)}
+            </time>
           </div>
-          <p className="text-[11px] text-[#77716b]">
-            {author?.profession}
-            {author?.specialization ? ` · ${author.specialization}` : ""}
-            {author?.organization ? ` · ${author.organization}` : ""}
-          </p>
-          <time
-            dateTime={new Date(post.created_at).toISOString()}
-            title={formatExactDateTime(post.created_at)}
-            className="text-[11px] text-[#77716b] font-medium block mt-0.5 hover:text-[#171717] transition"
-          >
-            {formatContentTimestamp(post.created_at)}
-          </time>
         </div>
 
-        {/* Report post */}
-        <button
-          type="button"
-          onClick={handleReport}
-          title="Report post"
-          disabled={reported}
-          className="text-xs text-[#a09890] hover:text-red-600 transition"
-        >
-          {reported ? "Reported" : "🚩"}
-        </button>
+        {/* Top Right: Report & Options */}
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={handleReport}
+            title={reported ? "Reported" : "Report post"}
+            disabled={reported}
+            className="p-1.5 rounded-lg text-[#a09890] hover:bg-[#f8f7f6] hover:text-rose-600 transition"
+          >
+            {reported ? (
+              <span className="text-[10px] font-bold text-rose-600">Reported</span>
+            ) : (
+              <span className="text-xs">🚩</span>
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Content */}
-      <div className="mt-3.5">
-        <p className="whitespace-pre-line text-sm leading-relaxed text-[#171717]">
-          {post.content}
-        </p>
-      </div>
+      {/* 2. Text Content (Above Media, LinkedIn/Instagram Style) */}
+      {post.content && post.content.trim() && (
+        <div className="mt-3.5">
+          <p className="whitespace-pre-line text-sm leading-relaxed text-[#171717]">
+            {displayContent}
+          </p>
+          {isLongContent && (
+            <button
+              type="button"
+              onClick={() => setIsExpandedText((prev) => !prev)}
+              className="mt-1 text-xs font-bold text-[#0f4c81] hover:underline"
+            >
+              {isExpandedText ? "Show less" : "See more"}
+            </button>
+          )}
+        </div>
+      )}
 
-      {/* Action bar */}
-      <div className="mt-4 flex items-center justify-between gap-1 border-t border-[#f5f4f3] pt-3">
-        <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+      {/* 3. Rich Media Container (Instagram / LinkedIn Feed Experience) */}
+      {mediaUrls.length > 0 && (
+        <div className="mt-3.5 rounded-2xl overflow-hidden border border-[#e8e6e3] bg-[#0c0d0e] shadow-2xs">
+          {/* A. Video Post */}
+          {isVideoPost ? (
+            <div className="relative w-full bg-black flex items-center justify-center overflow-hidden">
+              <video
+                src={mediaUrls[0]}
+                controls
+                playsInline
+                preload="metadata"
+                className="w-full max-h-[520px] object-contain rounded-2xl bg-black focus:outline-none"
+              />
+            </div>
+          ) : isDocumentPost ? (
+            /* B. Document Post */
+            <div className="p-4 bg-[#f8fafd] flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#eef5fc] text-[#0f4c81] border border-[#d6e7f7]">
+                  <FileText className="h-6 w-6 stroke-[2]" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-[#171717] truncate">
+                    Clinical Document / Paper
+                  </p>
+                  <p className="text-[11px] text-[#77716b] truncate">
+                    {mediaUrls[0].split("/").pop() || "Document.pdf"}
+                  </p>
+                </div>
+              </div>
+              <a
+                href={mediaUrls[0]}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] px-3.5 py-2 text-xs font-bold text-white shadow-2xs hover:bg-[#0c3c66] transition shrink-0"
+              >
+                <span>View File</span>
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </div>
+          ) : isImagePost ? (
+            /* C. Image / Photo Gallery (Single or Multi-Grid) */
+            mediaUrls.length === 1 ? (
+              <div
+                onClick={() => setSelectedImage(mediaUrls[0])}
+                className="relative w-full max-h-[540px] bg-slate-900 cursor-pointer group flex items-center justify-center overflow-hidden"
+              >
+                <img
+                  src={mediaUrls[0]}
+                  alt="Post media"
+                  className="w-full max-h-[540px] object-contain transition duration-200 group-hover:scale-[1.01]"
+                />
+                <div className="absolute top-3 right-3 rounded-full bg-black/50 p-1.5 text-white opacity-0 group-hover:opacity-100 transition backdrop-blur-xs">
+                  <Maximize2 className="h-4 w-4" />
+                </div>
+              </div>
+            ) : mediaUrls.length === 2 ? (
+              <div className="grid grid-cols-2 gap-1 bg-black">
+                {mediaUrls.slice(0, 2).map((url, i) => (
+                  <div
+                    key={i}
+                    onClick={() => setSelectedImage(url)}
+                    className="relative aspect-square cursor-pointer overflow-hidden group"
+                  >
+                    <img
+                      src={url}
+                      alt={`Post attachment ${i + 1}`}
+                      className="h-full w-full object-cover group-hover:scale-105 transition duration-200"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-1 bg-black">
+                {mediaUrls.slice(0, 4).map((url, i) => {
+                  const isFourth = i === 3 && mediaUrls.length > 4;
+                  return (
+                    <div
+                      key={i}
+                      onClick={() => setSelectedImage(url)}
+                      className="relative aspect-square cursor-pointer overflow-hidden group"
+                    >
+                      <img
+                        src={url}
+                        alt={`Post attachment ${i + 1}`}
+                        className="h-full w-full object-cover group-hover:scale-105 transition duration-200"
+                      />
+                      {isFourth && (
+                        <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-white text-base font-bold backdrop-blur-xs">
+                          +{mediaUrls.length - 3} more
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          ) : null}
+        </div>
+      )}
+
+      {/* 4. Action Bar (Instagram / LinkedIn Style: Like, Comment, Share, Save) */}
+      <div className="mt-4 flex items-center justify-between border-t border-[#f0efee] pt-3 text-xs">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Like — PulseHeart */}
           <PulseHeart
             liked={reacted}
@@ -253,7 +438,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
             corner={18}
             likedColor="#e11d48"
             idleColor="#77716b"
-            pillColor="#f5f4f3"
+            pillColor="#f5f4f2"
             textColor="#171717"
             duration={520}
             dotSize={0.25}
@@ -261,24 +446,20 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
             beat={2.5}
             rollDuration={320}
             label="Like"
-            className="!rounded-lg"
+            className="!rounded-xl"
           />
 
           {/* Comment */}
           <button
             type="button"
             onClick={loadComments}
-            className="flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-medium text-[#77716b] transition hover:bg-[#f8f7f6] hover:text-[#171717] active:scale-95"
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-bold transition active:scale-95 ${
+              showComments
+                ? "bg-[#eef5fc] text-[#0f4c81]"
+                : "text-[#5d5854] hover:bg-[#f5f4f2] hover:text-[#171717]"
+            }`}
           >
-            <svg
-              viewBox="0 0 24 24"
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            >
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
+            <MessageSquare className="h-4 w-4" />
             <span>
               {post.comment_count + comments.length > 0
                 ? post.comment_count + comments.length
@@ -289,99 +470,120 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
           {/* Share */}
           <button
             type="button"
-            onClick={() => {
-              if (typeof window !== "undefined") {
-                navigator.clipboard.writeText(window.location.href);
-                alert("Post link copied to clipboard!");
-              }
-            }}
-            className="flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-medium text-[#77716b] transition hover:bg-[#f8f7f6] hover:text-[#171717] active:scale-95"
+            onClick={handleShare}
+            className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-bold text-[#5d5854] hover:bg-[#f5f4f2] hover:text-[#171717] transition active:scale-95"
           >
-            <svg
-              viewBox="0 0 24 24"
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            >
-              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-              <polyline points="16 6 12 2 8 6" />
-              <line x1="12" y1="2" x2="12" y2="15" />
-            </svg>
-            <span>{post.share_count > 0 ? post.share_count : "Share"}</span>
+            {copiedLink ? (
+              <>
+                <Check className="h-4 w-4 text-[#16804d]" />
+                <span className="text-[#16804d]">Copied!</span>
+              </>
+            ) : (
+              <>
+                <Share2 className="h-4 w-4" />
+                <span>Share</span>
+              </>
+            )}
           </button>
         </div>
 
-        {/* Save */}
+        {/* Save / Bookmark Button */}
         <button
           type="button"
-          onClick={() => setSaved(!saved)}
-          className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-medium transition active:scale-95 ${
+          onClick={handleToggleSave}
+          title={saved ? "Saved to your bookmarks" : "Save post"}
+          className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 font-bold transition active:scale-95 ${
             saved
-              ? "text-[#0f4c81] bg-[#f0efee]"
-              : "text-[#77716b] hover:bg-[#f8f7f6] hover:text-[#171717]"
+              ? "text-[#0f4c81] bg-[#eef5fc]"
+              : "text-[#5d5854] hover:bg-[#f5f4f2] hover:text-[#171717]"
           }`}
         >
-          <svg
-            viewBox="0 0 24 24"
-            className="h-4 w-4"
-            fill={saved ? "currentColor" : "none"}
-            stroke="currentColor"
-            strokeWidth="1.8"
-          >
-            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-          </svg>
-          <span className="hidden sm:inline">Save</span>
+          {saved ? (
+            <BookmarkCheck className="h-4 w-4 fill-[#0f4c81]" />
+          ) : (
+            <Bookmark className="h-4 w-4" />
+          )}
+          <span className="hidden sm:inline">{saved ? "Saved" : "Save"}</span>
         </button>
       </div>
 
-      {/* Comment Section (Expandable) */}
+      {/* 5. Expandable Comments Section */}
       {showComments && (
-        <div className="mt-4 border-t border-[#f5f4f3] pt-3 space-y-3">
-          {/* Add comment form */}
+        <div className="mt-3.5 space-y-3 border-t border-[#f0efee] pt-3.5 animate-in fade-in duration-200">
+          {/* Add Comment Input */}
           <form onSubmit={handleAddComment} className="flex gap-2">
             <input
               type="text"
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
-              placeholder="Write a clinical thought or comment..."
-              className="h-9 flex-1 rounded-xl border border-[#ded8d1] px-3 text-xs text-[#171717] focus:border-[#1769c2] focus:outline-none"
+              placeholder="Add a clinical comment or insight..."
+              className="h-9 flex-1 rounded-xl border border-[#ded8d1] px-3 text-xs text-[#171717] placeholder:text-[#8a8784] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
             />
             <button
               type="submit"
               disabled={commentLoading || !commentText.trim()}
-              className="rounded-xl bg-[#1769c2] px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-[#12569f] disabled:opacity-50"
+              className="rounded-xl bg-[#0f4c81] px-4 py-1.5 text-xs font-bold text-white transition hover:bg-[#0c3c66] disabled:opacity-50 shadow-2xs"
             >
               {commentLoading ? "…" : "Post"}
             </button>
           </form>
 
           {/* Comments List */}
-          {comments.length > 0 && (
-            <ul className="space-y-2.5 pt-2">
+          {comments.length > 0 ? (
+            <ul className="space-y-2.5 pt-1">
               {comments.map((c) => (
-                <li key={c.id} className="rounded-xl bg-[#f8f7f6] p-2.5 text-xs">
+                <li
+                  key={c.id}
+                  className="rounded-2xl bg-[#faf9f8] p-3 text-xs border border-[#f0efee]"
+                >
                   <div className="flex items-center justify-between">
                     <button
                       type="button"
                       onClick={() => router.push(`/profile/${c.author?.user_id || c.author_id}`)}
-                      className="font-semibold text-[#171717] hover:text-[#0f4c81] hover:underline text-left cursor-pointer"
+                      className="font-bold text-[#171717] hover:text-[#0f4c81] hover:underline text-left"
                     >
                       {c.author?.name || "Healthcare Professional"}
                     </button>
                     <time
                       dateTime={new Date(c.created_at).toISOString()}
                       title={formatExactDateTime(c.created_at)}
-                      className="text-[10px] text-[#77716b] font-medium hover:text-[#171717]"
+                      className="text-[10px] text-[#8a8784] font-medium"
                     >
                       {formatContentTimestamp(c.created_at)}
                     </time>
                   </div>
-                  <p className="mt-1 text-[#5d5854]">{c.content}</p>
+                  <p className="mt-1 text-[#44403c] leading-relaxed">{c.content}</p>
                 </li>
               ))}
             </ul>
+          ) : (
+            <p className="text-center text-xs text-[#8a8784] py-2">
+              No comments yet. Be the first to share your thoughts!
+            </p>
           )}
+        </div>
+      )}
+
+      {/* 6. Image Lightbox Modal */}
+      {selectedImage && (
+        <div
+          onClick={() => setSelectedImage(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm animate-in fade-in duration-150"
+        >
+          <div className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-2xl">
+            <button
+              type="button"
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black transition"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <img
+              src={selectedImage}
+              alt="Enlarged media"
+              className="max-h-[85vh] max-w-[90vw] object-contain rounded-2xl"
+            />
+          </div>
         </div>
       )}
     </article>

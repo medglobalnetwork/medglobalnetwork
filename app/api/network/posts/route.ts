@@ -68,8 +68,32 @@ export async function GET(request: Request) {
       userReactedSet = new Set(reactions.map((r) => r.post_id));
     }
 
+    const parseMediaUrls = (raw: unknown): string[] => {
+      if (!raw) return [];
+      if (Array.isArray(raw)) return raw.filter((u) => typeof u === "string" && u.trim().length > 0);
+      if (typeof raw === "string") {
+        const trimmed = raw.trim();
+        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) return parsed.filter((u) => typeof u === "string" && u.trim().length > 0);
+          } catch {}
+        }
+        if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+          return trimmed
+            .slice(1, -1)
+            .split(",")
+            .map((s) => s.replace(/^"|"$/g, "").trim())
+            .filter(Boolean);
+        }
+        return [trimmed];
+      }
+      return [];
+    };
+
     const enriched = posts.map((post) => ({
       ...post,
+      media_urls: parseMediaUrls(post.media_urls),
       user_reacted: userReactedSet.has(post.id),
       author: {
         user_id: post.author_id,
