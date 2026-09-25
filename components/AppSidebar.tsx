@@ -64,7 +64,7 @@ function Icons8NavIcon({
   iconId,
   active,
   fallback: FallbackIcon,
-  className = "h-6 w-6 sm:h-[26px] sm:w-[26px]",
+  className = "size-6 sm:size-[26px]",
 }: {
   iconId?: string;
   active: boolean;
@@ -205,11 +205,11 @@ export function AppSidebar({
             />
           </Link>
 
-          {onToggleCollapse && isExpanded && (
+            {onToggleCollapse && isExpanded && (
             <button
               type="button"
               onClick={onToggleCollapse}
-              className="p-1.5 rounded-lg text-[#77716b] hover:bg-[#f5f4f2] hover:text-[#171717] transition group/pin"
+              className="p-1.5 rounded-lg text-[#77716b] hover:bg-[#f5f4f2] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] transition group/pin"
               title={
                 isCollapsed
                   ? "Pin sidebar (Keep permanently open)"
@@ -217,9 +217,9 @@ export function AppSidebar({
               }
             >
               {isCollapsed ? (
-                <Pin className="h-4 w-4 rotate-45 text-[#9c958f] group-hover/pin:text-[#171717]" />
+                <Pin className="size-4 rotate-45 text-[#9c958f] group-hover/pin:text-[#171717]" />
               ) : (
-                <PinOff className="h-4 w-4 text-[#1769c2]" />
+                <PinOff className="size-4 text-[#1769c2]" />
               )}
             </button>
           )}
@@ -230,7 +230,7 @@ export function AppSidebar({
           {/* Main Ecosystem Navigation */}
           <div>
             {isExpanded && (
-              <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-[#9c958f] animate-in fade-in duration-200">
+              <p className="px-3 mb-2 text-[10px] font-bold uppercase text-[#9c958f] animate-in fade-in duration-200">
                 Ecosystem
               </p>
             )}
@@ -244,7 +244,7 @@ export function AppSidebar({
                     key={item.id}
                     href={item.href}
                     onClick={handleNavClick}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold transition group relative ${
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold transition group relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] ${
                       active
                         ? "bg-[#eef5fc] text-[#1769c2] shadow-2xs"
                         : "text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
@@ -255,7 +255,7 @@ export function AppSidebar({
                       iconId={item.icon8Id}
                       active={active}
                       fallback={item.icon}
-                      className="h-6 w-6 sm:h-[26px] sm:w-[26px]"
+                      className="size-6 sm:size-[26px]"
                     />
                     {isExpanded && (
                       <span className="truncate animate-in fade-in duration-200">
@@ -263,7 +263,7 @@ export function AppSidebar({
                       </span>
                     )}
                     {active && isExpanded && (
-                      <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#1769c2]" />
+                      <span className="ml-auto size-1.5 rounded-full bg-[#1769c2]" />
                     )}
                   </Link>
                 );
@@ -274,7 +274,7 @@ export function AppSidebar({
           {/* Workspace & Tools */}
           <div>
             {isExpanded && (
-              <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-[#9c958f] animate-in fade-in duration-200">
+              <p className="px-3 mb-2 text-[10px] font-bold uppercase text-[#9c958f] animate-in fade-in duration-200">
                 Workspace
               </p>
             )}
@@ -287,7 +287,7 @@ export function AppSidebar({
                     key={item.id}
                     href={item.href}
                     onClick={handleNavClick}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold transition group relative ${
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold transition group relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] ${
                       active
                         ? "bg-[#eef5fc] text-[#1769c2] shadow-2xs"
                         : "text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
@@ -298,7 +298,7 @@ export function AppSidebar({
                       iconId={item.icon8Id}
                       active={active}
                       fallback={item.icon}
-                      className="h-6 w-6 sm:h-[26px] sm:w-[26px]"
+                      className="size-6 sm:size-[26px]"
                     />
                     {isExpanded && (
                       <span className="truncate animate-in fade-in duration-200">
@@ -306,7 +306,7 @@ export function AppSidebar({
                       </span>
                     )}
                     {active && isExpanded && (
-                      <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#1769c2]" />
+                      <span className="ml-auto size-1.5 rounded-full bg-[#1769c2]" />
                     )}
                   </Link>
                 );
@@ -320,7 +320,7 @@ export function AppSidebar({
           <Link
             href="/settings"
             onClick={handleNavClick}
-            className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-[#5d5854] hover:bg-white hover:text-[#171717] hover:shadow-2xs transition ${
+            className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-[#5d5854] hover:bg-white hover:text-[#171717] hover:shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] transition ${
               !isExpanded ? "justify-center px-2" : ""
             }`}
             title={!isExpanded ? "Settings" : undefined}
@@ -329,7 +329,7 @@ export function AppSidebar({
               iconId="4511GGVppfIx"
               active={isLinkActive("/settings")}
               fallback={Settings}
-              className="h-6 w-6 sm:h-[26px] sm:w-[26px]"
+              className="size-6 sm:size-[26px]"
             />
             {isExpanded && (
               <span className="animate-in fade-in duration-200">Settings</span>
@@ -341,12 +341,12 @@ export function AppSidebar({
               <Link
                 href={`/profile/${session.user.id}`}
                 onClick={handleNavClick}
-                className="flex items-center gap-2.5 min-w-0 group hover:opacity-90 transition"
+                className="flex items-center gap-2.5 min-w-0 group hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded-lg p-0.5 transition"
               >
                 <img
                   src={userAvatar}
                   alt={session.user.name || "User"}
-                  className="h-8 w-8 rounded-full object-cover border border-[#e8e6e3] shrink-0"
+                  className="size-8 rounded-full object-cover border border-[#e8e6e3] shrink-0"
                 />
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-[#171717] truncate group-hover:text-[#1769c2]">
@@ -364,12 +364,12 @@ export function AppSidebar({
                 href={`/profile/${session.user.id}`}
                 onClick={handleNavClick}
                 title={session.user.name || "View Profile"}
-                className="group hover:opacity-90 transition"
+                className="group hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded-full transition"
               >
                 <img
                   src={userAvatar}
                   alt={session.user.name || "User"}
-                  className="h-8 w-8 rounded-full object-cover border border-[#e8e6e3]"
+                  className="size-8 rounded-full object-cover border border-[#e8e6e3]"
                 />
               </Link>
             </div>
@@ -393,36 +393,36 @@ export function AppSidebar({
           <div className="relative flex flex-col w-72 sm:w-80 max-w-[85vw] bg-white h-full shadow-2xl border-r border-[#ded8d1] z-10 animate-in slide-in-from-left duration-250">
             {/* Header / User Profile Banner */}
             <div className="p-4 border-b border-[#f0efee] bg-[#faf9f8] flex items-center justify-between">
-              <Link href="/home" onClick={onCloseMobileDrawer} className="flex items-center gap-2">
+              <Link href="/home" onClick={onCloseMobileDrawer} className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded">
                 <img src="/logo.png" alt="MGN" className="h-8.5 w-auto object-contain" />
               </Link>
               <button
                 type="button"
                 onClick={onCloseMobileDrawer}
-                className="p-1.5 rounded-xl text-[#77716b] hover:bg-[#efefef] hover:text-[#171717] transition"
+                className="p-1.5 rounded-xl text-[#77716b] hover:bg-[#efefef] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] transition"
                 aria-label="Close menu"
               >
-                <X className="h-5 w-5" />
+                <X className="size-5" />
               </button>
             </div>
 
             {/* User Profile Card if logged in */}
             {session?.user && (
-              <div className="p-4 border-b border-[#f0efee] bg-gradient-to-br from-[#f8fafd] to-[#f0f5fc]">
+              <div className="p-4 border-b border-[#f0efee] bg-[#f8fafd]">
                 <Link
                   href={`/profile/${session.user.id}`}
                   onClick={onCloseMobileDrawer}
-                  className="flex items-center gap-3"
+                  className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded-xl p-1"
                 >
                   <img
                     src={userAvatar}
                     alt={session.user.name || "User"}
-                    className="h-11 w-11 rounded-full object-cover border-2 border-white shadow-xs shrink-0"
+                    className="size-11 rounded-full object-cover border-2 border-white shadow-xs shrink-0"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-black text-[#171717] truncate flex items-center gap-1">
+                    <p className="text-sm font-bold text-[#171717] truncate flex items-center gap-1">
                       {session.user.name}
-                      <ShieldCheck className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                      <ShieldCheck className="size-3.5 text-[#1769c2] shrink-0" />
                     </p>
                     <p className="text-[11px] text-[#5d5854] truncate">
                       {session.user.email}
@@ -439,7 +439,7 @@ export function AppSidebar({
             <div className="flex-1 overflow-y-auto p-3 space-y-5">
               {/* Additional Ecosystem Modules (Events, Camps, Research, Marketplace, etc.) */}
               <div>
-                <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-[#9c958f]">
+                <p className="px-3 mb-2 text-[10px] font-bold uppercase text-[#9c958f]">
                   Explore Ecosystem
                 </p>
                 <nav className="space-y-1">
@@ -451,7 +451,7 @@ export function AppSidebar({
                         key={item.id}
                         href={item.href}
                         onClick={onCloseMobileDrawer}
-                        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition ${
+                        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] ${
                           active
                             ? "bg-[#eef5fc] text-[#1769c2]"
                             : "text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
@@ -461,11 +461,11 @@ export function AppSidebar({
                           iconId={item.icon8Id}
                           active={active}
                           fallback={item.icon}
-                          className="h-6 w-6"
+                          className="size-6"
                         />
                         <span className="truncate">{item.label}</span>
                         {active && (
-                          <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#1769c2]" />
+                          <span className="ml-auto size-1.5 rounded-full bg-[#1769c2]" />
                         )}
                       </Link>
                     );
@@ -475,7 +475,7 @@ export function AppSidebar({
 
               {/* Tools & Workspace */}
               <div>
-                <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-[#9c958f]">
+                <p className="px-3 mb-2 text-[10px] font-bold uppercase text-[#9c958f]">
                   Tools & Workspace
                 </p>
                 <nav className="space-y-1">
@@ -487,7 +487,7 @@ export function AppSidebar({
                         key={item.id}
                         href={item.href}
                         onClick={onCloseMobileDrawer}
-                        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition ${
+                        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] ${
                           active
                             ? "bg-[#eef5fc] text-[#1769c2]"
                             : "text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
@@ -497,7 +497,7 @@ export function AppSidebar({
                           iconId={item.icon8Id}
                           active={active}
                           fallback={item.icon}
-                          className="h-6 w-6"
+                          className="size-6"
                         />
                         <span className="truncate">{item.label}</span>
                       </Link>
@@ -512,13 +512,13 @@ export function AppSidebar({
               <Link
                 href="/settings"
                 onClick={onCloseMobileDrawer}
-                className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-[#5d5854] hover:bg-white hover:text-[#171717] transition"
+                className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-[#5d5854] hover:bg-white hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] transition"
               >
                 <Icons8NavIcon
                   iconId="4511GGVppfIx"
                   active={isLinkActive("/settings")}
                   fallback={Settings}
-                  className="h-6 w-6"
+                  className="size-6"
                 />
                 <span>Account Settings</span>
               </Link>
@@ -534,13 +534,13 @@ export function AppSidebar({
                     },
                   });
                 }}
-                className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition"
+                className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 transition"
               >
                 <Icons8NavIcon
                   iconId="Q1xkcFuVON39"
                   active={false}
                   fallback={LogOut}
-                  className="h-6 w-6"
+                  className="size-6"
                 />
                 <span>Sign Out</span>
               </button>

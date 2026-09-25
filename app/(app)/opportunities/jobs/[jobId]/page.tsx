@@ -56,7 +56,7 @@ function JobDetailPageContent() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-[#f5f5f4] p-6">
+      <main className="min-h-dvh bg-[#f5f5f4] p-6">
         <div className="mx-auto max-w-5xl space-y-6 animate-pulse">
           <div className="h-44 rounded-3xl bg-white/60" />
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -70,16 +70,16 @@ function JobDetailPageContent() {
 
   if (errorMsg || !job) {
     return (
-      <main className="min-h-screen bg-[#f5f5f4] p-8 text-center text-[#171717]">
+      <main className="min-h-dvh bg-[#f5f5f4] p-8 text-center text-[#171717]">
         <div className="mx-auto max-w-md rounded-3xl border border-[#ded8d1] bg-white p-8 space-y-3">
-          <h2 className="text-lg font-bold">Opportunity Not Found</h2>
-          <p className="text-xs text-[#77716b]">
+          <h2 className="text-lg font-bold text-balance">Opportunity Not Found</h2>
+          <p className="text-xs text-[#77716b] text-pretty">
             This clinical opportunity may have expired or been filled.
           </p>
           <button
             type="button"
             onClick={() => router.push("/opportunities/jobs")}
-            className="rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-bold text-white"
+            className="rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
           >
             Explore Other Openings
           </button>
@@ -89,7 +89,7 @@ function JobDetailPageContent() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f5f4] p-4 sm:p-8 pb-36 text-[#171717]">
+    <main className="min-h-dvh bg-[#f5f5f4] p-4 sm:p-8 pb-36 text-[#171717]">
       <JobDetailView
         job={job}
         similarJobs={similarJobs}
@@ -103,7 +103,7 @@ function JobDetailPageContent() {
 
 export default function JobDetailPage() {
   return (
-    <React.Suspense fallback={<div className="min-h-screen bg-[#f5f5f4]" />}>
+    <React.Suspense fallback={<div className="min-h-dvh bg-[#f5f5f4]" />}>
       <JobDetailPageContent />
     </React.Suspense>
   );

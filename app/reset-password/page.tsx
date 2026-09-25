@@ -74,11 +74,11 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#eef5fc] px-6 py-10 text-[#171717]">
+    <main className="flex min-h-dvh items-center justify-center bg-[#eef5fc] px-6 py-10 text-[#171717]">
       <section className="w-full max-w-[420px]">
-        <p className="text-sm font-medium uppercase tracking-[0.2em] text-[#1769c2]">MGN</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight">Reset your password</h1>
-        <p className="mt-2 text-sm text-[#5d5854]">Choose a new password for your account.</p>
+        <p className="text-sm font-medium uppercase text-[#1769c2]">MGN</p>
+        <h1 className="mt-3 text-3xl font-semibold text-balance">Reset your password</h1>
+        <p className="mt-2 text-sm text-[#5d5854] text-pretty">Choose a new password for your account.</p>
 
         <form onSubmit={handleSubmit} className="mt-7 space-y-4">
           <label className="block text-sm font-medium">

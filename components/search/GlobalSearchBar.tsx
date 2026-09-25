@@ -393,14 +393,14 @@ export function GlobalSearchBar({
                 {recentSearches.length > 0 && (
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#77716b] flex items-center gap-1.5">
-                        <History className="h-3 w-3" />
+                      <span className="text-[11px] font-bold uppercase text-[#77716b] flex items-center gap-1.5">
+                        <History className="size-3" />
                         <span>Recent Searches</span>
                       </span>
                       <button
                         type="button"
                         onClick={clearAllRecent}
-                        className="text-[11px] font-semibold text-[#1769c2] hover:underline"
+                        className="text-[11px] font-semibold text-[#1769c2] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded"
                       >
                         Clear All
                       </button>
@@ -415,14 +415,14 @@ export function GlobalSearchBar({
                           tabIndex={0}
                           className="group inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-3 py-1.5 text-xs font-medium text-[#171717] hover:border-[#1769c2] hover:bg-white transition cursor-pointer"
                         >
-                          <Search className="h-3 w-3 text-[#77716b] group-hover:text-[#1769c2]" />
+                          <Search className="size-3 text-[#77716b] group-hover:text-[#1769c2]" />
                           <span>{term}</span>
                           <button
                             type="button"
                             onClick={(e) => removeRecentSearch(e, term)}
-                            className="ml-0.5 rounded-full p-0.5 text-[#77716b] hover:bg-slate-200 hover:text-[#171717]"
+                            className="ml-0.5 rounded-full p-0.5 text-[#77716b] hover:bg-slate-200 hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
                           >
-                            <X className="h-2.5 w-2.5" />
+                            <X className="size-2.5" />
                           </button>
                         </div>
                       ))}
@@ -432,8 +432,8 @@ export function GlobalSearchBar({
 
                 {/* Popular Specialties */}
                 <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#77716b] flex items-center gap-1.5 mb-2">
-                    <TrendingUp className="h-3 w-3 text-emerald-600" />
+                  <span className="text-[11px] font-bold uppercase text-[#77716b] flex items-center gap-1.5 mb-2">
+                    <TrendingUp className="size-3 text-emerald-600" />
                     <span>Popular Specialties & Disciplines</span>
                   </span>
                   <div className="flex flex-wrap gap-1.5">
@@ -445,7 +445,7 @@ export function GlobalSearchBar({
                           setQuery(spec);
                           saveRecentSearch(spec);
                         }}
-                        className="rounded-xl border border-[#ded8d1] bg-white px-3 py-1.5 text-xs font-semibold text-[#171717] hover:border-[#1769c2] hover:bg-[#eef5fc] hover:text-[#1769c2] transition shadow-2xs"
+                        className="rounded-xl border border-[#ded8d1] bg-white px-3 py-1.5 text-xs font-semibold text-[#171717] hover:border-[#1769c2] hover:bg-[#eef5fc] hover:text-[#1769c2] transition shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
                       >
                         {spec}
                       </button>
@@ -455,8 +455,8 @@ export function GlobalSearchBar({
 
                 {/* Quick Platform Hubs */}
                 <div className="pt-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#77716b] flex items-center gap-1.5 mb-2">
-                    <Sparkles className="h-3 w-3 text-amber-500" />
+                  <span className="text-[11px] font-bold uppercase text-[#77716b] flex items-center gap-1.5 mb-2">
+                    <Sparkles className="size-3 text-amber-500" />
                     <span>Quick Navigators</span>
                   </span>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -514,8 +514,8 @@ export function GlobalSearchBar({
                 {(activeTab === "all" || activeTab === "people") && results.people.length > 0 && (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#1769c2] flex items-center gap-1.5">
-                        <Users className="h-3.5 w-3.5" />
+                      <span className="text-[11px] font-bold uppercase text-[#1769c2] flex items-center gap-1.5">
+                        <Users className="size-3.5" />
                         <span>Doctors & Clinicians ({results.people.length})</span>
                       </span>
                       <Link
@@ -599,8 +599,8 @@ export function GlobalSearchBar({
                 {(activeTab === "all" || activeTab === "jobs") && results.jobs.length > 0 && (
                   <div className="space-y-2 pt-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-1.5">
-                        <Briefcase className="h-3.5 w-3.5" />
+                      <span className="text-[11px] font-bold uppercase text-emerald-700 flex items-center gap-1.5">
+                        <Briefcase className="size-3.5" />
                         <span>Opportunities & Jobs ({results.jobs.length})</span>
                       </span>
                       <Link
@@ -662,8 +662,8 @@ export function GlobalSearchBar({
                 {(activeTab === "all" || activeTab === "courses") && results.courses.length > 0 && (
                   <div className="space-y-2 pt-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700 flex items-center gap-1.5">
-                        <GraduationCap className="h-3.5 w-3.5" />
+                      <span className="text-[11px] font-bold uppercase text-purple-700 flex items-center gap-1.5">
+                        <GraduationCap className="size-3.5" />
                         <span>Courses & CME ({results.courses.length})</span>
                       </span>
                       <Link
@@ -722,8 +722,8 @@ export function GlobalSearchBar({
                 {(activeTab === "all" || activeTab === "communities") && results.communities.length > 0 && (
                   <div className="space-y-2 pt-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
-                        <Compass className="h-3.5 w-3.5" />
+                      <span className="text-[11px] font-bold uppercase text-amber-800 flex items-center gap-1.5">
+                        <Compass className="size-3.5" />
                         <span>Medical Circles ({results.communities.length})</span>
                       </span>
                       <Link

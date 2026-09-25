@@ -37,56 +37,56 @@ export function CampCard({ camp }: CampCardProps) {
   return (
     <div className="group flex flex-col justify-between rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-xs transition-all hover:border-[#ded8d1] hover:shadow-md">
       <div>
-        {/* Cover or Gradient header */}
-        <div className="relative mb-4 h-36 w-full overflow-hidden rounded-xl bg-gradient-to-br from-emerald-600/10 via-teal-600/10 to-blue-600/10">
+        {/* Cover or Accent header */}
+        <div className="relative mb-4 h-36 w-full overflow-hidden rounded-xl bg-[#eef5fc]">
           {camp.cover_url ? (
             <img
               src={camp.cover_url}
               alt={camp.title}
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center p-4 text-center">
-              <Tent className="mb-1 h-7 w-7 text-emerald-600" />
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
+            <div className="flex size-full flex-col items-center justify-center p-4 text-center">
+              <Tent className="mb-1 size-7 text-[#1769c2]" />
+              <span className="text-xs font-bold uppercase text-[#1769c2]">
                 {campTypeLabels[camp.camp_type] || "Medical Outreach"}
               </span>
             </div>
           )}
 
           <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5">
-            <span className="rounded-md bg-white/90 px-2 py-0.5 text-[11px] font-bold text-emerald-700 shadow-xs backdrop-blur-xs">
+            <span className="rounded-md bg-white/90 px-2 py-0.5 text-[11px] font-bold text-[#1769c2] shadow-xs backdrop-blur-xs">
               {campTypeLabels[camp.camp_type] || "Camp"}
             </span>
           </div>
 
           {camp.user_volunteer_status && (
-            <div className="absolute top-2.5 right-2.5 rounded-md bg-emerald-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
+            <div className="absolute top-2.5 right-2.5 rounded-md bg-[#1769c2] px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
               Volunteer ({camp.user_volunteer_status})
             </div>
           )}
         </div>
 
         {/* Title */}
-        <Link href={`/camps/${camp.id}`}>
-          <h3 className="line-clamp-2 text-base font-bold text-[#171717] transition-colors group-hover:text-emerald-700">
+        <Link href={`/camps/${camp.id}`} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded">
+          <h3 className="line-clamp-2 text-base font-bold text-[#171717] transition-colors group-hover:text-[#1769c2] text-balance">
             {camp.title}
           </h3>
         </Link>
 
         {/* Description */}
-        <p className="mt-1 line-clamp-2 text-xs text-[#5d5854]">
+        <p className="mt-1 line-clamp-2 text-xs text-[#5d5854] text-pretty">
           {camp.description}
         </p>
 
         {/* Meta details */}
         <div className="mt-3 space-y-1.5 text-xs text-[#5d5854]">
           <div className="flex items-center gap-2">
-            <Calendar className="h-3.5 w-3.5 text-[#77716b]" />
+            <Calendar className="size-3.5 text-[#77716b]" />
             <span>{formattedDate}</span>
           </div>
           <div className="flex items-center gap-2">
-            <MapPin className="h-3.5 w-3.5 text-emerald-600" />
+            <MapPin className="size-3.5 text-[#1769c2]" />
             <span className="truncate">{camp.venue_name}, {camp.city}</span>
           </div>
         </div>

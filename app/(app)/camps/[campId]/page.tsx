@@ -188,8 +188,8 @@ export default function CampDetailPage({
               <img src={camp.cover_url} alt={camp.title} className="h-full w-full object-cover" />
             ) : (
               <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center">
-                <Tent className="mb-2 h-14 w-14 text-emerald-700" />
-                <span className="text-sm font-bold uppercase tracking-wider text-emerald-900">
+                <Tent className="mb-2 size-14 text-emerald-700" />
+                <span className="text-sm font-bold uppercase text-emerald-900">
                   {camp.camp_type.replace(/_/g, " ")}
                 </span>
               </div>

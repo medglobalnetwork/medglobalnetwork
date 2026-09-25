@@ -69,14 +69,14 @@ export default function CentralCalendarPage() {
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1769c2]">
-            <CalendarIcon className="h-4 w-4" />
+          <div className="flex items-center gap-2 text-xs font-bold uppercase text-[#1769c2]">
+            <CalendarIcon className="size-4" />
             <span>MedGlobalNetwork Central Calendar</span>
           </div>
-          <h1 className="mt-1 text-2xl font-black text-[#171717]">
+          <h1 className="mt-1 text-2xl font-black text-[#171717] text-balance">
             My Healthcare Schedule & Agenda
           </h1>
-          <p className="text-xs text-[#5d5854]">
+          <p className="text-xs text-[#5d5854] text-pretty">
             Unified timeline for your registered CME conferences, medical camps, clinical webinars, and research meetings.
           </p>
         </div>

@@ -56,11 +56,11 @@ export default function MyLearningPage() {
   }, [session?.user]);
 
   if (isPending || !session) {
-    return <main className="min-h-screen bg-[#f5f5f4]" />;
+    return <main className="min-h-dvh bg-[#f5f5f4]" />;
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f5f4] pb-36 text-[#171717]">
+    <main className="min-h-dvh bg-[#f5f5f4] pb-36 text-[#171717]">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -69,15 +69,15 @@ export default function MyLearningPage() {
               <button
                 type="button"
                 onClick={() => router.push("/learn")}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-[#1769c2] hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#1769c2] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
               >
-                <ArrowLeft className="h-3.5 w-3.5" /> Back to Learn Home
+                <ArrowLeft className="size-3.5" /> Back to Learn Home
               </button>
             </div>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#171717]">
+            <h1 className="mt-1 text-2xl font-bold text-[#171717] text-balance">
               My Learning & Credentials
             </h1>
-            <p className="text-xs text-[#77716b]">
+            <p className="text-xs text-[#77716b] text-pretty">
               Track your clinical training progress and view accredited certificates.
             </p>
           </div>
@@ -85,9 +85,9 @@ export default function MyLearningPage() {
           <button
             type="button"
             onClick={() => router.push("/learn/courses")}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#12569f]"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#12569f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
           >
-            <Plus className="h-3.5 w-3.5" /> Browse More Courses
+            <Plus className="size-3.5" /> Browse More Courses
           </button>
         </div>
 

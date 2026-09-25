@@ -34,16 +34,16 @@ export function EventCard({ event }: EventCardProps) {
     <div className="group flex flex-col justify-between rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-xs transition-all hover:border-[#ded8d1] hover:shadow-md">
       <div>
         {/* Cover / Fallback header */}
-        <div className="relative mb-4 h-36 w-full overflow-hidden rounded-xl bg-gradient-to-br from-[#1769c2]/10 via-[#059669]/10 to-[#7c3aed]/10">
+        <div className="relative mb-4 h-36 w-full overflow-hidden rounded-xl bg-[#eef5fc]">
           {event.cover_url ? (
             <img
               src={event.cover_url}
               alt={event.title}
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center p-4 text-center">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#5d5854]">
+            <div className="flex size-full items-center justify-center p-4 text-center">
+              <span className="text-xs font-semibold uppercase text-[#5d5854]">
                 {event.category || "Healthcare Event"}
               </span>
             </div>
@@ -55,30 +55,30 @@ export function EventCard({ event }: EventCardProps) {
               {event.event_type.toUpperCase()}
             </span>
             {event.cme_credits && event.cme_credits > 0 ? (
-              <span className="flex items-center gap-1 rounded-md bg-emerald-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
-                <Award className="h-3 w-3" />
+              <span className="flex items-center gap-1 rounded-md bg-[#1769c2] px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
+                <Award className="size-3" />
                 {event.cme_credits} CME
               </span>
             ) : null}
           </div>
 
           {event.is_user_registered && (
-            <div className="absolute top-2.5 right-2.5 rounded-md bg-blue-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
+            <div className="absolute top-2.5 right-2.5 rounded-md bg-[#1769c2] px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
               Registered
             </div>
           )}
         </div>
 
         {/* Title */}
-        <Link href={`/events/${event.id}`}>
-          <h3 className="line-clamp-2 text-base font-bold text-[#171717] transition-colors group-hover:text-[#1769c2]">
+        <Link href={`/events/${event.id}`} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded">
+          <h3 className="line-clamp-2 text-base font-bold text-[#171717] transition-colors group-hover:text-[#1769c2] text-balance">
             {event.title}
           </h3>
         </Link>
 
         {/* Short description */}
         {event.short_description && (
-          <p className="mt-1 line-clamp-2 text-xs text-[#5d5854]">
+          <p className="mt-1 line-clamp-2 text-xs text-[#5d5854] text-pretty">
             {event.short_description}
           </p>
         )}
@@ -86,16 +86,16 @@ export function EventCard({ event }: EventCardProps) {
         {/* Meta details */}
         <div className="mt-3 space-y-1.5 text-xs text-[#5d5854]">
           <div className="flex items-center gap-2">
-            <Calendar className="h-3.5 w-3.5 text-[#77716b]" />
+            <Calendar className="size-3.5 text-[#77716b]" />
             <span>
               {formattedDate} · {formattedTime}
             </span>
           </div>
           <div className="flex items-center gap-2">
             {isOnline ? (
-              <Video className="h-3.5 w-3.5 text-blue-600" />
+              <Video className="size-3.5 text-[#1769c2]" />
             ) : (
-              <MapPin className="h-3.5 w-3.5 text-rose-600" />
+              <MapPin className="size-3.5 text-[#1769c2]" />
             )}
             <span className="truncate">{locationText}</span>
           </div>
@@ -103,9 +103,9 @@ export function EventCard({ event }: EventCardProps) {
 
         {/* Organizer info */}
         <div className="mt-4 flex items-center gap-2 border-t border-[#f0efee] pt-3">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#f0efee] text-[11px] font-bold text-[#171717]">
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#f0efee] text-[11px] font-bold text-[#171717]">
             {event.organizer_image ? (
-              <img src={event.organizer_image} alt="" className="h-full w-full rounded-full object-cover" />
+              <img src={event.organizer_image} alt="" className="size-full rounded-full object-cover" />
             ) : (
               (event.organization_name || event.organizer_name || "M")[0]
             )}

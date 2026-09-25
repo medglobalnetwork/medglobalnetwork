@@ -50,23 +50,23 @@ export default function SavedJobsPage() {
     }
   };
 
-  if (isPending || !session) return <main className="min-h-screen bg-[#f5f5f4]" />;
+  if (isPending || !session) return <main className="min-h-dvh bg-[#f5f5f4]" />;
 
   return (
-    <main className="min-h-screen bg-[#f5f5f4] pb-36 text-[#171717]">
+    <main className="min-h-dvh bg-[#f5f5f4] pb-36 text-[#171717]">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
         <div>
           <button
             type="button"
             onClick={() => router.push("/opportunities")}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-[#1769c2] hover:underline"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-[#1769c2] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded"
           >
-            <ArrowLeft className="h-3.5 w-3.5" /> Back to Opportunities Discovery
+            <ArrowLeft className="size-3.5" /> Back to Opportunities Discovery
           </button>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#171717] flex items-center gap-2">
-            <Bookmark className="h-6 w-6 text-[#1769c2]" /> Saved Opportunities ({savedJobs.length})
+          <h1 className="mt-1 text-2xl font-bold text-[#171717] flex items-center gap-2 text-balance">
+            <Bookmark className="size-6 text-[#1769c2]" /> Saved Opportunities ({savedJobs.length})
           </h1>
-          <p className="text-xs text-[#77716b]">
+          <p className="text-xs text-[#77716b] text-pretty">
             Your bookmarked clinical openings, internships, and research fellowships.
           </p>
         </div>

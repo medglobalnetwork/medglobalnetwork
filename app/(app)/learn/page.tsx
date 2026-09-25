@@ -120,7 +120,7 @@ export default function LearnPage() {
 
   if (isPending || !session) {
     return (
-      <main className="min-h-screen bg-[#f8f7f5] p-6">
+      <main className="min-h-dvh bg-[#f8f7f5] p-6">
         <div className="mx-auto max-w-7xl space-y-6 animate-pulse">
           <div className="h-44 rounded-3xl bg-white shadow-xs" />
           <div className="h-28 rounded-2xl bg-white shadow-xs" />
@@ -135,32 +135,32 @@ export default function LearnPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8f7f5] pb-36 text-[#171717]">
+    <main className="min-h-dvh bg-[#f8f7f5] pb-36 text-[#171717]">
       {/* 1. HERO SEARCH & ACCREDITATION BANNER */}
       <section className="relative overflow-hidden border-b border-[#e8e6e3] bg-gradient-to-br from-[#0d3b66] via-[#1769c2] to-[#0f4c81] text-white">
         {/* Subtle Background Mesh & Highlights */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.15),transparent_60%)] pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-blue-400/20 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 size-96 rounded-full bg-blue-400/20 blur-3xl pointer-events-none" />
 
         <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
           <div className="max-w-3xl space-y-4">
             {/* Live Trust Badges */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold tracking-wide text-white backdrop-blur-md shadow-xs">
-                <Sparkles className="h-3.5 w-3.5 text-amber-300" /> Accredited CME Masterclasses
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-md shadow-xs">
+                <Sparkles className="size-3.5 text-amber-300" /> Accredited CME Masterclasses
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-[11px] font-bold text-emerald-200 border border-emerald-400/30">
-                <ShieldCheck className="h-3.5 w-3.5" /> Verified Faculty
+                <ShieldCheck className="size-3.5" /> Verified Faculty
               </span>
               <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[11px] font-medium text-white/90">
-                <GraduationCap className="h-3.5 w-3.5" /> Instant Digital Certificate
+                <GraduationCap className="size-3.5" /> Instant Digital Certificate
               </span>
             </div>
 
-            <h1 className="text-2xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl leading-tight">
+            <h1 className="text-2xl font-black text-white sm:text-4xl lg:text-5xl leading-tight text-balance">
               Elevate Your Healthcare Expertise
             </h1>
-            <p className="text-xs text-white/85 sm:text-sm max-w-2xl leading-relaxed">
+            <p className="text-xs text-white/85 sm:text-sm max-w-2xl leading-relaxed text-pretty">
               Clinical case masterclasses, interactive diagnostics, and accredited CME certifications taught by India’s senior medical faculty & specialists.
             </p>
 
@@ -316,7 +316,7 @@ export default function LearnPage() {
               <div className="grid grid-cols-1 gap-6 p-6 sm:p-8 lg:grid-cols-12 lg:items-center">
                 <div className="space-y-4 lg:col-span-7">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-black text-[#171717] uppercase tracking-wide">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-black text-[#171717] uppercase">
                       ★ Featured Masterclass
                     </span>
                     {featuredCourse.rating_avg ? (
@@ -331,11 +331,11 @@ export default function LearnPage() {
                     )}
                   </div>
 
-                  <h2 className="text-xl font-black tracking-tight text-white sm:text-2xl lg:text-3xl leading-snug">
+                  <h2 className="text-xl font-black text-white sm:text-2xl lg:text-3xl leading-snug text-balance">
                     {featuredCourse.title}
                   </h2>
 
-                  <p className="text-xs text-white/90 sm:text-sm leading-relaxed max-w-xl">
+                  <p className="text-xs text-white/90 sm:text-sm leading-relaxed max-w-xl text-pretty">
                     {featuredCourse.short_description || featuredCourse.description}
                   </p>
 
@@ -406,14 +406,14 @@ export default function LearnPage() {
         <section aria-label="Explore by Specialty">
           <div className="mb-5 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
             <div>
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1769c2]">
-                <Sparkles className="h-3.5 w-3.5" />
+              <div className="flex items-center gap-2 text-xs font-bold uppercase text-[#1769c2]">
+                <Sparkles className="size-3.5" />
                 <span>Specialty Pathways</span>
               </div>
-              <h2 className="mt-1 text-xl font-bold tracking-tight text-[#171717]">
+              <h2 className="mt-1 text-xl font-bold text-[#171717] text-balance">
                 Explore by Clinical Specialty
               </h2>
-              <p className="text-xs text-[#77716b]">
+              <p className="text-xs text-[#77716b] text-pretty">
                 Curated clinical curriculum tailored for your discipline and clinical practice
               </p>
             </div>
@@ -421,10 +421,10 @@ export default function LearnPage() {
             <button
               type="button"
               onClick={() => router.push("/learn/courses")}
-              className="text-xs font-bold text-[#1769c2] hover:underline inline-flex items-center gap-1"
+              className="text-xs font-bold text-[#1769c2] hover:underline inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
             >
               <span>View All Disciplines</span>
-              <ArrowRight className="h-3 w-3" />
+              <ArrowRight className="size-3" />
             </button>
           </div>
 
@@ -436,10 +436,10 @@ export default function LearnPage() {
                   key={cat.name}
                   type="button"
                   onClick={() => router.push(`/learn/courses?category=${encodeURIComponent(cat.name)}`)}
-                  className="group relative flex flex-col items-center justify-center rounded-2xl border border-[#ded8d1] bg-white p-4 text-center shadow-2xs transition-all duration-200 hover:-translate-y-1 hover:border-[#1769c2] hover:shadow-md"
+                  className="group relative flex flex-col items-center justify-center rounded-2xl border border-[#ded8d1] bg-white p-4 text-center shadow-2xs transition-all duration-200 hover:-translate-y-1 hover:border-[#1769c2] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
                 >
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${cat.color} border transition-all duration-200 group-hover:scale-110`}>
-                    <IconComp className="h-6 w-6" />
+                  <div className={`flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br ${cat.color} border transition-all duration-200 group-hover:scale-110`}>
+                    <IconComp className="size-6" />
                   </div>
                   <p className="mt-3 text-xs font-bold text-[#171717] group-hover:text-[#1769c2] transition-colors">
                     {cat.name}
@@ -457,14 +457,14 @@ export default function LearnPage() {
         <section aria-label="Curated Masterclasses">
           <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div>
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1769c2]">
-                <Award className="h-3.5 w-3.5" />
+              <div className="flex items-center gap-2 text-xs font-bold uppercase text-[#1769c2]">
+                <Award className="size-3.5" />
                 <span>Accredited Catalog</span>
               </div>
-              <h2 className="mt-1 text-xl font-bold tracking-tight text-[#171717]">
+              <h2 className="mt-1 text-xl font-bold text-[#171717] text-balance">
                 Popular Clinical Courses & CME Modules
               </h2>
-              <p className="text-xs text-[#77716b]">
+              <p className="text-xs text-[#77716b] text-pretty">
                 Accredited clinical certifications trusted by hospitals and practicing clinicians
               </p>
             </div>

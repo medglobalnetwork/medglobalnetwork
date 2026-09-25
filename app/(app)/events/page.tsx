@@ -101,17 +101,17 @@ export default function EventsDiscoveryPage() {
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8">
       {/* ── Top Header Banner ── */}
-      <div className="rounded-3xl border border-[#e8e6e3] bg-gradient-to-r from-[#1769c2]/5 via-white to-emerald-500/5 p-6 sm:p-8">
+      <div className="rounded-3xl border border-[#e8e6e3] bg-white p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1769c2]">
-              <Calendar className="h-4 w-4" />
+            <div className="flex items-center gap-2 text-xs font-bold uppercase text-[#1769c2]">
+              <Calendar className="size-4" />
               <span>Healthcare Events & CME Platform</span>
             </div>
-            <h1 className="mt-1 text-2xl font-black text-[#171717] sm:text-3xl">
+            <h1 className="mt-1 text-2xl font-bold text-[#171717] sm:text-3xl text-balance">
               Discover Healthcare Events
             </h1>
-            <p className="mt-1.5 max-w-2xl text-sm text-[#5d5854]">
+            <p className="mt-1.5 max-w-2xl text-sm text-[#5d5854] text-pretty">
               Connect, learn, and earn verified CME credits across medical conferences, hands-on clinical workshops, and interactive webinars.
             </p>
           </div>
@@ -119,16 +119,16 @@ export default function EventsDiscoveryPage() {
           <div className="flex flex-wrap items-center gap-2.5">
             <Link
               href="/events/my"
-              className="rounded-xl border border-[#ded8d1] bg-white px-4 py-2.5 text-xs font-semibold text-[#171717] shadow-xs transition hover:bg-[#f8f7f6] active:scale-95"
+              className="rounded-xl border border-[#ded8d1] bg-white px-4 py-2.5 text-xs font-semibold text-[#171717] shadow-xs transition hover:bg-[#f8f7f6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] active:scale-95"
             >
               My Events
             </Link>
 
             <Link
               href="/events/create"
-              className="flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-[#145ca8] active:scale-95"
+              className="flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-[#145ca8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] active:scale-95"
             >
-              <PlusCircle className="h-4 w-4" />
+              <PlusCircle className="size-4" />
               <span>Organize Event</span>
             </Link>
           </div>
@@ -137,18 +137,18 @@ export default function EventsDiscoveryPage() {
         {/* ── Search Bar ── */}
         <form onSubmit={handleSearchSubmit} className="mt-6 flex flex-col gap-2 sm:flex-row">
           <div className="relative flex-1">
-            <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-[#77716b]" />
+            <Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-[#77716b]" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search conferences, topics, specialties, or cities..."
-              className="w-full rounded-2xl border border-[#ded8d1] bg-white py-3 pr-4 pl-10 text-sm text-[#171717] placeholder:text-[#77716b] focus:border-[#1769c2] focus:ring-2 focus:ring-[#1769c2]/10 focus:outline-none"
+              className="w-full rounded-2xl border border-[#ded8d1] bg-white py-3 pr-4 pl-10 text-sm text-[#171717] placeholder:text-[#77716b] focus:border-[#1769c2] focus:ring-2 focus:ring-[#1769c2]/20 focus:outline-none"
             />
           </div>
           <button
             type="submit"
-            className="rounded-2xl bg-[#171717] px-6 py-3 text-xs font-semibold text-white transition hover:bg-[#333] active:scale-95"
+            className="rounded-2xl bg-[#1769c2] px-6 py-3 text-xs font-semibold text-white transition hover:bg-[#145ca8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] active:scale-95"
           >
             Search
           </button>
@@ -232,11 +232,11 @@ export default function EventsDiscoveryPage() {
         ) : events.length === 0 ? (
           /* Strictly adhering to real data policy — no dummy items */
           <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-[#ded8d1] bg-[#fcfbfa] p-12 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#eef5fc] text-[#1769c2]">
-              <Calendar className="h-7 w-7" />
+            <div className="flex size-14 items-center justify-center rounded-2xl bg-[#eef5fc] text-[#1769c2]">
+              <Calendar className="size-7" />
             </div>
-            <h3 className="mt-4 text-base font-bold text-[#171717]">No events found</h3>
-            <p className="mt-1.5 max-w-md text-xs text-[#5d5854]">
+            <h3 className="mt-4 text-base font-bold text-[#171717] text-balance">No events found</h3>
+            <p className="mt-1.5 max-w-md text-xs text-[#5d5854] text-pretty">
               {selectedCategory !== "All Categories" || search
                 ? "No published events match your current filter criteria. Try resetting search filters."
                 : "Verified healthcare organizations and professionals will appear here when they publish upcoming conferences and CME workshops."}
@@ -251,7 +251,7 @@ export default function EventsDiscoveryPage() {
                     setSelectedCategory("All Categories");
                     setSelectedFormat("all");
                   }}
-                  className="rounded-xl border border-[#ded8d1] bg-white px-4 py-2 text-xs font-semibold text-[#171717] hover:bg-[#f8f7f6]"
+                  className="rounded-xl border border-[#ded8d1] bg-white px-4 py-2 text-xs font-semibold text-[#171717] hover:bg-[#f8f7f6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
                 >
                   Reset Filters
                 </button>
@@ -259,7 +259,7 @@ export default function EventsDiscoveryPage() {
 
               <Link
                 href="/events/create"
-                className="rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-semibold text-white hover:bg-[#145ca8]"
+                className="rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-semibold text-white hover:bg-[#145ca8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
               >
                 Organize First Event
               </Link>

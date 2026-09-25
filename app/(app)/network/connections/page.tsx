@@ -162,7 +162,7 @@ export default function MyNetworkPage() {
     setFollowing((prev) => prev.filter((f) => f.user_id !== userId));
   };
 
-  if (isPending || !session) return <main className="min-h-screen bg-[#f5f5f4]" />;
+  if (isPending || !session) return <main className="min-h-dvh bg-[#f5f5f4]" />;
 
   const tabs: { id: Tab; label: string; count: number }[] = [
     { id: "connections", label: "Connections", count: connections.length },
@@ -173,12 +173,12 @@ export default function MyNetworkPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-[#f5f5f4] pb-36 text-[#171717]">
+    <main className="min-h-dvh bg-[#f5f5f4] pb-36 text-[#171717]">
       <div className="mx-auto max-w-5xl px-2 py-4 sm:px-4 lg:px-6">
 
         {/* Breadcrumb Header */}
         <div className="mb-5 flex items-center gap-2 text-xs text-[#77716b]">
-          <button type="button" onClick={() => router.push("/network")} className="hover:text-[#1769c2]">
+          <button type="button" onClick={() => router.push("/network")} className="hover:text-[#1769c2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded">
             Network
           </button>
           <span>/</span>
@@ -187,15 +187,15 @@ export default function MyNetworkPage() {
 
         <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">My Network</h1>
-            <p className="mt-0.5 text-xs text-[#77716b]">
+            <h1 className="text-2xl font-semibold text-balance">My Network</h1>
+            <p className="mt-0.5 text-xs text-[#77716b] text-pretty">
               Manage your healthcare connections, pending requests, and followers.
             </p>
           </div>
           <button
             type="button"
             onClick={() => router.push("/network")}
-            className="self-start rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#12569f]"
+            className="self-start rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#12569f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
           >
             + Grow Network
           </button>

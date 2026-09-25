@@ -173,8 +173,8 @@ export default function EventDetailPage({
               <img src={event.cover_url} alt={event.title} className="h-full w-full object-cover" />
             ) : (
               <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center">
-                <Calendar className="mb-2 h-12 w-12 text-[#1769c2]" />
-                <span className="text-sm font-bold uppercase tracking-wider text-[#5d5854]">
+                <Calendar className="mb-2 size-12 text-[#1769c2]" />
+                <span className="text-sm font-bold uppercase text-[#5d5854]">
                   {event.category}
                 </span>
               </div>
@@ -235,7 +235,7 @@ export default function EventDetailPage({
             {/* Prerequisites / Requirements */}
             {event.requirements && event.requirements.length > 0 && (
               <div className="mt-6 border-t border-[#f0efee] pt-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[#171717]">
+                <h3 className="text-xs font-bold uppercase text-[#171717]">
                   Requirements & Eligibility
                 </h3>
                 <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-[#5d5854]">

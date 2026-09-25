@@ -37,17 +37,17 @@ export default function CreateOpportunityPage() {
     load();
   }, [session?.user]);
 
-  if (isPending || !session) return <main className="min-h-screen bg-[#f5f5f4]" />;
+  if (isPending || !session) return <main className="min-h-dvh bg-[#f5f5f4]" />;
 
   return (
-    <main className="min-h-screen bg-[#f5f5f4] p-4 sm:p-8 pb-36 text-[#171717]">
+    <main className="min-h-dvh bg-[#f5f5f4] p-4 sm:p-8 pb-36 text-[#171717]">
       <div className="mx-auto max-w-3xl space-y-4">
         <button
           type="button"
           onClick={() => router.push("/recruiter")}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-[#1769c2] hover:underline"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-[#1769c2] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded"
         >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Recruiter Studio
+          <ArrowLeft className="size-3.5" /> Back to Recruiter Studio
         </button>
 
         {isLoading ? (

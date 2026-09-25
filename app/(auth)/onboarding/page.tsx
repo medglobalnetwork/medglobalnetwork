@@ -437,9 +437,9 @@ export default function OnboardingPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#faf9f8]">
+      <div className="flex min-h-dvh items-center justify-center bg-[#faf9f8]">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-9 w-9 animate-spin rounded-full border-3 border-[#1769c2] border-t-transparent" />
+          <div className="size-9 animate-spin rounded-full border-3 border-[#1769c2] border-t-transparent" />
           <p className="text-xs font-semibold text-[#77716b]">Restoring MGN Identity Portal...</p>
         </div>
       </div>
@@ -465,7 +465,7 @@ export default function OnboardingPage() {
     ];
 
   return (
-    <div className="min-h-screen bg-[#faf9f8] text-[#171717]">
+    <div className="min-h-dvh bg-[#faf9f8] text-[#171717]">
       {/* Header */}
       <header className="border-b border-[#e8e6e3] bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3.5 sm:px-6">

@@ -177,10 +177,10 @@ export default function ResearchProjectDetailPage({
 
             {project.methodology && (
               <div className="mt-6 border-t border-[#f0efee] pt-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[#171717]">
+                <h3 className="text-xs font-bold uppercase text-[#171717]">
                   Methodology & Study Design
                 </h3>
-                <p className="mt-2 text-xs leading-relaxed text-[#5d5854] whitespace-pre-line">
+                <p className="mt-2 text-xs leading-relaxed text-[#5d5854] whitespace-pre-line text-pretty">
                   {project.methodology}
                 </p>
               </div>
@@ -188,7 +188,7 @@ export default function ResearchProjectDetailPage({
 
             {project.research_questions && project.research_questions.length > 0 && (
               <div className="mt-6 border-t border-[#f0efee] pt-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[#171717]">
+                <h3 className="text-xs font-bold uppercase text-[#171717]">
                   Key Research Questions
                 </h3>
                 <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-[#5d5854]">

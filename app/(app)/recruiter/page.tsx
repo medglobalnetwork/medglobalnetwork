@@ -50,18 +50,18 @@ export default function RecruiterPortalPage() {
     load();
   }, [session?.user]);
 
-  if (isPending || !session) return <main className="min-h-screen bg-[#f5f5f4]" />;
+  if (isPending || !session) return <main className="min-h-dvh bg-[#f5f5f4]" />;
 
   return (
-    <main className="min-h-screen bg-[#f5f5f4] pb-36 text-[#171717]">
+    <main className="min-h-dvh bg-[#f5f5f4] pb-36 text-[#171717]">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#171717]">
+            <h1 className="text-2xl font-bold text-[#171717] text-balance">
               Hospital & Recruiter Studio
             </h1>
-            <p className="text-xs text-[#77716b]">
+            <p className="text-xs text-[#77716b] text-pretty">
               Manage healthcare job openings, review verified medical candidates, and schedule interviews.
             </p>
           </div>
@@ -70,9 +70,9 @@ export default function RecruiterPortalPage() {
             <button
               type="button"
               onClick={() => router.push("/recruiter/jobs/create")}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#12569f]"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#12569f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
             >
-              <PlusCircle className="h-4 w-4" /> Post New Opportunity
+              <PlusCircle className="size-4" /> Post New Opportunity
             </button>
           </div>
         </div>

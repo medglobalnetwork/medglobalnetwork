@@ -18,8 +18,8 @@ export default function MessagesPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex h-[calc(100vh-4.5rem)] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#1769c2]" />
+        <div className="flex h-[calc(100dvh-4.5rem)] items-center justify-center">
+          <Loader2 className="size-8 animate-spin text-[#1769c2]" />
         </div>
       }
     >

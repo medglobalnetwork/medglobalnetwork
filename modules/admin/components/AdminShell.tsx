@@ -46,7 +46,7 @@ export function AdminShell({ children }: AdminShellProps) {
   );
 
   return (
-    <div className="flex min-h-screen bg-slate-950 font-sans text-slate-100 antialiased selection:bg-blue-600 selection:text-white">
+    <div className="flex min-h-dvh bg-slate-950 font-sans text-slate-100 antialiased selection:bg-blue-600 selection:text-white">
       {/* Sidebar Navigation */}
       <AdminSidebar
         isOpen={sidebarOpen}
@@ -73,7 +73,7 @@ export function AdminShell({ children }: AdminShellProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
-              <Search className="h-5 w-5 text-slate-400 shrink-0" />
+              <Search className="size-5 text-slate-400 shrink-0" />
               <input
                 type="text"
                 autoFocus
@@ -85,14 +85,14 @@ export function AdminShell({ children }: AdminShellProps) {
               <button
                 type="button"
                 onClick={() => setSearchOpen(false)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               >
-                <X className="h-4 w-4" />
+                <X className="size-4" />
               </button>
             </div>
 
             <div className="mt-3 space-y-1 max-h-80 overflow-y-auto">
-              <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <p className="px-2 py-1 text-[10px] font-bold uppercase text-slate-400">
                 Quick Navigation
               </p>
               {filteredLinks.map((item) => {
@@ -105,10 +105,10 @@ export function AdminShell({ children }: AdminShellProps) {
                       setSearchOpen(false);
                       router.push(item.path);
                     }}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs transition-colors hover:bg-slate-800 text-slate-200"
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs transition-colors hover:bg-slate-800 text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                   >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-800 text-blue-400">
-                      <Icon className="h-4 w-4" />
+                    <div className="flex size-8 items-center justify-center rounded-lg bg-slate-800 text-blue-400">
+                      <Icon className="size-4" />
                     </div>
                     <div>
                       <p className="font-semibold text-white">{item.title}</p>

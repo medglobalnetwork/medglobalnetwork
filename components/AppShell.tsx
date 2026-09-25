@@ -50,7 +50,7 @@ export function AppShell({ children }: AppShellProps) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#faf9f8] flex">
+    <div className="min-h-dvh bg-[#faf9f8] flex">
       {/* 1. SIDEBAR (Desktop fixed side-nav + Mobile slide-over drawer) */}
       <AppSidebar
         isMobileDrawerOpen={isMobileDrawerOpen}

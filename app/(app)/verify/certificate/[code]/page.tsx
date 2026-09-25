@@ -108,31 +108,31 @@ export default function PublicCertificateVerificationPage({
             alt="MedGlobalNetwork"
             className="h-8 w-auto object-contain"
           />
-          <p className="mt-2 text-[10px] uppercase font-bold tracking-widest text-[#77716b]">
+          <p className="mt-2 text-[10px] uppercase font-bold text-[#77716b]">
             MedGlobalNetwork · Verified Healthcare Credential
           </p>
         </div>
 
         {/* Certificate Title */}
-        <h2 className="mt-8 text-xs font-bold uppercase tracking-wider text-[#1769c2]">
+        <h2 className="mt-8 text-xs font-bold uppercase text-[#1769c2]">
           Certificate of Completion & Attendance
         </h2>
         <p className="mt-2 text-xs text-[#77716b]">This is to certify that</p>
 
         {/* Recipient */}
-        <h1 className="mt-2 text-2xl sm:text-4xl font-serif font-black text-[#171717]">
+        <h1 className="mt-2 text-2xl sm:text-4xl font-serif font-black text-[#171717] text-balance">
           {certificate.recipient_name}
         </h1>
 
         <p className="mt-3 text-xs text-[#77716b]">has successfully completed and attended</p>
 
         {/* Program Title */}
-        <h3 className="mt-2 text-lg sm:text-xl font-bold text-[#171717] max-w-2xl mx-auto">
+        <h3 className="mt-2 text-lg sm:text-xl font-bold text-[#171717] max-w-2xl mx-auto text-balance">
           {certificate.title}
         </h3>
 
         {certificate.subtitle && (
-          <p className="mt-1 text-xs font-semibold text-emerald-800">
+          <p className="mt-1 text-xs font-semibold text-emerald-800 text-pretty">
             {certificate.subtitle}
           </p>
         )}
@@ -140,13 +140,13 @@ export default function PublicCertificateVerificationPage({
         {/* Footer info: Issuer & Codes */}
         <div className="mt-12 grid grid-cols-1 gap-6 border-t border-[#f0efee] pt-8 sm:grid-cols-3 text-left">
           <div>
-            <span className="text-[10px] uppercase tracking-wider text-[#77716b]">Issued By</span>
+            <span className="text-[10px] uppercase text-[#77716b]">Issued By</span>
             <p className="text-xs font-bold text-[#171717]">{certificate.issuer_name}</p>
             <p className="text-[10px] text-[#77716b]">Verified Healthcare Authority</p>
           </div>
 
           <div className="text-center">
-            <span className="text-[10px] uppercase tracking-wider text-[#77716b]">Date of Issuance</span>
+            <span className="text-[10px] uppercase text-[#77716b]">Date of Issuance</span>
             <p className="text-xs font-bold text-[#171717]">
               {new Date(certificate.issued_at).toLocaleDateString("en-IN", {
                 day: "numeric",
@@ -157,7 +157,7 @@ export default function PublicCertificateVerificationPage({
           </div>
 
           <div className="text-right">
-            <span className="text-[10px] uppercase tracking-wider text-[#77716b]">Certificate & Ref Code</span>
+            <span className="text-[10px] uppercase text-[#77716b]">Certificate & Ref Code</span>
             <p className="text-xs font-mono font-bold text-[#171717]">{certificate.certificate_number}</p>
             <p className="text-[10px] font-mono text-[#1769c2]">Verify: {certificate.verification_code}</p>
           </div>

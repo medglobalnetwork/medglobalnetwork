@@ -84,7 +84,7 @@ export default function CourseDetailPage() {
 
   if (isLoading || !course) {
     return (
-      <main className="min-h-screen bg-[#f5f5f4] p-6">
+      <main className="min-h-dvh bg-[#f5f5f4] p-6">
         <div className="mx-auto max-w-5xl space-y-6 animate-pulse">
           <div className="h-64 rounded-3xl bg-white/70" />
           <div className="h-40 rounded-3xl bg-white/70" />
@@ -100,15 +100,15 @@ export default function CourseDetailPage() {
     instructor?.registration_verified;
 
   return (
-    <main className="min-h-screen bg-[#f5f5f4] pb-36 text-[#171717]">
+    <main className="min-h-dvh bg-[#f5f5f4] pb-36 text-[#171717]">
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
         {/* Breadcrumbs */}
         <div className="flex items-center gap-2 text-xs font-semibold text-[#77716b]">
-          <button type="button" onClick={() => router.push("/learn")} className="hover:text-[#1769c2]">
+          <button type="button" onClick={() => router.push("/learn")} className="hover:text-[#1769c2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded">
             Learn
           </button>
           <span>/</span>
-          <button type="button" onClick={() => router.push("/learn/courses")} className="hover:text-[#1769c2]">
+          <button type="button" onClick={() => router.push("/learn/courses")} className="hover:text-[#1769c2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded">
             Courses
           </button>
           <span>/</span>
@@ -136,12 +136,12 @@ export default function CourseDetailPage() {
                 )}
               </div>
 
-              <h1 className="text-2xl font-black tracking-tight text-[#171717] sm:text-3xl">
+              <h1 className="text-2xl font-black text-[#171717] sm:text-3xl text-balance">
                 {course.title}
               </h1>
 
               {course.short_description && (
-                <p className="text-xs leading-relaxed text-[#5d5854] sm:text-sm">
+                <p className="text-xs leading-relaxed text-[#5d5854] sm:text-sm text-pretty">
                   {course.short_description}
                 </p>
               )}

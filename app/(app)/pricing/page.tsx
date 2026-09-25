@@ -113,21 +113,21 @@ export default function PricingPage() {
   const [isYearly, setIsYearly] = React.useState(true);
 
   return (
-    <main className="min-h-screen bg-[#f8f7f6] pb-24 text-[#171717]">
+    <main className="min-h-dvh bg-[#f8f7f6] pb-24 text-[#171717]">
       <div className="mx-auto max-w-[1440px] px-3 py-8 sm:px-6 lg:px-8">
         
         {/* Header Hero */}
         <div className="mx-auto max-w-3xl text-center">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-[#1769c2]/20 bg-[#eef5fc] px-3.5 py-1 text-xs font-semibold text-[#1769c2] mb-3">
-            <Sparkles className="h-3.5 w-3.5" />
+            <Sparkles className="size-3.5" />
             Simple, Transparent Healthcare Plans
           </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#171717]">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#171717] text-balance">
             Plans designed for every stage of your medical career
           </h1>
 
-          <p className="mt-3 text-sm sm:text-base text-[#77716b] max-w-xl mx-auto">
+          <p className="mt-3 text-sm sm:text-base text-[#77716b] max-w-xl mx-auto text-pretty">
             Join thousands of verified doctors, healthcare professionals, and medical institutions growing together on MGN.life.
           </p>
 
@@ -160,7 +160,7 @@ export default function PricingPage() {
                 Yearly Billing
                 <span
                   className={cn(
-                    "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                    "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase",
                     isYearly
                       ? "bg-amber-400 text-slate-900"
                       : "bg-amber-100 text-amber-800"
@@ -193,13 +193,13 @@ export default function PricingPage() {
                   <div className="absolute -top-3.5 right-6">
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider shadow-xs",
+                        "inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold uppercase shadow-xs",
                         plan.popular
                           ? "bg-gradient-to-r from-[#1769c2] to-[#0284c7] text-white"
                           : "bg-[#171717] text-white"
                       )}
                     >
-                      {plan.popular && <Crown className="h-3.5 w-3.5" />}
+                      {plan.popular && <Crown className="size-3.5" />}
                       {plan.badge}
                     </span>
                   </div>
@@ -253,14 +253,14 @@ export default function PricingPage() {
 
                   {/* Key Highlights */}
                   <div className="mt-8 border-t border-[#f0efee] pt-6">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#171717]">
+                    <h4 className="text-xs font-bold uppercase text-[#171717]">
                       {plan.includesTitle}
                     </h4>
                     <ul className="mt-4 space-y-3">
                       {plan.features.map((feature, i) => (
                         <li key={i} className="flex items-start gap-2.5">
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#eef5fc] text-[#1769c2] mt-0.5">
-                            <Check className="h-3.5 w-3.5" />
+                          <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-[#eef5fc] text-[#1769c2] mt-0.5">
+                            <Check className="size-3.5" />
                           </span>
                           <span className="text-xs sm:text-sm font-medium text-[#171717]">
                             {feature}

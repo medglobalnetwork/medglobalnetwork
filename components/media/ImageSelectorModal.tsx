@@ -277,12 +277,12 @@ export function ImageSelectorModal({
           {/* Live Preview Box */}
           {previewUrl && (
             <div className="rounded-2xl border border-[#e8e6e3] bg-[#faf9f8] p-4">
-              <span className="text-[10px] font-bold text-[#77716b] uppercase tracking-wider block mb-2">
+              <span className="text-[10px] font-bold text-[#77716b] uppercase block mb-2">
                 Live Preview
               </span>
               <div className="flex items-center justify-center">
                 {aspectRatio === "square" ? (
-                  <div className="h-24 w-24 rounded-full overflow-hidden border-2 border-white shadow-md bg-slate-100">
+                  <div className="size-24 rounded-full overflow-hidden border-2 border-white shadow-md bg-slate-100">
                     <img
                       src={previewUrl}
                       alt="Preview"

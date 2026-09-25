@@ -67,17 +67,17 @@ export default function CampsDiscoveryPage() {
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8">
       {/* ── Top Header Banner ── */}
-      <div className="rounded-3xl border border-[#e8e6e3] bg-gradient-to-r from-emerald-600/10 via-teal-600/5 to-white p-6 sm:p-8">
+      <div className="rounded-3xl border border-[#e8e6e3] bg-white p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-800">
-              <Tent className="h-4 w-4" />
+            <div className="flex items-center gap-2 text-xs font-bold uppercase text-[#1769c2]">
+              <Tent className="size-4" />
               <span>Operational Healthcare Outreach & Camps</span>
             </div>
-            <h1 className="mt-1 text-2xl font-black text-[#171717] sm:text-3xl">
+            <h1 className="mt-1 text-2xl font-bold text-[#171717] sm:text-3xl text-balance">
               Medical & Rehabilitation Camps
             </h1>
-            <p className="mt-1.5 max-w-2xl text-sm text-[#5d5854]">
+            <p className="mt-1.5 max-w-2xl text-sm text-[#5d5854] text-pretty">
               Deliver clinical impact on the ground. Volunteer as verified healthcare professionals, coordinate medical camps, and screen local communities.
             </p>
           </div>
@@ -85,16 +85,16 @@ export default function CampsDiscoveryPage() {
           <div className="flex flex-wrap items-center gap-2.5">
             <Link
               href="/camps/my"
-              className="rounded-xl border border-[#ded8d1] bg-white px-4 py-2.5 text-xs font-semibold text-[#171717] shadow-xs transition hover:bg-[#f8f7f6] active:scale-95"
+              className="rounded-xl border border-[#ded8d1] bg-white px-4 py-2.5 text-xs font-semibold text-[#171717] shadow-xs transition hover:bg-[#f8f7f6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] active:scale-95"
             >
               My Camps & Volunteer
             </Link>
 
             <Link
               href="/camps/create"
-              className="flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-emerald-800 active:scale-95"
+              className="flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-[#12569f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] active:scale-95"
             >
-              <PlusCircle className="h-4 w-4" />
+              <PlusCircle className="size-4" />
               <span>Organize a Camp</span>
             </Link>
           </div>
@@ -103,18 +103,18 @@ export default function CampsDiscoveryPage() {
         {/* ── Search Bar ── */}
         <form onSubmit={handleSearchSubmit} className="mt-6 flex flex-col gap-2 sm:flex-row">
           <div className="relative flex-1">
-            <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-[#77716b]" />
+            <Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-[#77716b]" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search medical camps, screening services, or venues..."
-              className="w-full rounded-2xl border border-[#ded8d1] bg-white py-3 pr-4 pl-10 text-sm text-[#171717] placeholder:text-[#77716b] focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 focus:outline-none"
+              className="w-full rounded-2xl border border-[#ded8d1] bg-white py-3 pr-4 pl-10 text-sm text-[#171717] placeholder:text-[#77716b] focus:border-[#1769c2] focus:ring-2 focus:ring-[#1769c2]/20 focus:outline-none"
             />
           </div>
           <button
             type="submit"
-            className="rounded-2xl bg-[#171717] px-6 py-3 text-xs font-semibold text-white transition hover:bg-[#333] active:scale-95"
+            className="rounded-2xl bg-[#1769c2] px-6 py-3 text-xs font-semibold text-white transition hover:bg-[#12569f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] active:scale-95"
           >
             Search Camps
           </button>
@@ -129,9 +129,9 @@ export default function CampsDiscoveryPage() {
               key={type.id}
               type="button"
               onClick={() => setSelectedType(type.id)}
-              className={`shrink-0 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`shrink-0 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] ${
                 selectedType === type.id
-                  ? "bg-emerald-700 text-white shadow-xs"
+                  ? "bg-[#1769c2] text-white shadow-xs"
                   : "border border-[#ded8d1] bg-white text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
               }`}
             >
@@ -148,7 +148,7 @@ export default function CampsDiscoveryPage() {
               onChange={(e) => setVolunteerOnly(e.target.checked)}
               className="rounded"
             />
-            <HeartHandshake className="h-4 w-4 text-emerald-700" />
+            <HeartHandshake className="size-4 text-[#1769c2]" />
             <span>Show Open Volunteer Opportunities Only</span>
           </label>
 
@@ -172,11 +172,11 @@ export default function CampsDiscoveryPage() {
         ) : camps.length === 0 ? (
           /* Strictly zero dummy cards policy */
           <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-[#ded8d1] bg-[#fcfbfa] p-12 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-              <Tent className="h-7 w-7" />
+            <div className="flex size-14 items-center justify-center rounded-2xl bg-[#eef5fc] text-[#1769c2]">
+              <Tent className="size-7" />
             </div>
-            <h3 className="mt-4 text-base font-bold text-[#171717]">No healthcare camps scheduled yet</h3>
-            <p className="mt-1.5 max-w-md text-xs text-[#5d5854]">
+            <h3 className="mt-4 text-base font-bold text-[#171717] text-balance">No healthcare camps scheduled yet</h3>
+            <p className="mt-1.5 max-w-md text-xs text-[#5d5854] text-pretty">
               {selectedType !== "all" || search
                 ? "No camps currently match your filter selection. Try broadening your criteria."
                 : "Verified hospitals, clinics, NGOs, and healthcare organizations will list screening camps, physiotherapy outreach, and volunteer roles here."}
@@ -185,7 +185,7 @@ export default function CampsDiscoveryPage() {
             <div className="mt-6 flex flex-wrap gap-2">
               <Link
                 href="/camps/create"
-                className="rounded-xl bg-emerald-700 px-5 py-2 text-xs font-semibold text-white hover:bg-emerald-800"
+                className="rounded-xl bg-[#1769c2] px-5 py-2 text-xs font-semibold text-white hover:bg-[#12569f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
               >
                 Organize a Camp
               </Link>

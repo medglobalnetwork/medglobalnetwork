@@ -55,7 +55,7 @@ function CoursesCatalogContent() {
   }, [fetchCourses]);
 
   return (
-    <main className="min-h-screen bg-[#f5f5f4] pb-36 text-[#171717]">
+    <main className="min-h-dvh bg-[#f5f5f4] pb-36 text-[#171717]">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
         {/* Header Row */}
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -64,15 +64,15 @@ function CoursesCatalogContent() {
               <button
                 type="button"
                 onClick={() => router.push("/learn")}
-                className="text-xs font-semibold text-[#1769c2] hover:underline"
+                className="text-xs font-semibold text-[#1769c2] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
               >
                 ← Back to Learn Home
               </button>
             </div>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#171717]">
+            <h1 className="mt-1 text-2xl font-bold text-[#171717] text-balance">
               Accredited Course Catalog
             </h1>
-            <p className="text-xs text-[#77716b]">
+            <p className="text-xs text-[#77716b] text-pretty">
               Discover clinical training modules, CME certifications, and medical workshops.
             </p>
           </div>
@@ -159,7 +159,7 @@ export default function CoursesCatalogPage() {
   return (
     <React.Suspense
       fallback={
-        <main className="min-h-screen bg-[#f5f5f4] p-6">
+        <main className="min-h-dvh bg-[#f5f5f4] p-6">
           <div className="mx-auto max-w-7xl space-y-6 animate-pulse">
             <div className="h-16 rounded-2xl bg-white/70" />
             <div className="h-44 rounded-2xl bg-white/70" />

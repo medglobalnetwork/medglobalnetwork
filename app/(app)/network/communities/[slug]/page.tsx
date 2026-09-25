@@ -75,11 +75,11 @@ export default function CommunityDetailPage() {
     Pediatrics: "👶",
   };
 
-  if (isPending || !session) return <main className="min-h-screen bg-[#f5f5f4]" />;
+  if (isPending || !session) return <main className="min-h-dvh bg-[#f5f5f4]" />;
 
   if (!loading && !community) {
     return (
-      <main className="min-h-screen bg-[#f5f5f4] flex items-center justify-center">
+      <main className="min-h-dvh bg-[#f5f5f4] flex items-center justify-center">
         <EmptyState
           icon="🔍"
           title="Community not found"
@@ -101,14 +101,14 @@ export default function CommunityDetailPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-[#f5f5f4] pb-36 text-[#171717]">
+    <main className="min-h-dvh bg-[#f5f5f4] pb-36 text-[#171717]">
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
         <div className="mb-5 flex items-center gap-2 text-xs text-[#77716b]">
           <button
             type="button"
             onClick={() => router.push("/network")}
-            className="hover:text-[#1769c2]"
+            className="hover:text-[#1769c2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded"
           >
             Network
           </button>

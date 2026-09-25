@@ -112,7 +112,7 @@ export default function LessonPage() {
 
   if (isLoading || !currentLesson) {
     return (
-      <main className="min-h-screen bg-[#f5f5f4] p-6">
+      <main className="min-h-dvh bg-[#f5f5f4] p-6">
         <div className="mx-auto max-w-7xl space-y-6 animate-pulse">
           <div className="h-12 rounded-2xl bg-white/70" />
           <div className="aspect-video w-full rounded-3xl bg-white/70" />
@@ -122,7 +122,7 @@ export default function LessonPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f5f4] pb-36 text-[#171717]">
+    <main className="min-h-dvh bg-[#f5f5f4] pb-36 text-[#171717]">
       {/* 1. TOP PLAYER NAVBAR */}
       <div className="sticky top-0 z-40 border-b border-[#ded8d1] bg-white/95 px-4 py-3 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
@@ -130,7 +130,7 @@ export default function LessonPage() {
             <button
               type="button"
               onClick={() => router.push(`/learn/course/${courseId}`)}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[#ded8d1] hover:bg-[#faf9f8]"
+              className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-[#ded8d1] hover:bg-[#faf9f8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
             >
               ←
             </button>
@@ -194,7 +194,7 @@ export default function LessonPage() {
           {/* Curriculum Sidebar */}
           <aside className="w-full shrink-0 space-y-4 lg:w-84">
             <div className="rounded-2xl border border-[#ded8d1] bg-white p-4 shadow-2xs">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#171717] mb-3">
+              <h3 className="text-xs font-bold uppercase text-[#171717] mb-3">
                 Course Syllabus
               </h3>
               <CurriculumAccordion

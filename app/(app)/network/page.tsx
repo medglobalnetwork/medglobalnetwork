@@ -788,7 +788,7 @@ export default function NetworkPage() {
 
   if (isPending || !session) {
     return (
-      <main className="min-h-screen bg-[#f5f5f4] pb-36">
+      <main className="min-h-dvh bg-[#f5f5f4] pb-36">
         <div className="mx-auto max-w-[1440px] px-2 py-4 sm:px-4 lg:px-6">
           <div className="animate-pulse space-y-4">
             <div className="h-8 w-48 rounded-xl bg-white/60" />
@@ -805,12 +805,12 @@ export default function NetworkPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f5f4] pb-24 md:pb-12 text-[#171717]">
+    <main className="min-h-dvh bg-[#f5f5f4] pb-24 md:pb-12 text-[#171717]">
       <div className="mx-auto max-w-[1440px] px-2 py-4 sm:px-4 lg:px-6">
         {/* Page Header */}
         <div className="mb-5">
-          <h1 className="text-2xl font-bold tracking-tight text-[#171717]">Network</h1>
-          <p className="mt-1 text-xs sm:text-sm text-[#77716b]">
+          <h1 className="text-2xl font-bold text-[#171717] text-balance">Network</h1>
+          <p className="mt-1 text-xs sm:text-sm text-[#77716b] text-pretty">
             Connect with healthcare professionals and grow your professional network.
           </p>
         </div>

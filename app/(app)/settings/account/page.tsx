@@ -201,7 +201,7 @@ export default function AccountSettingsPage() {
   };
 
   if (isPending || !session) {
-    return <div className="min-h-screen bg-[#f5f3f1]" />;
+    return <div className="min-h-dvh bg-[#f5f3f1]" />;
   }
 
   const handleDeleteAccount = async () => {
@@ -251,16 +251,16 @@ export default function AccountSettingsPage() {
       {/* Page header */}
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[#171717]">Account</h1>
-          <p className="mt-1 text-sm text-[#77716b]">Manage your identity, photos, and login credentials.</p>
+          <h1 className="text-2xl font-semibold text-[#171717] text-balance">Account</h1>
+          <p className="mt-1 text-sm text-[#77716b] text-pretty">Manage your identity, photos, and login credentials.</p>
         </div>
 
         <Link
           href={`/profile/${username || session.user.id}`}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-white px-3.5 py-2 text-xs font-bold text-[#1769c2] hover:bg-[#f8f7f6] transition shadow-2xs"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-white px-3.5 py-2 text-xs font-bold text-[#1769c2] hover:bg-[#f8f7f6] transition shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
         >
           <span>View Public Profile</span>
-          <ExternalLink className="h-3.5 w-3.5" />
+          <ExternalLink className="size-3.5" />
         </Link>
       </div>
 

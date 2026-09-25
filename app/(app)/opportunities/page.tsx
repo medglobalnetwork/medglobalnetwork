@@ -97,7 +97,7 @@ export default function OpportunitiesPage() {
 
   if (isPending || !session) {
     return (
-      <main className="min-h-screen bg-[#f5f5f4] p-6">
+      <main className="min-h-dvh bg-[#f5f5f4] p-6">
         <div className="mx-auto max-w-7xl space-y-6 animate-pulse">
           <div className="h-36 rounded-3xl bg-white/60" />
           <div className="h-48 rounded-3xl bg-white/60" />
@@ -121,27 +121,27 @@ export default function OpportunitiesPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-[#f5f5f4] pb-36 text-[#171717]">
+    <main className="min-h-dvh bg-[#f5f5f4] pb-36 text-[#171717]">
       {/* ─────────────────────────────────────────────
           1. HERO SEARCH & DISCOVERY BANNER
           ───────────────────────────────────────────── */}
       <section className="border-b border-[#ded8d1] bg-gradient-to-br from-[#0f4c81] via-[#1769c2] to-[#1e3a8a] text-white">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="max-w-3xl space-y-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold tracking-wide text-white backdrop-blur-xs">
-              <Briefcase className="h-3.5 w-3.5" /> Verified Healthcare Careers & Clinical Fellowships
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-xs">
+              <Briefcase className="size-3.5" /> Verified Healthcare Careers & Clinical Fellowships
             </span>
-            <h1 className="text-2xl font-black tracking-tight text-white sm:text-4xl">
+            <h1 className="text-2xl font-black text-white sm:text-4xl text-balance">
               Advance Your Clinical Career
             </h1>
-            <p className="text-xs text-white/80 sm:text-sm">
+            <p className="text-xs text-white/80 sm:text-sm text-pretty">
               Discover verified openings across top hospitals, specialized physiotherapy centers, and medical research institutes.
             </p>
 
             {/* Faceted Dual Search Bar Form */}
             <form onSubmit={handleSearch} className="flex flex-col gap-2 pt-3 sm:flex-row">
               <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/60" />
+                <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/60" />
                 <input
                   type="text"
                   value={searchQuery}

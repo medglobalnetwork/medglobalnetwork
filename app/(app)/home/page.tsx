@@ -63,7 +63,7 @@ export default function HomePage() {
 
   if (isPending || !session) {
     return (
-      <main className="min-h-screen bg-[#faf9f8] p-6">
+      <main className="min-h-dvh bg-[#faf9f8] p-6">
         <div className="mx-auto max-w-[1440px] space-y-4 animate-pulse">
           <div className="h-28 rounded-3xl bg-white/70" />
           <div className="h-32 rounded-3xl bg-white/70" />
@@ -76,7 +76,7 @@ export default function HomePage() {
   const displayName = session.user.name || "Healthcare Professional";
 
   return (
-    <main className="min-h-screen bg-[#f8f7f6] pb-24 text-[#171717]">
+    <main className="min-h-dvh bg-[#f8f7f6] pb-24 text-[#171717]">
       <div className="mx-auto max-w-[1440px] px-3 py-4 sm:px-6 lg:px-8">
         {/* 2-Column Responsive Layout Matching Mockup */}
         <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12 lg:gap-8">
@@ -96,15 +96,15 @@ export default function HomePage() {
               <div className="rounded-2xl border border-[#e8e6e3] bg-white p-3.5 sm:p-4 shadow-2xs">
                 <div className="flex items-center justify-between border-b border-[#f5f4f3] pb-2.5 mb-3">
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-[#1769c2]" />
-                    <h3 className="font-bold text-xs sm:text-sm text-[#171717]">Today&apos;s Schedule</h3>
+                    <Calendar className="size-4 text-[#1769c2]" />
+                    <h3 className="font-bold text-xs sm:text-sm text-[#171717] text-balance">Today&apos;s Schedule</h3>
                     <span className="rounded-full bg-[#eef5fc] text-[#1769c2] px-2 py-0.5 text-[10px] font-bold">
                       {todaySchedule.length}
                     </span>
                   </div>
                   <Link
                     href="/events"
-                    className="text-[11px] font-bold text-[#1769c2] hover:underline"
+                    className="text-[11px] font-bold text-[#1769c2] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded"
                   >
                     Calendar &gt;
                   </Link>
@@ -128,7 +128,7 @@ export default function HomePage() {
                           href={item.meeting_link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="shrink-0 px-2.5 py-1 rounded-lg bg-[#1769c2] text-white text-[10px] font-bold hover:bg-[#12569f] transition"
+                          className="shrink-0 px-2.5 py-1 rounded-lg bg-[#1769c2] text-white text-[10px] font-bold hover:bg-[#12569f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] transition"
                         >
                           Join
                         </a>
@@ -154,37 +154,36 @@ export default function HomePage() {
               RIGHT COLUMN: Profile Summary + People + Pro Card (Desktop Only)
               ================================================================= */}
           <div className="hidden lg:block space-y-5 lg:col-span-4">
-            {/* 1. AD PLACEHOLDER (Replaces Profile Summary) */}
+            {/* 1. AD PLACEHOLDER */}
             <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-[#e8e6e3] bg-white shadow-2xs">
               <div className="px-4 py-2.5 border-b border-[#f0efee] flex items-center justify-between text-xs bg-[#faf9f8]">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#a09890]">Partner Spotlight</span>
+                <span className="text-[10px] font-bold uppercase text-[#a09890]">Partner Spotlight</span>
                 <span className="rounded bg-white border border-[#e8e6e3] px-1.5 py-0.5 text-[9px] font-semibold text-[#77716b]">Ad</span>
               </div>
               <div className="p-4 sm:p-5 flex flex-col items-center text-center">
-                <div className="w-full h-32 rounded-2xl bg-gradient-to-br from-[#0f4c81] via-[#1769c2] to-[#0284c7] p-4 text-white flex flex-col justify-between mb-3 relative overflow-hidden">
-                  <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-white/10 blur-sm pointer-events-none" />
+                <div className="w-full h-32 rounded-2xl bg-[#1769c2] p-4 text-white flex flex-col justify-between mb-3 relative overflow-hidden">
                   <div className="text-left">
-                    <span className="text-[9px] uppercase tracking-wider font-extrabold text-blue-200 bg-white/10 px-2 py-0.5 rounded-full inline-block mb-1">
+                    <span className="text-[9px] uppercase font-bold text-blue-100 bg-white/15 px-2 py-0.5 rounded-full inline-block mb-1">
                       Healthcare Tech
                     </span>
-                    <h4 className="font-extrabold text-sm text-white leading-tight">
+                    <h4 className="font-bold text-sm text-white leading-tight text-balance">
                       Next-Gen Clinical Diagnostics
                     </h4>
                   </div>
-                  <p className="text-[10px] text-white/80 text-left line-clamp-2">
+                  <p className="text-[10px] text-white/90 text-left line-clamp-2 text-pretty">
                     AI-assisted clinical decision support for modern practices.
                   </p>
                 </div>
-                <h5 className="font-bold text-xs text-[#171717] mb-1">
+                <h5 className="font-bold text-xs text-[#171717] mb-1 text-balance">
                   Reach 50,000+ Medical Professionals
                 </h5>
-                <p className="text-[11px] text-[#77716b] mb-3.5 leading-relaxed">
+                <p className="text-[11px] text-[#77716b] mb-3.5 leading-relaxed text-pretty">
                   Showcase your medical devices, pharmaceuticals, or hospital programs directly to clinicians.
                 </p>
                 <button
                   type="button"
                   onClick={() => router.push("/opportunities")}
-                  className="w-full rounded-xl bg-[#1769c2] py-2 text-xs font-bold text-white shadow-2xs hover:bg-[#12569f] transition active:scale-95"
+                  className="w-full rounded-xl bg-[#1769c2] py-2 text-xs font-bold text-white shadow-2xs hover:bg-[#12569f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] transition active:scale-95"
                 >
                   Learn More
                 </button>
@@ -195,14 +194,14 @@ export default function HomePage() {
             <PeopleYouMayKnow currentUserId={session.user.id} limit={4} borderless={true} />
 
             {/* 4. UPGRADE TO MGN PRO CARD */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e40af] via-[#3b82f6] to-[#6366f1] p-5 text-white shadow-md">
+            <div className="relative overflow-hidden rounded-3xl bg-[#1769c2] p-5 text-white shadow-md">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center gap-1.5 font-bold text-sm text-amber-300">
-                    <Crown className="h-4 w-4 fill-amber-300 text-amber-300" />
+                    <Crown className="size-4 fill-amber-300 text-amber-300" />
                     <span>Upgrade to MGN Pro</span>
                   </div>
-                  <p className="text-xs text-blue-100 leading-relaxed max-w-[210px]">
+                  <p className="text-xs text-blue-100 leading-relaxed max-w-[210px] text-pretty">
                     Get advanced visibility, analytics, and premium networking features.
                   </p>
                 </div>
@@ -212,9 +211,9 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => router.push("/pricing")}
-                className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-xs font-bold text-[#1e40af] shadow-xs hover:bg-slate-50 transition"
+                className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-xs font-bold text-[#1769c2] shadow-xs hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition"
               >
-                Explore Plans <ArrowRight className="h-3.5 w-3.5" />
+                Explore Plans <ArrowRight className="size-3.5" />
               </button>
             </div>
           </div>

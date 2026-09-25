@@ -9,6 +9,8 @@ import { NetworkSidebar } from "@/modules/network/components/NetworkSidebar";
 import { EmptyState } from "@/modules/network/components/EmptyState";
 import { PostCardSkeleton } from "@/modules/network/components/SkeletonLoader";
 import type { NetworkPost } from "@/modules/network/types";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 
 export default function FeedPage() {
   const router = useRouter();
@@ -28,7 +30,7 @@ export default function FeedPage() {
       const res = await fetch(`/api/network/posts?page=${p}&pageSize=10`, { credentials: "include" });
       if (res.ok) {
         const data = await res.json();
-        setPosts((prev) => p === 1 ? (data.data ?? []) : [...prev, ...(data.data ?? [])]);
+        setPosts((prev) => (p === 1 ? (data.data ?? []) : [...prev, ...(data.data ?? [])]));
         setHasMore(data.hasMore ?? false);
       } else {
         if (p === 1) setPosts([]);
@@ -53,25 +55,28 @@ export default function FeedPage() {
   return (
     <main className="min-h-dvh bg-[#f5f5f4] pb-36 text-[#171717]">
       <div className="mx-auto max-w-7xl px-2 py-4 sm:px-4 lg:px-6">
-
-        {/* Header */}
-        <div className="mb-5 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => router.push("/network")}
-            className="flex items-center gap-1.5 text-xs font-medium text-[#77716b] hover:text-[#1769c2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded"
+        {/* Header Breadcrumbs */}
+        <div className="mb-5 flex items-center gap-2 text-xs font-medium text-[#77716b]">
+          <Link
+            href="/home"
+            className="hover:text-[#1769c2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded"
           >
-            <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6" /></svg>
+            Home
+          </Link>
+          <ChevronRight className="size-3.5 text-[#a8a29e]" />
+          <Link
+            href="/network"
+            className="hover:text-[#1769c2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded"
+          >
             Network
-          </button>
-          <span className="text-[#ded8d1]">/</span>
-          <h1 className="text-lg font-semibold text-balance">Professional Feed</h1>
+          </Link>
+          <ChevronRight className="size-3.5 text-[#a8a29e]" />
+          <h1 className="text-sm font-semibold text-[#171717] text-balance">Healthcare Feed</h1>
         </div>
 
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
           {/* Feed column */}
           <div className="flex-1 min-w-0 space-y-4">
-
             {/* Create post */}
             <CreatePost
               userImage={session.user.image ?? undefined}
@@ -82,7 +87,9 @@ export default function FeedPage() {
             {/* Posts */}
             {loading && page === 1 ? (
               <div className="space-y-4">
-                {[1, 2, 3].map((i) => <PostCardSkeleton key={i} />)}
+                {[1, 2, 3].map((i) => (
+                  <PostCardSkeleton key={i} />
+                ))}
               </div>
             ) : posts.length === 0 ? (
               <EmptyState
@@ -99,12 +106,16 @@ export default function FeedPage() {
                   ))}
                 </div>
                 {hasMore && (
-                  <div className="flex justify-center">
+                  <div className="flex justify-center pt-2">
                     <button
                       type="button"
-                      onClick={() => { const next = page + 1; setPage(next); loadPosts(next); }}
+                      onClick={() => {
+                        const next = page + 1;
+                        setPage(next);
+                        loadPosts(next);
+                      }}
                       disabled={loading}
-                      className="rounded-xl border border-[#ded8d1] bg-white px-6 py-2.5 text-sm font-medium text-[#5d5854] transition hover:bg-[#f8f7f6] disabled:opacity-50"
+                      className="rounded-xl border border-[#ded8d1] bg-white px-6 py-2.5 text-xs font-semibold text-[#5d5854] transition hover:bg-[#f8f7f6] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
                     >
                       {loading ? "Loading…" : "Load More"}
                     </button>

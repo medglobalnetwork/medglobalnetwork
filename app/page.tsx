@@ -277,8 +277,8 @@ function LoginFormContent() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#eef5fc] bg-[url('/mobbg.png')] bg-cover bg-center bg-no-repeat md:bg-[url('/loginbg.png')]">
-      <div className="flex min-h-screen items-center justify-center px-7 py-8 sm:px-8 md:px-8 lg:justify-end lg:px-[8vw]">
+    <div className="min-h-dvh overflow-x-hidden bg-[#eef5fc] bg-[url('/mobbg.png')] bg-cover bg-center bg-no-repeat md:bg-[url('/loginbg.png')]">
+      <div className="flex min-h-dvh items-center justify-center px-7 py-8 sm:px-8 md:px-8 lg:justify-end lg:px-[8vw]">
         <div className="w-full max-w-[360px] -translate-y-6 px-1 py-2 sm:max-w-[380px] sm:px-2 lg:max-w-[420px] lg:-translate-y-12 lg:px-0">
           <h2 className="text-[2.1rem] font-semibold tracking-[-0.06em] text-[#171717] sm:text-[2.6rem]">
             {mode === "signin" ? "Welcome back" : "Create your account"}
@@ -539,7 +539,7 @@ function LoginFormContent() {
 
 export default function Login01() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#eef5fc]" />}>
+    <Suspense fallback={<div className="min-h-dvh bg-[#eef5fc]" />}>
       <LoginFormContent />
     </Suspense>
   );

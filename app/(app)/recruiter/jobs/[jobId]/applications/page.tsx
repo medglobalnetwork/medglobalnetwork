@@ -156,12 +156,12 @@ export default function RecruiterJobApplicationsPage() {
         <div>
           <Link
             href="/recruiter"
-            className="inline-flex items-center gap-1 text-xs font-bold text-[#77716b] hover:text-[#171717] mb-2"
+            className="inline-flex items-center gap-1 text-xs font-bold text-[#77716b] hover:text-[#171717] mb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded"
           >
-            <ArrowLeft className="h-3.5 w-3.5" /> Back to Recruiter Studio
+            <ArrowLeft className="size-3.5" /> Back to Recruiter Studio
           </Link>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-[#171717]">
+            <h1 className="text-2xl font-bold text-[#171717] text-balance">
               {job.title}
             </h1>
             <span

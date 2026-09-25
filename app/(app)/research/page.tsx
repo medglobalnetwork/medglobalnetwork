@@ -85,17 +85,17 @@ export default function ResearchDiscoveryPage() {
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8">
       {/* ── Top Header Banner ── */}
-      <div className="rounded-3xl border border-[#e8e6e3] bg-gradient-to-r from-purple-600/10 via-indigo-600/5 to-white p-6 sm:p-8">
+      <div className="rounded-3xl border border-[#e8e6e3] bg-white p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-purple-800">
-              <FlaskConical className="h-4 w-4" />
+            <div className="flex items-center gap-2 text-xs font-bold uppercase text-[#1769c2]">
+              <FlaskConical className="size-4" />
               <span>Healthcare Research & Clinical Trials Ecosystem</span>
             </div>
-            <h1 className="mt-1 text-2xl font-black text-[#171717] sm:text-3xl">
+            <h1 className="mt-1 text-2xl font-bold text-[#171717] sm:text-3xl text-balance">
               Discover → Collaborate → Build → Publish
             </h1>
-            <p className="mt-1.5 max-w-2xl text-sm text-[#5d5854]">
+            <p className="mt-1.5 max-w-2xl text-sm text-[#5d5854] text-pretty">
               Connect with principal investigators, form multi-center clinical study groups, hire research assistants, and publish peer-reviewed papers.
             </p>
           </div>
@@ -103,16 +103,16 @@ export default function ResearchDiscoveryPage() {
           <div className="flex flex-wrap items-center gap-2.5">
             <Link
               href="/research/my"
-              className="rounded-xl border border-[#ded8d1] bg-white px-4 py-2.5 text-xs font-semibold text-[#171717] shadow-xs hover:bg-[#f8f7f6]"
+              className="rounded-xl border border-[#ded8d1] bg-white px-4 py-2.5 text-xs font-semibold text-[#171717] shadow-xs hover:bg-[#f8f7f6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
             >
               My Research
             </Link>
 
             <Link
               href="/research/projects/create"
-              className="flex items-center gap-1.5 rounded-xl bg-purple-700 px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-purple-800"
+              className="flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#12569f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
             >
-              <PlusCircle className="h-4 w-4" />
+              <PlusCircle className="size-4" />
               <span>Create Research Project</span>
             </Link>
           </div>
@@ -121,18 +121,18 @@ export default function ResearchDiscoveryPage() {
         {/* ── Search Bar ── */}
         <form onSubmit={handleSearch} className="mt-6 flex flex-col gap-2 sm:flex-row">
           <div className="relative flex-1">
-            <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-[#77716b]" />
+            <Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-[#77716b]" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search clinical trials, study titles, methodology, or publications..."
-              className="w-full rounded-2xl border border-[#ded8d1] bg-white py-3 pr-4 pl-10 text-sm text-[#171717] placeholder:text-[#77716b] focus:border-purple-600 focus:ring-2 focus:ring-purple-600/10 focus:outline-none"
+              className="w-full rounded-2xl border border-[#ded8d1] bg-white py-3 pr-4 pl-10 text-sm text-[#171717] placeholder:text-[#77716b] focus:border-[#1769c2] focus:ring-2 focus:ring-[#1769c2]/20 focus:outline-none"
             />
           </div>
           <button
             type="submit"
-            className="rounded-2xl bg-[#171717] px-6 py-3 text-xs font-semibold text-white transition hover:bg-[#333] active:scale-95"
+            className="rounded-2xl bg-[#1769c2] px-6 py-3 text-xs font-semibold text-white transition hover:bg-[#12569f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] active:scale-95"
           >
             Search Research
           </button>
@@ -147,9 +147,9 @@ export default function ResearchDiscoveryPage() {
               key={area}
               type="button"
               onClick={() => setSelectedArea(area)}
-              className={`shrink-0 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`shrink-0 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] ${
                 selectedArea === area
-                  ? "bg-purple-700 text-white shadow-xs"
+                  ? "bg-[#1769c2] text-white shadow-xs"
                   : "border border-[#ded8d1] bg-white text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
               }`}
             >
@@ -164,8 +164,8 @@ export default function ResearchDiscoveryPage() {
             <button
               type="button"
               onClick={() => setActiveTab("projects")}
-              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
-                activeTab === "projects" ? "bg-purple-50 text-purple-800" : "text-[#5d5854] hover:bg-[#f8f7f6]"
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] ${
+                activeTab === "projects" ? "bg-[#eef5fc] text-[#1769c2]" : "text-[#5d5854] hover:bg-[#f8f7f6]"
               }`}
             >
               Research Projects ({projects.length})
@@ -173,8 +173,8 @@ export default function ResearchDiscoveryPage() {
             <button
               type="button"
               onClick={() => setActiveTab("opportunities")}
-              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
-                activeTab === "opportunities" ? "bg-purple-50 text-purple-800" : "text-[#5d5854] hover:bg-[#f8f7f6]"
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] ${
+                activeTab === "opportunities" ? "bg-[#eef5fc] text-[#1769c2]" : "text-[#5d5854] hover:bg-[#f8f7f6]"
               }`}
             >
               Opportunities & RA ({opportunities.length})
@@ -182,8 +182,8 @@ export default function ResearchDiscoveryPage() {
             <button
               type="button"
               onClick={() => setActiveTab("publications")}
-              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
-                activeTab === "publications" ? "bg-purple-50 text-purple-800" : "text-[#5d5854] hover:bg-[#f8f7f6]"
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] ${
+                activeTab === "publications" ? "bg-[#eef5fc] text-[#1769c2]" : "text-[#5d5854] hover:bg-[#f8f7f6]"
               }`}
             >
               Publications ({publications.length})
@@ -206,7 +206,7 @@ export default function ResearchDiscoveryPage() {
             {activeTab === "publications" && (
               <Link
                 href="/research/publications"
-                className="text-xs font-bold text-purple-700 hover:underline"
+                className="text-xs font-bold text-[#1769c2] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded"
               >
                 + Add Publication
               </Link>
@@ -227,11 +227,11 @@ export default function ResearchDiscoveryPage() {
           projects.length === 0 ? (
             /* Clean Authentic Empty State */
             <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-[#ded8d1] bg-[#fcfbfa] p-12 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-50 text-purple-700">
-                <FlaskConical className="h-7 w-7" />
+              <div className="flex size-14 items-center justify-center rounded-2xl bg-[#eef5fc] text-[#1769c2]">
+                <FlaskConical className="size-7" />
               </div>
-              <h3 className="mt-4 text-base font-bold text-[#171717]">No research projects found</h3>
-              <p className="mt-1.5 max-w-md text-xs text-[#5d5854]">
+              <h3 className="mt-4 text-base font-bold text-[#171717] text-balance">No research projects found</h3>
+              <p className="mt-1.5 max-w-md text-xs text-[#5d5854] text-pretty">
                 {selectedArea !== "All Disciplines" || search
                   ? "No research projects match your search criteria. Try selecting 'All Disciplines'."
                   : "Verified researchers, medical colleges, and healthcare institutes will post open clinical studies and multi-center trials here."}
@@ -240,7 +240,7 @@ export default function ResearchDiscoveryPage() {
               <div className="mt-6 flex flex-wrap gap-2">
                 <Link
                   href="/research/projects/create"
-                  className="rounded-xl bg-purple-700 px-5 py-2 text-xs font-semibold text-white hover:bg-purple-800"
+                  className="rounded-xl bg-[#1769c2] px-5 py-2 text-xs font-semibold text-white hover:bg-[#12569f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
                 >
                   Create Research Project
                 </Link>
@@ -256,14 +256,14 @@ export default function ResearchDiscoveryPage() {
         ) : activeTab === "opportunities" ? (
           opportunities.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-[#ded8d1] bg-[#fcfbfa] p-12 text-center">
-              <Briefcase className="h-10 w-10 text-purple-700" />
-              <h3 className="mt-3 text-sm font-bold text-[#171717]">No open research positions</h3>
-              <p className="mt-1 text-xs text-[#5d5854]">
+              <Briefcase className="size-10 text-[#1769c2]" />
+              <h3 className="mt-3 text-sm font-bold text-[#171717] text-balance">No open research positions</h3>
+              <p className="mt-1 text-xs text-[#5d5854] text-pretty">
                 Research assistant, student researcher, and data collection openings will appear here.
               </p>
               <Link
                 href="/research/opportunities"
-                className="mt-4 inline-block rounded-xl bg-purple-700 px-4 py-2 text-xs font-semibold text-white"
+                className="mt-4 inline-block rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-semibold text-white hover:bg-[#12569f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
               >
                 Post an Opportunity
               </Link>
@@ -278,14 +278,14 @@ export default function ResearchDiscoveryPage() {
         ) : (
           publications.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-[#ded8d1] bg-[#fcfbfa] p-12 text-center">
-              <BookOpen className="h-10 w-10 text-purple-700" />
-              <h3 className="mt-3 text-sm font-bold text-[#171717]">No publications indexed yet</h3>
-              <p className="mt-1 text-xs text-[#5d5854]">
+              <BookOpen className="size-10 text-[#1769c2]" />
+              <h3 className="mt-3 text-sm font-bold text-[#171717] text-balance">No publications indexed yet</h3>
+              <p className="mt-1 text-xs text-[#5d5854] text-pretty">
                 Link your peer-reviewed journal articles, conference papers, and clinical trial outcomes.
               </p>
               <Link
                 href="/research/publications"
-                className="mt-4 inline-block rounded-xl bg-purple-700 px-4 py-2 text-xs font-semibold text-white"
+                className="mt-4 inline-block rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-semibold text-white hover:bg-[#12569f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
               >
                 Add Your Publication
               </Link>
@@ -298,12 +298,12 @@ export default function ResearchDiscoveryPage() {
                     <span>{pub.journal_or_conference}</span>
                     {pub.publication_date && <span>{new Date(pub.publication_date).getFullYear()}</span>}
                   </div>
-                  <h3 className="mt-1.5 text-base font-bold text-[#171717]">{pub.title}</h3>
-                  <p className="mt-1 text-xs font-medium text-purple-800">
+                  <h3 className="mt-1.5 text-base font-bold text-[#171717] text-balance">{pub.title}</h3>
+                  <p className="mt-1 text-xs font-medium text-[#1769c2]">
                     {pub.authors.join(", ")}
                   </p>
                   {pub.abstract && (
-                    <p className="mt-2 line-clamp-2 text-xs text-[#5d5854]">{pub.abstract}</p>
+                    <p className="mt-2 line-clamp-2 text-xs text-[#5d5854] text-pretty">{pub.abstract}</p>
                   )}
                   {pub.doi && (
                     <p className="mt-2 text-[11px] font-mono text-[#77716b]">DOI: {pub.doi}</p>

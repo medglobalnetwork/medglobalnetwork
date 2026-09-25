@@ -208,11 +208,11 @@ export default function ProfilePage() {
     }
   };
 
-  if (isPending || !session) return <main className="min-h-screen bg-[#f5f5f4]" />;
+  if (isPending || !session) return <main className="min-h-dvh bg-[#f5f5f4]" />;
 
   if (!loading && !profile) {
     return (
-      <main className="min-h-screen bg-[#f5f5f4] flex items-center justify-center p-6">
+      <main className="min-h-dvh bg-[#f5f5f4] flex items-center justify-center p-6">
         <EmptyState
           icon="👤"
           title="Profile not found"
@@ -227,7 +227,7 @@ export default function ProfilePage() {
   const isOwnProfile = profile?.is_own_profile || session.user.id === params.userId;
 
   return (
-    <main className="min-h-screen bg-[#f8f7f6] pb-28 text-[#171717]">
+    <main className="min-h-dvh bg-[#f8f7f6] pb-28 text-[#171717]">
       {/* Toast Notification */}
       {copied && (
         <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full border border-[#ded8d1] bg-[#171717] px-5 py-2.5 text-xs font-bold text-white shadow-xl animate-fade-in flex items-center gap-2">
@@ -284,8 +284,8 @@ export default function ProfilePage() {
                 {/* About (Quick View) Card */}
                 <div className="rounded-3xl bg-white p-5 border border-[#e8e6e3] shadow-sm">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#171717] flex items-center gap-1.5">
-                      <Sparkles className="h-3.5 w-3.5 text-[#1769c2]" />
+                    <h3 className="text-xs font-extrabold uppercase text-[#171717] flex items-center gap-1.5">
+                      <Sparkles className="size-3.5 text-[#1769c2]" />
                       <span>About (Quick View)</span>
                     </h3>
                   </div>
@@ -376,8 +376,8 @@ export default function ProfilePage() {
 
                 {/* My Interests Widget */}
                 <div className="rounded-3xl bg-white p-5 border border-[#e8e6e3] shadow-sm">
-                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#171717] mb-3 flex items-center gap-1.5">
-                    <Hash className="h-3.5 w-3.5 text-[#1769c2]" />
+                  <h3 className="text-xs font-extrabold uppercase text-[#171717] mb-3 flex items-center gap-1.5">
+                    <Hash className="size-3.5 text-[#1769c2]" />
                     <span>My Interests & Specialties</span>
                   </h3>
 
@@ -396,7 +396,7 @@ export default function ProfilePage() {
                     <button
                       type="button"
                       onClick={() => setShowEditModal(true)}
-                      className="w-full text-center text-xs text-[#1769c2] font-semibold hover:underline py-3 px-3 rounded-2xl bg-[#f4f8fe] border border-dashed border-[#cbdff7] flex items-center justify-center gap-1.5"
+                      className="w-full text-center text-xs text-[#1769c2] font-semibold hover:underline py-3 px-3 rounded-2xl bg-[#f4f8fe] border border-dashed border-[#cbdff7] flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
                     >
                       <span>+ Add Clinical Specialties & Interests</span>
                     </button>
@@ -409,14 +409,14 @@ export default function ProfilePage() {
                 {isOwnProfile && (
                   <div className="rounded-3xl bg-white p-5 border border-[#e8e6e3] shadow-sm">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#171717] flex items-center gap-1.5">
-                        <Award className="h-3.5 w-3.5 text-amber-500" />
+                      <h3 className="text-xs font-extrabold uppercase text-[#171717] flex items-center gap-1.5">
+                        <Award className="size-3.5 text-amber-500" />
                         <span>Featured Milestone</span>
                       </h3>
                     </div>
 
                     <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-[#1769c2]/10 to-teal-500/10 border border-[#d0e1fd] p-4 space-y-2">
-                      <span className="text-[10px] font-bold text-[#1769c2] uppercase tracking-wider">
+                      <span className="text-[10px] font-bold text-[#1769c2] uppercase">
                         Highlight Your Achievements
                       </span>
                       <h4 className="text-xs font-bold text-[#171717]">
@@ -428,10 +428,10 @@ export default function ProfilePage() {
                       <button
                         type="button"
                         onClick={() => setShowEditModal(true)}
-                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1769c2] hover:underline pt-1"
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1769c2] hover:underline pt-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
                       >
                         <span>Update Dossier Details</span>
-                        <ChevronRight className="h-3.5 w-3.5" />
+                        <ChevronRight className="size-3.5" />
                       </button>
                     </div>
                   </div>
@@ -440,14 +440,14 @@ export default function ProfilePage() {
                 {/* Communities Widget */}
                 <div className="rounded-3xl bg-white p-5 border border-[#e8e6e3] shadow-sm">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#171717] flex items-center gap-1.5">
-                      <Users className="h-3.5 w-3.5 text-[#1769c2]" />
+                    <h3 className="text-xs font-extrabold uppercase text-[#171717] flex items-center gap-1.5">
+                      <Users className="size-3.5 text-[#1769c2]" />
                       <span>Communities</span>
                     </h3>
                     <button
                       type="button"
                       onClick={() => router.push("/network/communities")}
-                      className="text-[11px] font-bold text-[#1769c2] hover:underline"
+                      className="text-[11px] font-bold text-[#1769c2] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
                     >
                       Explore →
                     </button>

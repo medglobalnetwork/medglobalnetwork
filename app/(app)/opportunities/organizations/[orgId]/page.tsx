@@ -45,13 +45,13 @@ export default function OrganizationDetailPage() {
   }, [orgId]);
 
   if (isLoading) {
-    return <main className="min-h-screen bg-[#f5f5f4]" />;
+    return <main className="min-h-dvh bg-[#f5f5f4]" />;
   }
 
   if (!organization) {
     return (
-      <main className="min-h-screen bg-[#f5f5f4] p-8 text-center text-[#171717]">
-        <h2>Organization Not Found</h2>
+      <main className="min-h-dvh bg-[#f5f5f4] p-8 text-center text-[#171717]">
+        <h2 className="text-balance font-bold text-lg">Organization Not Found</h2>
       </main>
     );
   }
@@ -59,14 +59,14 @@ export default function OrganizationDetailPage() {
   const isVerified = organization.verification_status === "verified";
 
   return (
-    <main className="min-h-screen bg-[#f5f5f4] pb-36 text-[#171717]">
+    <main className="min-h-dvh bg-[#f5f5f4] pb-36 text-[#171717]">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
         <button
           type="button"
           onClick={() => router.push("/opportunities")}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-[#1769c2] hover:underline"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-[#1769c2] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded"
         >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Opportunities Discovery
+          <ArrowLeft className="size-3.5" /> Back to Opportunities Discovery
         </button>
 
         {/* Organization Profile Card */}
@@ -76,22 +76,22 @@ export default function OrganizationDetailPage() {
               <img
                 src={organization.logo_url}
                 alt={organization.name}
-                className="h-20 w-20 shrink-0 rounded-2xl border border-[#ded8d1] object-cover shadow-2xs sm:h-24 sm:w-24"
+                className="size-20 shrink-0 rounded-2xl border border-[#ded8d1] object-cover shadow-2xs sm:size-24"
               />
             ) : (
-              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-[#ded8d1] bg-[#eef5fc] text-2xl font-bold text-[#1769c2] sm:h-24 sm:w-24">
+              <div className="flex size-20 shrink-0 items-center justify-center rounded-2xl border border-[#ded8d1] bg-[#eef5fc] text-2xl font-bold text-[#1769c2] sm:size-24">
                 {organization.name.slice(0, 2).toUpperCase()}
               </div>
             )}
 
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-black tracking-tight text-[#171717] sm:text-2xl">
+                <h1 className="text-xl font-black text-[#171717] sm:text-2xl text-balance">
                   {organization.name}
                 </h1>
                 {isVerified && (
                   <span title="Verified Healthcare Employer" className="inline-flex items-center">
-                    <ShieldCheck className="h-5 w-5 fill-[#1769c2]/15 text-[#1769c2]" />
+                    <ShieldCheck className="size-5 fill-[#1769c2]/15 text-[#1769c2]" />
                   </span>
                 )}
               </div>

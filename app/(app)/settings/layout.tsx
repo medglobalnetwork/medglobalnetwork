@@ -54,32 +54,32 @@ export default function SettingsLayout({
   }, [isPending, router, session]);
 
   if (isPending || !session) {
-    return <div className="min-h-screen bg-[#f5f3f1]" />;
+    return <div className="min-h-dvh bg-[#f5f3f1]" />;
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f3f1]">
+    <div className="min-h-dvh bg-[#f5f3f1]">
       <div className="mx-auto flex max-w-5xl flex-col gap-0 px-4 py-8 lg:flex-row lg:gap-10">
         {/* Settings Sidebar */}
         <aside className="w-full shrink-0 lg:w-52">
           {/* Back to home */}
           <a
             href="/home"
-            className="mb-6 flex items-center gap-1.5 text-sm text-[#77716b] hover:text-[#171717]"
+            className="mb-6 flex items-center gap-1.5 text-sm text-[#77716b] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded"
           >
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="m15 18-6-6 6-6" />
             </svg>
             Back
           </a>
 
-          <h2 className="mb-4 text-base font-semibold tracking-tight text-[#171717]">Settings</h2>
+          <h2 className="mb-4 text-base font-semibold text-[#171717]">Settings</h2>
 
           <nav className="space-y-5">
             {settingsNav.map((group) => (
               <div key={group.section}>
                 {/* Section label */}
-                <p className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-widest text-[#a09890]">
+                <p className="mb-1 px-2 text-[11px] font-semibold uppercase text-[#a09890]">
                   {group.section}
                 </p>
                 <ul className="space-y-0.5">
