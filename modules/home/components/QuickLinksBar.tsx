@@ -303,32 +303,32 @@ export function QuickLinksBar() {
       {/* ============================================================ */}
       {/* 2. MOBILE VIEW: 3 SQUARE WHITE CARDS PER ROW                 */}
       {/* ============================================================ */}
-      <div className="grid grid-cols-3 gap-1.5 md:hidden">
+      <div className="grid grid-cols-3 gap-2 sm:gap-2.5 md:hidden">
         {cards.map((card) => (
           <div
             key={card.id}
             onClick={() => handleClick(card.href)}
-            className="group relative aspect-square max-h-[84px] flex flex-col items-center justify-center rounded-xl border border-[#e2e8f0] bg-white p-1 text-center transition-all duration-200 active:scale-95 hover:border-[#1769c2]/50 shadow-[0_1px_3px_rgba(0,0,0,0.02)] cursor-pointer overflow-hidden"
+            className="group relative w-full aspect-square flex flex-col items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white p-2 text-center transition-all duration-200 active:scale-95 hover:border-[#1769c2]/50 shadow-[0_1px_3px_rgba(0,0,0,0.02)] cursor-pointer overflow-hidden"
           >
             {/* Card Background Watermark Pattern */}
             <CardWatermarkBg />
 
             {/* Centered Icon without background box */}
-            <div className="relative z-10 flex h-6 w-6 items-center justify-center">
+            <div className="relative z-10 flex h-7 w-7 items-center justify-center">
               <Icons8QuickIcon
                 iconId={card.iconId}
                 fallback={card.fallbackIcon}
-                className="h-5 w-5"
+                className="h-6 w-6"
               />
             </div>
 
             {/* Title */}
-            <h3 className="relative z-10 text-[10px] sm:text-[11px] font-bold text-[#0f172a] group-hover:text-[#1769c2] truncate w-full tracking-tight transition-colors mt-0.5">
+            <h3 className="relative z-10 text-xs font-bold text-[#0f172a] group-hover:text-[#1769c2] truncate w-full tracking-tight transition-colors mt-1">
               {card.title}
             </h3>
 
             {/* Open link */}
-            <span className="relative z-10 text-[8px] font-medium text-[#64748b] group-hover:text-[#1769c2] flex items-center justify-center gap-0.5 mt-0.5 transition-colors">
+            <span className="relative z-10 text-[10px] font-semibold text-[#64748b] group-hover:text-[#1769c2] flex items-center justify-center gap-0.5 mt-0.5 transition-colors">
               <span>Open</span>
               <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
             </span>
@@ -336,11 +336,11 @@ export function QuickLinksBar() {
         ))}
 
         {/* 9th Slot: Subtle Placeholder Card with Sparkle */}
-        <div className="aspect-square max-h-[84px] flex flex-col items-center justify-center rounded-xl border border-[#e2e8f0] bg-[#fafafa]/80 p-1 text-center select-none">
-          <div className="flex h-6 w-6 items-center justify-center text-slate-300">
-            <Sparkles className="h-4 w-4 stroke-[1.2]" />
+        <div className="w-full aspect-square flex flex-col items-center justify-center rounded-2xl border border-[#e2e8f0] bg-[#fafafa]/80 p-2 text-center select-none">
+          <div className="flex h-7 w-7 items-center justify-center text-slate-300">
+            <Sparkles className="h-5 w-5 stroke-[1.2]" />
           </div>
-          <span className="text-[8px] font-medium text-slate-400 mt-0.5 opacity-60">
+          <span className="text-[10px] font-semibold text-slate-400 mt-1 opacity-60">
             MGN
           </span>
         </div>
