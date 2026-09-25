@@ -144,7 +144,7 @@ export function CreatePost({
       className={
         borderless
           ? `border-0 bg-transparent p-0 shadow-none ${className}`
-          : `rounded-3xl border border-[#e8e6e3] bg-white p-5 shadow-2xs ${className}`
+          : `rounded-none sm:rounded-3xl border-y sm:border border-[#f0efee] sm:border-[#e8e6e3] bg-white p-3.5 sm:p-5 shadow-none sm:shadow-2xs ${className}`
       }
     >
       <input

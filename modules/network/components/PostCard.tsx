@@ -22,6 +22,9 @@ import {
   X,
   Eye,
   Check,
+  Volume2,
+  VolumeX,
+  RotateCcw,
 } from "lucide-react";
 
 const POST_TYPE_BADGE: Record<string, { label: string; color: string; bg: string }> = {
@@ -58,6 +61,12 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
   const [copiedLink, setCopiedLink] = React.useState(false);
   const [selectedImage, setSelectedImage] = React.useState<string | null>(null);
 
+  // Video autoplay & playback management
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const [isMuted, setIsMuted] = React.useState(true);
+  const [hasEnded, setHasEnded] = React.useState(false);
+
   const author = post.author;
   const isVerified =
     author?.identity_verified ||
@@ -88,6 +97,67 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
 
   const isImagePost =
     (post.post_type === "image" || (!isVideoPost && !isDocumentPost)) && mediaUrls.length > 0;
+
+  // Autoplay video when scrolled into viewport; pause when out of view
+  React.useEffect(() => {
+    if (!isVideoPost || !videoRef.current) return;
+
+    const el = videoRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.4) {
+            if (!hasEnded) {
+              el.play()
+                .then(() => setIsPlaying(true))
+                .catch(() => {
+                  // Browser policy fallback
+                  setIsPlaying(false);
+                });
+            }
+          } else {
+            el.pause();
+            setIsPlaying(false);
+          }
+        });
+      },
+      { threshold: [0, 0.4, 0.8] }
+    );
+
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+    };
+  }, [isVideoPost, hasEnded]);
+
+  const handleVideoEnded = () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+    setIsPlaying(false);
+    setHasEnded(true);
+  };
+
+  const handleReplayVideo = () => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current
+        .play()
+        .then(() => {
+          setHasEnded(false);
+          setIsPlaying(true);
+        })
+        .catch(() => {});
+    }
+  };
+
+  const handleToggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!videoRef.current) return;
+    const nextMuted = !isMuted;
+    videoRef.current.muted = nextMuted;
+    setIsMuted(nextMuted);
+  };
 
   // Truncation check
   const isLongContent = (post.content || "").length > 280;
@@ -212,7 +282,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
   return (
     <article
       id={`post-${post.id}`}
-      className="rounded-3xl border border-[#e8e6e3] bg-white p-4 sm:p-5 shadow-xs transition hover:border-[#ded8d1] relative overflow-hidden"
+      className="rounded-none sm:rounded-3xl border-y sm:border border-[#f0efee] sm:border-[#e8e6e3] bg-white p-3.5 sm:p-5 shadow-none sm:shadow-xs transition hover:border-[#ded8d1] relative overflow-hidden"
     >
       {/* 1. Header: Author info, Post Type Badge, Timestamp */}
       <div className="flex items-start justify-between gap-3">
@@ -224,7 +294,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
             className="shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded-full"
           >
             <div
-              className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold text-[#3f3f3c] overflow-hidden border border-[#e8e6e3] shadow-2xs"
+              className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full text-sm font-bold text-[#3f3f3c] overflow-hidden border border-[#e8e6e3] shadow-2xs"
               style={{ background: avatarColor }}
             >
               {author?.image ? (
@@ -306,7 +376,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
 
       {/* 2. Text Content (Above Media, LinkedIn/Instagram Style) */}
       {post.content && post.content.trim() && (
-        <div className="mt-3.5">
+        <div className="mt-3">
           <p className="whitespace-pre-line text-sm leading-relaxed text-[#171717]">
             {displayContent}
           </p>
@@ -324,17 +394,57 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
 
       {/* 3. Rich Media Container (Instagram / LinkedIn Feed Experience) */}
       {mediaUrls.length > 0 && (
-        <div className="mt-3.5 rounded-2xl overflow-hidden border border-[#e8e6e3] bg-[#0c0d0e] shadow-2xs">
+        <div className="mt-3 rounded-xl sm:rounded-2xl overflow-hidden border border-[#f0efee] sm:border-[#e8e6e3] bg-[#0c0d0e] shadow-2xs">
           {/* A. Video Post */}
           {isVideoPost ? (
-            <div className="relative w-full bg-black flex items-center justify-center overflow-hidden">
+            <div className="relative w-full bg-black flex items-center justify-center overflow-hidden group">
               <video
+                ref={videoRef}
                 src={mediaUrls[0]}
                 controls
                 playsInline
+                muted={isMuted}
                 preload="metadata"
-                className="w-full max-h-[520px] object-contain rounded-2xl bg-black focus:outline-none"
+                onEnded={handleVideoEnded}
+                onPlay={() => {
+                  setIsPlaying(true);
+                  setHasEnded(false);
+                }}
+                onPause={() => setIsPlaying(false)}
+                className="w-full max-h-[520px] object-contain rounded-xl sm:rounded-2xl bg-black focus:outline-none"
               />
+
+              {/* Replay Overlay when video finishes */}
+              {hasEnded && (
+                <div
+                  onClick={handleReplayVideo}
+                  className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/65 cursor-pointer backdrop-blur-xs transition animate-in fade-in"
+                >
+                  <button
+                    type="button"
+                    className="flex h-13 w-13 items-center justify-center rounded-full bg-white/25 text-white hover:bg-white/40 transition hover:scale-105 shadow-lg"
+                  >
+                    <RotateCcw className="h-6 w-6 stroke-[2.5]" />
+                  </button>
+                  <span className="mt-2 text-xs font-bold text-white tracking-wide">
+                    Watch Again
+                  </span>
+                </div>
+              )}
+
+              {/* Quick Volume / Mute Button Overlay */}
+              <button
+                type="button"
+                onClick={handleToggleMute}
+                title={isMuted ? "Unmute sound" : "Mute sound"}
+                className="absolute bottom-3 right-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition backdrop-blur-xs shadow-md"
+              >
+                {isMuted ? (
+                  <VolumeX className="h-4 w-4 stroke-[2.2]" />
+                ) : (
+                  <Volume2 className="h-4 w-4 stroke-[2.2]" />
+                )}
+              </button>
             </div>
           ) : isDocumentPost ? (
             /* B. Document Post */
