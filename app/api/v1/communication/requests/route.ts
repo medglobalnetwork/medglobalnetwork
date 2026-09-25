@@ -18,7 +18,7 @@ export async function GET() {
     return Response.json({ success: true, data: requests });
   } catch (err: any) {
     console.error("GET message requests error:", err);
-    return Response.json({ error: err.message || "Failed to load requests" }, { status: 500 });
+    return Response.json({ success: false, data: [], error: err.message || "Failed to load requests" }, { status: 200 });
   }
 }
 

@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     return Response.json({ success: true, data: list });
   } catch (err: any) {
     console.error("GET /api/v1/communication/conversations error:", err);
-    return Response.json({ error: err.message || "Failed to load conversations" }, { status: 500 });
+    return Response.json({ success: false, data: [], error: err.message || "Failed to load conversations" }, { status: 200 });
   }
 }
 

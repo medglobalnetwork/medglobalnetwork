@@ -10,6 +10,7 @@ import { database } from "@/lib/auth";
 import { sql } from "kysely";
 
 let tablesInitialized = false;
+let initPromise: Promise<void> | null = null;
 
 export function generateCommId(prefix = "comm"): string {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
@@ -24,8 +25,10 @@ export function generateCommId(prefix = "comm"): string {
  */
 export async function ensureCommunicationTables(): Promise<void> {
   if (tablesInitialized) return;
+  if (initPromise) return initPromise;
 
-  try {
+  initPromise = (async () => {
+    try {
     // 1. Conversations
     await sql`
       CREATE TABLE IF NOT EXISTS conversations (
@@ -272,7 +275,12 @@ export async function ensureCommunicationTables(): Promise<void> {
     tablesInitialized = true;
   } catch (err) {
     console.error("FATAL: ensureCommunicationTables failed to create or alter tables. This WILL cause 500 errors if tables don't exist.", err);
+  } finally {
+    initPromise = null;
   }
+  })();
+
+  return initPromise;
 }
 
 /**

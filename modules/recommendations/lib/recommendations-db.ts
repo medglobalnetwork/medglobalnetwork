@@ -174,11 +174,14 @@ export function generateRecId(): string {
 // ─────────────────────────────────────────────
 
 let tablesInitialized = false;
+let initPromise: Promise<void> | null = null;
 
 export async function ensureRecommendationTables(): Promise<void> {
   if (tablesInitialized) return;
+  if (initPromise) return initPromise;
 
-  try {
+  initPromise = (async () => {
+    try {
     // 1. User Interest Profiles
     await sql`
       CREATE TABLE IF NOT EXISTS user_interest_profiles (
@@ -317,5 +320,10 @@ export async function ensureRecommendationTables(): Promise<void> {
     tablesInitialized = true;
   } catch (err) {
     console.warn("ensureRecommendationTables warning:", err);
+  } finally {
+    initPromise = null;
   }
+  })();
+
+  return initPromise;
 }
