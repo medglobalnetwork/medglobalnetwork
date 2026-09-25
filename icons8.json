@@ -18,7 +18,13 @@
       "communities": { "id": "aBDIThwGtLKb", "commonName": "compass" },
       "settings": { "id": "4511GGVppfIx", "commonName": "settings" },
       "logout": { "id": "Q1xkcFuVON39", "commonName": "exit" },
-      "ai-assistant": { "id": "YxCw7An8DYqf", "commonName": "sparkling" }
+      "ai-assistant": { "id": "YxCw7An8DYqf", "commonName": "sparkling" },
+      "profile": { "id": "zxB19VPoVLjK", "commonName": "user" },
+      "handshake": { "id": "gf7HkPc5t1hF", "commonName": "handshake" },
+      "news": { "id": "0XwEi0yisdO8", "commonName": "news" },
+      "groups": { "id": "4C2pzaBlIDEO", "commonName": "groups" },
+      "shield": { "id": "vy6OvJYHSJ8I", "commonName": "shield" },
+      "crown": { "id": "JYQrEM0EyitQ", "commonName": "crown" }
     }
   },
   "illustrations": {

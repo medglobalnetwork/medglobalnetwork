@@ -6,6 +6,32 @@ import { authClient } from "@/lib/auth-client";
 import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl } from "@/lib/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { MemberBadge } from "@/modules/network/components/MemberBadge";
+function Icons8MenuIcon({
+  iconId,
+  colorHex = "77716B",
+  fallback: FallbackIcon,
+  className = "h-[19px] w-[19px]",
+}: {
+  iconId: string;
+  colorHex?: string;
+  fallback?: React.ReactNode;
+  className?: string;
+}) {
+  const [error, setError] = React.useState(false);
+  if (error && FallbackIcon) {
+    return <>{FallbackIcon}</>;
+  }
+  const url = `https://img.icons8.com/?id=${iconId}&format=png&size=48&color=${colorHex}`;
+  return (
+    <img
+      src={url}
+      alt=""
+      className={`${className} shrink-0 object-contain select-none`}
+      onError={() => setError(true)}
+      loading="eager"
+    />
+  );
+}
 
 export default function UserMenu() {
   const router = useRouter();
@@ -132,9 +158,13 @@ export default function UserMenu() {
               <button
                 type="button"
                 onClick={() => session?.user?.id && navTo(`/profile/${session.user.id}`)}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717]"
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group"
               >
-                <span className="text-[#8a8784]">👤</span>
+                <Icons8MenuIcon
+                  iconId="zxB19VPoVLjK"
+                  colorHex="77716B"
+                  className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
+                />
                 My Profile
               </button>
             </li>
@@ -142,9 +172,13 @@ export default function UserMenu() {
               <button
                 type="button"
                 onClick={() => navTo("/network/connections")}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717]"
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group"
               >
-                <span className="text-[#8a8784]">🤝</span>
+                <Icons8MenuIcon
+                  iconId="gf7HkPc5t1hF"
+                  colorHex="77716B"
+                  className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
+                />
                 My Network
               </button>
             </li>
@@ -152,9 +186,13 @@ export default function UserMenu() {
               <button
                 type="button"
                 onClick={() => navTo("/network/feed")}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717]"
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group"
               >
-                <span className="text-[#8a8784]">📰</span>
+                <Icons8MenuIcon
+                  iconId="0XwEi0yisdO8"
+                  colorHex="77716B"
+                  className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
+                />
                 Professional Feed
               </button>
             </li>
@@ -162,9 +200,13 @@ export default function UserMenu() {
               <button
                 type="button"
                 onClick={() => navTo("/network/communities")}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717]"
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group"
               >
-                <span className="text-[#8a8784]">👥</span>
+                <Icons8MenuIcon
+                  iconId="4C2pzaBlIDEO"
+                  colorHex="77716B"
+                  className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
+                />
                 Communities
               </button>
             </li>
@@ -179,9 +221,13 @@ export default function UserMenu() {
                 <button
                   type="button"
                   onClick={() => navTo("/admin")}
-                  className="flex w-full items-center gap-3 rounded-xl bg-[#eef5fc] px-3 py-2 text-[13px] font-semibold text-[#1769c2] transition hover:bg-[#dbeafe]"
+                  className="flex w-full items-center gap-3 rounded-xl bg-[#eef5fc] px-3 py-2 text-[13px] font-semibold text-[#1769c2] transition hover:bg-[#dbeafe] group"
                 >
-                  <span>🛡️</span>
+                  <Icons8MenuIcon
+                    iconId="vy6OvJYHSJ8I"
+                    colorHex="1769C2"
+                    className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
+                  />
                   Admin Console
                 </button>
               </div>
@@ -194,9 +240,13 @@ export default function UserMenu() {
             <button
               type="button"
               onClick={() => navTo("/pricing")}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717]"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group"
             >
-              <span className="text-[#1769c2]">👑</span>
+              <Icons8MenuIcon
+                iconId="JYQrEM0EyitQ"
+                colorHex="D97706"
+                className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
+              />
               Plans & Pricing
             </button>
           </div>
@@ -206,14 +256,13 @@ export default function UserMenu() {
             <button
               type="button"
               onClick={() => navTo("/settings")}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717]"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group"
             >
-              <span className="text-[#8a8784]">
-                <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                </svg>
-              </span>
+              <Icons8MenuIcon
+                iconId="4511GGVppfIx"
+                colorHex="77716B"
+                className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
+              />
               Settings
             </button>
           </div>
@@ -225,13 +274,13 @@ export default function UserMenu() {
             <button
               type="button"
               onClick={handleSignOut}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-semibold text-red-500 transition hover:bg-red-50"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-semibold text-red-500 transition hover:bg-red-50 group"
             >
-              <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
+              <Icons8MenuIcon
+                iconId="Q1xkcFuVON39"
+                colorHex="EF4444"
+                className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
+              />
               Log out
             </button>
           </div>
