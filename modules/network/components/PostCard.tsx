@@ -234,82 +234,86 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
       </div>
 
       {/* Action bar */}
-      <div className="mt-4 flex items-center gap-0.5 border-t border-[#f5f4f3] pt-3">
-        {/* Like — PulseHeart */}
-        <PulseHeart
-          liked={reacted}
-          count={reactionCount}
-          onChange={handleReact}
-          showCount={reactionCount > 0}
-          icon="heart"
-          idleOutline
-          size={20}
-          corner={20}
-          likedColor="#e11d48"
-          idleColor="#77716b"
-          pillColor="#f5f4f3"
-          textColor="#171717"
-          duration={520}
-          dotSize={0.25}
-          overshoot={1.6}
-          beat={2.5}
-          rollDuration={320}
-          label="Like"
-          className="!rounded-lg"
-        />
+      <div className="mt-4 flex items-center justify-between gap-1 border-t border-[#f5f4f3] pt-3">
+        <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+          {/* Like — PulseHeart */}
+          <PulseHeart
+            liked={reacted}
+            count={reactionCount}
+            onChange={handleReact}
+            showCount={reactionCount > 0}
+            icon="heart"
+            idleOutline
+            size={18}
+            corner={18}
+            likedColor="#e11d48"
+            idleColor="#77716b"
+            pillColor="#f5f4f3"
+            textColor="#171717"
+            duration={520}
+            dotSize={0.25}
+            overshoot={1.6}
+            beat={2.5}
+            rollDuration={320}
+            label="Like"
+            className="!rounded-lg"
+          />
 
-        {/* Comment */}
-        <button
-          type="button"
-          onClick={loadComments}
-          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[#77716b] transition hover:bg-[#f8f7f6] hover:text-[#171717]"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            className="h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
+          {/* Comment */}
+          <button
+            type="button"
+            onClick={loadComments}
+            className="flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-medium text-[#77716b] transition hover:bg-[#f8f7f6] hover:text-[#171717] active:scale-95"
           >
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
-          {post.comment_count + comments.length > 0
-            ? post.comment_count + comments.length
-            : "Comment"}
-        </button>
+            <svg
+              viewBox="0 0 24 24"
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            >
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            <span>
+              {post.comment_count + comments.length > 0
+                ? post.comment_count + comments.length
+                : "Comment"}
+            </span>
+          </button>
 
-        {/* Share */}
-        <button
-          type="button"
-          onClick={() => {
-            if (typeof window !== "undefined") {
-              navigator.clipboard.writeText(window.location.href);
-              alert("Post link copied to clipboard!");
-            }
-          }}
-          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[#77716b] transition hover:bg-[#f8f7f6] hover:text-[#171717]"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            className="h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
+          {/* Share */}
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                navigator.clipboard.writeText(window.location.href);
+                alert("Post link copied to clipboard!");
+              }
+            }}
+            className="flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-medium text-[#77716b] transition hover:bg-[#f8f7f6] hover:text-[#171717] active:scale-95"
           >
-            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-            <polyline points="16 6 12 2 8 6" />
-            <line x1="12" y1="2" x2="12" y2="15" />
-          </svg>
-          {post.share_count > 0 ? post.share_count : "Share"}
-        </button>
+            <svg
+              viewBox="0 0 24 24"
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            >
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+              <polyline points="16 6 12 2 8 6" />
+              <line x1="12" y1="2" x2="12" y2="15" />
+            </svg>
+            <span>{post.share_count > 0 ? post.share_count : "Share"}</span>
+          </button>
+        </div>
 
         {/* Save */}
         <button
           type="button"
           onClick={() => setSaved(!saved)}
-          className={`ml-auto flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+          className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-medium transition active:scale-95 ${
             saved
-              ? "text-[#1769c2]"
+              ? "text-[#0f4c81] bg-[#f0efee]"
               : "text-[#77716b] hover:bg-[#f8f7f6] hover:text-[#171717]"
           }`}
         >
@@ -322,7 +326,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
           >
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
           </svg>
-          Save
+          <span className="hidden sm:inline">Save</span>
         </button>
       </div>
 

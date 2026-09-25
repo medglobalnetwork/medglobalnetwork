@@ -250,7 +250,7 @@ export function ProfileHeader({
               </div>
 
               <div className="cursor-pointer hover:opacity-80 transition-opacity">
-                <span className="block text-sm sm:text-base lg:text-lg font-black text-[#1769c2] tracking-tight leading-none mb-0.5">
+                <span className="block text-sm sm:text-base lg:text-lg font-black text-[#0f4c81] tracking-tight leading-none mb-0.5">
                   {formatCount(profile.connection_count ?? 0)}
                 </span>
                 <span className="text-[11px] sm:text-xs text-[#5d5854] font-medium leading-none">connections</span>
@@ -270,7 +270,7 @@ export function ProfileHeader({
                   <ShieldCheck className="h-3 w-3" /> Verified Clinician
                 </span>
               ) : (
-                <CheckCircle2 className="h-4 w-4 text-blue-500 fill-blue-500 text-white shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-[#0f4c81] fill-[#0f4c81] text-white shrink-0" />
               )}
               {/* Unique Member ID Badge */}
               <MemberBadge
@@ -285,7 +285,7 @@ export function ProfileHeader({
             {/* Handle & Profession & Specialization */}
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-[#5d5854]">
               {profile.username && (
-                <span className="font-mono font-semibold text-[#1769c2]">
+                <span className="font-mono font-semibold text-[#0f4c81]">
                   @{profile.username}
                 </span>
               )}
@@ -300,7 +300,7 @@ export function ProfileHeader({
                 <button
                   type="button"
                   onClick={onEditProfileClick}
-                  className="text-xs font-semibold text-[#1769c2] hover:underline"
+                  className="text-xs font-semibold text-[#0f4c81] hover:underline"
                 >
                   · + Add designation & specialty
                 </button>
@@ -316,7 +316,7 @@ export function ProfileHeader({
               <button
                 type="button"
                 onClick={onEditProfileClick}
-                className="text-xs text-[#1769c2] font-semibold hover:underline inline-flex items-center gap-1 py-0.5"
+                className="text-xs text-[#0f4c81] font-semibold hover:underline inline-flex items-center gap-1 py-0.5"
               >
                 <span>+ Add your clinical bio & background</span>
               </button>
@@ -368,7 +368,7 @@ export function ProfileHeader({
                 <button
                   type="button"
                   onClick={onEditProfileClick}
-                  className="inline-flex items-center gap-1 rounded-lg border border-dashed border-[#cbdff7] bg-[#f4f8fe] px-2.5 py-1 text-[11px] font-semibold text-[#1769c2] hover:bg-[#eef5fc] transition"
+                  className="inline-flex items-center gap-1 rounded-lg border border-dashed border-[#cbdff7] bg-[#f4f8fe] px-2.5 py-1 text-[11px] font-semibold text-[#0f4c81] hover:bg-[#eef5fc] transition"
                 >
                   <span>+ Add Clinical Specialties & Skills</span>
                 </button>
@@ -412,7 +412,7 @@ export function ProfileHeader({
                   className={`flex-1 min-w-0 h-9 sm:h-10 rounded-xl px-2 sm:px-3 text-xs sm:text-sm font-bold truncate whitespace-nowrap flex items-center justify-center transition active:scale-98 text-center ${
                     isFollowing
                       ? "bg-[#efefef] hover:bg-[#e4e4e4] text-[#171717]"
-                      : "bg-[#1769c2] hover:bg-[#12569f] text-white shadow-xs"
+                      : "bg-[#0f4c81] hover:bg-[#0c3d69] text-white shadow-xs"
                   }`}
                 >
                   {followLoading ? "..." : isFollowing ? "Following" : "Follow"}
@@ -431,7 +431,7 @@ export function ProfileHeader({
                   className="flex-1 min-w-0 h-9 sm:h-10 rounded-xl bg-[#efefef] hover:bg-[#e4e4e4] px-2 sm:px-3 text-xs sm:text-sm font-bold text-[#171717] truncate whitespace-nowrap flex items-center justify-center gap-1 transition active:scale-98 text-center"
                   title="Direct Message"
                 >
-                  <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#1769c2]" />
+                  <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#0f4c81]" />
                   <span>Message</span>
                 </button>
                 <button

@@ -70,57 +70,69 @@ export function ConversationDetailsDrawer({
     : `${members.length} members · ${conversation.type}`;
 
   return (
-    <div className="w-80 lg:w-88 border-l border-[#e8e6e3] bg-white flex flex-col h-full overflow-hidden shadow-xs shrink-0 animate-in slide-in-from-right duration-200">
-      {/* Header */}
-      <div className="p-3.5 border-b border-[#e8e6e3] flex items-center justify-between bg-[#faf9f8]">
-        <h3 className="text-sm font-bold text-[#171717]">Conversation Workspace</h3>
-        <button
-          type="button"
-          onClick={onClose}
-          className="p-1 text-[#77716b] hover:text-[#171717] hover:bg-[#efefef] rounded-lg transition"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
+    <>
+      {/* Mobile Backdrop Overlay */}
+      <div
+        className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 md:hidden transition-opacity"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-      {/* Tabs */}
-      <div className="flex border-b border-[#f0efee] px-3 pt-2 text-xs font-bold bg-[#faf9f8]">
-        <button
-          type="button"
-          onClick={() => setActiveTab("about")}
-          className={`pb-2 px-3 border-b-2 transition ${
-            activeTab === "about"
-              ? "border-[#1769c2] text-[#1769c2]"
-              : "border-transparent text-[#77716b] hover:text-[#171717]"
-          }`}
-        >
-          Overview
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("media")}
-          className={`pb-2 px-3 border-b-2 transition ${
-            activeTab === "media"
-              ? "border-[#1769c2] text-[#1769c2]"
-              : "border-transparent text-[#77716b] hover:text-[#171717]"
-          }`}
-        >
-          Shared Media
-        </button>
-        {!isDirect && (
+      {/* Drawer Container (Slide-over on mobile, side column on desktop) */}
+      <aside
+        className="fixed inset-y-0 right-0 z-50 w-full sm:w-96 max-w-full md:static md:z-auto md:w-80 lg:w-88 border-l border-[#e8e6e3] bg-white flex flex-col h-full overflow-hidden shadow-2xl md:shadow-xs shrink-0 animate-in slide-in-from-right duration-200"
+      >
+        {/* Header */}
+        <div className="p-3.5 sm:p-4 border-b border-[#e8e6e3] flex items-center justify-between bg-[#faf9f8] shrink-0">
+          <h3 className="text-sm font-bold text-[#171717]">Details & Profile</h3>
           <button
             type="button"
-            onClick={() => setActiveTab("members")}
+            onClick={onClose}
+            className="p-1.5 text-[#77716b] hover:text-[#171717] hover:bg-[#efefef] rounded-xl transition"
+            aria-label="Close details"
+          >
+            <X className="h-4.5 w-4.5" />
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-[#f0efee] px-3 pt-2 text-xs font-bold bg-[#faf9f8] shrink-0">
+          <button
+            type="button"
+            onClick={() => setActiveTab("about")}
             className={`pb-2 px-3 border-b-2 transition ${
-              activeTab === "members"
-                ? "border-[#1769c2] text-[#1769c2]"
+              activeTab === "about"
+                ? "border-[#0f4c81] text-[#0f4c81]"
                 : "border-transparent text-[#77716b] hover:text-[#171717]"
             }`}
           >
-            Members ({members.length})
+            Overview
           </button>
-        )}
-      </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab("media")}
+            className={`pb-2 px-3 border-b-2 transition ${
+              activeTab === "media"
+                ? "border-[#0f4c81] text-[#0f4c81]"
+                : "border-transparent text-[#77716b] hover:text-[#171717]"
+            }`}
+          >
+            Shared Media
+          </button>
+          {!isDirect && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("members")}
+              className={`pb-2 px-3 border-b-2 transition ${
+                activeTab === "members"
+                  ? "border-[#0f4c81] text-[#0f4c81]"
+                  : "border-transparent text-[#77716b] hover:text-[#171717]"
+              }`}
+            >
+              Members ({members.length})
+            </button>
+          )}
+        </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
         {activeTab === "about" && (
@@ -395,6 +407,7 @@ export function ConversationDetailsDrawer({
           </div>
         )}
       </div>
-    </div>
+    </aside>
+  </>
   );
 }
