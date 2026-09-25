@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { AppSidebar } from "@/components/AppSidebar";
 import AppHeader from "@/components/AppHeader";
 import AppBottomNav from "@/components/AppBottomNav";
@@ -11,7 +11,20 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  // Default to auto-hide (collapsed at rest, expands on hover)
+  const [isCollapsed, setIsCollapsed] = useState(true);
+
+  // Restore user pin preference on client mount if previously set
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("mgn_sidebar_pinned");
+      if (saved !== null) {
+        setIsCollapsed(saved !== "true");
+      }
+    } catch {
+      // ignore storage access errors
+    }
+  }, []);
 
   const handleOpenMobileDrawer = useCallback(() => {
     setIsMobileDrawerOpen(true);
@@ -22,7 +35,15 @@ export function AppShell({ children }: AppShellProps) {
   }, []);
 
   const handleToggleCollapse = useCallback(() => {
-    setIsCollapsed((prev) => !prev);
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("mgn_sidebar_pinned", String(!next));
+      } catch {
+        // ignore storage access errors
+      }
+      return next;
+    });
   }, []);
 
   return (

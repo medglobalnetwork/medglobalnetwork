@@ -24,6 +24,8 @@ import {
   LogOut,
   ExternalLink,
   Compass,
+  Pin,
+  PinOff,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { getUserAvatarUrl } from "@/lib/avatar";
@@ -72,6 +74,41 @@ export function AppSidebar({
   const router = useRouter();
   const { data: session } = authClient.useSession();
 
+  const [isHovered, setIsHovered] = React.useState(false);
+  const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    hoverTimeoutRef.current = setTimeout(() => {
+      setIsHovered(false);
+    }, 150);
+  };
+
+  const handleNavClick = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    setIsHovered(false);
+  };
+
+  React.useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const isLinkActive = (href: string) => {
     if (href === "/home") {
       return pathname === "/home" || pathname === "/";
@@ -81,14 +118,17 @@ export function AppSidebar({
 
   const userAvatar = getUserAvatarUrl(session?.user?.image, session?.user?.name);
 
-  // Close mobile drawer only when navigating to a new route
+  // Close mobile drawer and collapse hover state when navigating to a new route
   const prevPathname = React.useRef(pathname);
   React.useEffect(() => {
     if (prevPathname.current !== pathname) {
       prevPathname.current = pathname;
       onCloseMobileDrawer();
+      setIsHovered(false);
     }
   }, [pathname, onCloseMobileDrawer]);
+
+  const isExpanded = !isCollapsed || isHovered;
 
   return (
     <>
@@ -96,30 +136,50 @@ export function AppSidebar({
       {/* 1. DESKTOP SIDEBAR (>= md) */}
       {/* ============================================================ */}
       <aside
-        className={`hidden md:flex flex-col fixed top-0 left-0 bottom-0 z-40 bg-white border-r border-[#e8e6e3] transition-all duration-300 ease-in-out ${
-          isCollapsed ? "w-20" : "w-60 lg:w-64"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className={`hidden md:flex flex-col fixed top-0 left-0 bottom-0 bg-white border-r border-[#e8e6e3] transition-all duration-300 ease-in-out ${
+          isExpanded
+            ? isCollapsed
+              ? "w-60 lg:w-64 z-50 shadow-2xl"
+              : "w-60 lg:w-64 z-40 shadow-none"
+            : "w-20 z-40"
         }`}
       >
-        {/* Top: Logo & Collapse Toggle */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-[#f0efee] shrink-0">
-          <Link href="/home" className="flex items-center gap-2.5 overflow-hidden">
+        {/* Top: Logo & Collapse / Pin Toggle */}
+        <div
+          className={`h-16 flex items-center px-4 border-b border-[#f0efee] shrink-0 ${
+            isExpanded ? "justify-between" : "justify-center"
+          }`}
+        >
+          <Link
+            href="/home"
+            onClick={handleNavClick}
+            className="flex items-center gap-2.5 overflow-hidden"
+          >
             <img
               src="/logo.png"
               alt="MGN"
-              className={`h-7 w-auto object-contain transition-transform ${
-                isCollapsed ? "mx-auto" : ""
-              }`}
+              className="h-7 w-auto object-contain"
             />
           </Link>
 
-          {onToggleCollapse && (
+          {onToggleCollapse && isExpanded && (
             <button
               type="button"
               onClick={onToggleCollapse}
-              className="p-1.5 rounded-lg text-[#77716b] hover:bg-[#f5f4f2] hover:text-[#171717] transition"
-              title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              className="p-1.5 rounded-lg text-[#77716b] hover:bg-[#f5f4f2] hover:text-[#171717] transition group/pin"
+              title={
+                isCollapsed
+                  ? "Pin sidebar (Keep permanently open)"
+                  : "Unpin sidebar (Auto-collapse on mouse leave)"
+              }
             >
-              {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+              {isCollapsed ? (
+                <Pin className="h-4 w-4 rotate-45 text-[#9c958f] group-hover/pin:text-[#171717]" />
+              ) : (
+                <PinOff className="h-4 w-4 text-[#1769c2]" />
+              )}
             </button>
           )}
         </div>
@@ -128,8 +188,8 @@ export function AppSidebar({
         <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
           {/* Main Ecosystem Navigation */}
           <div>
-            {!isCollapsed && (
-              <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-[#9c958f]">
+            {isExpanded && (
+              <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-[#9c958f] animate-in fade-in duration-200">
                 Ecosystem
               </p>
             )}
@@ -142,20 +202,25 @@ export function AppSidebar({
                   <Link
                     key={item.id}
                     href={item.href}
+                    onClick={handleNavClick}
                     className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold transition group relative ${
                       active
                         ? "bg-[#eef5fc] text-[#1769c2] shadow-2xs"
                         : "text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
-                    } ${isCollapsed ? "justify-center px-2" : ""}`}
-                    title={isCollapsed ? item.label : undefined}
+                    } ${!isExpanded ? "justify-center px-2" : ""}`}
+                    title={!isExpanded ? item.label : undefined}
                   >
                     <Icon
                       className={`h-4.5 w-4.5 shrink-0 stroke-[2] transition-colors ${
                         active ? "text-[#1769c2]" : "text-[#77716b] group-hover:text-[#171717]"
                       }`}
                     />
-                    {!isCollapsed && <span className="truncate">{item.label}</span>}
-                    {active && !isCollapsed && (
+                    {isExpanded && (
+                      <span className="truncate animate-in fade-in duration-200">
+                        {item.label}
+                      </span>
+                    )}
+                    {active && isExpanded && (
                       <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#1769c2]" />
                     )}
                   </Link>
@@ -166,8 +231,8 @@ export function AppSidebar({
 
           {/* Workspace & Tools */}
           <div>
-            {!isCollapsed && (
-              <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-[#9c958f]">
+            {isExpanded && (
+              <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-[#9c958f] animate-in fade-in duration-200">
                 Workspace
               </p>
             )}
@@ -180,20 +245,25 @@ export function AppSidebar({
                   <Link
                     key={item.id}
                     href={item.href}
+                    onClick={handleNavClick}
                     className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold transition group relative ${
                       active
                         ? "bg-[#eef5fc] text-[#1769c2] shadow-2xs"
                         : "text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
-                    } ${isCollapsed ? "justify-center px-2" : ""}`}
-                    title={isCollapsed ? item.label : undefined}
+                    } ${!isExpanded ? "justify-center px-2" : ""}`}
+                    title={!isExpanded ? item.label : undefined}
                   >
                     <Icon
                       className={`h-4.5 w-4.5 shrink-0 stroke-[2] transition-colors ${
                         active ? "text-[#1769c2]" : "text-[#77716b] group-hover:text-[#171717]"
                       }`}
                     />
-                    {!isCollapsed && <span className="truncate">{item.label}</span>}
-                    {active && !isCollapsed && (
+                    {isExpanded && (
+                      <span className="truncate animate-in fade-in duration-200">
+                        {item.label}
+                      </span>
+                    )}
+                    {active && isExpanded && (
                       <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#1769c2]" />
                     )}
                   </Link>
@@ -207,19 +277,23 @@ export function AppSidebar({
         <div className="p-3 border-t border-[#f0efee] bg-[#faf9f8] shrink-0">
           <Link
             href="/settings"
+            onClick={handleNavClick}
             className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-[#5d5854] hover:bg-white hover:text-[#171717] hover:shadow-2xs transition ${
-              isCollapsed ? "justify-center px-2" : ""
+              !isExpanded ? "justify-center px-2" : ""
             }`}
-            title={isCollapsed ? "Settings" : undefined}
+            title={!isExpanded ? "Settings" : undefined}
           >
             <Settings className="h-4.5 w-4.5 shrink-0 stroke-[2] text-[#77716b]" />
-            {!isCollapsed && <span>Settings</span>}
+            {isExpanded && (
+              <span className="animate-in fade-in duration-200">Settings</span>
+            )}
           </Link>
 
-          {!isCollapsed && session?.user && (
-            <div className="mt-2 pt-2 border-t border-[#f0efee] flex items-center justify-between gap-2 px-1">
+          {isExpanded && session?.user && (
+            <div className="mt-2 pt-2 border-t border-[#f0efee] flex items-center justify-between gap-2 px-1 animate-in fade-in duration-200">
               <Link
                 href={`/profile/${session.user.id}`}
+                onClick={handleNavClick}
                 className="flex items-center gap-2.5 min-w-0 group hover:opacity-90 transition"
               >
                 <img
@@ -233,6 +307,23 @@ export function AppSidebar({
                   </p>
                   <p className="text-[10px] text-[#77716b] truncate">View Profile</p>
                 </div>
+              </Link>
+            </div>
+          )}
+
+          {!isExpanded && session?.user && (
+            <div className="mt-2 pt-2 border-t border-[#f0efee] flex items-center justify-center">
+              <Link
+                href={`/profile/${session.user.id}`}
+                onClick={handleNavClick}
+                title={session.user.name || "View Profile"}
+                className="group hover:opacity-90 transition"
+              >
+                <img
+                  src={userAvatar}
+                  alt={session.user.name || "User"}
+                  className="h-8 w-8 rounded-full object-cover border border-[#e8e6e3]"
+                />
               </Link>
             </div>
           )}
