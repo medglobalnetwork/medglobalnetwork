@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getAvatarColor, getInitials, DEFAULT_BLANK_AVATAR } from "@/lib/avatar";
 
 interface UserAvatarProps {
@@ -24,19 +24,25 @@ export function UserAvatar({
 }: UserAvatarProps) {
   const [imgError, setImgError] = useState(false);
 
-  // Check localStorage for local override if available
-  const resolvedSrc = React.useMemo(() => {
-    if (typeof window !== "undefined") {
-      if (userId) {
-        const stored = localStorage.getItem(`mgn_avatar_${userId}`);
-        if (stored) return stored;
-      }
-      const custom = localStorage.getItem("mgn_user_custom_avatar");
-      if (custom && (!src || src === DEFAULT_BLANK_AVATAR)) {
-        return custom;
-      }
+  // Initialize with src (matches SSR), then check localStorage after mount
+  // This avoids hydration mismatch caused by reading localStorage during SSR
+  const [resolvedSrc, setResolvedSrc] = useState<string | null | undefined>(src);
+
+  useEffect(() => {
+    // Reset imgError when src changes
+    setImgError(false);
+
+    // Check localStorage overrides only on client after mount
+    if (userId) {
+      const stored = localStorage.getItem(`mgn_avatar_${userId}`);
+      if (stored) { setResolvedSrc(stored); return; }
     }
-    return src;
+    const custom = localStorage.getItem("mgn_user_custom_avatar");
+    if (custom && (!src || src === DEFAULT_BLANK_AVATAR)) {
+      setResolvedSrc(custom);
+      return;
+    }
+    setResolvedSrc(src);
   }, [src, userId]);
 
   const hasCustomSize = /\b(h-\S+|w-\S+)\b/.test(className);

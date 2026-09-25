@@ -149,7 +149,7 @@ export class CommunicationService {
       FROM conversations c
       JOIN conversation_members m ON m.conversation_id = c.id AND m.user_id = ${userId}
       LEFT JOIN events ev ON ev.id = c.event_id
-      LEFT JOIN medical_camps mc ON mc.id = c.camp_id
+      LEFT JOIN camps mc ON mc.id = c.camp_id
       LEFT JOIN research_projects rp ON rp.id = c.research_project_id
       LEFT JOIN jobs j ON j.id = c.job_id
       LEFT JOIN organizations org ON org.id = c.organization_id
@@ -444,7 +444,7 @@ export class CommunicationService {
         comm.name as community_name
       FROM conversations c
       LEFT JOIN events ev ON ev.id = c.event_id
-      LEFT JOIN medical_camps mc ON mc.id = c.camp_id
+      LEFT JOIN camps mc ON mc.id = c.camp_id
       LEFT JOIN research_projects rp ON rp.id = c.research_project_id
       LEFT JOIN jobs j ON j.id = c.job_id
       LEFT JOIN organizations org ON org.id = c.organization_id
