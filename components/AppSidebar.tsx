@@ -62,7 +62,7 @@ function Icons8NavIcon({
   iconId,
   active,
   fallback: FallbackIcon,
-  className = "h-4.5 w-4.5",
+  className = "h-6 w-6 sm:h-[26px] sm:w-[26px]",
 }: {
   iconId?: string;
   active: boolean;
@@ -253,7 +253,7 @@ export function AppSidebar({
                       iconId={item.icon8Id}
                       active={active}
                       fallback={item.icon}
-                      className="h-4.5 w-4.5"
+                      className="h-6 w-6 sm:h-[26px] sm:w-[26px]"
                     />
                     {isExpanded && (
                       <span className="truncate animate-in fade-in duration-200">
@@ -296,7 +296,7 @@ export function AppSidebar({
                       iconId={item.icon8Id}
                       active={active}
                       fallback={item.icon}
-                      className="h-4.5 w-4.5"
+                      className="h-6 w-6 sm:h-[26px] sm:w-[26px]"
                     />
                     {isExpanded && (
                       <span className="truncate animate-in fade-in duration-200">
@@ -327,7 +327,7 @@ export function AppSidebar({
               iconId="4511GGVppfIx"
               active={isLinkActive("/settings")}
               fallback={Settings}
-              className="h-4.5 w-4.5"
+              className="h-6 w-6 sm:h-[26px] sm:w-[26px]"
             />
             {isExpanded && (
               <span className="animate-in fade-in duration-200">Settings</span>
@@ -459,7 +459,7 @@ export function AppSidebar({
                           iconId={item.icon8Id}
                           active={active}
                           fallback={item.icon}
-                          className="h-4.5 w-4.5"
+                          className="h-6 w-6"
                         />
                         <span className="truncate">{item.label}</span>
                         {active && (
@@ -495,7 +495,7 @@ export function AppSidebar({
                           iconId={item.icon8Id}
                           active={active}
                           fallback={item.icon}
-                          className="h-4.5 w-4.5"
+                          className="h-6 w-6"
                         />
                         <span className="truncate">{item.label}</span>
                       </Link>
@@ -516,7 +516,7 @@ export function AppSidebar({
                   iconId="4511GGVppfIx"
                   active={isLinkActive("/settings")}
                   fallback={Settings}
-                  className="h-4.5 w-4.5"
+                  className="h-6 w-6"
                 />
                 <span>Account Settings</span>
               </Link>
@@ -534,7 +534,12 @@ export function AppSidebar({
                 }}
                 className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition"
               >
-                <LogOut className="h-4.5 w-4.5 shrink-0" />
+                <Icons8NavIcon
+                  iconId="Q1xkcFuVON39"
+                  active={false}
+                  fallback={LogOut}
+                  className="h-6 w-6"
+                />
                 <span>Sign Out</span>
               </button>
             </div>
