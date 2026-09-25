@@ -251,9 +251,9 @@ export function GlobalSearchBar({
       <form onSubmit={handleSubmit} className="relative flex w-full items-center">
         <div className="pointer-events-none absolute left-3.5 flex items-center justify-center text-[#77716b]">
           {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin text-[#1769c2]" />
+            <Loader2 className="h-4.5 w-4.5 animate-spin text-[#1769c2]" />
           ) : (
-            <Search className="h-4 w-4 stroke-[2]" />
+            <Search className="h-4.5 w-4.5 stroke-[2]" />
           )}
         </div>
 
