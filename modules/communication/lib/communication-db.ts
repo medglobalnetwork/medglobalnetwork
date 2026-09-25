@@ -52,16 +52,14 @@ export async function ensureCommunicationTables(): Promise<void> {
       );
     `.execute(database);
 
-    await sql`
-      CREATE INDEX IF NOT EXISTS idx_conversations_type ON conversations(type);
-      CREATE INDEX IF NOT EXISTS idx_conversations_event ON conversations(event_id) WHERE event_id IS NOT NULL;
-      CREATE INDEX IF NOT EXISTS idx_conversations_camp ON conversations(camp_id) WHERE camp_id IS NOT NULL;
-      CREATE INDEX IF NOT EXISTS idx_conversations_research ON conversations(research_project_id) WHERE research_project_id IS NOT NULL;
-      CREATE INDEX IF NOT EXISTS idx_conversations_job ON conversations(job_id) WHERE job_id IS NOT NULL;
-      CREATE INDEX IF NOT EXISTS idx_conversations_org ON conversations(organization_id) WHERE organization_id IS NOT NULL;
-      CREATE INDEX IF NOT EXISTS idx_conversations_community ON conversations(community_id) WHERE community_id IS NOT NULL;
-      CREATE INDEX IF NOT EXISTS idx_conversations_last_msg_at ON conversations(last_message_at DESC NULLS LAST);
-    `.execute(database);
+    await sql`CREATE INDEX IF NOT EXISTS idx_conversations_type ON conversations(type);`.execute(database);
+    await sql`CREATE INDEX IF NOT EXISTS idx_conversations_event ON conversations(event_id) WHERE event_id IS NOT NULL;`.execute(database);
+    await sql`CREATE INDEX IF NOT EXISTS idx_conversations_camp ON conversations(camp_id) WHERE camp_id IS NOT NULL;`.execute(database);
+    await sql`CREATE INDEX IF NOT EXISTS idx_conversations_research ON conversations(research_project_id) WHERE research_project_id IS NOT NULL;`.execute(database);
+    await sql`CREATE INDEX IF NOT EXISTS idx_conversations_job ON conversations(job_id) WHERE job_id IS NOT NULL;`.execute(database);
+    await sql`CREATE INDEX IF NOT EXISTS idx_conversations_org ON conversations(organization_id) WHERE organization_id IS NOT NULL;`.execute(database);
+    await sql`CREATE INDEX IF NOT EXISTS idx_conversations_community ON conversations(community_id) WHERE community_id IS NOT NULL;`.execute(database);
+    await sql`CREATE INDEX IF NOT EXISTS idx_conversations_last_msg_at ON conversations(last_message_at DESC NULLS LAST);`.execute(database);
 
     // 2. Conversation Members
     await sql`
@@ -79,10 +77,8 @@ export async function ensureCommunicationTables(): Promise<void> {
       );
     `.execute(database);
 
-    await sql`
-      CREATE INDEX IF NOT EXISTS idx_conv_members_user ON conversation_members(user_id);
-      CREATE INDEX IF NOT EXISTS idx_conv_members_conv ON conversation_members(conversation_id);
-    `.execute(database);
+    await sql`CREATE INDEX IF NOT EXISTS idx_conv_members_user ON conversation_members(user_id);`.execute(database);
+    await sql`CREATE INDEX IF NOT EXISTS idx_conv_members_conv ON conversation_members(conversation_id);`.execute(database);
 
     // 3. Communication Messages
     await sql`
@@ -114,12 +110,10 @@ export async function ensureCommunicationTables(): Promise<void> {
       ALTER TABLE communication_messages ADD COLUMN IF NOT EXISTS deleted_for_user_ids TEXT[] DEFAULT '{}';
     `.execute(database);
 
-    await sql`
-      CREATE INDEX IF NOT EXISTS idx_comm_messages_conv_seq ON communication_messages(conversation_id, sequence_number ASC);
-      CREATE INDEX IF NOT EXISTS idx_comm_messages_conv_created ON communication_messages(conversation_id, created_at ASC);
-      CREATE INDEX IF NOT EXISTS idx_comm_messages_sender ON communication_messages(sender_id);
-      CREATE INDEX IF NOT EXISTS idx_comm_messages_client_id ON communication_messages(client_message_id) WHERE client_message_id IS NOT NULL;
-    `.execute(database);
+    await sql`CREATE INDEX IF NOT EXISTS idx_comm_messages_conv_seq ON communication_messages(conversation_id, sequence_number ASC);`.execute(database);
+    await sql`CREATE INDEX IF NOT EXISTS idx_comm_messages_conv_created ON communication_messages(conversation_id, created_at ASC);`.execute(database);
+    await sql`CREATE INDEX IF NOT EXISTS idx_comm_messages_sender ON communication_messages(sender_id);`.execute(database);
+    await sql`CREATE INDEX IF NOT EXISTS idx_comm_messages_client_id ON communication_messages(client_message_id) WHERE client_message_id IS NOT NULL;`.execute(database);
 
     // Mentions
     await sql`
@@ -132,10 +126,8 @@ export async function ensureCommunicationTables(): Promise<void> {
       );
     `.execute(database);
 
-    await sql`
-      CREATE INDEX IF NOT EXISTS idx_comm_mentions_msg ON communication_mentions(message_id);
-      CREATE INDEX IF NOT EXISTS idx_comm_mentions_user ON communication_mentions(user_id);
-    `.execute(database);
+    await sql`CREATE INDEX IF NOT EXISTS idx_comm_mentions_msg ON communication_mentions(message_id);`.execute(database);
+    await sql`CREATE INDEX IF NOT EXISTS idx_comm_mentions_user ON communication_mentions(user_id);`.execute(database);
 
     // 4. Reactions
     await sql`
@@ -271,7 +263,11 @@ export async function ensureCommunicationTables(): Promise<void> {
     `.execute(database);
 
     // 11. Legacy Data Bridge Migration (Migrates any messages in direct_messages)
-    await migrateLegacyDirectMessages();
+    try {
+      await migrateLegacyDirectMessages();
+    } catch (migErr) {
+      console.warn("migrateLegacyDirectMessages warning:", migErr);
+    }
 
     tablesInitialized = true;
   } catch (err) {

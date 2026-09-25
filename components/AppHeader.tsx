@@ -170,18 +170,25 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
   const hidden = useScrollDirection();
 
   React.useEffect(() => {
-    if (!session?.user) return;
-    fetch("/api/network/notifications", { credentials: "include" })
-      .then(async (r) => {
-        if (!r.ok) return {};
-        const text = await r.text();
-        return text ? JSON.parse(text) : {};
-      })
-      .then((d) => {
-        if (d.unreadCount !== undefined) setUnreadCount(d.unreadCount);
-      })
-      .catch(() => {});
-  }, [session?.user]);
+    if (!session?.user?.id) return;
+
+    const fetchUnreadCount = () => {
+      fetch("/api/network/notifications", { credentials: "include" })
+        .then(async (r) => {
+          if (!r.ok) return {};
+          const text = await r.text();
+          return text ? JSON.parse(text) : {};
+        })
+        .then((d) => {
+          if (d.unreadCount !== undefined) setUnreadCount(d.unreadCount);
+        })
+        .catch(() => {});
+    };
+
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [session?.user?.id]);
 
   const handleToggleNotifications = () => {
     setNotifOpen((prev) => {
