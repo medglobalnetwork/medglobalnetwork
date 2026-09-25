@@ -72,18 +72,7 @@ export function ConversationDetailsDrawer({
     : `${members.length} members · ${conversation.type}`;
 
   return (
-    <>
-      {/* Mobile Backdrop Overlay */}
-      <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 md:hidden transition-opacity"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Main Container: Full screen mobile page on <md, side column drawer on >=md */}
-      <aside
-        className="fixed inset-0 z-50 md:static md:z-auto w-full md:w-80 lg:w-88 border-l border-[#e8e6e3] bg-white flex flex-col h-dvh md:h-full overflow-hidden shadow-2xl md:shadow-xs shrink-0 animate-in slide-in-from-right duration-200"
-      >
+    <aside className="w-full md:w-80 lg:w-88 border-l border-[#e8e6e3] bg-white flex flex-col h-full overflow-hidden shadow-xs shrink-0 animate-in slide-in-from-right duration-200">
         {/* Mobile Page Header with Back Arrow on mobile, Close X on desktop */}
         <div className="p-3.5 sm:p-4 border-b border-[#e8e6e3] flex items-center justify-between bg-[#faf9f8] shrink-0">
           <div className="flex items-center gap-2">
@@ -424,6 +413,5 @@ export function ConversationDetailsDrawer({
         )}
       </div>
     </aside>
-  </>
   );
 }

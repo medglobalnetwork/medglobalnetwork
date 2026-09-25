@@ -989,7 +989,11 @@ export function CommunicationShell() {
         {/* ============================================================ */}
         <div
           className={`flex-1 flex flex-col bg-[#fbfbfa] min-w-0 ${
-            !selectedConversation ? "hidden md:flex items-center justify-center" : "flex"
+            !selectedConversation
+              ? "hidden md:flex items-center justify-center"
+              : showDetailsDrawer
+              ? "hidden md:flex"
+              : "flex"
           }`}
         >
           {selectedConversation ? (
