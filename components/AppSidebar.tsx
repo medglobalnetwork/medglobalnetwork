@@ -26,6 +26,7 @@ import {
   Compass,
   Pin,
   PinOff,
+  Plus,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { getUserAvatarUrl } from "@/lib/avatar";
@@ -53,6 +54,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
 ];
 
 export const WORKSPACE_NAV_ITEMS: NavItem[] = [
+  { id: "create", label: "Create", href: "/create", icon: Plus, icon8Id: "SpuYztywr0Vl" },
   { id: "messages", label: "Messages", href: "/messages", icon: MessageSquare, icon8Id: "d7iUgF8ZrDaO" },
   { id: "calendar", label: "Schedule", href: "/calendar", icon: CalendarDays, icon8Id: "vwGXRtPWrZSn" },
   { id: "communities", label: "Communities", href: "/network/communities", icon: Compass, icon8Id: "aBDIThwGtLKb" },
