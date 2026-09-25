@@ -430,44 +430,44 @@ export default function CreateHubPage() {
         </div>
 
         {/* ============================================================ */}
-        {/* 4. CREATION CARDS GRID */}
+        {/* 4. CREATION CARDS GRID (2 columns on mobile, compact & clean) */}
         {/* ============================================================ */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
           {filteredItems.map((item) => {
             return (
               <div
                 key={item.id}
-                className="group relative flex flex-col justify-between rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-xs hover:border-[#1769c2]/30 hover:shadow-md transition-all duration-200"
+                className="group relative flex flex-col justify-between rounded-xl sm:rounded-2xl border border-[#e8e6e3] bg-white p-3 sm:p-4 shadow-xs hover:border-[#1769c2]/30 hover:shadow-md transition-all duration-200"
               >
                 <div>
                   {/* Top Bar: Icon + Category Badge */}
-                  <div className="flex items-center justify-between mb-3.5">
-                    <div className="flex size-12 items-center justify-center rounded-xl bg-[#f8f7f6] border border-[#e8e6e3] group-hover:scale-105 group-hover:border-[#1769c2]/20 transition-transform duration-200">
+                  <div className="flex items-start justify-between gap-1.5 mb-2.5">
+                    <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-[#f8f7f6] border border-[#e8e6e3] group-hover:scale-105 group-hover:border-[#1769c2]/20 transition-transform duration-200">
                       <CreationIcons8Icon
                         iconId={item.icon8Id}
                         fallback={item.fallbackIcon}
-                        className="size-6"
+                        className="size-5"
                       />
                     </div>
-                    <span className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold bg-[#f5f4f3] text-[#5d5854] border border-[#e8e6e3]">
+                    <span className="rounded-full px-2 py-0.5 text-[9px] sm:text-[10px] font-semibold bg-[#f5f4f3] text-[#5d5854] border border-[#e8e6e3] truncate max-w-[85px] sm:max-w-none">
                       {item.badgeText}
                     </span>
                   </div>
 
                   {/* Title & Description */}
-                  <h2 className="text-base font-bold text-[#171717] group-hover:text-[#1769c2] transition-colors text-balance">
+                  <h2 className="text-xs sm:text-sm font-bold text-[#171717] group-hover:text-[#1769c2] transition-colors text-balance line-clamp-2 leading-snug">
                     {item.title}
                   </h2>
-                  <p className="mt-1 text-xs text-[#77716b] leading-relaxed text-pretty">
+                  <p className="mt-1 text-[11px] sm:text-xs text-[#77716b] leading-relaxed text-pretty line-clamp-2 sm:line-clamp-3">
                     {item.description}
                   </p>
 
-                  {/* Tags */}
-                  <div className="mt-3 flex flex-wrap gap-1.5">
+                  {/* Tags (visible on sm+) */}
+                  <div className="mt-2 hidden sm:flex flex-wrap gap-1">
                     {item.tags.map((t) => (
                       <span
                         key={t}
-                        className="rounded-md bg-[#faf9f8] px-2 py-0.5 text-[10px] font-medium text-[#77716b] border border-[#f0efee]"
+                        className="rounded-md bg-[#faf9f8] px-1.5 py-0.5 text-[9px] sm:text-[10px] font-medium text-[#77716b] border border-[#f0efee]"
                       >
                         #{t}
                       </span>
@@ -476,12 +476,12 @@ export default function CreateHubPage() {
                 </div>
 
                 {/* Bottom Action Area with Role Clearance */}
-                <div className="mt-5 pt-3.5 border-t border-[#f0efee] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-1.5 text-[11px] text-[#77716b]">
+                <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-[#f0efee] flex flex-col gap-2">
+                  <div className="flex items-center gap-1 text-[10px] sm:text-[11px] text-[#77716b]">
                     {item.isUnlocked ? (
-                      <CheckCircle2 className="size-3.5 text-emerald-600 shrink-0" />
+                      <CheckCircle2 className="size-3 sm:size-3.5 text-emerald-600 shrink-0" />
                     ) : (
-                      <Lock className="size-3.5 text-amber-600 shrink-0" />
+                      <Lock className="size-3 sm:size-3.5 text-amber-600 shrink-0" />
                     )}
                     <span className="truncate">{item.roleRequired}</span>
                   </div>
@@ -490,17 +490,17 @@ export default function CreateHubPage() {
                     <button
                       type="button"
                       onClick={() => router.push(item.targetUrl)}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#12569f] focus-visible:ring-2 focus-visible:ring-[#1769c2] focus-visible:ring-offset-2 focus-visible:outline-none transition active:scale-95 shrink-0"
+                      className="w-full inline-flex items-center justify-center gap-1 rounded-lg sm:rounded-xl bg-[#1769c2] py-1.5 sm:py-2 px-2 text-[11px] sm:text-xs font-bold text-white shadow-xs hover:bg-[#12569f] focus-visible:ring-2 focus-visible:ring-[#1769c2] focus-visible:ring-offset-1 focus-visible:outline-none transition active:scale-95 shrink-0"
                     >
-                      {item.actionText} <ArrowRight className="size-3.5" />
+                      {item.actionText} <ArrowRight className="size-3 sm:size-3.5" />
                     </button>
                   ) : (
                     <button
                       type="button"
                       onClick={() => router.push("/verify")}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800 hover:bg-amber-100 focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-2 focus-visible:outline-none transition shrink-0"
+                      className="w-full inline-flex items-center justify-center gap-1 rounded-lg sm:rounded-xl border border-amber-300 bg-amber-50 py-1.5 sm:py-2 px-2 text-[10px] sm:text-xs font-bold text-amber-800 hover:bg-amber-100 focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-1 focus-visible:outline-none transition shrink-0"
                     >
-                      Verify to Unlock <Lock className="size-3" />
+                      Verify <Lock className="size-2.5 sm:size-3" />
                     </button>
                   )}
                 </div>
