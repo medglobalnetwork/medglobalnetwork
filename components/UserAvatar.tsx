@@ -22,20 +22,21 @@ export function UserAvatar({
   className = "",
   alt,
 }: UserAvatarProps) {
+  const [mounted, setMounted] = useState(false);
   const [imgError, setImgError] = useState(false);
-
-  // Initialize with src (matches SSR), then check localStorage after mount
-  // This avoids hydration mismatch caused by reading localStorage during SSR
   const [resolvedSrc, setResolvedSrc] = useState<string | null | undefined>(src);
 
   useEffect(() => {
-    // Reset imgError when src changes
+    setMounted(true);
     setImgError(false);
 
     // Check localStorage overrides only on client after mount
     if (userId) {
       const stored = localStorage.getItem(`mgn_avatar_${userId}`);
-      if (stored) { setResolvedSrc(stored); return; }
+      if (stored) {
+        setResolvedSrc(stored);
+        return;
+      }
     }
     const custom = localStorage.getItem("mgn_user_custom_avatar");
     if (custom && (!src || src === DEFAULT_BLANK_AVATAR)) {
@@ -44,6 +45,11 @@ export function UserAvatar({
     }
     setResolvedSrc(src);
   }, [src, userId]);
+
+  // When not yet mounted, keep attributes identical to SSR to guarantee 0 hydration mismatch
+  const effectiveName = mounted ? name : undefined;
+  const effectiveEmail = mounted ? email : undefined;
+  const effectiveUserId = mounted ? userId : undefined;
 
   const hasCustomSize = /\b(h-\S+|w-\S+)\b/.test(className);
   const sizeClasses = hasCustomSize
@@ -56,17 +62,17 @@ export function UserAvatar({
         xl: "h-16 w-16 text-xl",
       }[size || "md"];
 
-  const initials = getInitials(name, email);
-  const color = getAvatarColor(name || email || userId || "user");
+  const initials = getInitials(effectiveName, effectiveEmail);
+  const color = getAvatarColor(effectiveName || effectiveEmail || effectiveUserId || "user");
 
-  if (resolvedSrc && !imgError && resolvedSrc !== DEFAULT_BLANK_AVATAR) {
+  if (mounted && resolvedSrc && !imgError && resolvedSrc !== DEFAULT_BLANK_AVATAR) {
     return (
       <div
         className={`relative shrink-0 overflow-hidden rounded-full border border-[#ded8d1] bg-slate-100 ${sizeClasses} ${className}`}
       >
         <img
           src={resolvedSrc}
-          alt={alt || name || "User Avatar"}
+          alt={alt || effectiveName || "User Avatar"}
           className="h-full w-full object-cover"
           onError={() => setImgError(true)}
         />
@@ -77,10 +83,11 @@ export function UserAvatar({
   // Fallback to vibrant initials avatar matching modern platform standards
   return (
     <div
+      suppressHydrationWarning
       className={`relative shrink-0 flex items-center justify-center rounded-full font-bold shadow-2xs select-none ${color.bg} ${color.text} ${sizeClasses} ${className}`}
-      title={name || email || undefined}
+      title={effectiveName || effectiveEmail || undefined}
     >
-      <span>{initials}</span>
+      <span suppressHydrationWarning>{initials}</span>
     </div>
   );
 }
