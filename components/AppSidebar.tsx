@@ -36,26 +36,65 @@ export interface NavItem {
   label: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
+  icon8Id?: string;
   badge?: string | number;
   highlight?: boolean;
 }
 
 export const MAIN_NAV_ITEMS: NavItem[] = [
-  { id: "home", label: "Home", href: "/home", icon: Home },
-  { id: "network", label: "Network", href: "/network", icon: Users },
-  { id: "learn", label: "Learn", href: "/learn", icon: GraduationCap },
-  { id: "opportunities", label: "Opportunities", href: "/opportunities", icon: Briefcase },
-  { id: "events", label: "Events", href: "/events", icon: Calendar },
-  { id: "camps", label: "Health Camps", href: "/camps", icon: Tent },
-  { id: "research", label: "Research", href: "/research", icon: FlaskConical },
-  { id: "marketplace", label: "Marketplace", href: "/marketplace", icon: ShoppingBag },
+  { id: "home", label: "Home", href: "/home", icon: Home, icon8Id: "i6fZC6wuprSu" },
+  { id: "network", label: "Network", href: "/network", icon: Users, icon8Id: "YzsadpdsoN8e" },
+  { id: "learn", label: "Learn", href: "/learn", icon: GraduationCap, icon8Id: "AvANlXOxUB6Z" },
+  { id: "opportunities", label: "Opportunities", href: "/opportunities", icon: Briefcase, icon8Id: "IOkzpfWnUztj" },
+  { id: "events", label: "Events", href: "/events", icon: Calendar, icon8Id: "vwGXRtPWrZSn" },
+  { id: "camps", label: "Health Camps", href: "/camps", icon: Tent, icon8Id: "HBLTBJiOS1vp" },
+  { id: "research", label: "Research", href: "/research", icon: FlaskConical, icon8Id: "9ZmP1ylpYlqn" },
+  { id: "marketplace", label: "Marketplace", href: "/marketplace", icon: ShoppingBag, icon8Id: "VksxHreSn4ck" },
 ];
 
 export const WORKSPACE_NAV_ITEMS: NavItem[] = [
-  { id: "messages", label: "Messages", href: "/messages", icon: MessageSquare },
-  { id: "calendar", label: "Schedule", href: "/calendar", icon: CalendarDays },
-  { id: "communities", label: "Communities", href: "/network/communities", icon: Compass },
+  { id: "messages", label: "Messages", href: "/messages", icon: MessageSquare, icon8Id: "d7iUgF8ZrDaO" },
+  { id: "calendar", label: "Schedule", href: "/calendar", icon: CalendarDays, icon8Id: "vwGXRtPWrZSn" },
+  { id: "communities", label: "Communities", href: "/network/communities", icon: Compass, icon8Id: "aBDIThwGtLKb" },
 ];
+
+function Icons8NavIcon({
+  iconId,
+  active,
+  fallback: FallbackIcon,
+  className = "h-4.5 w-4.5",
+}: {
+  iconId?: string;
+  active: boolean;
+  fallback: React.ComponentType<{ className?: string }>;
+  className?: string;
+}) {
+  const [imgError, setImgError] = React.useState(false);
+
+  if (!iconId || imgError) {
+    return (
+      <FallbackIcon
+        className={`${className} shrink-0 stroke-[2] transition-colors ${
+          active ? "text-[#1769c2]" : "text-[#77716b] group-hover:text-[#171717]"
+        }`}
+      />
+    );
+  }
+
+  // Icons8 fluent-systems-regular pack CDN with active/inactive colors
+  const colorHex = active ? "1769C2" : "77716B";
+  const url = `https://img.icons8.com/?id=${iconId}&format=png&size=48&color=${colorHex}`;
+
+  return (
+    <img
+      src={url}
+      alt=""
+      className={`${className} shrink-0 object-contain transition-transform duration-200 group-hover:scale-105 select-none`}
+      onError={() => setImgError(true)}
+      loading="lazy"
+    />
+  );
+}
 
 interface AppSidebarProps {
   isMobileDrawerOpen: boolean;
@@ -210,10 +249,11 @@ export function AppSidebar({
                     } ${!isExpanded ? "justify-center px-2" : ""}`}
                     title={!isExpanded ? item.label : undefined}
                   >
-                    <Icon
-                      className={`h-4.5 w-4.5 shrink-0 stroke-[2] transition-colors ${
-                        active ? "text-[#1769c2]" : "text-[#77716b] group-hover:text-[#171717]"
-                      }`}
+                    <Icons8NavIcon
+                      iconId={item.icon8Id}
+                      active={active}
+                      fallback={item.icon}
+                      className="h-4.5 w-4.5"
                     />
                     {isExpanded && (
                       <span className="truncate animate-in fade-in duration-200">
@@ -239,7 +279,6 @@ export function AppSidebar({
             <nav className="space-y-1">
               {WORKSPACE_NAV_ITEMS.map((item) => {
                 const active = isLinkActive(item.href);
-                const Icon = item.icon;
 
                 return (
                   <Link
@@ -253,10 +292,11 @@ export function AppSidebar({
                     } ${!isExpanded ? "justify-center px-2" : ""}`}
                     title={!isExpanded ? item.label : undefined}
                   >
-                    <Icon
-                      className={`h-4.5 w-4.5 shrink-0 stroke-[2] transition-colors ${
-                        active ? "text-[#1769c2]" : "text-[#77716b] group-hover:text-[#171717]"
-                      }`}
+                    <Icons8NavIcon
+                      iconId={item.icon8Id}
+                      active={active}
+                      fallback={item.icon}
+                      className="h-4.5 w-4.5"
                     />
                     {isExpanded && (
                       <span className="truncate animate-in fade-in duration-200">
@@ -283,7 +323,12 @@ export function AppSidebar({
             }`}
             title={!isExpanded ? "Settings" : undefined}
           >
-            <Settings className="h-4.5 w-4.5 shrink-0 stroke-[2] text-[#77716b]" />
+            <Icons8NavIcon
+              iconId="4511GGVppfIx"
+              active={isLinkActive("/settings")}
+              fallback={Settings}
+              className="h-4.5 w-4.5"
+            />
             {isExpanded && (
               <span className="animate-in fade-in duration-200">Settings</span>
             )}
@@ -398,7 +443,6 @@ export function AppSidebar({
                 <nav className="space-y-1">
                   {MAIN_NAV_ITEMS.map((item) => {
                     const active = isLinkActive(item.href);
-                    const Icon = item.icon;
 
                     return (
                       <Link
@@ -411,10 +455,11 @@ export function AppSidebar({
                             : "text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
                         }`}
                       >
-                        <Icon
-                          className={`h-4.5 w-4.5 shrink-0 stroke-[2] ${
-                            active ? "text-[#1769c2]" : "text-[#77716b]"
-                          }`}
+                        <Icons8NavIcon
+                          iconId={item.icon8Id}
+                          active={active}
+                          fallback={item.icon}
+                          className="h-4.5 w-4.5"
                         />
                         <span className="truncate">{item.label}</span>
                         {active && (
@@ -434,7 +479,6 @@ export function AppSidebar({
                 <nav className="space-y-1">
                   {WORKSPACE_NAV_ITEMS.map((item) => {
                     const active = isLinkActive(item.href);
-                    const Icon = item.icon;
 
                     return (
                       <Link
@@ -447,10 +491,11 @@ export function AppSidebar({
                             : "text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
                         }`}
                       >
-                        <Icon
-                          className={`h-4.5 w-4.5 shrink-0 stroke-[2] ${
-                            active ? "text-[#1769c2]" : "text-[#77716b]"
-                          }`}
+                        <Icons8NavIcon
+                          iconId={item.icon8Id}
+                          active={active}
+                          fallback={item.icon}
+                          className="h-4.5 w-4.5"
                         />
                         <span className="truncate">{item.label}</span>
                       </Link>
@@ -467,7 +512,12 @@ export function AppSidebar({
                 onClick={onCloseMobileDrawer}
                 className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-[#5d5854] hover:bg-white hover:text-[#171717] transition"
               >
-                <Settings className="h-4.5 w-4.5 shrink-0 text-[#77716b]" />
+                <Icons8NavIcon
+                  iconId="4511GGVppfIx"
+                  active={isLinkActive("/settings")}
+                  fallback={Settings}
+                  className="h-4.5 w-4.5"
+                />
                 <span>Account Settings</span>
               </Link>
               <button

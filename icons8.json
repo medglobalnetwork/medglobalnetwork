@@ -5,13 +5,19 @@
     "sizes": [16, 20, 24, 48],
     "color": "currentColor",
     "items": {
+      "home": { "id": "i6fZC6wuprSu", "commonName": "home" },
       "network": { "id": "YzsadpdsoN8e", "commonName": "conference-call" },
       "learn": { "id": "AvANlXOxUB6Z", "commonName": "graduation-cap" },
-      "jobs": { "id": "IOkzpfWnUztj", "commonName": "briefcase" },
+      "opportunities": { "id": "IOkzpfWnUztj", "commonName": "briefcase" },
       "events": { "id": "vwGXRtPWrZSn", "commonName": "calendar" },
       "camps": { "id": "HBLTBJiOS1vp", "commonName": "tent" },
       "research": { "id": "9ZmP1ylpYlqn", "commonName": "test-tube" },
       "marketplace": { "id": "VksxHreSn4ck", "commonName": "shopping-bag" },
+      "messages": { "id": "d7iUgF8ZrDaO", "commonName": "chat" },
+      "calendar": { "id": "vwGXRtPWrZSn", "commonName": "calendar" },
+      "communities": { "id": "aBDIThwGtLKb", "commonName": "compass" },
+      "settings": { "id": "4511GGVppfIx", "commonName": "settings" },
+      "logout": { "id": "Q1xkcFuVON39", "commonName": "exit" },
       "ai-assistant": { "id": "YxCw7An8DYqf", "commonName": "sparkling" }
     }
   },
