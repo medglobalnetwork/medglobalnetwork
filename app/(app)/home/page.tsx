@@ -10,7 +10,6 @@ import {
   ChevronRight,
   Crown,
   ExternalLink,
-  MessageCircle,
   MessageSquare,
   ShieldCheck,
   Sparkles,
@@ -311,16 +310,6 @@ export default function HomePage() {
           </div>
         </div>
       </div>
-
-      {/* 5. FLOATING AI/CHAT BUTTON (Bottom-Right) */}
-      <button
-        type="button"
-        onClick={() => router.push("/network")}
-        className="fixed bottom-6 right-6 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-[#171717] text-white shadow-xl transition hover:scale-105 hover:bg-black"
-        aria-label="Open Chat & AI"
-      >
-        <MessageCircle className="h-6 w-6 stroke-[2]" />
-      </button>
     </main>
   );
 }

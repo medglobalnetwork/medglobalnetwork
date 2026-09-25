@@ -19,9 +19,17 @@ interface CreatePostProps {
   userImage?: string;
   userName?: string;
   onPosted?: () => void;
+  borderless?: boolean;
+  className?: string;
 }
 
-export function CreatePost({ userImage, userName, onPosted }: CreatePostProps) {
+export function CreatePost({
+  userImage,
+  userName,
+  onPosted,
+  borderless = false,
+  className = "",
+}: CreatePostProps) {
   const [expanded, setExpanded] = React.useState(false);
   const [content, setContent] = React.useState("");
   const [postType, setPostType] = React.useState<PostType>("text");
@@ -122,7 +130,13 @@ export function CreatePost({ userImage, userName, onPosted }: CreatePostProps) {
   };
 
   return (
-    <div className="rounded-3xl border border-[#e8e6e3] bg-white p-5 shadow-2xs">
+    <div
+      className={
+        borderless
+          ? `border-0 bg-transparent p-0 shadow-none ${className}`
+          : `rounded-3xl border border-[#e8e6e3] bg-white p-5 shadow-2xs ${className}`
+      }
+    >
       <input
         ref={fileInputRef}
         type="file"
@@ -151,7 +165,11 @@ export function CreatePost({ userImage, userName, onPosted }: CreatePostProps) {
             <button
               type="button"
               onClick={() => setExpanded(true)}
-              className="w-full rounded-2xl border border-[#e8e6e3] bg-[#f8f7f6] px-4 py-3 text-left text-xs font-medium text-[#77716b] transition hover:border-[#1769c2]/40 hover:bg-white"
+              className={`w-full rounded-2xl border px-4 py-3 text-left text-xs font-medium transition ${
+                borderless
+                  ? "border-[#e2e8f0] bg-white text-[#64748b] shadow-2xs hover:border-[#1769c2]/50 hover:bg-white"
+                  : "border-[#e8e6e3] bg-[#f8f7f6] text-[#77716b] hover:border-[#1769c2]/40 hover:bg-white"
+              }`}
             >
               What&apos;s happening in healthcare?
             </button>
@@ -224,7 +242,11 @@ export function CreatePost({ userImage, userName, onPosted }: CreatePostProps) {
       </div>
 
       {/* Action triggers bottom bar */}
-      <div className="mt-4 flex items-center justify-between border-t border-[#f5f4f3] pt-3 text-xs">
+      <div
+        className={`mt-4 flex items-center justify-between pt-3 text-xs ${
+          borderless ? "border-t border-[#e2e8f0]/60" : "border-t border-[#f5f4f3]"
+        }`}
+      >
         <div className="flex flex-wrap items-center gap-4 text-[#5d5854]">
           <button
             type="button"

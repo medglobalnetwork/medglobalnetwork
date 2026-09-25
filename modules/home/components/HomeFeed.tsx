@@ -85,6 +85,7 @@ export function HomeFeed({
         onPosted={handlePostCreated}
         userImage={currentUserAvatar || undefined}
         userName={currentUserName}
+        borderless={true}
       />
 
       {/* 2. FOR YOU / FOLLOWING / COMMUNITIES FEED TABS */}
