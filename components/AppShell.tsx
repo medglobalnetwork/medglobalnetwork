@@ -62,7 +62,7 @@ export function AppShell({ children }: AppShellProps) {
       {/* 2. MAIN CONTENT WRAPPER */}
       <div
         className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
-          isCollapsed ? "md:pl-24" : "md:pl-64 lg:pl-68"
+          isCollapsed ? "md:pl-20" : "md:pl-60 lg:pl-64"
         }`}
       >
         {/* Top Header with Hamburger trigger for mobile and clean search/actions for desktop */}

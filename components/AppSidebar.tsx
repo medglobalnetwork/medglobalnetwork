@@ -179,12 +179,12 @@ export function AppSidebar({
       <aside
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className={`hidden md:flex flex-col fixed top-2 left-2 bottom-2 bg-white border border-[#e8e6e3] rounded-2xl transition-all duration-300 ease-in-out overflow-hidden ${
+        className={`hidden md:flex flex-col fixed top-0 left-0 bottom-0 bg-white border-r border-[#e8e6e3] transition-all duration-300 ease-in-out ${
           isExpanded
             ? isCollapsed
               ? "w-60 lg:w-64 z-50 shadow-2xl"
-              : "w-60 lg:w-64 z-40 shadow-sm"
-            : "w-18 z-40"
+              : "w-60 lg:w-64 z-40 shadow-none"
+            : "w-20 z-40"
         }`}
       >
         {/* Top: Logo & Collapse / Pin Toggle */}
@@ -226,7 +226,7 @@ export function AppSidebar({
         </div>
 
         {/* Navigation List */}
-        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+        <div className="flex-1 overflow-y-auto no-scrollbar px-3 py-4 space-y-6">
           {/* Main Ecosystem Navigation */}
           <div>
             {isExpanded && (
@@ -436,7 +436,7 @@ export function AppSidebar({
             )}
 
             {/* Scrollable Nav Items */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-5">
+            <div className="flex-1 overflow-y-auto no-scrollbar p-3 space-y-5">
               {/* Additional Ecosystem Modules (Events, Camps, Research, Marketplace, etc.) */}
               <div>
                 <p className="px-3 mb-2 text-[10px] font-bold uppercase text-[#9c958f]">
