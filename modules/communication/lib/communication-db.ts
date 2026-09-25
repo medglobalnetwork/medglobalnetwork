@@ -271,7 +271,7 @@ export async function ensureCommunicationTables(): Promise<void> {
 
     tablesInitialized = true;
   } catch (err) {
-    console.warn("ensureCommunicationTables warning:", err);
+    console.error("FATAL: ensureCommunicationTables failed to create or alter tables. This WILL cause 500 errors if tables don't exist.", err);
   }
 }
 

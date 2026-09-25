@@ -54,9 +54,12 @@ import {
   ConversationType,
   RichEntitySharePayload,
   MessageRequestItem,
+  MessageType,
 } from "../types";
+import { authClient } from "@/lib/auth-client";
 
 export function CommunicationShell() {
+  const { data: session } = authClient.useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const targetUserId = searchParams.get("to") || searchParams.get("user");
@@ -320,6 +323,39 @@ export function CommunicationShell() {
 
     const clientMessageId = `cm_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
+    const optimisticMsg: CommunicationMessageItem = {
+      id: clientMessageId,
+      conversationId: selectedConversation.id,
+      senderId: session?.user?.id || "",
+      clientMessageId,
+      sequenceNumber: 0,
+      type: (overrideType || (tempMedia.length > 0 ? "IMAGE" : "TEXT")) as MessageType,
+      content: tempText,
+      replyToId: tempReplyTo?.id,
+      replyToSnippet: tempReplyTo
+        ? {
+            id: tempReplyTo.id,
+            senderName: "Clinician",
+            content: tempReplyTo.content,
+          }
+        : null,
+      mediaUrls: tempMedia.length > 0 ? tempMedia : undefined,
+      metadata: overrideMetadata,
+      status: "SENT",
+      isPinned: false,
+      editVersion: 0,
+      deletedForAll: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      reactions: [],
+      editedAt: null,
+      deletedAt: null,
+      forwardedFromId: null
+    };
+
+    setMessages((prev) => [...prev, optimisticMsg]);
+    setTimeout(() => scrollToBottom(true), 50);
+
     try {
       const res = await fetch(
         `/api/v1/communication/conversations/${selectedConversation.id}/messages`,
@@ -341,7 +377,7 @@ export function CommunicationShell() {
 
       const json = await res.json();
       if (json.data) {
-        setMessages((prev) => [...prev, json.data]);
+        setMessages((prev) => prev.map((m) => m.clientMessageId === clientMessageId ? json.data : m));
         setTimeout(() => scrollToBottom(true), 50);
 
         // Update last message in conversation list
@@ -360,6 +396,8 @@ export function CommunicationShell() {
       }
     } catch (err) {
       console.error("Error sending message:", err);
+      // Remove optimistic message on error
+      setMessages((prev) => prev.filter((m) => m.clientMessageId !== clientMessageId));
       setInputMessage(tempText);
       setSelectedAttachments(tempMedia);
       setReplyingTo(tempReplyTo);
@@ -876,10 +914,10 @@ export function CommunicationShell() {
 
                 // Context pill title
                 const contextPill =
-                  conv.context.eventTitle ||
-                  conv.context.campTitle ||
-                  conv.context.jobTitle ||
-                  conv.context.researchTitle;
+                  conv.context?.eventTitle ||
+                  conv.context?.campTitle ||
+                  conv.context?.jobTitle ||
+                  conv.context?.researchTitle;
 
                 return (
                   <button
@@ -1088,10 +1126,7 @@ export function CommunicationShell() {
                   </div>
                 ) : (
                   messages.map((msg) => {
-                    const isMe =
-                      activeIsDirect && activePeer
-                        ? msg.senderId !== activePeer.userId
-                        : msg.senderId !== selectedConversation.createdBy; // simple sender check
+                    const isMe = session?.user?.id === msg.senderId;
 
                     return (
                       <div

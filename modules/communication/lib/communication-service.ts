@@ -144,15 +144,15 @@ export class CommunicationService {
         mc.title as camp_title,
         rp.title as research_title,
         j.title as job_title,
-        org.name as org_name,
+        COALESCE(org.display_name, org.legal_name) as org_name,
         comm.name as community_name
       FROM conversations c
       JOIN conversation_members m ON m.conversation_id = c.id AND m.user_id = ${userId}
       LEFT JOIN events ev ON ev.id = c.event_id
       LEFT JOIN camps mc ON mc.id = c.camp_id
       LEFT JOIN research_projects rp ON rp.id = c.research_project_id
-      LEFT JOIN jobs j ON j.id = c.job_id
-      LEFT JOIN organizations org ON org.id = c.organization_id
+      LEFT JOIN research_opportunities j ON j.id = c.job_id
+      LEFT JOIN mgn_organisation_identities org ON org.id = c.organization_id
       LEFT JOIN communities comm ON comm.id = c.community_id
       WHERE c.status != 'DELETED'
     `;
@@ -440,14 +440,14 @@ export class CommunicationService {
         mc.title as camp_title,
         rp.title as research_title,
         j.title as job_title,
-        org.name as org_name,
+        COALESCE(org.display_name, org.legal_name) as org_name,
         comm.name as community_name
       FROM conversations c
       LEFT JOIN events ev ON ev.id = c.event_id
       LEFT JOIN camps mc ON mc.id = c.camp_id
       LEFT JOIN research_projects rp ON rp.id = c.research_project_id
-      LEFT JOIN jobs j ON j.id = c.job_id
-      LEFT JOIN organizations org ON org.id = c.organization_id
+      LEFT JOIN research_opportunities j ON j.id = c.job_id
+      LEFT JOIN mgn_organisation_identities org ON org.id = c.organization_id
       LEFT JOIN communities comm ON comm.id = c.community_id
       WHERE c.id = ${conversationId}
       LIMIT 1;
