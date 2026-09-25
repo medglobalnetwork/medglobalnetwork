@@ -13,6 +13,99 @@ import {
 } from "lucide-react";
 
 // ============================================================
+// Card Watermark Background Pattern (Matching Exact Reference Design)
+// ============================================================
+
+function CardWatermarkBg() {
+  return (
+    <div className="absolute inset-0 pointer-events-none select-none overflow-hidden rounded-[22px]">
+      <svg
+        viewBox="0 0 100 100"
+        className="h-full w-full opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Subtle Background Starburst Rays radiating from top center */}
+        <g stroke="#0f172a" strokeWidth="0.5" strokeOpacity="0.08" strokeLinecap="round">
+          <line x1="50" y1="14" x2="26" y2="4" />
+          <line x1="50" y1="14" x2="38" y2="2" />
+          <line x1="50" y1="14" x2="50" y2="1" />
+          <line x1="50" y1="14" x2="62" y2="2" />
+          <line x1="50" y1="14" x2="74" y2="4" />
+          <line x1="50" y1="14" x2="16" y2="12" />
+          <line x1="50" y1="14" x2="84" y2="12" />
+          <line x1="50" y1="14" x2="28" y2="28" />
+          <line x1="50" y1="14" x2="72" y2="28" />
+          <line x1="50" y1="14" x2="40" y2="40" />
+          <line x1="50" y1="14" x2="60" y2="40" />
+        </g>
+
+        {/* Faint Structural Alignment Grid Lines */}
+        <g stroke="#0f172a" strokeWidth="0.35" strokeOpacity="0.06">
+          <line x1="10" y1="4" x2="10" y2="96" />
+          <line x1="26" y1="4" x2="26" y2="96" />
+          <line x1="74" y1="4" x2="74" y2="96" />
+          <line x1="90" y1="4" x2="90" y2="96" />
+          <line x1="4" y1="14" x2="96" y2="14" />
+          <line x1="4" y1="32" x2="96" y2="32" />
+          <line x1="4" y1="50" x2="96" y2="50" />
+          <line x1="4" y1="68" x2="96" y2="68" />
+          <line x1="4" y1="86" x2="96" y2="86" />
+        </g>
+
+        {/* Hollow Outlined Glyph Matrix (H, X, Ж, K) */}
+        <g
+          fill="none"
+          stroke="#0f172a"
+          strokeWidth="0.75"
+          strokeOpacity="0.13"
+          fontFamily="monospace, system-ui, -apple-system, sans-serif"
+          fontWeight="900"
+          fontSize="11"
+          textAnchor="middle"
+          dominantBaseline="central"
+        >
+          {/* Row 0 (Top) */}
+          <text x="10" y="14">H</text>
+          <text x="26" y="14">H</text>
+          {/* Outlined Ж shape in center */}
+          <path d="M42 9.5 v9 M38.5 10.5 l7 7 M38.5 17.5 l7 -7" strokeWidth="0.75" />
+          <text x="58" y="14">K</text>
+          <text x="74" y="14">H</text>
+          <text x="90" y="14">H</text>
+
+          {/* Row 1 */}
+          <text x="10" y="32">X</text>
+          <text x="26" y="32">H</text>
+          <text x="74" y="32">H</text>
+          <text x="90" y="32">X</text>
+
+          {/* Row 2 */}
+          <text x="10" y="50">H</text>
+          <text x="26" y="50">H</text>
+          <text x="74" y="50">H</text>
+          <text x="90" y="50">H</text>
+
+          {/* Row 3 */}
+          <text x="10" y="68">X</text>
+          <text x="26" y="68">H</text>
+          <text x="74" y="68">H</text>
+          <text x="90" y="68">X</text>
+
+          {/* Row 4 (Bottom) */}
+          <text x="10" y="86">H</text>
+          <text x="26" y="86">H</text>
+          <path d="M42 81.5 v9 M38.5 82.5 l7 7 M38.5 89.5 l7 -7" strokeWidth="0.75" />
+          <text x="58" y="86">K</text>
+          <text x="74" y="86">H</text>
+          <text x="90" y="86">H</text>
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// ============================================================
 // Icons8 Quick Link Icon Component (Deep Navy Monochrome)
 // ============================================================
 
@@ -187,8 +280,11 @@ export function QuickLinksBar() {
             onClick={() => handleClick(card.href)}
             className="group relative aspect-square flex flex-col items-center justify-center rounded-[22px] border border-[#e2e8f0] bg-white p-4 sm:p-5 text-center transition-all duration-200 hover:-translate-y-1 hover:border-[#1769c2]/50 hover:shadow-lg active:scale-95 shadow-[0_2px_8px_rgba(0,0,0,0.03)] cursor-pointer overflow-hidden"
           >
+            {/* Card Background Watermark Pattern */}
+            <CardWatermarkBg />
+
             {/* Centered Icon without background box */}
-            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center">
+            <div className="relative z-10 flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center">
               <Icons8QuickIcon
                 iconId={card.iconId}
                 fallback={card.fallbackIcon}
@@ -197,12 +293,12 @@ export function QuickLinksBar() {
             </div>
 
             {/* Title */}
-            <h3 className="text-sm sm:text-base font-bold text-[#0f172a] group-hover:text-[#1769c2] transition-colors mt-3 tracking-tight truncate w-full">
+            <h3 className="relative z-10 text-sm sm:text-base font-bold text-[#0f172a] group-hover:text-[#1769c2] transition-colors mt-3 tracking-tight truncate w-full">
               {card.title}
             </h3>
 
             {/* Open link */}
-            <span className="text-xs font-medium text-[#64748b] group-hover:text-[#1769c2] flex items-center justify-center gap-1 mt-1 transition-colors">
+            <span className="relative z-10 text-xs font-medium text-[#64748b] group-hover:text-[#1769c2] flex items-center justify-center gap-1 mt-1 transition-colors">
               <span>Open</span>
               <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
             </span>
@@ -220,8 +316,11 @@ export function QuickLinksBar() {
             onClick={() => handleClick(card.href)}
             className="group relative aspect-square flex flex-col items-center justify-center rounded-[20px] border border-[#e2e8f0] bg-white p-2 sm:p-2.5 text-center transition-all duration-200 active:scale-95 hover:border-[#1769c2]/50 shadow-[0_2px_8px_rgba(0,0,0,0.03)] cursor-pointer overflow-hidden"
           >
+            {/* Card Background Watermark Pattern */}
+            <CardWatermarkBg />
+
             {/* Centered Icon without background box */}
-            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center">
+            <div className="relative z-10 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center">
               <Icons8QuickIcon
                 iconId={card.iconId}
                 fallback={card.fallbackIcon}
@@ -230,12 +329,12 @@ export function QuickLinksBar() {
             </div>
 
             {/* Title */}
-            <h3 className="text-[11px] sm:text-xs font-bold text-[#0f172a] group-hover:text-[#1769c2] truncate w-full tracking-tight transition-colors mt-1.5">
+            <h3 className="relative z-10 text-[11px] sm:text-xs font-bold text-[#0f172a] group-hover:text-[#1769c2] truncate w-full tracking-tight transition-colors mt-1.5">
               {card.title}
             </h3>
 
             {/* Open link */}
-            <span className="text-[9px] font-medium text-[#64748b] group-hover:text-[#1769c2] flex items-center justify-center gap-0.5 mt-0.5 transition-colors">
+            <span className="relative z-10 text-[9px] font-medium text-[#64748b] group-hover:text-[#1769c2] flex items-center justify-center gap-0.5 mt-0.5 transition-colors">
               <span>Open</span>
               <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
             </span>
