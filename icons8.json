@@ -1,0 +1,56 @@
+{
+  "version": 2,
+  "icons": {
+    "pack": "fluent-systems-regular",
+    "sizes": [16, 20, 24, 48],
+    "color": "currentColor",
+    "items": {
+      "network": { "id": "YzsadpdsoN8e", "commonName": "conference-call" },
+      "learn": { "id": "AvANlXOxUB6Z", "commonName": "graduation-cap" },
+      "jobs": { "id": "IOkzpfWnUztj", "commonName": "briefcase" },
+      "events": { "id": "vwGXRtPWrZSn", "commonName": "calendar" },
+      "camps": { "id": "HBLTBJiOS1vp", "commonName": "tent" },
+      "research": { "id": "9ZmP1ylpYlqn", "commonName": "test-tube" },
+      "marketplace": { "id": "VksxHreSn4ck", "commonName": "shopping-bag" },
+      "ai-assistant": { "id": "YxCw7An8DYqf", "commonName": "sparkling" }
+    }
+  },
+  "illustrations": {
+    "style": "3d-casual-life",
+    "slots": {
+      "learn_books": {
+        "id": "6058b8e54bde62001cbc6d28",
+        "url": "https://ouch-prod-var-cdn.icons8.com/bo/illustrations/previews/Q7KVSjI2tgY44f0f.webp"
+      },
+      "jobs_resume": {
+        "id": "6318797c10d5ff0001dae633",
+        "url": "https://ouch-prod-var-cdn.icons8.com/rb/illustrations/previews/NfI6wvDSoJyxG93p.webp"
+      },
+      "events_calendar": {
+        "id": "69de68618246c825d40b3236",
+        "url": "https://ouch-prod-var-cdn.icons8.com/vc/illustrations/previews/A8o1OHHEWJfaPDMH.webp"
+      },
+      "camps_megaphone": {
+        "id": "69de6d988246c825d40b3286",
+        "url": "https://ouch-prod-var-cdn.icons8.com/zb/illustrations/previews/ilqKv6a7vkASd97S.webp"
+      },
+      "research_report": {
+        "id": "638f9b0efef61a00013383d3",
+        "url": "https://ouch-prod-var-cdn.icons8.com/vb/illustrations/previews/lFjvmsjzT_j06fYT.webp"
+      },
+      "marketplace_cart": {
+        "id": "69de73548246c825d40b32fb",
+        "url": "https://ouch-prod-var-cdn.icons8.com/vy/illustrations/previews/YBJIK2EohTkSC3W6.webp"
+      },
+      "ai_assistant_robot": {
+        "id": "69de7d1c8246c825d40b33a8",
+        "url": "https://ouch-prod-var-cdn.icons8.com/ho/illustrations/previews/oyVH2QVYjdrAZzBP.webp"
+      }
+    }
+  },
+  "tokens": {
+    "iconColor": "currentColor",
+    "accent": "--primary",
+    "radius": "--radius"
+  }
+}

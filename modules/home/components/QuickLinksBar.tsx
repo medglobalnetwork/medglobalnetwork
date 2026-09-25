@@ -16,8 +16,36 @@ import {
 } from "lucide-react";
 
 // ============================================================
-// 3D Vector Illustrations Matching Mockup
+// 3D Vector & Icons8 Ouch Illustrations Matching Mockup
 // ============================================================
+
+function Ouch3DIllustration({
+  src,
+  alt,
+  fallback,
+}: {
+  src: string;
+  alt: string;
+  fallback: React.ReactNode;
+}) {
+  const [error, setError] = React.useState(false);
+
+  if (error) {
+    return <>{fallback}</>;
+  }
+
+  return (
+    <div className="relative h-11 w-13 sm:h-13 sm:w-16 flex items-center justify-end select-none">
+      <img
+        src={src}
+        alt={alt}
+        className="max-h-full max-w-full object-contain drop-shadow-xs transition-transform duration-300 group-hover:scale-110"
+        onError={() => setError(true)}
+        loading="lazy"
+      />
+    </div>
+  );
+}
 
 function DoctorAvatarsCluster() {
   return (
@@ -327,7 +355,13 @@ export function QuickLinksBar() {
       btnBg: "bg-[#e6f7ef] text-[#059669] hover:bg-[#d6f2e4]",
       arrowBg: "bg-[#059669]",
       actionColor: "text-[#059669]",
-      illustration: <BooksIllustration />,
+      illustration: (
+        <Ouch3DIllustration
+          src="https://ouch-prod-var-cdn.icons8.com/bo/illustrations/previews/Q7KVSjI2tgY44f0f.webp"
+          alt="Learn 3D Books"
+          fallback={<BooksIllustration />}
+        />
+      ),
     },
     {
       id: "jobs",
@@ -343,7 +377,13 @@ export function QuickLinksBar() {
       btnBg: "bg-[#fef4e4] text-[#d97706] hover:bg-[#fde7c7]",
       arrowBg: "bg-[#d97706]",
       actionColor: "text-[#d97706]",
-      illustration: <JobResumeIllustration />,
+      illustration: (
+        <Ouch3DIllustration
+          src="https://ouch-prod-var-cdn.icons8.com/rb/illustrations/previews/NfI6wvDSoJyxG93p.webp"
+          alt="Jobs 3D Resume"
+          fallback={<JobResumeIllustration />}
+        />
+      ),
     },
     {
       id: "events",
@@ -359,7 +399,13 @@ export function QuickLinksBar() {
       btnBg: "bg-[#ffedf1] text-[#e11d48] hover:bg-[#fcdbe1]",
       arrowBg: "bg-[#e11d48]",
       actionColor: "text-[#e11d48]",
-      illustration: <CalendarIllustration />,
+      illustration: (
+        <Ouch3DIllustration
+          src="https://ouch-prod-var-cdn.icons8.com/vc/illustrations/previews/A8o1OHHEWJfaPDMH.webp"
+          alt="Events 3D Calendar"
+          fallback={<CalendarIllustration />}
+        />
+      ),
     },
     {
       id: "camps",
@@ -375,7 +421,13 @@ export function QuickLinksBar() {
       btnBg: "bg-[#e3f7f0] text-[#0d9488] hover:bg-[#cff2e5]",
       arrowBg: "bg-[#0d9488]",
       actionColor: "text-[#0d9488]",
-      illustration: <MegaphoneIllustration />,
+      illustration: (
+        <Ouch3DIllustration
+          src="https://ouch-prod-var-cdn.icons8.com/zb/illustrations/previews/ilqKv6a7vkASd97S.webp"
+          alt="Camps 3D Megaphone"
+          fallback={<MegaphoneIllustration />}
+        />
+      ),
     },
     {
       id: "research",
@@ -391,7 +443,13 @@ export function QuickLinksBar() {
       btnBg: "bg-[#f3ecfe] text-[#7c3aed] hover:bg-[#e7d8fd]",
       arrowBg: "bg-[#7c3aed]",
       actionColor: "text-[#7c3aed]",
-      illustration: <ResearchIllustration />,
+      illustration: (
+        <Ouch3DIllustration
+          src="https://ouch-prod-var-cdn.icons8.com/vb/illustrations/previews/lFjvmsjzT_j06fYT.webp"
+          alt="Research 3D Analytics"
+          fallback={<ResearchIllustration />}
+        />
+      ),
     },
     {
       id: "marketplace",
@@ -407,7 +465,13 @@ export function QuickLinksBar() {
       btnBg: "bg-[#e4f3fd] text-[#0284c7] hover:bg-[#d2ecfc]",
       arrowBg: "bg-[#0284c7]",
       actionColor: "text-[#0284c7]",
-      illustration: <MarketplaceIllustration />,
+      illustration: (
+        <Ouch3DIllustration
+          src="https://ouch-prod-var-cdn.icons8.com/vy/illustrations/previews/YBJIK2EohTkSC3W6.webp"
+          alt="Marketplace 3D Cart"
+          fallback={<MarketplaceIllustration />}
+        />
+      ),
     },
     {
       id: "ai-assistant",
@@ -423,7 +487,13 @@ export function QuickLinksBar() {
       btnBg: "bg-[#f7ebfd] text-[#9333ea] hover:bg-[#eed7fb]",
       arrowBg: "bg-[#9333ea]",
       actionColor: "text-[#9333ea]",
-      illustration: <AIAssistantIllustration />,
+      illustration: (
+        <Ouch3DIllustration
+          src="https://ouch-prod-var-cdn.icons8.com/ho/illustrations/previews/oyVH2QVYjdrAZzBP.webp"
+          alt="AI Assistant 3D Robot"
+          fallback={<AIAssistantIllustration />}
+        />
+      ),
     },
   ];
 
