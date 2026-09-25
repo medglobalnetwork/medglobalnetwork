@@ -33,6 +33,8 @@ interface PeopleYouMayKnowProps {
   source?: string;
   title?: string;
   showSeeAll?: boolean;
+  borderless?: boolean;
+  className?: string;
 }
 
 export function PeopleYouMayKnow({
@@ -42,6 +44,8 @@ export function PeopleYouMayKnow({
   source = "sidebar",
   title = "People You May Know",
   showSeeAll = true,
+  borderless = false,
+  className = "",
 }: PeopleYouMayKnowProps) {
   const router = useRouter();
   const [people, setPeople] = React.useState<RecommendedUser[]>([]);
@@ -142,7 +146,13 @@ export function PeopleYouMayKnow({
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs">
+      <div
+        className={
+          borderless
+            ? `rounded-2xl bg-white p-4 border-0 shadow-none ${className}`
+            : `rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs ${className}`
+        }
+      >
         <h3 className="mb-3 text-sm font-semibold text-[#171717]">{title}</h3>
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
@@ -163,7 +173,13 @@ export function PeopleYouMayKnow({
   if (people.length === 0) return null;
 
   return (
-    <div className="relative rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs">
+    <div
+      className={`relative ${
+        borderless
+          ? "rounded-2xl bg-white p-4 border-0 shadow-none"
+          : "rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs"
+      } ${className}`}
+    >
       <div className="mb-3 flex items-center justify-between">
         <h3 className="flex items-center gap-1.5 text-sm font-semibold text-[#171717]">
           <Sparkles className="h-4 w-4 text-[#1769c2]" />

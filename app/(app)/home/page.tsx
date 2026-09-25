@@ -6,37 +6,21 @@ import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Calendar,
-  CheckCircle2,
-  ChevronRight,
   Crown,
-  ExternalLink,
-  MessageSquare,
-  ShieldCheck,
-  Sparkles,
-  Users,
-  Video,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl, getUserCoverUrl, DEFAULT_COVER_BANNER } from "@/lib/avatar";
-import { UserAvatar } from "@/components/UserAvatar";
+import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl } from "@/lib/avatar";
 import { StoriesBar } from "@/modules/home/components/StoriesBar";
 import { QuickLinksBar } from "@/modules/home/components/QuickLinksBar";
 import { HomeFeed } from "@/modules/home/components/HomeFeed";
 import { PeopleYouMayKnow } from "@/modules/network/components/PeopleYouMayKnow";
-import type { ProfessionalProfile } from "@/modules/network/types";
 
 export default function HomePage() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
-  // Dynamic Avatar & Cover & Profile Stats sync
+  // Dynamic Avatar sync
   const [avatarUrl, setAvatarUrl] = React.useState<string>(DEFAULT_BLANK_AVATAR);
-  const [coverUrl, setCoverUrl] = React.useState<string>(DEFAULT_COVER_BANNER);
-  const [userProfile, setUserProfile] = React.useState<(ProfessionalProfile & {
-    connection_count?: number;
-    follower_count?: number;
-    post_count?: number;
-  }) | null>(null);
 
   React.useEffect(() => {
     const updateAvatar = () => {
@@ -52,30 +36,6 @@ export default function HomePage() {
     window.addEventListener("mgn-avatar-updated", updateAvatar);
     return () => window.removeEventListener("mgn-avatar-updated", updateAvatar);
   }, [session?.user?.email, session?.user?.name, session?.user?.image]);
-
-  React.useEffect(() => {
-    const updateCover = () => {
-      setCoverUrl(getUserCoverUrl(session?.user?.id, userProfile?.cover_image_url));
-    };
-    updateCover();
-    window.addEventListener("mgn-cover-updated", updateCover);
-    return () => window.removeEventListener("mgn-cover-updated", updateCover);
-  }, [session?.user?.id, userProfile?.cover_image_url]);
-
-  React.useEffect(() => {
-    if (!session?.user?.id) return;
-    fetch(`/api/network/profiles/${session.user.id}`, { credentials: "include" })
-      .then((r) => r.json())
-      .then((d) => {
-        if (d?.data) {
-          setUserProfile(d.data);
-          if (d.data.cover_image_url) {
-            setCoverUrl(d.data.cover_image_url);
-          }
-        }
-      })
-      .catch(() => {});
-  }, [session?.user?.id]);
 
   const [todaySchedule, setTodaySchedule] = React.useState<any[]>([]);
 
@@ -114,12 +74,6 @@ export default function HomePage() {
   }
 
   const displayName = session.user.name || "Healthcare Professional";
-  const initials = displayName
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
 
   return (
     <main className="min-h-screen bg-[#f8f7f6] pb-24 text-[#171717]">
@@ -200,89 +154,45 @@ export default function HomePage() {
               RIGHT COLUMN: Profile Summary + People + Pro Card (Desktop Only)
               ================================================================= */}
           <div className="hidden lg:block space-y-5 lg:col-span-4">
-            {/* 1. USER PROFILE SUMMARY CARD */}
+            {/* 1. AD PLACEHOLDER (Replaces Profile Summary) */}
             <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-[#e8e6e3] bg-white shadow-2xs">
-              {/* Graphic Top Banner */}
-              <div className="relative h-20 sm:h-28 w-full overflow-hidden bg-gradient-to-r from-teal-900 via-emerald-800 to-cyan-900 text-white">
-                <img
-                  src={coverUrl}
-                  alt="Profile Cover"
-                  className="absolute inset-0 h-full w-full object-cover opacity-90 transition-transform duration-500 hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                <p className="relative p-2.5 sm:p-4 text-right text-[9px] sm:text-[11px] font-semibold text-white/90 leading-tight drop-shadow-md">
-                  Better Professionals<br />Better Healthcare
-                </p>
+              <div className="px-4 py-2.5 border-b border-[#f0efee] flex items-center justify-between text-xs bg-[#faf9f8]">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#a09890]">Partner Spotlight</span>
+                <span className="rounded bg-white border border-[#e8e6e3] px-1.5 py-0.5 text-[9px] font-semibold text-[#77716b]">Ad</span>
               </div>
-
-              {/* Avatar + Info */}
-              <div className="relative px-3.5 pb-3.5 sm:px-5 sm:pb-5 pt-0 text-center">
-                {/* Center avatar overlaying banner */}
-                <div className="relative -mt-7 sm:-mt-11 inline-block">
-                  <div className="overflow-hidden rounded-full border-3 sm:border-4 border-white shadow-md mx-auto">
-                    <UserAvatar
-                      src={avatarUrl}
-                      name={displayName}
-                      email={session.user.email}
-                      userId={session.user.id}
-                      className="h-14 w-14 sm:h-20 sm:w-20 text-base sm:text-xl font-bold"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-1 sm:mt-2 flex items-center justify-center gap-1">
-                  <h3 className="font-bold text-sm sm:text-base text-[#171717]">{displayName}</h3>
-                  <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-[#1769c2]/15 text-[#1769c2]" />
-                </div>
-                <p className="text-[11px] sm:text-xs text-[#77716b] font-medium">
-                  {userProfile?.designation || userProfile?.profession || "Clinician / Member"}
-                </p>
-                <p className="text-[10px] sm:text-xs text-[#a09890] mt-0.5">
-                  {[userProfile?.specialization, userProfile?.city, userProfile?.state].filter(Boolean).join(" · ") || "MedGlobal Network"}
-                </p>
-
-                {/* 3 Metric Stats */}
-                <div className="mt-2.5 sm:mt-4 grid grid-cols-3 divide-x divide-[#f0efee] border-t border-b border-[#f5f4f3] py-2 sm:py-3 text-center">
-                  <div>
-                    <span className="block text-xs sm:text-sm font-bold text-[#1769c2]">
-                      {(userProfile?.connection_count ?? 0).toLocaleString()}
+              <div className="p-4 sm:p-5 flex flex-col items-center text-center">
+                <div className="w-full h-32 rounded-2xl bg-gradient-to-br from-[#0f4c81] via-[#1769c2] to-[#0284c7] p-4 text-white flex flex-col justify-between mb-3 relative overflow-hidden">
+                  <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-white/10 blur-sm pointer-events-none" />
+                  <div className="text-left">
+                    <span className="text-[9px] uppercase tracking-wider font-extrabold text-blue-200 bg-white/10 px-2 py-0.5 rounded-full inline-block mb-1">
+                      Healthcare Tech
                     </span>
-                    <span className="text-[9px] sm:text-[10px] text-[#77716b]">Connections</span>
+                    <h4 className="font-extrabold text-sm text-white leading-tight">
+                      Next-Gen Clinical Diagnostics
+                    </h4>
                   </div>
-                  <div>
-                    <span className="block text-xs sm:text-sm font-bold text-[#171717]">
-                      {(userProfile?.follower_count ?? 0).toLocaleString()}
-                    </span>
-                    <span className="text-[9px] sm:text-[10px] text-[#77716b]">Followers</span>
-                  </div>
-                  <div>
-                    <span className="block text-xs sm:text-sm font-bold text-[#171717]">
-                      {(userProfile?.post_count ?? 0).toLocaleString()}
-                    </span>
-                    <span className="text-[9px] sm:text-[10px] text-[#77716b]">Posts</span>
-                  </div>
-                </div>
-
-                {/* Complete Profile Progress */}
-                <div className="mt-2.5 sm:mt-4 text-left">
-                  <div className="flex items-center justify-between text-[11px] sm:text-xs mb-1">
-                    <span className="font-bold text-[#171717]">Your Profile</span>
-                    <Link
-                      href={`/profile/${userProfile?.username || session.user.id}`}
-                      className="text-[11px] sm:text-xs font-bold text-[#1769c2] hover:underline"
-                    >
-                      View &gt;
-                    </Link>
-                  </div>
-                  <p className="text-[10px] sm:text-[11px] text-[#77716b] mb-1.5 sm:mb-2">
-                    Keep your clinical dossier up-to-date
+                  <p className="text-[10px] text-white/80 text-left line-clamp-2">
+                    AI-assisted clinical decision support for modern practices.
                   </p>
                 </div>
+                <h5 className="font-bold text-xs text-[#171717] mb-1">
+                  Reach 50,000+ Medical Professionals
+                </h5>
+                <p className="text-[11px] text-[#77716b] mb-3.5 leading-relaxed">
+                  Showcase your medical devices, pharmaceuticals, or hospital programs directly to clinicians.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => router.push("/opportunities")}
+                  className="w-full rounded-xl bg-[#1769c2] py-2 text-xs font-bold text-white shadow-2xs hover:bg-[#12569f] transition active:scale-95"
+                >
+                  Learn More
+                </button>
               </div>
             </div>
 
-            {/* 2. DYNAMIC PEOPLE YOU MAY KNOW WIDGET */}
-            <PeopleYouMayKnow currentUserId={session.user.id} limit={4} />
+            {/* 2. DYNAMIC PEOPLE YOU MAY KNOW WIDGET (BORDERLESS) */}
+            <PeopleYouMayKnow currentUserId={session.user.id} limit={4} borderless={true} />
 
             {/* 4. UPGRADE TO MGN PRO CARD */}
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e40af] via-[#3b82f6] to-[#6366f1] p-5 text-white shadow-md">

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
+  ArrowRight,
   Bookmark,
   ChevronDown,
   ExternalLink,
@@ -148,6 +149,35 @@ export function HomeFeed({
       </div>
 
       {/* 3. FEED CONTENT */}
+      {/* CTA BANNER AD AT START OF FEED */}
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-[#ded8d1] bg-gradient-to-r from-[#0d3b66] via-[#1769c2] to-[#0d9488] p-4.5 sm:p-5 text-white shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1.5 flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="rounded-md bg-white/20 backdrop-blur-xs px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase text-white">
+                Featured · Sponsored
+              </span>
+              <span className="text-[11px] text-white/80 font-medium">Healthcare Innovation Summit</span>
+            </div>
+            <h3 className="font-extrabold text-sm sm:text-base text-white tracking-tight leading-snug">
+              Expand Your Medical Network with 50,000+ Verified Clinicians
+            </h3>
+            <p className="text-xs text-white/85 line-clamp-2 max-w-xl">
+              Connect with leading healthcare specialists, participate in accredited CME webinars, and explore cutting-edge clinical opportunities.
+            </p>
+          </div>
+          <div className="shrink-0 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => router.push("/opportunities")}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-xs font-bold text-[#1769c2] shadow-sm hover:bg-[#f8f7f6] transition active:scale-95"
+            >
+              Explore Now <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      </div>
+
       {isLoading && posts.length === 0 ? (
         <div className="space-y-4">
           <PostCardSkeleton />
@@ -156,57 +186,8 @@ export function HomeFeed({
       ) : (
         <div className="space-y-5">
           {/* Post Items */}
-          {posts.map((post, index) => (
-            <React.Fragment key={post.id}>
-              <PostCard post={post} currentUserId={currentUserId} />
-
-              {/* SPONSORED / CLINICAL EQUIPMENT WIDGET after 1st post */}
-              {index === 0 && (
-                <div className="rounded-3xl border border-[#ded8d1] bg-white p-5 shadow-2xs">
-                  <div className="flex items-center justify-between text-xs mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#1769c2] font-bold">
-                        ⚕️
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-[#171717]">PhysioEquip</h4>
-                        <p className="text-[10px] text-[#77716b]">Medical Technology Partner</p>
-                      </div>
-                    </div>
-                    <span className="rounded-md bg-[#faf9f8] px-2 py-0.5 text-[10px] font-bold text-[#77716b]">
-                      Sponsored
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="flex-1 space-y-1">
-                      <h3 className="font-bold text-sm text-[#171717]">
-                        Advanced Physiotherapy Equipment for Better Care
-                      </h3>
-                      <p className="text-xs text-[#5d5854]">
-                        Explore top quality rehabilitation & clinical assessment devices for your practice at exclusive practitioner rates.
-                      </p>
-                      <div className="pt-2">
-                        <button
-                          type="button"
-                          onClick={() => router.push("/marketplace")}
-                          className="inline-flex items-center gap-1 text-xs font-bold text-[#1769c2] hover:underline"
-                        >
-                          Learn More <ExternalLink className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="h-28 w-44 shrink-0 rounded-2xl bg-[#f0f7ff] flex items-center justify-center p-2 border border-[#dbeafe]">
-                      <div className="text-center">
-                        <span className="text-3xl">🛋️</span>
-                        <p className="text-[10px] font-bold text-[#1769c2] mt-1">Clinical Grade Rehab</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </React.Fragment>
+          {posts.map((post) => (
+            <PostCard key={post.id} post={post} currentUserId={currentUserId} />
           ))}
 
           {/* Load More Button */}
