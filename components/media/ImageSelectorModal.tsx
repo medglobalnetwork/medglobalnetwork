@@ -3,6 +3,7 @@
 import * as React from "react";
 import { X, UploadCloud, Link as LinkIcon, Check, Image as ImageIcon, Trash2, Sparkles, Loader2 } from "lucide-react";
 import { useMediaUpload } from "@/lib/use-media-upload";
+import CallChip from "@/components/ui/CallChip";
 
 interface ImageSelectorModalProps {
   isOpen: boolean;
@@ -33,6 +34,8 @@ export function ImageSelectorModal({
   const [urlInput, setUrlInput] = React.useState(currentImageUrl || "");
   const [previewUrl, setPreviewUrl] = React.useState(currentImageUrl || "");
   const [urlError, setUrlError] = React.useState<string | null>(null);
+  const [uploadingFileName, setUploadingFileName] = React.useState<string | null>(null);
+  const [callStatus, setCallStatus] = React.useState<"idle" | "running" | "done" | "error">("idle");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const { uploadFile, isUploading, progress, error: uploadError } = useMediaUpload({
@@ -40,6 +43,10 @@ export function ImageSelectorModal({
     onSuccess: (result) => {
       setPreviewUrl(result.publicUrl);
       setUrlInput(result.publicUrl);
+      setCallStatus("done");
+    },
+    onError: () => {
+      setCallStatus("error");
     },
   });
 
@@ -68,6 +75,8 @@ export function ImageSelectorModal({
     }
 
     setUrlError(null);
+    setUploadingFileName(file.name);
+    setCallStatus("running");
     // Instant preview while upload is in progress
     const tempUrl = URL.createObjectURL(file);
     setPreviewUrl(tempUrl);
@@ -77,6 +86,9 @@ export function ImageSelectorModal({
     if (result && result.publicUrl) {
       setPreviewUrl(result.publicUrl);
       setUrlInput(result.publicUrl);
+      setCallStatus("done");
+    } else {
+      setCallStatus("error");
     }
   };
 
@@ -202,6 +214,27 @@ export function ImageSelectorModal({
                   </div>
                 )}
               </div>
+
+              {(isUploading || uploadingFileName) && (
+                <div className="flex justify-center pt-1 animate-fade-in">
+                  <CallChip
+                    icon="image"
+                    name={isUploading ? "Uploading" : callStatus === "done" ? "Uploaded" : "Failed"}
+                    argument={uploadingFileName || "image.jpg"}
+                    status={isUploading ? "running" : uploadError ? "error" : callStatus}
+                    expectedMs={2200}
+                    showTimer
+                    surfaceColor="#f0efee"
+                    color="#171717"
+                    progressColor="#0f4c81"
+                    doneColor="#16804d"
+                    errorColor="#ef4444"
+                    onRetry={() => {
+                      if (fileInputRef.current) fileInputRef.current.click();
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )}
 

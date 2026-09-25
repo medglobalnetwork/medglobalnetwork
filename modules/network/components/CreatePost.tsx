@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { PostType } from "../types";
 import { useMediaUpload } from "@/lib/use-media-upload";
+import CallChip from "@/components/ui/CallChip";
 
 interface CreatePostProps {
   userImage?: string;
@@ -37,6 +38,8 @@ export function CreatePost({
   const [error, setError] = React.useState<string | null>(null);
   const [mediaUrls, setMediaUrls] = React.useState<string[]>([]);
   const [mediaPreviews, setMediaPreviews] = React.useState<{ url: string; type: string; name: string }[]>([]);
+  const [uploadingFileName, setUploadingFileName] = React.useState<string | null>(null);
+  const [callStatus, setCallStatus] = React.useState<"idle" | "running" | "done" | "error">("idle");
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [fileAccept, setFileAccept] = React.useState("image/*");
@@ -45,9 +48,11 @@ export function CreatePost({
     folder: "posts",
     onSuccess: (result) => {
       setMediaUrls((prev) => [...prev, result.publicUrl]);
+      setCallStatus("done");
     },
     onError: (err) => {
       setError(err);
+      setCallStatus("error");
     },
   });
 
@@ -75,6 +80,8 @@ export function CreatePost({
     if (!file) return;
 
     setError(null);
+    setUploadingFileName(file.name);
+    setCallStatus("running");
     const localPreview = URL.createObjectURL(file);
     const newPreviewItem = {
       url: localPreview,
@@ -87,6 +94,9 @@ export function CreatePost({
     if (result && result.publicUrl) {
       // Replace or ensure canonical URL is stored
       setMediaUrls((prev) => Array.from(new Set([...prev, result.publicUrl])));
+      setCallStatus("done");
+    } else {
+      setCallStatus("error");
     }
   };
 
@@ -184,22 +194,40 @@ export function CreatePost({
                 className="w-full resize-none rounded-2xl border border-[#ded8d1] p-3 text-xs text-[#171717] placeholder:text-[#8a8784] focus:border-[#1769c2] focus:outline-none focus:ring-2 focus:ring-[#1769c2]/20"
               />
 
-              {/* Uploading progress bar */}
-              {isUploading && (
-                <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-2.5">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-[#1769c2] mb-1">
-                    <span className="flex items-center gap-1.5">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      Uploading media...
-                    </span>
-                    <span>{progress}%</span>
-                  </div>
-                  <div className="h-1.5 w-full rounded-full bg-blue-100 overflow-hidden">
-                    <div
-                      className="h-full bg-[#1769c2] transition-all duration-200"
-                      style={{ width: `${progress}%` }}
+              {/* Uploading progress bar with CallChip */}
+              {(isUploading || uploadingFileName) && (
+                <div className="flex flex-col gap-2 rounded-2xl border border-blue-100 bg-[#f8fafd] p-3 animate-fade-in">
+                  <div className="flex items-center justify-between">
+                    <CallChip
+                      icon={fileAccept.includes("image") ? "image" : fileAccept.includes("video") ? "file" : "file"}
+                      name={isUploading ? "Uploading" : callStatus === "done" ? "Attached" : "Upload Failed"}
+                      argument={uploadingFileName || "media"}
+                      status={isUploading ? "running" : callStatus}
+                      expectedMs={2200}
+                      showTimer
+                      surfaceColor="#ffffff"
+                      color="#171717"
+                      progressColor="#0f4c81"
+                      doneColor="#16804d"
+                      errorColor="#ef4444"
+                      onRetry={() => {
+                        if (fileInputRef.current) fileInputRef.current.click();
+                      }}
                     />
+                    {isUploading && (
+                      <span className="text-[11px] font-bold text-[#0f4c81] tabular-nums">
+                        {progress}%
+                      </span>
+                    )}
                   </div>
+                  {isUploading && (
+                    <div className="h-1.5 w-full rounded-full bg-blue-100 overflow-hidden">
+                      <div
+                        className="h-full bg-[#0f4c81] transition-all duration-200"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
