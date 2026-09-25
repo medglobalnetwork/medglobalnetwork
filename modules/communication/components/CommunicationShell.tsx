@@ -48,6 +48,7 @@ import { ScheduleMeetingModal } from "./ScheduleMeetingModal";
 import { ShareEntityModal } from "./ShareEntityModal";
 import { CallModal } from "./CallModal";
 import { ConversationDetailsDrawer } from "./ConversationDetailsDrawer";
+import VoicePill from "@/components/ui/VoicePill";
 import {
   ConversationSummary,
   CommunicationMessageItem,
@@ -1482,25 +1483,43 @@ export function CommunicationShell() {
                   <button
                     type="button"
                     onClick={() => setShowShareModal(true)}
-                    className="p-2 text-[#77716b] hover:text-[#1769c2] hover:bg-[#f0f4f8] rounded-xl transition shrink-0"
+                    className="p-2 text-[#77716b] hover:text-[#0f4c81] hover:bg-[#f0f4f8] rounded-xl transition shrink-0"
                     title="Share MGN Entity (Event/Camp/Job/Research)"
                   >
                     <Share2 className="h-5 w-5" />
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // Voice simulation
-                      handleSendMessage(undefined, "VOICE", {
-                        voice: { durationSeconds: 14 },
-                      });
+                  <VoicePill
+                    accentColor="#0f4c81"
+                    iconColor="#77716b"
+                    background="#f5f4f2"
+                    size={36}
+                    shape="pill"
+                    reach={8}
+                    showTime
+                    waveform
+                    slideToCancel
+                    cancelDistance={64}
+                    attack={40}
+                    release={240}
+                    sensitivity={1.2}
+                    floor={0.1}
+                    openDuration={200}
+                    pressScale={0.95}
+                    mode="auto"
+                    holdAfter={300}
+                    reactive="mic"
+                    ariaLabel="Record Voice Note"
+                    onStop={({ reason, duration }: { reason: string; duration: number }) => {
+                      if (reason !== "cancel" && reason !== "escape" && reason !== "blur" && duration >= 400) {
+                        const durSec = Math.max(1, Math.round(duration / 1000));
+                        handleSendMessage(undefined, "VOICE", {
+                          voice: { durationSeconds: durSec },
+                        });
+                      }
                     }}
-                    className="p-2 text-[#77716b] hover:text-[#1769c2] hover:bg-[#f0f4f8] rounded-xl transition shrink-0"
-                    title="Record Voice Note"
-                  >
-                    <Mic className="h-5 w-5" />
-                  </button>
+                    className="shrink-0 mb-0.5"
+                  />
 
                   <textarea
                     value={inputMessage}
@@ -1517,7 +1536,7 @@ export function CommunicationShell() {
                     }}
                     placeholder={editingMessage ? "Edit your message..." : `Message ${activeTitle}...`}
                     rows={1}
-                    className="flex-1 max-h-32 min-h-[40px] resize-none rounded-xl bg-[#f5f4f2] px-3.5 py-2.5 text-xs sm:text-sm text-[#171717] placeholder:text-[#9c958f] border-none focus:outline-none focus:ring-2 focus:ring-[#1769c2]/30"
+                    className="flex-1 max-h-32 min-h-[40px] resize-none rounded-xl bg-[#f5f4f2] px-3.5 py-2.5 text-xs sm:text-sm text-[#171717] placeholder:text-[#9c958f] border-none focus:outline-none focus:ring-2 focus:ring-[#0f4c81]/30"
                   />
 
                   <button
@@ -1526,7 +1545,7 @@ export function CommunicationShell() {
                       sending ||
                       (!inputMessage.trim() && selectedAttachments.length === 0)
                     }
-                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1769c2] text-white hover:bg-[#12569f] disabled:opacity-40 disabled:hover:bg-[#1769c2] transition shrink-0 shadow-xs active:scale-95"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0f4c81] text-white hover:bg-[#0c3d69] disabled:opacity-40 disabled:hover:bg-[#0f4c81] transition shrink-0 shadow-xs active:scale-95"
                     title={editingMessage ? "Save edit" : "Send"}
                   >
                     {sending ? (
