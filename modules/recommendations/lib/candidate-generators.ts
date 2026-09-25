@@ -268,13 +268,17 @@ export async function generateCandidates(
   // ─────────────────────────────────────────────
   if (candidateMap.size < 15 && sourceConfig.enable_cold_start) {
     const needed = Math.max(15, 25 - candidateMap.size);
-    const coldStartCandidates = await getColdStartCandidates(
-      userId,
-      userProfile,
-      excludedUserIds,
-      needed
-    );
-    coldStartCandidates.forEach((c) => addCandidate(c, "cold_start"));
+    try {
+      const coldStartCandidates = await getColdStartCandidates(
+        userId,
+        userProfile,
+        excludedUserIds,
+        needed
+      );
+      coldStartCandidates.forEach((c) => addCandidate(c, "cold_start"));
+    } catch (err) {
+      console.warn("Cold start candidate error:", err);
+    }
   }
 
   return Array.from(candidateMap.values());
@@ -534,54 +538,61 @@ async function getSimilarProfessionalsCandidates(
   interestProfile: UserInterestProfile,
   excludedIds: Set<string>
 ): Promise<RecommendationCandidate[]> {
-  const prof = userProfile?.profession || null;
-  const spec = userProfile?.specialization || null;
+  const prof = userProfile?.profession ? String(userProfile.profession).trim() : null;
+  const spec = userProfile?.specialization ? String(userProfile.specialization).trim() : null;
 
-  const raw: any = await sql`
-    SELECT 
-      u.id AS user_id,
-      u.name,
-      u.image,
-      pp.profession,
-      pp.specialization,
-      pp.sub_specialization,
-      pp.designation,
-      pp.organization,
-      pp.primary_degree,
-      pp.additional_degrees,
-      pp.city,
-      pp.state,
-      pp.country,
-      pp.skills,
-      pp.identity_verified,
-      pp.education_verified,
-      pp.registration_verified,
-      pp.experience_verified,
-      pp.experience_years,
-      pp.cover_image_url,
-      pp.username,
-      pp.member_id,
-      pp.membership_tier,
-      pp.is_founding_member
-    FROM professional_profiles pp
-    JOIN "user" u ON u.id = pp.user_id
-    WHERE pp.user_id <> ${userId}
-      AND (
-        (${prof} IS NOT NULL AND pp.profession = ${prof})
-        OR (${spec} IS NOT NULL AND (pp.specialization = ${spec} OR pp.sub_specialization ILIKE ${'%' + (spec || '') + '%'}))
-      )
-      AND (pp.profile_visibility IS NULL OR pp.profile_visibility <> 'private')
-    ORDER BY 
-      CASE WHEN ${spec} IS NOT NULL AND pp.specialization = ${spec} THEN 0 ELSE 1 END,
-      pp.identity_verified DESC,
-      pp.experience_years DESC
-    LIMIT 40;
-  `.execute(networkDb);
+  if (!prof && !spec) return [];
 
-  if (!raw?.rows) return [];
-  return raw.rows
-    .filter((r: any) => r.user_id && !excludedIds.has(r.user_id))
-    .map(mapRowToCandidate);
+  try {
+    const raw: any = await sql`
+      SELECT 
+        u.id AS user_id,
+        u.name,
+        u.image,
+        pp.profession,
+        pp.specialization,
+        pp.sub_specialization,
+        pp.designation,
+        pp.organization,
+        pp.primary_degree,
+        pp.additional_degrees,
+        pp.city,
+        pp.state,
+        pp.country,
+        pp.skills,
+        pp.identity_verified,
+        pp.education_verified,
+        pp.registration_verified,
+        pp.experience_verified,
+        pp.experience_years,
+        pp.cover_image_url,
+        pp.username,
+        pp.member_id,
+        pp.membership_tier,
+        pp.is_founding_member
+      FROM professional_profiles pp
+      JOIN "user" u ON u.id = pp.user_id
+      WHERE pp.user_id <> ${userId}
+        AND (
+          ${prof ? sql`pp.profession = ${prof}` : sql`FALSE`}
+          OR ${spec ? sql`(pp.specialization = ${spec} OR pp.sub_specialization ILIKE ${'%' + spec + '%'})` : sql`FALSE`}
+        )
+        AND (pp.profile_visibility IS NULL OR pp.profile_visibility <> 'private')
+      ORDER BY 
+        ${spec ? sql`CASE WHEN pp.specialization = ${spec} THEN 0 ELSE 1 END,` : sql``}
+        pp.identity_verified DESC,
+        pp.experience_years DESC
+      LIMIT 40;
+    `.execute(networkDb);
+
+    if (!raw?.rows) return [];
+    return raw.rows
+      .filter((r: any) => r.user_id && !excludedIds.has(r.user_id))
+      .map(mapRowToCandidate);
+  } catch (err) {
+    console.warn("getSimilarProfessionalsCandidates error:", err);
+    return [];
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -712,46 +723,55 @@ async function getEventCandidates(
   excludedIds: Set<string>
 ): Promise<RecommendationCandidate[]> {
   const spec = userProfile?.specialization || "Clinical";
+  const prof = userProfile?.profession ? String(userProfile.profession).trim() : null;
 
-  const raw: any = await sql`
-    SELECT 
-      u.id AS user_id,
-      u.name,
-      u.image,
-      pp.profession,
-      pp.specialization,
-      pp.sub_specialization,
-      pp.designation,
-      pp.organization,
-      pp.primary_degree,
-      pp.additional_degrees,
-      pp.city,
-      pp.state,
-      pp.country,
-      pp.skills,
-      pp.identity_verified,
-      pp.education_verified,
-      pp.registration_verified,
-      pp.experience_verified,
-      pp.experience_years,
-      pp.cover_image_url,
-      pp.username,
-      pp.member_id,
-      pp.membership_tier,
-      pp.is_founding_member
-    FROM professional_profiles pp
-    JOIN "user" u ON u.id = pp.user_id
-    WHERE pp.user_id <> ${userId}
-      AND (pp.specialization ILIKE ${'%' + spec + '%'} OR pp.profession = ${userProfile?.profession || null})
-      AND (pp.profile_visibility IS NULL OR pp.profile_visibility <> 'private')
-    ORDER BY pp.identity_verified DESC, pp.created_at DESC
-    LIMIT 25;
-  `.execute(networkDb);
+  try {
+    const raw: any = await sql`
+      SELECT 
+        u.id AS user_id,
+        u.name,
+        u.image,
+        pp.profession,
+        pp.specialization,
+        pp.sub_specialization,
+        pp.designation,
+        pp.organization,
+        pp.primary_degree,
+        pp.additional_degrees,
+        pp.city,
+        pp.state,
+        pp.country,
+        pp.skills,
+        pp.identity_verified,
+        pp.education_verified,
+        pp.registration_verified,
+        pp.experience_verified,
+        pp.experience_years,
+        pp.cover_image_url,
+        pp.username,
+        pp.member_id,
+        pp.membership_tier,
+        pp.is_founding_member
+      FROM professional_profiles pp
+      JOIN "user" u ON u.id = pp.user_id
+      WHERE pp.user_id <> ${userId}
+        AND (
+          pp.specialization ILIKE ${'%' + spec + '%'}
+          ${prof ? sql`OR pp.profession = ${prof}` : sql``}
+        )
+        AND (pp.profile_visibility IS NULL OR pp.profile_visibility <> 'private')
+      ORDER BY pp.identity_verified DESC, pp.created_at DESC
+      LIMIT 25;
+    `.execute(networkDb);
 
-  if (!raw?.rows) return [];
-  return raw.rows
-    .filter((r: any) => r.user_id && !excludedIds.has(r.user_id))
-    .map(mapRowToCandidate);
+    if (!raw?.rows) return [];
+    return raw.rows
+      .filter((r: any) => r.user_id && !excludedIds.has(r.user_id))
+      .map(mapRowToCandidate);
+  } catch (err) {
+    console.warn("getEventCandidates error:", err);
+    return [];
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -762,53 +782,58 @@ async function getCareerCandidates(
   userProfile: any | null,
   excludedIds: Set<string>
 ): Promise<RecommendationCandidate[]> {
-  const prof = userProfile?.profession || null;
+  const prof = userProfile?.profession ? String(userProfile.profession).trim() : null;
 
-  const raw: any = await sql`
-    SELECT 
-      u.id AS user_id,
-      u.name,
-      u.image,
-      pp.profession,
-      pp.specialization,
-      pp.sub_specialization,
-      pp.designation,
-      pp.organization,
-      pp.primary_degree,
-      pp.additional_degrees,
-      pp.city,
-      pp.state,
-      pp.country,
-      pp.skills,
-      pp.identity_verified,
-      pp.education_verified,
-      pp.registration_verified,
-      pp.experience_verified,
-      pp.experience_years,
-      pp.cover_image_url,
-      pp.username,
-      pp.member_id,
-      pp.membership_tier,
-      pp.is_founding_member
-    FROM professional_profiles pp
-    JOIN "user" u ON u.id = pp.user_id
-    WHERE pp.user_id <> ${userId}
-      AND (
-        (${prof} IS NOT NULL AND pp.profession = ${prof})
-        OR pp.experience_years >= 8
-        OR pp.designation ILIKE '%Head%'
-        OR pp.designation ILIKE '%Director%'
-        OR pp.designation ILIKE '%Senior%'
-      )
-      AND (pp.profile_visibility IS NULL OR pp.profile_visibility <> 'private')
-    ORDER BY pp.experience_years DESC, pp.identity_verified DESC
-    LIMIT 30;
-  `.execute(networkDb);
+  try {
+    const raw: any = await sql`
+      SELECT 
+        u.id AS user_id,
+        u.name,
+        u.image,
+        pp.profession,
+        pp.specialization,
+        pp.sub_specialization,
+        pp.designation,
+        pp.organization,
+        pp.primary_degree,
+        pp.additional_degrees,
+        pp.city,
+        pp.state,
+        pp.country,
+        pp.skills,
+        pp.identity_verified,
+        pp.education_verified,
+        pp.registration_verified,
+        pp.experience_verified,
+        pp.experience_years,
+        pp.cover_image_url,
+        pp.username,
+        pp.member_id,
+        pp.membership_tier,
+        pp.is_founding_member
+      FROM professional_profiles pp
+      JOIN "user" u ON u.id = pp.user_id
+      WHERE pp.user_id <> ${userId}
+        AND (
+          ${prof ? sql`pp.profession = ${prof} OR` : sql``}
+          pp.experience_years >= 8
+          OR pp.designation ILIKE '%Head%'
+          OR pp.designation ILIKE '%Director%'
+          OR pp.designation ILIKE '%Senior%'
+        )
+        AND (pp.profile_visibility IS NULL OR pp.profile_visibility <> 'private')
+      ORDER BY pp.experience_years DESC, pp.identity_verified DESC
+      LIMIT 30;
+    `.execute(networkDb);
 
-  if (!raw?.rows) return [];
-  return raw.rows
-    .filter((r: any) => r.user_id && !excludedIds.has(r.user_id))
-    .map(mapRowToCandidate);
+    if (!raw?.rows) return [];
+    return raw.rows
+      .filter((r: any) => r.user_id && !excludedIds.has(r.user_id))
+      .map(mapRowToCandidate);
+  } catch (err) {
+    console.warn("getCareerCandidates error:", err);
+    return [];
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -998,50 +1023,55 @@ async function getColdStartCandidates(
   excludedIds: Set<string>,
   limit = 20
 ): Promise<RecommendationCandidate[]> {
-  const userProfession = userProfile?.profession || null;
+  const userProfession = userProfile?.profession ? String(userProfile.profession).trim() : null;
 
-  const raw: any = await sql`
-    SELECT 
-      u.id AS user_id,
-      u.name,
-      u.image,
-      pp.profession,
-      pp.specialization,
-      pp.sub_specialization,
-      pp.designation,
-      pp.organization,
-      pp.primary_degree,
-      pp.additional_degrees,
-      pp.city,
-      pp.state,
-      pp.country,
-      pp.skills,
-      pp.identity_verified,
-      pp.education_verified,
-      pp.registration_verified,
-      pp.experience_verified,
-      pp.experience_years,
-      pp.cover_image_url,
-      pp.username,
-      pp.member_id,
-      pp.membership_tier,
-      pp.is_founding_member
-    FROM professional_profiles pp
-    JOIN "user" u ON u.id = pp.user_id
-    WHERE pp.user_id <> ${userId}
-      AND (pp.profile_visibility IS NULL OR pp.profile_visibility <> 'private')
-    ORDER BY 
-      CASE WHEN ${userProfession} IS NOT NULL AND pp.profession = ${userProfession} THEN 0 ELSE 1 END,
-      pp.identity_verified DESC,
-      pp.registration_verified DESC,
-      pp.experience_years DESC
-    LIMIT ${limit};
-  `.execute(networkDb);
+  try {
+    const raw: any = await sql`
+      SELECT 
+        u.id AS user_id,
+        u.name,
+        u.image,
+        pp.profession,
+        pp.specialization,
+        pp.sub_specialization,
+        pp.designation,
+        pp.organization,
+        pp.primary_degree,
+        pp.additional_degrees,
+        pp.city,
+        pp.state,
+        pp.country,
+        pp.skills,
+        pp.identity_verified,
+        pp.education_verified,
+        pp.registration_verified,
+        pp.experience_verified,
+        pp.experience_years,
+        pp.cover_image_url,
+        pp.username,
+        pp.member_id,
+        pp.membership_tier,
+        pp.is_founding_member
+      FROM professional_profiles pp
+      JOIN "user" u ON u.id = pp.user_id
+      WHERE pp.user_id <> ${userId}
+        AND (pp.profile_visibility IS NULL OR pp.profile_visibility <> 'private')
+      ORDER BY 
+        ${userProfession ? sql`CASE WHEN pp.profession = ${userProfession} THEN 0 ELSE 1 END,` : sql``}
+        pp.identity_verified DESC,
+        pp.registration_verified DESC,
+        pp.experience_years DESC
+      LIMIT ${limit};
+    `.execute(networkDb);
 
-  if (!raw?.rows) return [];
-  return raw.rows
-    .filter((r: any) => r.user_id && !excludedIds.has(r.user_id))
-    .map(mapRowToCandidate);
+    if (!raw?.rows) return [];
+    return raw.rows
+      .filter((r: any) => r.user_id && !excludedIds.has(r.user_id))
+      .map(mapRowToCandidate);
+  } catch (err) {
+    console.warn("getColdStartCandidates error:", err);
+    return [];
+  }
 }
 
 function mapRowToCandidate(r: any): RecommendationCandidate {

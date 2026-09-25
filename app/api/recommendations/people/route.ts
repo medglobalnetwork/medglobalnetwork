@@ -41,7 +41,7 @@ export async function GET(request: Request) {
         category: "people-you-may-know",
         error: "Failed to generate professional recommendations",
       },
-      { status: 500 }
+      { status: 200 }
     );
   }
 }

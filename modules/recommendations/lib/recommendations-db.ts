@@ -191,8 +191,8 @@ export async function ensureRecommendationTables(): Promise<void> {
         created_at            TIMESTAMPTZ DEFAULT now(),
         updated_at            TIMESTAMPTZ DEFAULT now()
       );
-      CREATE INDEX IF NOT EXISTS idx_uip_user_id ON user_interest_profiles(user_id);
     `.execute(recDb);
+    await sql`CREATE INDEX IF NOT EXISTS idx_uip_user_id ON user_interest_profiles(user_id);`.execute(recDb);
 
     // 2. User Behavior Events
     await sql`
@@ -205,10 +205,10 @@ export async function ensureRecommendationTables(): Promise<void> {
         metadata              JSONB,
         created_at            TIMESTAMPTZ DEFAULT now()
       );
-      CREATE INDEX IF NOT EXISTS idx_ube_user_type ON user_behavior_events(user_id, event_type);
-      CREATE INDEX IF NOT EXISTS idx_ube_created ON user_behavior_events(created_at DESC);
-      CREATE INDEX IF NOT EXISTS idx_ube_target ON user_behavior_events(target_type, target_id);
     `.execute(recDb);
+    await sql`CREATE INDEX IF NOT EXISTS idx_ube_user_type ON user_behavior_events(user_id, event_type);`.execute(recDb);
+    await sql`CREATE INDEX IF NOT EXISTS idx_ube_created ON user_behavior_events(created_at DESC);`.execute(recDb);
+    await sql`CREATE INDEX IF NOT EXISTS idx_ube_target ON user_behavior_events(target_type, target_id);`.execute(recDb);
 
     // 3. Recommendation Impressions
     await sql`
@@ -225,11 +225,11 @@ export async function ensureRecommendationTables(): Promise<void> {
         variant               TEXT,
         created_at            TIMESTAMPTZ DEFAULT now()
       );
-      CREATE INDEX IF NOT EXISTS idx_rec_imp_user ON recommendation_impressions(user_id);
-      CREATE INDEX IF NOT EXISTS idx_rec_imp_candidate ON recommendation_impressions(candidate_id);
-      CREATE INDEX IF NOT EXISTS idx_rec_imp_created ON recommendation_impressions(created_at DESC);
-      CREATE INDEX IF NOT EXISTS idx_rec_imp_type ON recommendation_impressions(recommendation_type);
     `.execute(recDb);
+    await sql`CREATE INDEX IF NOT EXISTS idx_rec_imp_user ON recommendation_impressions(user_id);`.execute(recDb);
+    await sql`CREATE INDEX IF NOT EXISTS idx_rec_imp_candidate ON recommendation_impressions(candidate_id);`.execute(recDb);
+    await sql`CREATE INDEX IF NOT EXISTS idx_rec_imp_created ON recommendation_impressions(created_at DESC);`.execute(recDb);
+    await sql`CREATE INDEX IF NOT EXISTS idx_rec_imp_type ON recommendation_impressions(recommendation_type);`.execute(recDb);
 
     // 4. Recommendation Feedback
     await sql`
@@ -242,10 +242,10 @@ export async function ensureRecommendationTables(): Promise<void> {
         category              TEXT,
         created_at            TIMESTAMPTZ DEFAULT now()
       );
-      CREATE INDEX IF NOT EXISTS idx_rec_fb_user ON recommendation_feedback(user_id);
-      CREATE INDEX IF NOT EXISTS idx_rec_fb_candidate ON recommendation_feedback(candidate_id);
-      CREATE INDEX IF NOT EXISTS idx_rec_fb_type ON recommendation_feedback(user_id, candidate_id, feedback_type);
     `.execute(recDb);
+    await sql`CREATE INDEX IF NOT EXISTS idx_rec_fb_user ON recommendation_feedback(user_id);`.execute(recDb);
+    await sql`CREATE INDEX IF NOT EXISTS idx_rec_fb_candidate ON recommendation_feedback(candidate_id);`.execute(recDb);
+    await sql`CREATE INDEX IF NOT EXISTS idx_rec_fb_type ON recommendation_feedback(user_id, candidate_id, feedback_type);`.execute(recDb);
 
     // 5. Recommendation Rules & Weights
     await sql`
@@ -257,8 +257,8 @@ export async function ensureRecommendationTables(): Promise<void> {
         updated_by            TEXT,
         updated_at            TIMESTAMPTZ DEFAULT now()
       );
-      CREATE UNIQUE INDEX IF NOT EXISTS idx_rec_rules_key ON recommendation_rules(rule_key);
     `.execute(recDb);
+    await sql`CREATE UNIQUE INDEX IF NOT EXISTS idx_rec_rules_key ON recommendation_rules(rule_key);`.execute(recDb);
 
     // 6. Recommendation Experiments (A/B Testing)
     await sql`
@@ -285,29 +285,33 @@ export async function ensureRecommendationTables(): Promise<void> {
         created_at            TIMESTAMPTZ DEFAULT now(),
         CONSTRAINT uq_user_block UNIQUE (blocker_id, blocked_id)
       );
-      CREATE INDEX IF NOT EXISTS idx_user_blocks_blocker ON user_blocks(blocker_id);
-      CREATE INDEX IF NOT EXISTS idx_user_blocks_blocked ON user_blocks(blocked_id);
     `.execute(recDb);
+    await sql`CREATE INDEX IF NOT EXISTS idx_user_blocks_blocker ON user_blocks(blocker_id);`.execute(recDb);
+    await sql`CREATE INDEX IF NOT EXISTS idx_user_blocks_blocked ON user_blocks(blocked_id);`.execute(recDb);
 
     // 8. Seed Default Config Rules if absent
-    const existingRule = await recDb
-      .selectFrom("recommendation_rules")
-      .select("id")
-      .where("rule_key", "=", "master_config")
-      .executeTakeFirst();
+    try {
+      const existingRule = await recDb
+        .selectFrom("recommendation_rules")
+        .select("id")
+        .where("rule_key", "=", "master_config")
+        .executeTakeFirst();
 
-    if (!existingRule) {
-      await recDb
-        .insertInto("recommendation_rules")
-        .values({
-          id: generateRecId(),
-          rule_key: "master_config",
-          config_value: JSON.stringify(DEFAULT_RECOMMENDATION_RULE_CONFIG),
-          description: "Global production configuration for MGN recommendation engine",
-          updated_by: "system",
-          updated_at: new Date(),
-        })
-        .execute();
+      if (!existingRule) {
+        await recDb
+          .insertInto("recommendation_rules")
+          .values({
+            id: generateRecId(),
+            rule_key: "master_config",
+            config_value: JSON.stringify(DEFAULT_RECOMMENDATION_RULE_CONFIG),
+            description: "Global production configuration for MGN recommendation engine",
+            updated_by: "system",
+            updated_at: new Date(),
+          })
+          .execute();
+      }
+    } catch (seedErr) {
+      console.warn("Seeding recommendation_rules warning:", seedErr);
     }
 
     tablesInitialized = true;
