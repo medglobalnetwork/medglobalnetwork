@@ -199,7 +199,7 @@ export function AppSidebar({
             <img
               src="/logo.png"
               alt="MGN"
-              className="h-7 w-auto object-contain"
+              className="h-8.5 w-auto object-contain"
             />
           </Link>
 
@@ -392,7 +392,7 @@ export function AppSidebar({
             {/* Header / User Profile Banner */}
             <div className="p-4 border-b border-[#f0efee] bg-[#faf9f8] flex items-center justify-between">
               <Link href="/home" onClick={onCloseMobileDrawer} className="flex items-center gap-2">
-                <img src="/logo.png" alt="MGN" className="h-6 w-auto object-contain" />
+                <img src="/logo.png" alt="MGN" className="h-8.5 w-auto object-contain" />
               </Link>
               <button
                 type="button"

@@ -262,7 +262,7 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                 <img
                   src="/logo.png"
                   alt="MGN - Med Global Network"
-                  className="h-7 w-auto object-contain"
+                  className="h-8.5 w-auto object-contain"
                 />
               </Link>
 
@@ -388,7 +388,7 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                   <img
                     src="/logo.png"
                     alt="MGN - Med Global Network"
-                    className="h-6.5 w-auto object-contain"
+                    className="h-8.5 w-auto object-contain"
                   />
                 </Link>
               </div>
