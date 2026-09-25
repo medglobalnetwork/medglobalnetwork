@@ -319,28 +319,13 @@ export async function ensureNetworkingTables(): Promise<void> {
     `.execute(networkDb);
 
     // Backfill any remaining profiles missing a member_id
-    const unassigned: any = await sql`
-      SELECT pp.id, pp.user_id, pp.is_founding_member, u.email
-      FROM professional_profiles pp
-      LEFT JOIN "user" u ON u.id = pp.user_id
-      WHERE pp.member_id IS NULL OR pp.member_id = ''
-      LIMIT 200;
+    await sql`
+      UPDATE professional_profiles
+      SET member_id = 'MGN-' || UPPER(SUBSTRING(MD5(RANDOM()::TEXT), 1, 6)),
+          is_founding_member = false,
+          membership_tier = 'MEMBER'
+      WHERE member_id IS NULL OR member_id = '';
     `.execute(networkDb);
-
-    if (unassigned?.rows && unassigned.rows.length > 0) {
-      const { generateRegularMemberId, generateFoundingMemberId, isDesignatedFounderEmail } = await import("./member-id");
-      for (const row of unassigned.rows) {
-        const isFounder = isDesignatedFounderEmail(row.email) || Boolean(row.is_founding_member);
-        const newMemberId = isFounder ? generateFoundingMemberId(1) : generateRegularMemberId();
-        await sql`
-          UPDATE professional_profiles
-          SET member_id = ${newMemberId},
-              is_founding_member = ${isFounder},
-              membership_tier = ${isFounder ? "FOUNDING_MEMBER" : "MEMBER"}
-          WHERE id = ${row.id}
-        `.execute(networkDb);
-      }
-    }
 
     // 1. Connection Requests
     await sql`
@@ -481,6 +466,31 @@ export async function ensureNetworkingTables(): Promise<void> {
     await sql`
       CREATE INDEX IF NOT EXISTS idx_direct_messages_participants 
       ON direct_messages(sender_id, receiver_id);
+    `.execute(networkDb);
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_network_posts_feed 
+      ON network_posts(visibility, created_at DESC);
+    `.execute(networkDb);
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_network_posts_author 
+      ON network_posts(author_id);
+    `.execute(networkDb);
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_network_posts_community 
+      ON network_posts(community_id);
+    `.execute(networkDb);
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_post_reactions_lookup 
+      ON post_reactions(post_id, user_id);
+    `.execute(networkDb);
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_professional_profiles_user 
+      ON professional_profiles(user_id);
     `.execute(networkDb);
 
     networkingTablesInitialized = true;

@@ -45,10 +45,10 @@ export default function FeedPage() {
   }, []);
 
   React.useEffect(() => {
-    if (session?.user) loadPosts(1);
-  }, [session?.user, loadPosts]);
+    loadPosts(1);
+  }, [loadPosts]);
 
-  if (isPending || !session) {
+  if (isPending && posts.length === 0) {
     return <main className="min-h-dvh bg-[#f5f5f4]" />;
   }
 
@@ -79,8 +79,8 @@ export default function FeedPage() {
           <div className="flex-1 min-w-0 space-y-4">
             {/* Create post */}
             <CreatePost
-              userImage={session.user.image ?? undefined}
-              userName={session.user.name ?? undefined}
+              userImage={session?.user?.image ?? undefined}
+              userName={session?.user?.name ?? undefined}
               onPosted={() => loadPosts(1)}
             />
 
@@ -102,7 +102,7 @@ export default function FeedPage() {
               <>
                 <div className="space-y-4">
                   {posts.map((post) => (
-                    <PostCard key={post.id} post={post} currentUserId={session.user.id} />
+                    <PostCard key={post.id} post={post} currentUserId={session?.user?.id} />
                   ))}
                 </div>
                 {hasMore && (
@@ -126,7 +126,7 @@ export default function FeedPage() {
           </div>
 
           {/* Sidebar */}
-          <NetworkSidebar currentUserId={session.user.id} />
+          <NetworkSidebar currentUserId={session?.user?.id} />
         </div>
       </div>
     </main>
