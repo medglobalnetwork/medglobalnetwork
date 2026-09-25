@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import {
   X,
+  ArrowLeft,
+  User,
   Phone,
   Video,
   Calendar,
@@ -78,13 +80,27 @@ export function ConversationDetailsDrawer({
         aria-hidden="true"
       />
 
-      {/* Drawer Container (Slide-over on mobile, side column on desktop) */}
+      {/* Main Container: Full screen mobile page on <md, side column drawer on >=md */}
       <aside
-        className="fixed inset-y-0 right-0 z-50 w-full sm:w-96 max-w-full md:static md:z-auto md:w-80 lg:w-88 border-l border-[#e8e6e3] bg-white flex flex-col h-full overflow-hidden shadow-2xl md:shadow-xs shrink-0 animate-in slide-in-from-right duration-200"
+        className="fixed inset-0 z-50 md:static md:z-auto w-full md:w-80 lg:w-88 border-l border-[#e8e6e3] bg-white flex flex-col h-dvh md:h-full overflow-hidden shadow-2xl md:shadow-xs shrink-0 animate-in slide-in-from-right duration-200"
       >
-        {/* Header */}
+        {/* Mobile Page Header with Back Arrow on mobile, Close X on desktop */}
         <div className="p-3.5 sm:p-4 border-b border-[#e8e6e3] flex items-center justify-between bg-[#faf9f8] shrink-0">
-          <h3 className="text-sm font-bold text-[#171717]">Details & Profile</h3>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 -ml-1 text-[#171717] hover:bg-[#efefef] rounded-xl transition md:hidden flex items-center gap-1 font-semibold text-xs"
+              aria-label="Back to chat"
+            >
+              <ArrowLeft className="h-5 w-5" />
+              <span>Back</span>
+            </button>
+            <h3 className="text-sm sm:text-base font-bold text-[#171717]">
+              {isDirect ? "Clinician Profile" : "Workspace Details"}
+            </h3>
+          </div>
+
           <button
             type="button"
             onClick={onClose}
@@ -95,7 +111,7 @@ export function ConversationDetailsDrawer({
           </button>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs Bar */}
         <div className="flex border-b border-[#f0efee] px-3 pt-2 text-xs font-bold bg-[#faf9f8] shrink-0">
           <button
             type="button"
@@ -117,7 +133,7 @@ export function ConversationDetailsDrawer({
                 : "border-transparent text-[#77716b] hover:text-[#171717]"
             }`}
           >
-            Shared Media
+            Shared Media ({mediaMessages.flatMap(m => m.mediaUrls || []).length})
           </button>
           {!isDirect && (
             <button
@@ -262,7 +278,7 @@ export function ConversationDetailsDrawer({
                       ? `/opportunities/${conversation.context.jobId}`
                       : `/research/${conversation.context.researchProjectId}`
                   }
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1769c2] hover:underline mt-2"
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0f4c81] hover:underline mt-2"
                 >
                   <span>Open Canonical Workspace</span>
                   <ExternalLink className="h-3 w-3" />
@@ -299,7 +315,7 @@ export function ConversationDetailsDrawer({
               >
                 {isMuted ? (
                   <>
-                    <Bell className="h-4 w-4 text-[#1769c2]" />
+                    <Bell className="h-4 w-4 text-[#0f4c81]" />
                     <span>Unmute Notifications</span>
                   </>
                 ) : (
