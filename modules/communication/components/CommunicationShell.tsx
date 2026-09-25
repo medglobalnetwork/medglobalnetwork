@@ -660,8 +660,8 @@ export function CommunicationShell() {
   const mediaMessages = messages.filter((m) => m.mediaUrls && m.mediaUrls.length > 0);
 
   return (
-    <div className="mx-auto max-w-7xl px-2 sm:px-4 py-3 sm:py-6 h-[calc(100vh-4.5rem)] md:h-[calc(100vh-5.5rem)] flex flex-col">
-      <div className="flex-1 flex overflow-hidden rounded-2xl bg-white border border-[#e8e6e3] shadow-sm">
+    <div className="w-full h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] flex flex-col">
+      <div className="flex-1 flex overflow-hidden bg-white">
         {/* ============================================================ */}
         {/* LEFT SIDEBAR: CONVERSATION LIST */}
         {/* ============================================================ */}

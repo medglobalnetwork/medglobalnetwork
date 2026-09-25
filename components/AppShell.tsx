@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { AppSidebar } from "@/components/AppSidebar";
 import AppHeader from "@/components/AppHeader";
 import AppBottomNav from "@/components/AppBottomNav";
@@ -10,6 +11,8 @@ interface AppShellProps {
 }
 
 export function AppShell({ children }: AppShellProps) {
+  const pathname = usePathname();
+  const isMessagesPage = pathname?.startsWith("/messages");
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   // Default to auto-hide (collapsed at rest, expands on hover)
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -66,10 +69,12 @@ export function AppShell({ children }: AppShellProps) {
         <AppHeader onOpenMobileDrawer={handleOpenMobileDrawer} />
 
         {/* Page Content */}
-        <main className="flex-1 pb-20 md:pb-6">{children}</main>
+        <main className={`flex-1 ${isMessagesPage ? "pb-0 overflow-hidden" : "pb-20 md:pb-6"}`}>
+          {children}
+        </main>
 
         {/* Bottom Nav (Mobile only, exactly 4 core tabs: Home, Network, Learn, Opportunities) */}
-        <AppBottomNav />
+        {!isMessagesPage && <AppBottomNav />}
       </div>
     </div>
   );

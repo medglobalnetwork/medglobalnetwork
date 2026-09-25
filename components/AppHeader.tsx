@@ -159,6 +159,28 @@ interface AppHeaderProps {
   onOpenMobileDrawer?: () => void;
 }
 
+/* ── Header Message Icon (Icons8 matching sidebar) ── */
+function HeaderMessageIcon({ className = "h-5 w-5" }: { className?: string }) {
+  const [imgError, setImgError] = React.useState(false);
+  const pathname = usePathname();
+  const active = pathname?.startsWith("/messages");
+  const colorHex = active ? "1769C2" : "5D5854";
+
+  if (imgError) {
+    return <MessageSquare className={`${className} stroke-[1.8]`} />;
+  }
+
+  return (
+    <img
+      src={`https://img.icons8.com/?id=d7iUgF8ZrDaO&format=png&size=48&color=${colorHex}`}
+      alt="Messages"
+      className={`${className} object-contain transition-transform duration-200 select-none`}
+      onError={() => setImgError(true)}
+      loading="eager"
+    />
+  );
+}
+
 /* ── Main App Header ────────────────────────────── */
 export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
   const router = useRouter();
@@ -310,20 +332,23 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                   onClick={() => router.push("/messages")}
                   className="flex h-9 w-9 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
                 >
-                  <MessageSquare className="h-5 w-5 stroke-[1.8]" />
+                  <HeaderMessageIcon className="h-5 w-5" />
                 </button>
               </div>
             </div>
 
             {/* 2. DESKTOP PROFILE HEADER (>= md) */}
             <div className="hidden md:flex w-full items-center justify-between gap-4">
-              {/* Center/Left: Global Search */}
-              <div className="flex-1 max-w-xl">
+              {/* Left spacer matching right actions width to center search bar */}
+              <div className="w-36 lg:w-48 shrink-0" aria-hidden="true" />
+
+              {/* Center: Global Search */}
+              <div className="flex-1 max-w-xl mx-auto">
                 <GlobalSearchBar />
               </div>
 
               {/* Right: Notifications, Messages & User Menu */}
-              <div className="flex items-center gap-1 sm:gap-2">
+              <div className="flex items-center justify-end gap-1 sm:gap-2 w-36 lg:w-48 shrink-0">
                 {/* Notifications */}
                 <div className="relative">
                   <button
@@ -359,7 +384,7 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                   onClick={() => router.push("/messages")}
                   className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
                 >
-                  <MessageSquare className="h-4.5 w-4.5 sm:h-5 sm:w-5 stroke-[1.8]" />
+                  <HeaderMessageIcon className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
                 </button>
 
                 {/* User Menu Avatar */}
@@ -439,20 +464,23 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                   onClick={() => router.push("/messages")}
                   className="flex h-9 w-9 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
                 >
-                  <MessageSquare className="h-5 w-5 stroke-[1.8]" />
+                  <HeaderMessageIcon className="h-5 w-5" />
                 </button>
               </div>
             </div>
 
             {/* 2. DESKTOP HEADER (>= md) */}
             <div className="hidden md:flex w-full items-center justify-between gap-4">
-              {/* Left / Center: Global Search Bar */}
-              <div className="flex-1 max-w-xl">
+              {/* Left spacer matching right actions width to center search bar */}
+              <div className="w-36 lg:w-48 shrink-0" aria-hidden="true" />
+
+              {/* Center: Global Search Bar */}
+              <div className="flex-1 max-w-xl mx-auto">
                 <GlobalSearchBar />
               </div>
 
               {/* Right: Notifications, Messages, User Menu */}
-              <div className="flex items-center gap-1 sm:gap-2">
+              <div className="flex items-center justify-end gap-1 sm:gap-2 w-36 lg:w-48 shrink-0">
                 {/* Notifications */}
                 <div className="relative">
                   <button
@@ -488,7 +516,7 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                   onClick={() => router.push("/messages")}
                   className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717]"
                 >
-                  <MessageSquare className="h-4.5 w-4.5 sm:h-5 sm:w-5 stroke-[1.8]" />
+                  <HeaderMessageIcon className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
                 </button>
 
                 {/* User Menu Avatar */}
