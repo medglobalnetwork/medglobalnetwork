@@ -4,6 +4,7 @@
 // MGN Creation Hub — /create
 // Unified Creation Center for Posts, Jobs, Events, Conferences,
 // Health Camps, Research Projects, Communities & Marketplace
+// Strictly aligned with baseline-ui & icons8 guidelines
 // ============================================================
 
 import * as React from "react";
@@ -23,13 +24,9 @@ import {
   CheckCircle2,
   Lock,
   ArrowRight,
-  Sparkles,
   Info,
-  ChevronRight,
-  ExternalLink,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { MemberBadge } from "@/modules/network/components/MemberBadge";
 
 type CreationCategory = "all" | "content" | "events" | "jobs" | "research";
 
@@ -38,7 +35,6 @@ interface CreationCardItem {
   title: string;
   category: "content" | "events" | "jobs" | "research";
   badgeText: string;
-  badgeColor: string;
   icon8Id: string;
   fallbackIcon: React.ComponentType<{ className?: string }>;
   description: string;
@@ -54,7 +50,7 @@ function CreationIcons8Icon({
   iconId,
   colorHex = "1769C2",
   fallback: Fallback,
-  className = "h-7 w-7",
+  className = "size-7",
 }: {
   iconId: string;
   colorHex?: string;
@@ -87,7 +83,7 @@ export default function CreateHubPage() {
     camp?: boolean;
     research?: boolean;
   }>({});
-  const [loadingEligibility, setLoadingEligibility] = React.useState(true);
+  const [, setLoadingEligibility] = React.useState(true);
 
   // Sync profile & permissions
   React.useEffect(() => {
@@ -129,10 +125,10 @@ export default function CreateHubPage() {
 
   if (isPending || !session) {
     return (
-      <main className="min-h-screen bg-[#faf9f8] p-6">
+      <main className="min-h-dvh bg-[#faf9f8] p-6">
         <div className="mx-auto max-w-5xl space-y-4 animate-pulse">
-          <div className="h-28 rounded-3xl bg-white/70" />
-          <div className="h-64 rounded-3xl bg-white/70" />
+          <div className="h-28 rounded-2xl bg-white/70 border border-[#e8e6e3]" />
+          <div className="h-64 rounded-2xl bg-white/70 border border-[#e8e6e3]" />
         </div>
       </main>
     );
@@ -150,8 +146,7 @@ export default function CreateHubPage() {
       title: "Clinical Post & Case Study",
       category: "content",
       badgeText: "Instant Publish",
-      badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
-      icon8Id: "i6fZC6wuprSu",
+      icon8Id: "zqRKVWtC1VeY",
       fallbackIcon: PenSquare,
       description:
         "Share clinical insights, diagnostic updates, complex cases, or research commentary with healthcare peers.",
@@ -166,7 +161,6 @@ export default function CreateHubPage() {
       title: "Job & Fellowship Opening",
       category: "jobs",
       badgeText: "Recruitment Portal",
-      badgeColor: "bg-blue-50 text-blue-700 border-blue-200",
       icon8Id: "IOkzpfWnUztj",
       fallbackIcon: Briefcase,
       description:
@@ -182,7 +176,6 @@ export default function CreateHubPage() {
       title: "Medical Event & CME Webinar",
       category: "events",
       badgeText: "CME & Certificates",
-      badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
       icon8Id: "vwGXRtPWrZSn",
       fallbackIcon: Calendar,
       description:
@@ -199,8 +192,7 @@ export default function CreateHubPage() {
       title: "Conference & Academic Summit",
       category: "events",
       badgeText: "Multi-Session Summit",
-      badgeColor: "bg-purple-50 text-purple-700 border-purple-200",
-      icon8Id: "YzsadpdsoN8e",
+      icon8Id: "FcRGrhzjfIeb",
       fallbackIcon: Award,
       description:
         "Organize multi-day medical conferences, annual society congresses, symposiums, and abstract presentation summits.",
@@ -216,7 +208,6 @@ export default function CreateHubPage() {
       title: "Health & Clinical Screening Camp",
       category: "events",
       badgeText: "Clinical Outreach",
-      badgeColor: "bg-amber-50 text-amber-700 border-amber-200",
       icon8Id: "HBLTBJiOS1vp",
       fallbackIcon: Tent,
       description:
@@ -233,7 +224,6 @@ export default function CreateHubPage() {
       title: "Clinical Research Project",
       category: "research",
       badgeText: "Collaborative Study",
-      badgeColor: "bg-cyan-50 text-cyan-700 border-cyan-200",
       icon8Id: "9ZmP1ylpYlqn",
       fallbackIcon: FlaskConical,
       description:
@@ -250,7 +240,6 @@ export default function CreateHubPage() {
       title: "Clinical Community & Specialty Forum",
       category: "content",
       badgeText: "Peer Discussion",
-      badgeColor: "bg-teal-50 text-teal-700 border-teal-200",
       icon8Id: "aBDIThwGtLKb",
       fallbackIcon: Compass,
       description:
@@ -266,7 +255,6 @@ export default function CreateHubPage() {
       title: "Medical Equipment & Practice Supplies",
       category: "jobs",
       badgeText: "Direct Inquiries",
-      badgeColor: "bg-rose-50 text-rose-700 border-rose-200",
       icon8Id: "VksxHreSn4ck",
       fallbackIcon: ShoppingBag,
       description:
@@ -286,34 +274,34 @@ export default function CreateHubPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#faf9f8] pb-24 text-[#171717]">
+    <main className="min-h-dvh bg-[#faf9f8] pb-24 text-[#171717]">
       <div className="mx-auto max-w-6xl px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {/* ============================================================ */}
         {/* 1. HEADER SECTION */}
         {/* ============================================================ */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e8e6e3] pb-6">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eef5fc] text-[#1769c2]">
-                <Plus className="h-5 w-5 stroke-[2.5]" />
+            <div className="flex items-center gap-2.5">
+              <div className="flex size-9 items-center justify-center rounded-xl bg-[#eef5fc] text-[#1769c2]">
+                <Plus className="size-5 stroke-[2.5]" />
               </div>
-              <h1 className="text-xl sm:text-2xl font-black text-[#171717] tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-bold text-[#171717] text-balance">
                 Creation Center
               </h1>
             </div>
-            <p className="text-xs sm:text-sm text-[#77716b]">
+            <p className="text-xs sm:text-sm text-[#77716b] text-pretty">
               Publish clinical updates, host conferences, post healthcare vacancies, or organize medical camps.
             </p>
           </div>
 
           {/* User Role & Verification Summary Pill */}
-          <div className="flex items-center gap-3 bg-white p-3 rounded-2xl border border-[#e8e6e3] shadow-2xs">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#faf9f8] border border-[#e8e6e3]">
+          <div className="flex items-center gap-3 bg-white p-3 rounded-2xl border border-[#e8e6e3] shadow-xs">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#faf9f8] border border-[#e8e6e3] overflow-hidden">
               {profile?.image ? (
                 <img
                   src={profile.image}
                   alt={session.user.name || "User"}
-                  className="h-full w-full rounded-full object-cover"
+                  className="size-full object-cover"
                 />
               ) : (
                 <span className="text-xs font-bold text-[#1769c2]">
@@ -326,14 +314,14 @@ export default function CreateHubPage() {
                 <span className="text-xs font-bold text-[#171717] truncate max-w-[140px]">
                   {session.user.name || "Healthcare Clinician"}
                 </span>
-                {isVerified && <ShieldCheck className="h-3.5 w-3.5 fill-[#1769c2]/15 text-[#1769c2]" />}
+                {isVerified && <ShieldCheck className="size-3.5 fill-[#1769c2]/15 text-[#1769c2]" />}
               </div>
-              <p className="text-[10px] text-[#77716b]">
+              <p className="text-[10px] text-[#77716b] truncate">
                 {profile?.designation || profile?.profession || "Healthcare Professional"}
               </p>
-              <div className="mt-0.5 flex items-center gap-1">
+              <div className="mt-0.5 flex items-center gap-1.5">
                 <span
-                  className={`inline-block h-1.5 w-1.5 rounded-full ${
+                  className={`inline-block size-1.5 rounded-full ${
                     isVerified ? "bg-emerald-500" : "bg-amber-500"
                   }`}
                 />
@@ -346,7 +334,7 @@ export default function CreateHubPage() {
               <button
                 type="button"
                 onClick={() => router.push("/verify")}
-                className="shrink-0 rounded-xl bg-[#1769c2] px-2.5 py-1.5 text-[10px] font-bold text-white shadow-2xs hover:bg-[#12569f] transition"
+                className="shrink-0 rounded-xl bg-[#1769c2] px-3 py-1.5 text-[10px] font-bold text-white shadow-xs hover:bg-[#12569f] focus-visible:ring-2 focus-visible:ring-[#1769c2] focus-visible:ring-offset-2 focus-visible:outline-none transition"
               >
                 Verify
               </button>
@@ -358,14 +346,14 @@ export default function CreateHubPage() {
         {/* 2. ROLE PRIVILEGES BANNER (Contextual notice) */}
         {/* ============================================================ */}
         {!isVerified && (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-xs text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-xs text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
             <div className="flex items-start gap-2.5">
-              <Info className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
+              <Info className="size-4 text-amber-700 shrink-0 mt-0.5" />
               <div className="space-y-0.5">
-                <p className="font-bold text-amber-900">
+                <p className="font-bold text-amber-900 text-balance">
                   Some publishing features require professional license verification
                 </p>
-                <p className="text-amber-800 text-[11px]">
+                <p className="text-amber-800 text-[11px] text-pretty">
                   Posts, clinical cases, and communities are open to all. Complete your clinical registration check to unlock accredited CME hosting, health camps, and research projects.
                 </p>
               </div>
@@ -373,7 +361,7 @@ export default function CreateHubPage() {
             <button
               type="button"
               onClick={() => router.push("/verify")}
-              className="shrink-0 rounded-xl bg-amber-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-800 transition shadow-xs"
+              className="shrink-0 rounded-xl bg-amber-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-800 focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-2 focus-visible:outline-none transition shadow-xs"
             >
               Verify Credentials
             </button>
@@ -387,7 +375,7 @@ export default function CreateHubPage() {
           <button
             type="button"
             onClick={() => setActiveTab("all")}
-            className={`px-3.5 py-2 rounded-xl transition shrink-0 ${
+            className={`px-3.5 py-2 rounded-xl transition shrink-0 focus-visible:ring-2 focus-visible:ring-[#1769c2] focus-visible:ring-offset-2 focus-visible:outline-none ${
               activeTab === "all"
                 ? "bg-[#1769c2] text-white shadow-xs"
                 : "bg-white text-[#5d5854] border border-[#e8e6e3] hover:text-[#171717] hover:bg-[#f8f7f6]"
@@ -398,7 +386,7 @@ export default function CreateHubPage() {
           <button
             type="button"
             onClick={() => setActiveTab("content")}
-            className={`px-3.5 py-2 rounded-xl transition shrink-0 ${
+            className={`px-3.5 py-2 rounded-xl transition shrink-0 focus-visible:ring-2 focus-visible:ring-[#1769c2] focus-visible:ring-offset-2 focus-visible:outline-none ${
               activeTab === "content"
                 ? "bg-[#1769c2] text-white shadow-xs"
                 : "bg-white text-[#5d5854] border border-[#e8e6e3] hover:text-[#171717] hover:bg-[#f8f7f6]"
@@ -409,7 +397,7 @@ export default function CreateHubPage() {
           <button
             type="button"
             onClick={() => setActiveTab("events")}
-            className={`px-3.5 py-2 rounded-xl transition shrink-0 ${
+            className={`px-3.5 py-2 rounded-xl transition shrink-0 focus-visible:ring-2 focus-visible:ring-[#1769c2] focus-visible:ring-offset-2 focus-visible:outline-none ${
               activeTab === "events"
                 ? "bg-[#1769c2] text-white shadow-xs"
                 : "bg-white text-[#5d5854] border border-[#e8e6e3] hover:text-[#171717] hover:bg-[#f8f7f6]"
@@ -420,7 +408,7 @@ export default function CreateHubPage() {
           <button
             type="button"
             onClick={() => setActiveTab("jobs")}
-            className={`px-3.5 py-2 rounded-xl transition shrink-0 ${
+            className={`px-3.5 py-2 rounded-xl transition shrink-0 focus-visible:ring-2 focus-visible:ring-[#1769c2] focus-visible:ring-offset-2 focus-visible:outline-none ${
               activeTab === "jobs"
                 ? "bg-[#1769c2] text-white shadow-xs"
                 : "bg-white text-[#5d5854] border border-[#e8e6e3] hover:text-[#171717] hover:bg-[#f8f7f6]"
@@ -431,7 +419,7 @@ export default function CreateHubPage() {
           <button
             type="button"
             onClick={() => setActiveTab("research")}
-            className={`px-3.5 py-2 rounded-xl transition shrink-0 ${
+            className={`px-3.5 py-2 rounded-xl transition shrink-0 focus-visible:ring-2 focus-visible:ring-[#1769c2] focus-visible:ring-offset-2 focus-visible:outline-none ${
               activeTab === "research"
                 ? "bg-[#1769c2] text-white shadow-xs"
                 : "bg-white text-[#5d5854] border border-[#e8e6e3] hover:text-[#171717] hover:bg-[#f8f7f6]"
@@ -449,30 +437,28 @@ export default function CreateHubPage() {
             return (
               <div
                 key={item.id}
-                className="group relative flex flex-col justify-between rounded-3xl border border-[#e8e6e3] bg-white p-5 shadow-2xs hover:shadow-md transition-all duration-200"
+                className="group relative flex flex-col justify-between rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-xs hover:border-[#1769c2]/30 hover:shadow-md transition-all duration-200"
               >
                 <div>
                   {/* Top Bar: Icon + Category Badge */}
                   <div className="flex items-center justify-between mb-3.5">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f8f7f6] border border-[#f0efee] group-hover:scale-105 transition-transform duration-200">
+                    <div className="flex size-12 items-center justify-center rounded-xl bg-[#f8f7f6] border border-[#e8e6e3] group-hover:scale-105 group-hover:border-[#1769c2]/20 transition-transform duration-200">
                       <CreationIcons8Icon
                         iconId={item.icon8Id}
                         fallback={item.fallbackIcon}
-                        className="h-6 w-6"
+                        className="size-6"
                       />
                     </div>
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-[10px] font-bold border ${item.badgeColor}`}
-                    >
+                    <span className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold bg-[#f5f4f3] text-[#5d5854] border border-[#e8e6e3]">
                       {item.badgeText}
                     </span>
                   </div>
 
                   {/* Title & Description */}
-                  <h3 className="text-base font-bold text-[#171717] group-hover:text-[#1769c2] transition-colors">
+                  <h2 className="text-base font-bold text-[#171717] group-hover:text-[#1769c2] transition-colors text-balance">
                     {item.title}
-                  </h3>
-                  <p className="mt-1 text-xs text-[#77716b] leading-relaxed">
+                  </h2>
+                  <p className="mt-1 text-xs text-[#77716b] leading-relaxed text-pretty">
                     {item.description}
                   </p>
 
@@ -481,7 +467,7 @@ export default function CreateHubPage() {
                     {item.tags.map((t) => (
                       <span
                         key={t}
-                        className="rounded-lg bg-[#faf9f8] px-2 py-0.5 text-[10px] font-semibold text-[#77716b]"
+                        className="rounded-md bg-[#faf9f8] px-2 py-0.5 text-[10px] font-medium text-[#77716b] border border-[#f0efee]"
                       >
                         #{t}
                       </span>
@@ -490,12 +476,12 @@ export default function CreateHubPage() {
                 </div>
 
                 {/* Bottom Action Area with Role Clearance */}
-                <div className="mt-5 pt-3.5 border-t border-[#f5f4f3] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="mt-5 pt-3.5 border-t border-[#f0efee] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-1.5 text-[11px] text-[#77716b]">
                     {item.isUnlocked ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                      <CheckCircle2 className="size-3.5 text-emerald-600 shrink-0" />
                     ) : (
-                      <Lock className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                      <Lock className="size-3.5 text-amber-600 shrink-0" />
                     )}
                     <span className="truncate">{item.roleRequired}</span>
                   </div>
@@ -504,17 +490,17 @@ export default function CreateHubPage() {
                     <button
                       type="button"
                       onClick={() => router.push(item.targetUrl)}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-bold text-white shadow-2xs hover:bg-[#12569f] transition active:scale-95 shrink-0"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#1769c2] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#12569f] focus-visible:ring-2 focus-visible:ring-[#1769c2] focus-visible:ring-offset-2 focus-visible:outline-none transition active:scale-95 shrink-0"
                     >
-                      {item.actionText} <ArrowRight className="h-3.5 w-3.5" />
+                      {item.actionText} <ArrowRight className="size-3.5" />
                     </button>
                   ) : (
                     <button
                       type="button"
                       onClick={() => router.push("/verify")}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800 hover:bg-amber-100 transition shrink-0"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800 hover:bg-amber-100 focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-2 focus-visible:outline-none transition shrink-0"
                     >
-                      Verify to Unlock <Lock className="h-3 w-3" />
+                      Verify to Unlock <Lock className="size-3" />
                     </button>
                   )}
                 </div>
@@ -527,9 +513,12 @@ export default function CreateHubPage() {
         {/* 5. QUICK DRAFT / HELPFUL NOTE */}
         {/* ============================================================ */}
         <div className="rounded-2xl border border-[#e8e6e3] bg-[#faf9f8] p-4 text-center">
-          <p className="text-xs text-[#77716b]">
+          <p className="text-xs text-[#77716b] text-pretty">
             Need help publishing or organizing institutional medical programs?{" "}
-            <Link href="/network" className="font-bold text-[#1769c2] hover:underline">
+            <Link
+              href="/network"
+              className="font-bold text-[#1769c2] hover:underline focus-visible:ring-2 focus-visible:ring-[#1769c2] focus-visible:outline-none rounded"
+            >
               Contact MGN Institutional Support
             </Link>
           </p>
