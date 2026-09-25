@@ -53,52 +53,51 @@ function CardWatermarkBg() {
           <line x1="4" y1="86" x2="96" y2="86" />
         </g>
 
-        {/* Hollow Outlined Glyph Matrix (H, X, Ж, K) */}
+        {/* Hollow Outlined Glyph Matrix (M, G, N Monogram) */}
         <g
           fill="none"
           stroke="#0f172a"
-          strokeWidth="0.75"
-          strokeOpacity="0.13"
-          fontFamily="monospace, system-ui, -apple-system, sans-serif"
+          strokeWidth="0.8"
+          strokeOpacity="0.14"
+          fontFamily="system-ui, -apple-system, sans-serif"
           fontWeight="900"
           fontSize="11"
           textAnchor="middle"
           dominantBaseline="central"
         >
           {/* Row 0 (Top) */}
-          <text x="10" y="14">H</text>
-          <text x="26" y="14">H</text>
-          {/* Outlined Ж shape in center */}
-          <path d="M42 9.5 v9 M38.5 10.5 l7 7 M38.5 17.5 l7 -7" strokeWidth="0.75" />
-          <text x="58" y="14">K</text>
-          <text x="74" y="14">H</text>
-          <text x="90" y="14">H</text>
+          <text x="10" y="14">M</text>
+          <text x="26" y="14">G</text>
+          <text x="42" y="14">N</text>
+          <text x="58" y="14">M</text>
+          <text x="74" y="14">G</text>
+          <text x="90" y="14">N</text>
 
           {/* Row 1 */}
-          <text x="10" y="32">X</text>
-          <text x="26" y="32">H</text>
-          <text x="74" y="32">H</text>
-          <text x="90" y="32">X</text>
+          <text x="10" y="32">N</text>
+          <text x="26" y="32">M</text>
+          <text x="74" y="32">G</text>
+          <text x="90" y="32">N</text>
 
           {/* Row 2 */}
-          <text x="10" y="50">H</text>
-          <text x="26" y="50">H</text>
-          <text x="74" y="50">H</text>
-          <text x="90" y="50">H</text>
+          <text x="10" y="50">G</text>
+          <text x="26" y="50">N</text>
+          <text x="74" y="50">M</text>
+          <text x="90" y="50">G</text>
 
           {/* Row 3 */}
-          <text x="10" y="68">X</text>
-          <text x="26" y="68">H</text>
-          <text x="74" y="68">H</text>
-          <text x="90" y="68">X</text>
+          <text x="10" y="68">M</text>
+          <text x="26" y="68">G</text>
+          <text x="74" y="68">N</text>
+          <text x="90" y="68">M</text>
 
           {/* Row 4 (Bottom) */}
-          <text x="10" y="86">H</text>
-          <text x="26" y="86">H</text>
-          <path d="M42 81.5 v9 M38.5 82.5 l7 7 M38.5 89.5 l7 -7" strokeWidth="0.75" />
-          <text x="58" y="86">K</text>
-          <text x="74" y="86">H</text>
-          <text x="90" y="86">H</text>
+          <text x="10" y="86">M</text>
+          <text x="26" y="86">G</text>
+          <text x="42" y="86">N</text>
+          <text x="58" y="86">M</text>
+          <text x="74" y="86">G</text>
+          <text x="90" y="86">N</text>
         </g>
       </svg>
     </div>
