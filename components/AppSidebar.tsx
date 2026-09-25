@@ -179,12 +179,12 @@ export function AppSidebar({
       <aside
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className={`hidden md:flex flex-col fixed top-0 left-0 bottom-0 bg-white border-r border-[#e8e6e3] transition-all duration-300 ease-in-out ${
+        className={`hidden md:flex flex-col fixed top-2 left-2 bottom-2 bg-white border border-[#e8e6e3] rounded-2xl transition-all duration-300 ease-in-out overflow-hidden ${
           isExpanded
             ? isCollapsed
               ? "w-60 lg:w-64 z-50 shadow-2xl"
-              : "w-60 lg:w-64 z-40 shadow-none"
-            : "w-20 z-40"
+              : "w-60 lg:w-64 z-40 shadow-sm"
+            : "w-18 z-40"
         }`}
       >
         {/* Top: Logo & Collapse / Pin Toggle */}
