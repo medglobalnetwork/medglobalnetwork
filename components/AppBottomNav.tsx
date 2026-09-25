@@ -4,7 +4,7 @@ import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useScrollDirection } from "@/lib/useScrollDirection";
 
-type NavTab = "home" | "network" | "learn" | "opportunities";
+type NavTab = "home" | "network" | "learn" | "opportunities" | "marketplace";
 
 interface NavItemConfig {
   id: NavTab;
@@ -16,7 +16,8 @@ const navItems: NavItemConfig[] = [
   { id: "home",          label: "Home",          icon8Id: "i6fZC6wuprSu" },
   { id: "network",       label: "Network",       icon8Id: "YzsadpdsoN8e" },
   { id: "learn",         label: "Learn",         icon8Id: "AvANlXOxUB6Z" },
-  { id: "opportunities", label: "Opportunities", icon8Id: "IOkzpfWnUztj" },
+  { id: "opportunities", label: "Jobs",          icon8Id: "IOkzpfWnUztj" },
+  { id: "marketplace",   label: "Market",        icon8Id: "VksxHreSn4ck" },
 ];
 
 /* ── Fallback Icons (filled = active, outline = inactive) ── */
@@ -70,11 +71,25 @@ function OpportunitiesFallback({ active }: { active: boolean }) {
   );
 }
 
+function MarketplaceFallback({ active }: { active: boolean }) {
+  return active ? (
+    <svg viewBox="0 0 24 24" className="size-6" fill="currentColor" stroke="none" aria-hidden="true">
+      <path d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3zm7 17H5V8h14v12z" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" />
+      <path d="M16 10a4 4 0 0 1-8 0" />
+    </svg>
+  );
+}
+
 const fallbackMap: Record<NavTab, React.ComponentType<{ active: boolean }>> = {
   home: HomeFallback,
   network: NetworkFallback,
   learn: LearnFallback,
   opportunities: OpportunitiesFallback,
+  marketplace: MarketplaceFallback,
 };
 
 function Icons8BottomNavIcon({
