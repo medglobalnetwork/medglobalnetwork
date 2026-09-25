@@ -241,28 +241,28 @@ export function QuickLinksBar() {
   };
 
   return (
-    <div className="relative rounded-3xl border border-[#e8ecf2] bg-white p-4 sm:p-6 lg:p-7 shadow-2xs overflow-hidden">
-      {/* 1. SECTION HEADER (Matching Exact Reference Image) */}
-      <div className="relative z-10 flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-5 sm:mb-6">
-        <div className="flex items-start gap-3.5 sm:gap-4">
+    <div className="relative rounded-2xl sm:rounded-3xl border border-[#e8ecf2] bg-white p-3 sm:p-4 lg:p-5 shadow-2xs overflow-hidden">
+      {/* 1. SECTION HEADER (Compact) */}
+      <div className="relative z-10 flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3 sm:mb-4">
+        <div className="flex items-start gap-3">
           {/* Left: MGN Caduceus Crest Logo */}
           <div className="flex flex-col items-center justify-center shrink-0 pt-0.5">
             <img
               src="/logo.png"
               alt="MGN"
-              className="h-12 sm:h-14 w-auto object-contain"
+              className="h-9 sm:h-11 w-auto object-contain"
             />
           </div>
 
           <div>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[#0f172a]">
+            <h2 className="text-lg sm:text-xl font-black tracking-tight text-[#0f172a]">
               Quick <span className="text-[#1769c2]">Links</span>
             </h2>
-            <p className="text-xs sm:text-sm text-[#64748b] mt-1 font-medium leading-relaxed max-w-xl">
+            <p className="text-[11px] sm:text-xs text-[#64748b] mt-0.5 font-medium leading-tight max-w-lg">
               Explore opportunities, learning, and connectivity across the vast healthcare ecosystem.
             </p>
-            <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f0f6ff] text-[#1769c2] border border-[#dbeafe] text-[11px] font-bold shadow-2xs">
-              <LayoutGrid className="h-3 w-3 stroke-[2.5]" />
+            <div className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#f0f6ff] text-[#1769c2] border border-[#dbeafe] text-[10px] font-bold shadow-2xs">
+              <LayoutGrid className="h-2.5 w-2.5 stroke-[2.5]" />
               <span>Healthcare Ecosystem</span>
             </div>
           </div>
@@ -270,56 +270,20 @@ export function QuickLinksBar() {
       </div>
 
       {/* ============================================================ */}
-      {/* 2. DESKTOP VIEW: 4 WHITE SQUARE CARDS PER ROW (8 items = 2 rows) */}
+      {/* 2. DESKTOP VIEW: 4 COMPACT WHITE SQUARE CARDS PER ROW        */}
       {/* ============================================================ */}
-      <div className="hidden md:grid md:grid-cols-4 gap-3.5 sm:gap-4">
+      <div className="hidden md:grid md:grid-cols-4 gap-2.5 sm:gap-3">
         {cards.map((card) => (
           <div
             key={card.id}
             onClick={() => handleClick(card.href)}
-            className="group relative aspect-square flex flex-col items-center justify-center rounded-[22px] border border-[#e2e8f0] bg-white p-4 sm:p-5 text-center transition-all duration-200 hover:-translate-y-1 hover:border-[#1769c2]/50 hover:shadow-lg active:scale-95 shadow-[0_2px_8px_rgba(0,0,0,0.03)] cursor-pointer overflow-hidden"
+            className="group relative aspect-[1.1/1] sm:aspect-square flex flex-col items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white p-2.5 sm:p-3.5 text-center transition-all duration-200 hover:-translate-y-0.5 hover:border-[#1769c2]/50 hover:shadow-md active:scale-95 shadow-[0_2px_6px_rgba(0,0,0,0.02)] cursor-pointer overflow-hidden"
           >
             {/* Card Background Watermark Pattern */}
             <CardWatermarkBg />
 
             {/* Centered Icon without background box */}
-            <div className="relative z-10 flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center">
-              <Icons8QuickIcon
-                iconId={card.iconId}
-                fallback={card.fallbackIcon}
-                className="h-10 w-10 sm:h-12 sm:w-12"
-              />
-            </div>
-
-            {/* Title */}
-            <h3 className="relative z-10 text-sm sm:text-base font-bold text-[#0f172a] group-hover:text-[#1769c2] transition-colors mt-3 tracking-tight truncate w-full">
-              {card.title}
-            </h3>
-
-            {/* Open link */}
-            <span className="relative z-10 text-xs font-medium text-[#64748b] group-hover:text-[#1769c2] flex items-center justify-center gap-1 mt-1 transition-colors">
-              <span>Open</span>
-              <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* ============================================================ */}
-      {/* 3. MOBILE VIEW: 3 WHITE SQUARE CARDS PER ROW (9 slots = 3x3)  */}
-      {/* ============================================================ */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-2.5 md:hidden">
-        {cards.map((card) => (
-          <div
-            key={card.id}
-            onClick={() => handleClick(card.href)}
-            className="group relative aspect-square flex flex-col items-center justify-center rounded-[20px] border border-[#e2e8f0] bg-white p-2 sm:p-2.5 text-center transition-all duration-200 active:scale-95 hover:border-[#1769c2]/50 shadow-[0_2px_8px_rgba(0,0,0,0.03)] cursor-pointer overflow-hidden"
-          >
-            {/* Card Background Watermark Pattern */}
-            <CardWatermarkBg />
-
-            {/* Centered Icon without background box */}
-            <div className="relative z-10 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center">
+            <div className="relative z-10 flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center">
               <Icons8QuickIcon
                 iconId={card.iconId}
                 fallback={card.fallbackIcon}
@@ -328,24 +292,60 @@ export function QuickLinksBar() {
             </div>
 
             {/* Title */}
-            <h3 className="relative z-10 text-[11px] sm:text-xs font-bold text-[#0f172a] group-hover:text-[#1769c2] truncate w-full tracking-tight transition-colors mt-1.5">
+            <h3 className="relative z-10 text-xs sm:text-[13px] font-bold text-[#0f172a] group-hover:text-[#1769c2] transition-colors mt-1.5 sm:mt-2 tracking-tight truncate w-full">
               {card.title}
             </h3>
 
             {/* Open link */}
-            <span className="relative z-10 text-[9px] font-medium text-[#64748b] group-hover:text-[#1769c2] flex items-center justify-center gap-0.5 mt-0.5 transition-colors">
+            <span className="relative z-10 text-[10px] sm:text-[11px] font-medium text-[#64748b] group-hover:text-[#1769c2] flex items-center justify-center gap-0.5 mt-0.5 transition-colors">
+              <span>Open</span>
+              <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* ============================================================ */}
+      {/* 3. MOBILE VIEW: 3 COMPACT WHITE SQUARE CARDS PER ROW         */}
+      {/* ============================================================ */}
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:hidden">
+        {cards.map((card) => (
+          <div
+            key={card.id}
+            onClick={() => handleClick(card.href)}
+            className="group relative aspect-square flex flex-col items-center justify-center rounded-xl sm:rounded-2xl border border-[#e2e8f0] bg-white p-1.5 sm:p-2 text-center transition-all duration-200 active:scale-95 hover:border-[#1769c2]/50 shadow-[0_2px_6px_rgba(0,0,0,0.02)] cursor-pointer overflow-hidden"
+          >
+            {/* Card Background Watermark Pattern */}
+            <CardWatermarkBg />
+
+            {/* Centered Icon without background box */}
+            <div className="relative z-10 flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center">
+              <Icons8QuickIcon
+                iconId={card.iconId}
+                fallback={card.fallbackIcon}
+                className="h-5 w-5 sm:h-6 sm:w-6"
+              />
+            </div>
+
+            {/* Title */}
+            <h3 className="relative z-10 text-[10px] sm:text-[11px] font-bold text-[#0f172a] group-hover:text-[#1769c2] truncate w-full tracking-tight transition-colors mt-1">
+              {card.title}
+            </h3>
+
+            {/* Open link */}
+            <span className="relative z-10 text-[8px] sm:text-[9px] font-medium text-[#64748b] group-hover:text-[#1769c2] flex items-center justify-center gap-0.5 mt-0.5 transition-colors">
               <span>Open</span>
               <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
             </span>
           </div>
         ))}
 
-        {/* 9th Slot: Subtle Placeholder Card with Sparkle (matching reference image) */}
-        <div className="aspect-square flex flex-col items-center justify-center rounded-[20px] border border-[#e2e8f0] bg-[#fafafa]/80 p-2 text-center select-none">
-          <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center text-slate-300">
-            <Sparkles className="h-6 w-6 stroke-[1.2]" />
+        {/* 9th Slot: Subtle Placeholder Card with Sparkle */}
+        <div className="aspect-square flex flex-col items-center justify-center rounded-xl sm:rounded-2xl border border-[#e2e8f0] bg-[#fafafa]/80 p-1.5 sm:p-2 text-center select-none">
+          <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center text-slate-300">
+            <Sparkles className="h-5 w-5 stroke-[1.2]" />
           </div>
-          <span className="text-[10px] font-medium text-slate-400 mt-1.5 opacity-60">
+          <span className="text-[9px] font-medium text-slate-400 mt-1 opacity-60">
             MGN
           </span>
         </div>
