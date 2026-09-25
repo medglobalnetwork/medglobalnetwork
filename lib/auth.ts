@@ -55,7 +55,7 @@ const globalForAuth = globalThis as typeof globalThis & {
   mgnAuthDatabase?: Kysely<unknown>;
 };
 
-const pool =
+export const pool =
   globalForAuth.mgnAuthPool ??
   new Pool({
     connectionString: databaseUrl,
@@ -89,6 +89,26 @@ export const auth = betterAuth({
     ...(process.env.BETTER_AUTH_URL ? [process.env.BETTER_AUTH_URL] : []),
   ],
   database: pool,
+  databaseHooks: {
+    session: {
+      create: {
+        after: async (session) => {
+          if (session?.userId) {
+            try {
+              const { enforceDeviceSessionLimit } = await import("./device-session");
+              await enforceDeviceSessionLimit(
+                session.userId,
+                session.id || session.token,
+                session.userAgent
+              );
+            } catch (err) {
+              console.error("Device limit hook error:", err);
+            }
+          }
+        },
+      },
+    },
+  },
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days session persistence
     updateAge: 60 * 60 * 24 * 1, // Refresh session token once a day
