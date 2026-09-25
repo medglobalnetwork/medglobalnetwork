@@ -13,7 +13,7 @@ import {
 import { authClient } from "@/lib/auth-client";
 import UserMenu from "@/components/UserMenu";
 import { useScrollDirection } from "@/lib/useScrollDirection";
-import { formatRelativeTime } from "@/modules/network/lib/network-data";
+import { formatContentTimestamp, formatExactDateTime } from "@/lib/date";
 import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
 
 /* ── Notification popup ─────────────────────────── */
@@ -133,9 +133,13 @@ function NotifPopup({
                 <p className="text-xs font-medium leading-snug text-[#171717]">
                   {n.message || "New activity in your healthcare network"}
                 </p>
-                <p className="mt-0.5 text-[10px] text-[#8a8784]">
-                  {formatRelativeTime(n.created_at)} ago
-                </p>
+                <time
+                  dateTime={new Date(n.created_at).toISOString()}
+                  title={formatExactDateTime(n.created_at)}
+                  className="mt-0.5 text-[10px] text-[#8a8784] font-medium block"
+                >
+                  {formatContentTimestamp(n.created_at)}
+                </time>
               </div>
             </li>
           ))

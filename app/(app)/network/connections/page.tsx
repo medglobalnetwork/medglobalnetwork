@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { EmptyState } from "@/modules/network/components/EmptyState";
 import { ListItemSkeleton } from "@/modules/network/components/SkeletonLoader";
-import { getProfessionColor, formatRelativeTime } from "@/modules/network/lib/network-data";
+import { getProfessionColor } from "@/modules/network/lib/network-data";
+import { formatContentTimestamp, formatExactDateTime } from "@/lib/date";
 
 type Tab = "connections" | "received" | "sent" | "following" | "followers";
 
@@ -260,7 +261,15 @@ export default function MyNetworkPage() {
                             </button>
                             <p className="text-xs text-[#77716b] truncate">{c.profession}{c.specialization ? ` · ${c.specialization}` : ""}</p>
                             {c.organization && <p className="text-[11px] text-[#a09890] truncate">{c.organization}</p>}
-                            {c.connected_at && <p className="text-[10px] text-[#a09890]">Connected {formatRelativeTime(c.connected_at)} ago</p>}
+                            {c.connected_at && (
+                              <time
+                                dateTime={new Date(c.connected_at).toISOString()}
+                                title={formatExactDateTime(c.connected_at)}
+                                className="text-[10px] text-[#77716b] block font-medium mt-0.5"
+                              >
+                                Connected · {formatContentTimestamp(c.connected_at)}
+                              </time>
+                            )}
                           </div>
                         </div>
 
@@ -317,7 +326,13 @@ export default function MyNetworkPage() {
                             <button type="button" onClick={() => router.push(`/profile/${r.sender_id}`)} className="text-sm font-semibold text-[#171717] hover:text-[#1769c2]">{r.name}</button>
                             <p className="text-xs text-[#77716b]">{r.profession}{r.specialization ? ` · ${r.specialization}` : ""}</p>
                             {r.message && <p className="mt-2 rounded-xl bg-[#f8f7f6] p-3 text-xs text-[#5d5854] italic">&ldquo;{r.message}&rdquo;</p>}
-                            <p className="mt-1 text-[11px] text-[#a09890]">{formatRelativeTime(r.created_at)} ago</p>
+                            <time
+                              dateTime={new Date(r.created_at).toISOString()}
+                              title={formatExactDateTime(r.created_at)}
+                              className="mt-1 text-[11px] text-[#77716b] block font-medium"
+                            >
+                              {formatContentTimestamp(r.created_at)}
+                            </time>
                           </div>
                         </div>
                         <div className="mt-3 flex gap-2">

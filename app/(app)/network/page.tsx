@@ -24,7 +24,8 @@ import { ProfessionalCard } from "@/modules/network/components/ProfessionalCard"
 import { NetworkSidebar } from "@/modules/network/components/NetworkSidebar";
 import { EmptyState } from "@/modules/network/components/EmptyState";
 import { ProfessionalCardSkeleton, ListItemSkeleton } from "@/modules/network/components/SkeletonLoader";
-import { getProfessionColor, formatRelativeTime } from "@/modules/network/lib/network-data";
+import { getProfessionColor } from "@/modules/network/lib/network-data";
+import { formatContentTimestamp, formatExactDateTime } from "@/lib/date";
 import type { ProfessionalProfile, NetworkFilters as Filters } from "@/modules/network/types";
 
 // ─────────────────────────────────────────────
@@ -292,7 +293,13 @@ function InvitationsTab() {
                       <button type="button" onClick={() => router.push(`/profile/${r.sender_id}`)} className="text-sm font-bold text-[#171717] hover:text-[#1769c2]">{r.name}</button>
                       <p className="text-xs text-[#77716b]">{r.profession}{r.specialization ? ` · ${r.specialization}` : ""}</p>
                       {r.message && <p className="mt-1.5 rounded-xl bg-[#f8f7f6] px-3 py-2 text-xs text-[#5d5854] italic">&ldquo;{r.message}&rdquo;</p>}
-                      <p className="mt-1 text-[11px] text-[#a09890]">{formatRelativeTime(r.created_at)} ago</p>
+                      <time
+                        dateTime={new Date(r.created_at).toISOString()}
+                        title={formatExactDateTime(r.created_at)}
+                        className="mt-1 text-[11px] text-[#77716b] block font-medium"
+                      >
+                        {formatContentTimestamp(r.created_at)}
+                      </time>
                     </div>
                   </div>
                   <div className="mt-3 flex gap-2">

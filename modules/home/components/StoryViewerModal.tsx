@@ -3,7 +3,7 @@
 import * as React from "react";
 import { StoryGroup, Story } from "../types";
 import { VerificationBadge } from "@/modules/network/components/VerificationBadge";
-import { formatRelativeTime } from "@/modules/network/lib/network-data";
+import { formatContentTimestamp, formatExactDateTime } from "@/lib/date";
 import { Eye, Trash2, X, Heart, ThumbsUp, Sparkles, Flame, Lightbulb } from "lucide-react";
 
 interface StoryViewerModalProps {
@@ -197,7 +197,13 @@ export function StoryViewerModal({
                   {currentStory.userName}
                 </span>
                 {currentStory.isVerified && <VerificationBadge size="sm" />}
-                <span className="text-[10px] text-white/70">· {formatRelativeTime(currentStory.createdAt)}</span>
+                <time
+                  dateTime={new Date(currentStory.createdAt).toISOString()}
+                  title={formatExactDateTime(currentStory.createdAt)}
+                  className="text-[10px] text-white/80 font-medium cursor-default"
+                >
+                  · {formatContentTimestamp(currentStory.createdAt)}
+                </time>
               </div>
               <p className="text-[10px] text-white/80 line-clamp-1">
                 {currentStory.userSpecialization || "Clinician"}

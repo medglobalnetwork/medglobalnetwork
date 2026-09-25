@@ -16,6 +16,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Job } from "../types";
+import { formatContentTimestamp, formatExactDateTime } from "@/lib/date";
 
 interface JobCardProps {
   job: Job;
@@ -180,9 +181,13 @@ export function JobCard({ job, onSaveToggle, onApplyClick }: JobCardProps) {
 
       {/* Footer CTA & Application Status */}
       <div className="mt-4 flex items-center justify-between border-t border-[#f5f4f3] pt-3 text-xs">
-        <span className="text-[11px] text-[#77716b]">
-          Posted {new Date(job.published_at || job.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-        </span>
+        <time
+          dateTime={new Date(job.published_at || job.created_at).toISOString()}
+          title={formatExactDateTime(job.published_at || job.created_at)}
+          className="text-[11px] text-[#77716b] font-medium"
+        >
+          Posted {formatContentTimestamp(job.published_at || job.created_at)}
+        </time>
 
         {job.has_applied ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-[#ecfdf5] px-3 py-1 text-xs font-bold text-[#16804d]">

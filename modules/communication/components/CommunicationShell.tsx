@@ -58,6 +58,12 @@ import {
   MessageType,
 } from "../types";
 import { authClient } from "@/lib/auth-client";
+import {
+  formatFullDateTime,
+  formatMessageTime,
+  formatMessageDayHeader,
+  formatExactDateTime,
+} from "@/lib/date";
 
 export function CommunicationShell() {
   const { data: session } = authClient.useSession();
@@ -1144,18 +1150,31 @@ export function CommunicationShell() {
                     </div>
                   </div>
                 ) : (
-                  messages.map((msg) => {
+                  messages.map((msg, idx) => {
                     const isMe = session?.user?.id === msg.senderId;
+                    const prevMsg = idx > 0 ? messages[idx - 1] : null;
+                    const isNewDay =
+                      !prevMsg ||
+                      new Date(prevMsg.createdAt).toDateString() !==
+                        new Date(msg.createdAt).toDateString();
 
                     return (
-                      <div
-                        key={msg.id}
-                        onMouseEnter={() => setHoveredMessageId(msg.id)}
-                        onMouseLeave={() => setHoveredMessageId(null)}
-                        className={`flex flex-col relative group ${
-                          isMe ? "items-end" : "items-start"
-                        }`}
-                      >
+                      <React.Fragment key={msg.id}>
+                        {isNewDay && (
+                          <div className="flex justify-center my-3">
+                            <span className="text-[10px] font-bold text-[#77716b] bg-[#f5f4f2] px-3 py-1 rounded-full border border-[#e8e6e3] shadow-2xs">
+                              {formatMessageDayHeader(msg.createdAt)}
+                            </span>
+                          </div>
+                        )}
+
+                        <div
+                          onMouseEnter={() => setHoveredMessageId(msg.id)}
+                          onMouseLeave={() => setHoveredMessageId(null)}
+                          className={`flex flex-col relative group ${
+                            isMe ? "items-end" : "items-start"
+                          }`}
+                        >
                         {/* Sender name for groups */}
                         {!isMe && !activeIsDirect && (
                           <span className="text-[10px] font-bold text-slate-500 mb-1 ml-1">
@@ -1242,11 +1261,17 @@ export function CommunicationShell() {
                           {/* Footer: Time, Edited & Read Status */}
                           <div
                             className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${
-                              isMe ? "text-blue-100" : "text-[#9c958f]"
+                              isMe ? "text-blue-100" : "text-[#77716b]"
                             }`}
                           >
                             {msg.editVersion > 0 && <span className="italic mr-1">Edited</span>}
-                            <span>{formatMessageTime(msg.createdAt)}</span>
+                            <time
+                              dateTime={new Date(msg.createdAt).toISOString()}
+                              title={formatFullDateTime(msg.createdAt)}
+                              className="hover:underline cursor-default tabular-nums font-medium"
+                            >
+                              {formatMessageTime(msg.createdAt)}
+                            </time>
                             {isMe && (
                               <span>
                                 {msg.status === "READ" ? (
@@ -1392,8 +1417,9 @@ export function CommunicationShell() {
                           </div>
                         )}
                       </div>
-                    );
-                  })
+                    </React.Fragment>
+                  );
+                })
                 )}
                 <div ref={messagesEndRef} />
               </div>

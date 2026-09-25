@@ -4,7 +4,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import type { NetworkPost, PostComment } from "../types";
 import { VerificationBadge } from "./VerificationBadge";
-import { getProfessionColor, formatRelativeTime } from "../lib/network-data";
+import { getProfessionColor } from "../lib/network-data";
+import { formatContentTimestamp, formatExactDateTime } from "@/lib/date";
 import PulseHeart from "@/components/ui/PulseHeart";
 
 const POST_TYPE_BADGE: Record<string, { label: string; color: string }> = {
@@ -209,9 +210,13 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
             {author?.specialization ? ` · ${author.specialization}` : ""}
             {author?.organization ? ` · ${author.organization}` : ""}
           </p>
-          <p className="text-[11px] text-[#a09890]">
-            {formatRelativeTime(post.created_at)} ago
-          </p>
+          <time
+            dateTime={new Date(post.created_at).toISOString()}
+            title={formatExactDateTime(post.created_at)}
+            className="text-[11px] text-[#77716b] font-medium block mt-0.5 hover:text-[#171717] transition"
+          >
+            {formatContentTimestamp(post.created_at)}
+          </time>
         </div>
 
         {/* Report post */}
@@ -364,9 +369,13 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
                     >
                       {c.author?.name || "Healthcare Professional"}
                     </button>
-                    <span className="text-[10px] text-[#a09890]">
-                      {formatRelativeTime(c.created_at)} ago
-                    </span>
+                    <time
+                      dateTime={new Date(c.created_at).toISOString()}
+                      title={formatExactDateTime(c.created_at)}
+                      className="text-[10px] text-[#77716b] font-medium hover:text-[#171717]"
+                    >
+                      {formatContentTimestamp(c.created_at)}
+                    </time>
                   </div>
                   <p className="mt-1 text-[#5d5854]">{c.content}</p>
                 </li>
