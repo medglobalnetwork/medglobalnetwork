@@ -9,7 +9,6 @@ import {
   GraduationCap,
   ShoppingBag,
   Sparkles,
-  LayoutGrid,
 } from "lucide-react";
 
 // ============================================================
@@ -18,86 +17,109 @@ import {
 
 function CardWatermarkBg() {
   return (
-    <div className="absolute inset-0 pointer-events-none select-none overflow-hidden rounded-[22px]">
+    <div className="absolute inset-0 pointer-events-none select-none overflow-hidden rounded-[inherit]">
       <svg
         viewBox="0 0 100 100"
-        className="h-full w-full opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+        preserveAspectRatio="none"
+        className="h-full w-full opacity-85 group-hover:opacity-100 transition-opacity duration-300"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
         {/* Subtle Background Starburst Rays radiating from top center */}
         <g stroke="#0f172a" strokeWidth="0.5" strokeOpacity="0.08" strokeLinecap="round">
-          <line x1="50" y1="14" x2="26" y2="4" />
-          <line x1="50" y1="14" x2="38" y2="2" />
-          <line x1="50" y1="14" x2="50" y2="1" />
-          <line x1="50" y1="14" x2="62" y2="2" />
-          <line x1="50" y1="14" x2="74" y2="4" />
-          <line x1="50" y1="14" x2="16" y2="12" />
-          <line x1="50" y1="14" x2="84" y2="12" />
-          <line x1="50" y1="14" x2="28" y2="28" />
-          <line x1="50" y1="14" x2="72" y2="28" />
-          <line x1="50" y1="14" x2="40" y2="40" />
-          <line x1="50" y1="14" x2="60" y2="40" />
+          <line x1="50" y1="12" x2="0" y2="0" />
+          <line x1="50" y1="12" x2="25" y2="0" />
+          <line x1="50" y1="12" x2="50" y2="0" />
+          <line x1="50" y1="12" x2="75" y2="0" />
+          <line x1="50" y1="12" x2="100" y2="0" />
+          <line x1="50" y1="12" x2="0" y2="25" />
+          <line x1="50" y1="12" x2="100" y2="25" />
+          <line x1="50" y1="12" x2="0" y2="50" />
+          <line x1="50" y1="12" x2="100" y2="50" />
+          <line x1="50" y1="12" x2="0" y2="75" />
+          <line x1="50" y1="12" x2="100" y2="75" />
+          <line x1="50" y1="12" x2="0" y2="100" />
+          <line x1="50" y1="12" x2="25" y2="100" />
+          <line x1="50" y1="12" x2="50" y2="100" />
+          <line x1="50" y1="12" x2="75" y2="100" />
+          <line x1="50" y1="12" x2="100" y2="100" />
         </g>
 
-        {/* Faint Structural Alignment Grid Lines */}
-        <g stroke="#0f172a" strokeWidth="0.35" strokeOpacity="0.06">
-          <line x1="10" y1="4" x2="10" y2="96" />
-          <line x1="26" y1="4" x2="26" y2="96" />
-          <line x1="74" y1="4" x2="74" y2="96" />
-          <line x1="90" y1="4" x2="90" y2="96" />
-          <line x1="4" y1="14" x2="96" y2="14" />
-          <line x1="4" y1="32" x2="96" y2="32" />
-          <line x1="4" y1="50" x2="96" y2="50" />
-          <line x1="4" y1="68" x2="96" y2="68" />
-          <line x1="4" y1="86" x2="96" y2="86" />
+        {/* Full-bleed Structural Alignment Grid Lines */}
+        <g stroke="#0f172a" strokeWidth="0.35" strokeOpacity="0.07">
+          <line x1="8" y1="0" x2="8" y2="100" />
+          <line x1="24" y1="0" x2="24" y2="100" />
+          <line x1="40" y1="0" x2="40" y2="100" />
+          <line x1="60" y1="0" x2="60" y2="100" />
+          <line x1="76" y1="0" x2="76" y2="100" />
+          <line x1="92" y1="0" x2="92" y2="100" />
+          <line x1="0" y1="10" x2="100" y2="10" />
+          <line x1="0" y1="28" x2="100" y2="28" />
+          <line x1="0" y1="46" x2="100" y2="46" />
+          <line x1="0" y1="64" x2="100" y2="64" />
+          <line x1="0" y1="82" x2="100" y2="82" />
+          <line x1="0" y1="94" x2="100" y2="94" />
         </g>
 
-        {/* Hollow Outlined Glyph Matrix (M, G, N Monogram) */}
+        {/* Full-bleed Hollow Outlined Glyph Matrix (M, G, N Monogram covering entire card) */}
         <g
           fill="none"
           stroke="#0f172a"
-          strokeWidth="0.8"
-          strokeOpacity="0.14"
+          strokeWidth="0.75"
+          strokeOpacity="0.13"
           fontFamily="system-ui, -apple-system, sans-serif"
           fontWeight="900"
-          fontSize="11"
+          fontSize="10"
           textAnchor="middle"
           dominantBaseline="central"
         >
-          {/* Row 0 (Top) */}
-          <text x="10" y="14">M</text>
-          <text x="26" y="14">G</text>
-          <text x="42" y="14">N</text>
-          <text x="58" y="14">M</text>
-          <text x="74" y="14">G</text>
-          <text x="90" y="14">N</text>
+          {/* Row 0 (Top edge) */}
+          <text x="8" y="10">M</text>
+          <text x="24" y="10">G</text>
+          <text x="40" y="10">N</text>
+          <text x="60" y="10">M</text>
+          <text x="76" y="10">G</text>
+          <text x="92" y="10">N</text>
 
           {/* Row 1 */}
-          <text x="10" y="32">N</text>
-          <text x="26" y="32">M</text>
-          <text x="74" y="32">G</text>
-          <text x="90" y="32">N</text>
+          <text x="8" y="28">N</text>
+          <text x="24" y="28">M</text>
+          <text x="40" y="28">G</text>
+          <text x="60" y="28">N</text>
+          <text x="76" y="28">M</text>
+          <text x="92" y="28">G</text>
 
           {/* Row 2 */}
-          <text x="10" y="50">G</text>
-          <text x="26" y="50">N</text>
-          <text x="74" y="50">M</text>
-          <text x="90" y="50">G</text>
+          <text x="8" y="46">G</text>
+          <text x="24" y="46">N</text>
+          <text x="40" y="46">M</text>
+          <text x="60" y="46">G</text>
+          <text x="76" y="46">N</text>
+          <text x="92" y="46">M</text>
 
           {/* Row 3 */}
-          <text x="10" y="68">M</text>
-          <text x="26" y="68">G</text>
-          <text x="74" y="68">N</text>
-          <text x="90" y="68">M</text>
+          <text x="8" y="64">M</text>
+          <text x="24" y="64">G</text>
+          <text x="40" y="64">N</text>
+          <text x="60" y="64">M</text>
+          <text x="76" y="64">G</text>
+          <text x="92" y="64">N</text>
 
-          {/* Row 4 (Bottom) */}
-          <text x="10" y="86">M</text>
-          <text x="26" y="86">G</text>
-          <text x="42" y="86">N</text>
-          <text x="58" y="86">M</text>
-          <text x="74" y="86">G</text>
-          <text x="90" y="86">N</text>
+          {/* Row 4 */}
+          <text x="8" y="82">N</text>
+          <text x="24" y="82">M</text>
+          <text x="40" y="82">G</text>
+          <text x="60" y="82">N</text>
+          <text x="76" y="82">M</text>
+          <text x="92" y="82">G</text>
+
+          {/* Row 5 (Bottom edge) */}
+          <text x="8" y="94">G</text>
+          <text x="24" y="94">N</text>
+          <text x="40" y="94">M</text>
+          <text x="60" y="94">G</text>
+          <text x="76" y="94">N</text>
+          <text x="92" y="94">M</text>
         </g>
       </svg>
     </div>
@@ -241,65 +263,36 @@ export function QuickLinksBar() {
   };
 
   return (
-    <div className="relative rounded-2xl border border-[#e8ecf2] bg-white p-2.5 sm:p-3.5 shadow-2xs overflow-hidden">
-      {/* 1. COMPACT SECTION HEADER (Single Row) */}
-      <div className="relative z-10 flex items-center justify-between gap-2 mb-2 sm:mb-2.5">
-        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-          {/* MGN Caduceus Crest Logo */}
-          <img
-            src="/logo.png"
-            alt="MGN"
-            className="h-6 w-auto sm:h-7 object-contain shrink-0"
-          />
-
-          <div className="flex items-baseline gap-2 min-w-0">
-            <h2 className="text-sm sm:text-base font-black tracking-tight text-[#0f172a] shrink-0">
-              Quick <span className="text-[#1769c2]">Links</span>
-            </h2>
-            <p className="hidden sm:block text-[11px] text-[#64748b] font-medium border-l border-[#e2e8f0] pl-2 truncate">
-              Healthcare ecosystem shortcuts
-            </p>
-          </div>
-        </div>
-
-        {/* Right Badge */}
-        <div className="shrink-0">
-          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#f0f6ff] text-[#1769c2] border border-[#dbeafe] text-[9px] sm:text-[10px] font-bold shadow-2xs">
-            <LayoutGrid className="h-2.5 w-2.5 stroke-[2.5]" />
-            <span>Ecosystem</span>
-          </div>
-        </div>
-      </div>
-
+    <div className="relative w-full">
       {/* ============================================================ */}
-      {/* 2. DESKTOP VIEW: 4 ULTRA-COMPACT WHITE CARDS PER ROW          */}
+      {/* 1. DESKTOP VIEW: 4 SQUARE WHITE CARDS PER ROW                */}
       {/* ============================================================ */}
-      <div className="hidden md:grid md:grid-cols-4 gap-2">
+      <div className="hidden md:grid md:grid-cols-4 gap-2.5 sm:gap-3">
         {cards.map((card) => (
           <div
             key={card.id}
             onClick={() => handleClick(card.href)}
-            className="group relative h-24 sm:h-[102px] flex flex-col items-center justify-center rounded-xl border border-[#e2e8f0] bg-white p-2 text-center transition-all duration-200 hover:-translate-y-0.5 hover:border-[#1769c2]/50 hover:shadow-xs active:scale-95 shadow-[0_1px_3px_rgba(0,0,0,0.02)] cursor-pointer overflow-hidden"
+            className="group relative aspect-square flex flex-col items-center justify-center rounded-xl sm:rounded-2xl border border-[#e2e8f0] bg-white p-2.5 sm:p-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:border-[#1769c2]/50 hover:shadow-md active:scale-95 shadow-[0_1px_3px_rgba(0,0,0,0.02)] cursor-pointer overflow-hidden"
           >
-            {/* Card Background Watermark Pattern */}
+            {/* Card Background Watermark Pattern covering entire card */}
             <CardWatermarkBg />
 
             {/* Centered Icon without background box */}
-            <div className="relative z-10 flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center">
+            <div className="relative z-10 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center">
               <Icons8QuickIcon
                 iconId={card.iconId}
                 fallback={card.fallbackIcon}
-                className="h-6 w-6 sm:h-6.5 sm:w-6.5"
+                className="h-6 w-6 sm:h-7 sm:w-7"
               />
             </div>
 
             {/* Title */}
-            <h3 className="relative z-10 text-xs font-bold text-[#0f172a] group-hover:text-[#1769c2] transition-colors mt-1 tracking-tight truncate w-full">
+            <h3 className="relative z-10 text-xs sm:text-[13px] font-bold text-[#0f172a] group-hover:text-[#1769c2] transition-colors mt-2 tracking-tight truncate w-full">
               {card.title}
             </h3>
 
             {/* Open link */}
-            <span className="relative z-10 text-[10px] font-medium text-[#64748b] group-hover:text-[#1769c2] flex items-center justify-center gap-0.5 mt-0.5 transition-colors">
+            <span className="relative z-10 text-[10px] sm:text-[11px] font-medium text-[#64748b] group-hover:text-[#1769c2] flex items-center justify-center gap-0.5 mt-0.5 transition-colors">
               <span>Open</span>
               <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
             </span>
@@ -308,7 +301,7 @@ export function QuickLinksBar() {
       </div>
 
       {/* ============================================================ */}
-      {/* 3. MOBILE VIEW: 3 ULTRA-COMPACT WHITE CARDS PER ROW           */}
+      {/* 2. MOBILE VIEW: 3 SQUARE WHITE CARDS PER ROW                 */}
       {/* ============================================================ */}
       <div className="grid grid-cols-3 gap-1.5 md:hidden">
         {cards.map((card) => (
