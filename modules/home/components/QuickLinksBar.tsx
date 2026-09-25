@@ -12,128 +12,13 @@ import {
 } from "lucide-react";
 
 // ============================================================
-// Card Watermark Background Pattern (Matching Exact Reference Design)
-// ============================================================
-
-function CardWatermarkBg() {
-  return (
-    <div className="absolute inset-0 pointer-events-none select-none overflow-hidden rounded-[inherit]">
-      <svg
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-        className="h-full w-full opacity-85 group-hover:opacity-100 transition-opacity duration-300"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {/* Subtle Background Starburst Rays radiating from top center */}
-        <g stroke="#0f172a" strokeWidth="0.5" strokeOpacity="0.08" strokeLinecap="round">
-          <line x1="50" y1="12" x2="0" y2="0" />
-          <line x1="50" y1="12" x2="25" y2="0" />
-          <line x1="50" y1="12" x2="50" y2="0" />
-          <line x1="50" y1="12" x2="75" y2="0" />
-          <line x1="50" y1="12" x2="100" y2="0" />
-          <line x1="50" y1="12" x2="0" y2="25" />
-          <line x1="50" y1="12" x2="100" y2="25" />
-          <line x1="50" y1="12" x2="0" y2="50" />
-          <line x1="50" y1="12" x2="100" y2="50" />
-          <line x1="50" y1="12" x2="0" y2="75" />
-          <line x1="50" y1="12" x2="100" y2="75" />
-          <line x1="50" y1="12" x2="0" y2="100" />
-          <line x1="50" y1="12" x2="25" y2="100" />
-          <line x1="50" y1="12" x2="50" y2="100" />
-          <line x1="50" y1="12" x2="75" y2="100" />
-          <line x1="50" y1="12" x2="100" y2="100" />
-        </g>
-
-        {/* Full-bleed Structural Alignment Grid Lines */}
-        <g stroke="#0f172a" strokeWidth="0.35" strokeOpacity="0.07">
-          <line x1="8" y1="0" x2="8" y2="100" />
-          <line x1="24" y1="0" x2="24" y2="100" />
-          <line x1="40" y1="0" x2="40" y2="100" />
-          <line x1="60" y1="0" x2="60" y2="100" />
-          <line x1="76" y1="0" x2="76" y2="100" />
-          <line x1="92" y1="0" x2="92" y2="100" />
-          <line x1="0" y1="10" x2="100" y2="10" />
-          <line x1="0" y1="28" x2="100" y2="28" />
-          <line x1="0" y1="46" x2="100" y2="46" />
-          <line x1="0" y1="64" x2="100" y2="64" />
-          <line x1="0" y1="82" x2="100" y2="82" />
-          <line x1="0" y1="94" x2="100" y2="94" />
-        </g>
-
-        {/* Full-bleed Hollow Outlined Glyph Matrix (M, G, N Monogram covering entire card) */}
-        <g
-          fill="none"
-          stroke="#0f172a"
-          strokeWidth="0.75"
-          strokeOpacity="0.13"
-          fontFamily="system-ui, -apple-system, sans-serif"
-          fontWeight="900"
-          fontSize="10"
-          textAnchor="middle"
-          dominantBaseline="central"
-        >
-          {/* Row 0 (Top edge) */}
-          <text x="8" y="10">M</text>
-          <text x="24" y="10">G</text>
-          <text x="40" y="10">N</text>
-          <text x="60" y="10">M</text>
-          <text x="76" y="10">G</text>
-          <text x="92" y="10">N</text>
-
-          {/* Row 1 */}
-          <text x="8" y="28">N</text>
-          <text x="24" y="28">M</text>
-          <text x="40" y="28">G</text>
-          <text x="60" y="28">N</text>
-          <text x="76" y="28">M</text>
-          <text x="92" y="28">G</text>
-
-          {/* Row 2 */}
-          <text x="8" y="46">G</text>
-          <text x="24" y="46">N</text>
-          <text x="40" y="46">M</text>
-          <text x="60" y="46">G</text>
-          <text x="76" y="46">N</text>
-          <text x="92" y="46">M</text>
-
-          {/* Row 3 */}
-          <text x="8" y="64">M</text>
-          <text x="24" y="64">G</text>
-          <text x="40" y="64">N</text>
-          <text x="60" y="64">M</text>
-          <text x="76" y="64">G</text>
-          <text x="92" y="64">N</text>
-
-          {/* Row 4 */}
-          <text x="8" y="82">N</text>
-          <text x="24" y="82">M</text>
-          <text x="40" y="82">G</text>
-          <text x="60" y="82">N</text>
-          <text x="76" y="82">M</text>
-          <text x="92" y="82">G</text>
-
-          {/* Row 5 (Bottom edge) */}
-          <text x="8" y="94">G</text>
-          <text x="24" y="94">N</text>
-          <text x="40" y="94">M</text>
-          <text x="60" y="94">G</text>
-          <text x="76" y="94">N</text>
-          <text x="92" y="94">M</text>
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-// ============================================================
 // Icons8 Quick Link Icon Component (Deep Navy Monochrome)
 // ============================================================
 
 function Icons8QuickIcon({
   iconId,
   fallback,
-  className = "h-8 w-8 sm:h-11 sm:w-11",
+  className = "h-8.5 w-8.5 sm:h-9.5 sm:w-9.5",
 }: {
   iconId?: string;
   fallback: React.ReactNode;
@@ -263,87 +148,30 @@ export function QuickLinksBar() {
   };
 
   return (
-    <div className="relative w-full">
-      {/* ============================================================ */}
-      {/* 1. DESKTOP VIEW: 4 SQUARE WHITE CARDS PER ROW                */}
-      {/* ============================================================ */}
-      <div className="hidden md:grid md:grid-cols-4 gap-2.5 sm:gap-3">
+    <div className="relative w-full py-1">
+      {/* Icon Dock Grid: 4 columns on mobile (2 rows), 8 columns on desktop (1 row) */}
+      <div className="grid grid-cols-4 md:grid-cols-8 gap-2 sm:gap-3">
         {cards.map((card) => (
           <div
             key={card.id}
             onClick={() => handleClick(card.href)}
-            className="group relative aspect-square flex flex-col items-center justify-center rounded-xl sm:rounded-2xl border border-[#e2e8f0] bg-white p-2.5 sm:p-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:border-[#1769c2]/50 hover:shadow-md active:scale-95 shadow-[0_1px_3px_rgba(0,0,0,0.02)] cursor-pointer overflow-hidden"
+            className="group flex flex-col items-center justify-center text-center cursor-pointer p-1.5 transition-all duration-200 active:scale-95"
           >
-            {/* Card Background Watermark Pattern covering entire card */}
-            <CardWatermarkBg />
-
-            {/* Centered Icon without background box */}
-            <div className="relative z-10 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center">
+            {/* Centered Icon with subtle hover background */}
+            <div className="flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-2xl transition-all duration-200 group-hover:scale-110 group-hover:bg-[#f1f5f9]/80">
               <Icons8QuickIcon
                 iconId={card.iconId}
                 fallback={card.fallbackIcon}
-                className="h-6 w-6 sm:h-7 sm:w-7"
+                className="h-8.5 w-8.5 sm:h-9.5 sm:w-9.5"
               />
             </div>
 
-            {/* Title */}
-            <h3 className="relative z-10 text-xs sm:text-[13px] font-bold text-[#0f172a] group-hover:text-[#1769c2] transition-colors mt-2 tracking-tight truncate w-full">
+            {/* Clean Title */}
+            <span className="text-[11px] sm:text-xs font-semibold text-[#0f172a] group-hover:text-[#1769c2] transition-colors mt-1.5 tracking-tight truncate w-full">
               {card.title}
-            </h3>
-
-            {/* Open link */}
-            <span className="relative z-10 text-[10px] sm:text-[11px] font-medium text-[#64748b] group-hover:text-[#1769c2] flex items-center justify-center gap-0.5 mt-0.5 transition-colors">
-              <span>Open</span>
-              <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
             </span>
           </div>
         ))}
-      </div>
-
-      {/* ============================================================ */}
-      {/* 2. MOBILE VIEW: 3 SQUARE WHITE CARDS PER ROW                 */}
-      {/* ============================================================ */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-2.5 md:hidden">
-        {cards.map((card) => (
-          <div
-            key={card.id}
-            onClick={() => handleClick(card.href)}
-            className="group relative w-full aspect-square flex flex-col items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white p-2 text-center transition-all duration-200 active:scale-95 hover:border-[#1769c2]/50 shadow-[0_1px_3px_rgba(0,0,0,0.02)] cursor-pointer overflow-hidden"
-          >
-            {/* Card Background Watermark Pattern */}
-            <CardWatermarkBg />
-
-            {/* Centered Icon without background box */}
-            <div className="relative z-10 flex h-7 w-7 items-center justify-center">
-              <Icons8QuickIcon
-                iconId={card.iconId}
-                fallback={card.fallbackIcon}
-                className="h-6 w-6"
-              />
-            </div>
-
-            {/* Title */}
-            <h3 className="relative z-10 text-xs font-bold text-[#0f172a] group-hover:text-[#1769c2] truncate w-full tracking-tight transition-colors mt-1">
-              {card.title}
-            </h3>
-
-            {/* Open link */}
-            <span className="relative z-10 text-[10px] font-semibold text-[#64748b] group-hover:text-[#1769c2] flex items-center justify-center gap-0.5 mt-0.5 transition-colors">
-              <span>Open</span>
-              <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
-            </span>
-          </div>
-        ))}
-
-        {/* 9th Slot: Subtle Placeholder Card with Sparkle */}
-        <div className="w-full aspect-square flex flex-col items-center justify-center rounded-2xl border border-[#e2e8f0] bg-[#fafafa]/80 p-2 text-center select-none">
-          <div className="flex h-7 w-7 items-center justify-center text-slate-300">
-            <Sparkles className="h-5 w-5 stroke-[1.2]" />
-          </div>
-          <span className="text-[10px] font-semibold text-slate-400 mt-1 opacity-60">
-            MGN
-          </span>
-        </div>
       </div>
     </div>
   );

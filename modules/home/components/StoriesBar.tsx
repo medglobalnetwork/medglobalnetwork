@@ -4,7 +4,7 @@ import * as React from "react";
 import { StoryGroup } from "../types";
 import { CreateStoryModal } from "./CreateStoryModal";
 import { StoryViewerModal } from "./StoryViewerModal";
-import { ChevronRight, Plus, Sparkles } from "lucide-react";
+import { Plus } from "lucide-react";
 
 interface StoriesBarProps {
   currentUserId?: string;
@@ -88,26 +88,8 @@ export function StoriesBar({
   };
 
   return (
-    <div className="border-0 sm:border sm:border-[#e8e6e3] bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 shadow-none sm:shadow-2xs">
-      {/* 1. SECTION HEADER */}
-      <div className="flex items-center justify-between mb-2.5 sm:mb-4">
-        <div>
-          <h2 className="text-sm sm:text-base font-bold text-[#171717] tracking-tight">Stories</h2>
-          <p className="hidden sm:block text-xs text-[#77716b]">See what your colleagues are sharing today</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            if (peerGroups.length > 0) handleOpenPeerStory(peerGroups[0]);
-            else setIsCreateOpen(true);
-          }}
-          className="inline-flex items-center text-xs font-semibold text-[#1769c2] hover:underline"
-        >
-          View All <ChevronRight className="h-3.5 w-3.5 ml-0.5" />
-        </button>
-      </div>
-
-      {/* 2. HORIZONTAL STORIES LIST */}
+    <div className="border-0 bg-transparent p-0 shadow-none">
+      {/* HORIZONTAL STORIES LIST */}
       <div className="flex items-center gap-3 sm:gap-4 overflow-x-auto pb-1 scrollbar-none touch-pan-x overscroll-x-contain">
         {/* YOUR STORY */}
         <div className="flex shrink-0 flex-col items-center gap-1">
@@ -203,14 +185,6 @@ export function StoriesBar({
               </button>
             );
           })}
-
-        {/* EMPTY STATE HELPER IF NO PEERS POSTED */}
-        {!isLoading && peerGroups.length === 0 && (
-          <div className="flex items-center gap-2 pl-2 text-xs text-[#77716b] whitespace-nowrap">
-            <Sparkles className="h-4 w-4 text-[#1769c2] shrink-0" />
-            <span className="text-[11px] sm:text-xs">Stories from followed peers appear here</span>
-          </div>
-        )}
       </div>
 
       {/* CREATE MODAL */}
