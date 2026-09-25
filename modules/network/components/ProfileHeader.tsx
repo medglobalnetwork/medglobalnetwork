@@ -88,10 +88,8 @@ export function ProfileHeader({
 
     if (profile.image) {
       setAvatarUrl(profile.image);
-    } else if (typeof window !== "undefined") {
-      const customAvatar = isOwnProfile
-        ? localStorage.getItem("mgn_user_custom_avatar")
-        : localStorage.getItem(`mgn_avatar_${profile.user_id}`);
+    } else if (typeof window !== "undefined" && profile.user_id) {
+      const customAvatar = localStorage.getItem(`mgn_avatar_${profile.user_id}`);
       if (customAvatar) setAvatarUrl(customAvatar);
     }
   }, [profile.cover_image_url, profile.image, profile.user_id, isOwnProfile]);
@@ -117,7 +115,9 @@ export function ProfileHeader({
 
   const handleUpdateAvatar = async (newUrl: string) => {
     setAvatarUrl(newUrl);
-    setUserCustomAvatar(newUrl);
+    if (profile.user_id) {
+      setUserCustomAvatar(profile.user_id, newUrl);
+    }
 
     // Persist to server
     try {

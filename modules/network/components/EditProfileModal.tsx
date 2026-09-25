@@ -196,7 +196,7 @@ export function EditProfileModal({
 
       // Update localStorage cache
       if (typeof window !== "undefined") {
-        if (image) localStorage.setItem("mgn_user_custom_avatar", image);
+        if (image) localStorage.setItem(`mgn_avatar_${profile.user_id}`, image);
         if (coverImageUrl) localStorage.setItem(`mgn_cover_${profile.user_id}`, coverImageUrl);
         window.dispatchEvent(new Event("mgn-avatar-updated"));
         window.dispatchEvent(new Event("mgn-cover-updated"));

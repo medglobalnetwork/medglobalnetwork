@@ -78,7 +78,12 @@ export async function GET(request: Request) {
           sql<string>`COALESCE(pp.id, u.id)`.as("id"),
           "u.id as user_id",
           "u.name",
-          sql<string | null>`COALESCE(u.image, mi.profile_photo_url)`.as("image"),
+          sql<string | null>`COALESCE(
+            NULLIF(mi.profile_photo_url, ''),
+            CASE WHEN u.image NOT LIKE '%googleusercontent%' AND u.image NOT LIKE '%ggpht.com%' THEN u.image ELSE NULL END,
+            mi.profile_photo_url,
+            u.image
+          )`.as("image"),
           "pp.username",
           "pp.member_id",
           "pp.is_founding_member",

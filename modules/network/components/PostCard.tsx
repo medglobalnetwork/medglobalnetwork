@@ -353,9 +353,13 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
               {comments.map((c) => (
                 <li key={c.id} className="rounded-xl bg-[#f8f7f6] p-2.5 text-xs">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-[#171717]">
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/profile/${c.author?.user_id || c.author_id}`)}
+                      className="font-semibold text-[#171717] hover:text-[#0f4c81] hover:underline text-left cursor-pointer"
+                    >
                       {c.author?.name || "Healthcare Professional"}
-                    </span>
+                    </button>
                     <span className="text-[10px] text-[#a09890]">
                       {formatRelativeTime(c.created_at)} ago
                     </span>

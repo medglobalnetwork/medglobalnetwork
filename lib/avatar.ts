@@ -62,36 +62,73 @@ export function isGoogleOrExternalAvatar(url?: string | null): boolean {
 
 /**
  * Utility to get user avatar:
- * 1. Checks localStorage for a custom uploaded avatar photo (`mgn_user_custom_avatar`).
- * 2. If serverImage exists, returns it.
- * 3. Otherwise returns DEFAULT_BLANK_AVATAR.
+ * 1. Checks localStorage for user-scoped custom avatar (`mgn_avatar_<userId>`).
+ * 2. If serverImage is provided and is a valid custom image, returns it.
+ * 3. Falls back to DEFAULT_BLANK_AVATAR.
  */
 export function getUserAvatarUrl(
-  email?: string | null,
-  name?: string | null,
-  serverImage?: string | null
+  userIdOrServerImage?: string | null,
+  serverImageOrName?: string | null,
+  legacyServerImage?: string | null
 ): string {
-  if (typeof window !== "undefined") {
-    const customAvatar = localStorage.getItem("mgn_user_custom_avatar");
-    if (customAvatar) {
-      return customAvatar;
+  let userId: string | null | undefined = null;
+  let serverImage: string | null | undefined = null;
+
+  // Detect which argument is the userId vs image URL
+  const args = [userIdOrServerImage, serverImageOrName, legacyServerImage];
+  for (const arg of args) {
+    if (!arg) continue;
+    if (arg.startsWith("http://") || arg.startsWith("https://") || arg.startsWith("data:") || arg.startsWith("/")) {
+      if (!serverImage) serverImage = arg;
+    } else if (!userId && arg.length > 3 && !arg.includes("@") && !arg.includes(" ")) {
+      // Looks like a userId
+      userId = arg;
     }
   }
 
-  if (serverImage) {
+  // If first arg didn't match the regex but isn't an image URL, treat as userId if provided
+  if (!userId && userIdOrServerImage && !userIdOrServerImage.startsWith("http") && !userIdOrServerImage.startsWith("data:") && !userIdOrServerImage.startsWith("/")) {
+    userId = userIdOrServerImage;
+  }
+
+  if (typeof window !== "undefined" && userId) {
+    const userCustom = localStorage.getItem(`mgn_avatar_${userId}`);
+    if (userCustom) {
+      return userCustom;
+    }
+  }
+
+  if (serverImage && serverImage !== DEFAULT_BLANK_AVATAR) {
     return serverImage;
   }
 
   return DEFAULT_BLANK_AVATAR;
 }
 
-export function setUserCustomAvatar(dataUrl: string | null) {
+export function setUserCustomAvatar(userIdOrDataUrl: string | null, dataUrlOrNull?: string | null) {
   if (typeof window === "undefined") return;
-  if (dataUrl) {
-    localStorage.setItem("mgn_user_custom_avatar", dataUrl);
+
+  let userId: string | null = null;
+  let dataUrl: string | null = null;
+
+  if (dataUrlOrNull !== undefined) {
+    userId = userIdOrDataUrl;
+    dataUrl = dataUrlOrNull;
   } else {
-    localStorage.removeItem("mgn_user_custom_avatar");
+    dataUrl = userIdOrDataUrl;
   }
+
+  if (userId) {
+    if (dataUrl) {
+      localStorage.setItem(`mgn_avatar_${userId}`, dataUrl);
+    } else {
+      localStorage.removeItem(`mgn_avatar_${userId}`);
+    }
+  }
+
+  // Clear legacy global key to prevent cross-account leak
+  localStorage.removeItem("mgn_user_custom_avatar");
+
   // Dispatch custom storage event so all components update instantly
   window.dispatchEvent(new Event("mgn-avatar-updated"));
 }

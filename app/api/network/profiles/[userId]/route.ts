@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { networkDb, ensureNetworkingTables, slugifyUsername, generateId } from "@/modules/network/lib/network-db";
 import { generateRegularMemberId, generateFoundingMemberId, isDesignatedFounderEmail } from "@/modules/network/lib/member-id";
 import { headers } from "next/headers";
+import { sql } from "kysely";
 
 export async function GET(
   _request: Request,
@@ -32,6 +33,7 @@ export async function GET(
     let profile = await networkDb
       .selectFrom("professional_profiles as pp")
       .innerJoin("user as u", "u.id", "pp.user_id")
+      .leftJoin("mgn_identities as mi", "mi.user_id", "u.id")
       .select([
         "pp.id",
         "pp.user_id",
@@ -41,7 +43,12 @@ export async function GET(
         "pp.membership_tier",
         "u.name",
         "u.email",
-        "u.image",
+        sql<string | null>`COALESCE(
+          NULLIF(mi.profile_photo_url, ''),
+          CASE WHEN u.image NOT LIKE '%googleusercontent%' AND u.image NOT LIKE '%ggpht.com%' THEN u.image ELSE NULL END,
+          mi.profile_photo_url,
+          u.image
+        )`.as("image"),
         "pp.profession",
         "pp.specialization",
         "pp.sub_specialization",

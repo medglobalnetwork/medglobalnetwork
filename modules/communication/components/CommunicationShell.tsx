@@ -1005,30 +1005,44 @@ export function CommunicationShell() {
                     <ArrowLeft className="h-5 w-5" />
                   </button>
 
-                  <img
-                    src={getUserAvatarUrl(
-                      activeIsDirect ? activePeer?.image : selectedConversation.avatarUrl,
-                      activeIsDirect ? activePeer?.name : selectedConversation.name || "Group"
-                    )}
-                    alt={activeTitle}
-                    className="h-10 w-10 rounded-full object-cover border border-[#e8e6e3] shrink-0"
-                  />
-
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <h2 className="text-sm sm:text-base font-bold text-[#171717] truncate">
-                        {activeTitle}
-                      </h2>
-                      {activeIsDirect && activePeer && (
-                        <MemberBadge
-                          memberId={activePeer.memberId}
-                          isFoundingMember={activePeer.isFoundingMember}
-                          size="sm"
-                          variant="pill"
-                        />
+                  <div
+                    onClick={() => setShowDetailsDrawer((prev) => !prev)}
+                    className="flex items-center gap-2.5 sm:gap-3 min-w-0 cursor-pointer group hover:opacity-85 transition select-none"
+                    title="Click to view profile & chat details"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setShowDetailsDrawer((prev) => !prev);
+                      }
+                    }}
+                  >
+                    <img
+                      src={getUserAvatarUrl(
+                        activeIsDirect ? activePeer?.userId : selectedConversation.id,
+                        activeIsDirect ? activePeer?.image : selectedConversation.avatarUrl
                       )}
+                      alt={activeTitle}
+                      className="h-10 w-10 rounded-full object-cover border border-[#e8e6e3] shrink-0 group-hover:ring-2 group-hover:ring-[#0f4c81]/40 transition"
+                    />
+
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h2 className="text-sm sm:text-base font-bold text-[#171717] group-hover:text-[#0f4c81] transition truncate">
+                          {activeTitle}
+                        </h2>
+                        {activeIsDirect && activePeer && (
+                          <MemberBadge
+                            memberId={activePeer.memberId}
+                            isFoundingMember={activePeer.isFoundingMember}
+                            size="sm"
+                            variant="pill"
+                          />
+                        )}
+                      </div>
+                      <p className="text-[11px] text-[#77716b] truncate">{activeSubtitle}</p>
                     </div>
-                    <p className="text-[11px] text-[#77716b] truncate">{activeSubtitle}</p>
                   </div>
                 </div>
 

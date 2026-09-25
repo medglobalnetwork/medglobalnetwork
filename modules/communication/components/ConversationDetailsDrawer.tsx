@@ -128,14 +128,24 @@ export function ConversationDetailsDrawer({
             {/* Identity Profile Summary */}
             <div className="flex flex-col items-center text-center pb-4 border-b border-[#f0efee]">
               <div className="relative mb-3">
-                <img
-                  src={avatar}
-                  alt={title}
-                  className="h-20 w-20 rounded-full object-cover border-2 border-white shadow-md ring-2 ring-slate-100"
-                />
+                {isDirect && peer?.userId ? (
+                  <Link href={`/profile/${peer.userId}`} className="block group">
+                    <img
+                      src={avatar}
+                      alt={title}
+                      className="h-20 w-20 rounded-full object-cover border-2 border-white shadow-md ring-2 ring-slate-100 group-hover:ring-[#0f4c81] transition"
+                    />
+                  </Link>
+                ) : (
+                  <img
+                    src={avatar}
+                    alt={title}
+                    className="h-20 w-20 rounded-full object-cover border-2 border-white shadow-md ring-2 ring-slate-100"
+                  />
+                )}
                 {isDirect && peer?.identityVerified && (
                   <span
-                    className="absolute -bottom-1 -right-1 bg-[#1769c2] text-white rounded-full p-1 shadow-xs"
+                    className="absolute -bottom-1 -right-1 bg-[#0f4c81] text-white rounded-full p-1 shadow-xs"
                     title="Verified Doctor"
                   >
                     <ShieldCheck className="h-3.5 w-3.5" />
@@ -144,7 +154,13 @@ export function ConversationDetailsDrawer({
               </div>
 
               <h4 className="text-base font-bold text-[#171717] flex items-center justify-center gap-1.5 flex-wrap">
-                {title}
+                {isDirect && peer?.userId ? (
+                  <Link href={`/profile/${peer.userId}`} className="hover:text-[#0f4c81] hover:underline transition">
+                    {title}
+                  </Link>
+                ) : (
+                  title
+                )}
                 {isDirect && peer && (
                   <MemberBadge
                     memberId={peer.memberId}
@@ -169,14 +185,25 @@ export function ConversationDetailsDrawer({
                 </div>
               )}
 
+              {/* View Profile Button for Direct Chats */}
+              {isDirect && peer?.userId && (
+                <Link
+                  href={`/profile/${peer.userId}`}
+                  className="mt-3 inline-flex items-center justify-center gap-1.5 w-full py-2 px-3 rounded-xl bg-[#0f4c81] text-white text-xs font-bold shadow-xs hover:bg-[#0c3d69] transition active:scale-98"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  <span>View Full Profile</span>
+                </Link>
+              )}
+
               {/* Action Buttons */}
-              <div className="flex items-center gap-2 mt-4 w-full">
+              <div className="flex items-center gap-2 mt-3 w-full">
                 <button
                   type="button"
                   onClick={() => onStartCall("VOICE")}
                   className="flex-1 flex flex-col items-center justify-center p-2 rounded-xl bg-[#f5f4f2] hover:bg-[#efefef] text-[#171717] transition text-xs font-bold gap-1"
                 >
-                  <Phone className="h-4 w-4 text-[#1769c2]" />
+                  <Phone className="h-4 w-4 text-[#0f4c81]" />
                   <span>Audio</span>
                 </button>
                 <button
@@ -184,7 +211,7 @@ export function ConversationDetailsDrawer({
                   onClick={() => onStartCall("VIDEO")}
                   className="flex-1 flex flex-col items-center justify-center p-2 rounded-xl bg-[#f5f4f2] hover:bg-[#efefef] text-[#171717] transition text-xs font-bold gap-1"
                 >
-                  <Video className="h-4 w-4 text-[#1769c2]" />
+                  <Video className="h-4 w-4 text-[#0f4c81]" />
                   <span>Video</span>
                 </button>
                 <button
@@ -192,7 +219,7 @@ export function ConversationDetailsDrawer({
                   onClick={onScheduleMeeting}
                   className="flex-1 flex flex-col items-center justify-center p-2 rounded-xl bg-[#f5f4f2] hover:bg-[#efefef] text-[#171717] transition text-xs font-bold gap-1"
                 >
-                  <Calendar className="h-4 w-4 text-[#1769c2]" />
+                  <Calendar className="h-4 w-4 text-[#0f4c81]" />
                   <span>Meeting</span>
                 </button>
               </div>

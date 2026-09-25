@@ -157,7 +157,7 @@ export function AppSidebar({
     return pathname.startsWith(href);
   };
 
-  const userAvatar = getUserAvatarUrl(session?.user?.image, session?.user?.name);
+  const userAvatar = getUserAvatarUrl(session?.user?.id, session?.user?.image);
 
   // Close mobile drawer and collapse hover state when navigating to a new route
   const prevPathname = React.useRef(pathname);

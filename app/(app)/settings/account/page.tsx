@@ -80,8 +80,8 @@ export default function AccountSettingsPage() {
   // Sync avatar
   React.useEffect(() => {
     const syncAvatar = () => {
-      if (typeof window !== "undefined") {
-        const custom = localStorage.getItem("mgn_user_custom_avatar");
+      if (typeof window !== "undefined" && session?.user?.id) {
+        const custom = localStorage.getItem(`mgn_avatar_${session.user.id}`);
         if (custom) {
           setAvatarUrl(custom);
           return;
@@ -89,8 +89,7 @@ export default function AccountSettingsPage() {
       }
       setAvatarUrl(
         getUserAvatarUrl(
-          session?.user?.email,
-          session?.user?.name,
+          session?.user?.id,
           session?.user?.image
         )
       );
@@ -98,11 +97,13 @@ export default function AccountSettingsPage() {
     syncAvatar();
     window.addEventListener("mgn-avatar-updated", syncAvatar);
     return () => window.removeEventListener("mgn-avatar-updated", syncAvatar);
-  }, [session?.user?.email, session?.user?.name, session?.user?.image]);
+  }, [session?.user?.id, session?.user?.image]);
 
   const handleUpdateAvatar = async (newUrl: string) => {
     setAvatarUrl(newUrl);
-    setUserCustomAvatar(newUrl);
+    if (session?.user?.id) {
+      setUserCustomAvatar(session.user.id, newUrl);
+    }
     setPhotoSuccess("Profile photo updated successfully!");
     setTimeout(() => setPhotoSuccess(null), 3000);
 
@@ -120,7 +121,9 @@ export default function AccountSettingsPage() {
   };
 
   const handleResetAvatar = async () => {
-    setUserCustomAvatar(null);
+    if (session?.user?.id) {
+      setUserCustomAvatar(session.user.id, null);
+    }
     setPhotoSuccess("Profile picture removed. Default avatar applied.");
     setTimeout(() => setPhotoSuccess(null), 3000);
 

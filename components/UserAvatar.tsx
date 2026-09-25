@@ -38,11 +38,6 @@ export function UserAvatar({
         return;
       }
     }
-    const custom = localStorage.getItem("mgn_user_custom_avatar");
-    if (custom && (!src || src === DEFAULT_BLANK_AVATAR)) {
-      setResolvedSrc(custom);
-      return;
-    }
     setResolvedSrc(src);
   }, [src, userId]);
 

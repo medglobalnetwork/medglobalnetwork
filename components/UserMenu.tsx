@@ -48,8 +48,7 @@ export default function UserMenu() {
     const updateAvatar = () => {
       setAvatarUrl(
         getUserAvatarUrl(
-          session?.user?.email,
-          session?.user?.name,
+          session?.user?.id,
           session?.user?.image
         )
       );
@@ -57,7 +56,7 @@ export default function UserMenu() {
     updateAvatar();
     window.addEventListener("mgn-avatar-updated", updateAvatar);
     return () => window.removeEventListener("mgn-avatar-updated", updateAvatar);
-  }, [session?.user?.email, session?.user?.name, session?.user?.image]);
+  }, [session?.user?.id, session?.user?.image]);
 
   // Fetch Member ID
   React.useEffect(() => {
