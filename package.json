@@ -12,6 +12,7 @@
     "@aws-sdk/client-s3": "^3.1136.0",
     "@aws-sdk/s3-request-presigner": "^3.1136.0",
     "@better-auth/infra": "^0.4.9",
+    "@hugeicons/core-free-icons": "^4.3.5",
     "better-auth": "^1.7.5",
     "kysely": "^0.29.6",
     "lucide-react": "^1.47.0",

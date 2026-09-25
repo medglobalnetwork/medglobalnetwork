@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { NetworkPost, PostComment } from "../types";
 import { VerificationBadge } from "./VerificationBadge";
 import { getProfessionColor, formatRelativeTime } from "../lib/network-data";
+import PulseHeart from "@/components/ui/PulseHeart";
 
 const POST_TYPE_BADGE: Record<string, { label: string; color: string }> = {
   text:        { label: "Post",        color: "#77716b" },
@@ -52,7 +53,8 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
 
   const badge = POST_TYPE_BADGE[post.post_type] ?? POST_TYPE_BADGE.text;
 
-  const handleReact = async () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleReact = async (..._args: unknown[]) => {
     const wasReacted = reacted;
     const previousCount = reactionCount;
 
@@ -233,29 +235,28 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
 
       {/* Action bar */}
       <div className="mt-4 flex items-center gap-0.5 border-t border-[#f5f4f3] pt-3">
-        {/* Like */}
-        <button
-          type="button"
-          onClick={handleReact}
-          disabled={likeLoading}
-          className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition disabled:opacity-50 ${
-            reacted
-              ? "text-[#1769c2] bg-[#eef5fc]"
-              : "text-[#77716b] hover:bg-[#f8f7f6] hover:text-[#1769c2]"
-          }`}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            className="h-4 w-4"
-            fill={reacted ? "currentColor" : "none"}
-            stroke="currentColor"
-            strokeWidth="1.8"
-          >
-            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z" />
-            <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
-          </svg>
-          {reactionCount > 0 ? reactionCount.toLocaleString() : "Like"}
-        </button>
+        {/* Like — PulseHeart */}
+        <PulseHeart
+          liked={reacted}
+          count={reactionCount}
+          onChange={handleReact}
+          showCount={reactionCount > 0}
+          icon="heart"
+          idleOutline
+          size={20}
+          corner={20}
+          likedColor="#e11d48"
+          idleColor="#77716b"
+          pillColor="#f5f4f3"
+          textColor="#171717"
+          duration={520}
+          dotSize={0.25}
+          overshoot={1.6}
+          beat={2.5}
+          rollDuration={320}
+          label="Like"
+          className="!rounded-lg"
+        />
 
         {/* Comment */}
         <button
