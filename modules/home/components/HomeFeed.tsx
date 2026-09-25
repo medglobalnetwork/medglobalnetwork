@@ -11,6 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import { PostCard } from "@/modules/network/components/PostCard";
+import { CreatePost } from "@/modules/network/components/CreatePost";
 import { EmptyState } from "@/modules/network/components/EmptyState";
 import { PostCardSkeleton } from "@/modules/network/components/SkeletonLoader";
 import type { NetworkPost } from "@/modules/network/types";
@@ -73,9 +74,20 @@ export function HomeFeed({
     fetchPosts(1, false, activeTab);
   }, [fetchPosts, activeTab]);
 
+  const handlePostCreated = () => {
+    fetchPosts(1, false, activeTab);
+  };
+
   return (
     <div className="space-y-5">
-      {/* 1. FOR YOU / FOLLOWING / COMMUNITIES FEED TABS */}
+      {/* 1. SOCIAL POST COMPOSER */}
+      <CreatePost
+        onPosted={handlePostCreated}
+        userImage={currentUserAvatar || undefined}
+        userName={currentUserName}
+      />
+
+      {/* 2. FOR YOU / FOLLOWING / COMMUNITIES FEED TABS */}
       <div className="flex items-center justify-between border-b border-[#ded8d1] pb-1">
         <div className="flex gap-4 sm:gap-6">
           <button

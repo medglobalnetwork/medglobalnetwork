@@ -78,6 +78,24 @@ export default function HomePage() {
       .catch(() => {});
   }, [session?.user?.id]);
 
+  const [todaySchedule, setTodaySchedule] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    if (!session?.user?.id) return;
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0).toISOString();
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).toISOString();
+
+    fetch(`/api/shared/calendar?from=${startOfDay}&to=${endOfDay}`, { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.agenda && Array.isArray(d.agenda)) {
+          setTodaySchedule(d.agenda);
+        }
+      })
+      .catch(() => {});
+  }, [session?.user?.id]);
+
   React.useEffect(() => {
     if (!isPending && !session) {
       router.replace("/");
@@ -120,6 +138,54 @@ export default function HomePage() {
               currentUserName={displayName}
             />
 
+            {/* TODAY'S SCHEDULE (Only shown if user has active items scheduled today) */}
+            {todaySchedule.length > 0 && (
+              <div className="rounded-2xl border border-[#e8e6e3] bg-white p-3.5 sm:p-4 shadow-2xs">
+                <div className="flex items-center justify-between border-b border-[#f5f4f3] pb-2.5 mb-3">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-[#1769c2]" />
+                    <h3 className="font-bold text-xs sm:text-sm text-[#171717]">Today&apos;s Schedule</h3>
+                    <span className="rounded-full bg-[#eef5fc] text-[#1769c2] px-2 py-0.5 text-[10px] font-bold">
+                      {todaySchedule.length}
+                    </span>
+                  </div>
+                  <Link
+                    href="/events"
+                    className="text-[11px] font-bold text-[#1769c2] hover:underline"
+                  >
+                    Calendar &gt;
+                  </Link>
+                </div>
+
+                <div className="space-y-2">
+                  {todaySchedule.map((item: any) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between p-2.5 rounded-xl bg-[#faf9f8] hover:bg-[#f5f4f3] transition border border-[#f0efee]"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <h4 className="text-xs font-bold text-[#171717] truncate">{item.title}</h4>
+                        <p className="text-[10px] text-[#77716b] mt-0.5">
+                          {new Date(item.start_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          {item.location ? ` · ${item.location}` : ""}
+                        </p>
+                      </div>
+                      {item.meeting_link && (
+                        <a
+                          href={item.meeting_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0 px-2.5 py-1 rounded-lg bg-[#1769c2] text-white text-[10px] font-bold hover:bg-[#12569f] transition"
+                        >
+                          Join
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* 2. QUICK LINKS BAR (10 Short-cut categories) */}
             <QuickLinksBar />
 
@@ -132,9 +198,9 @@ export default function HomePage() {
           </div>
 
           {/* =================================================================
-              RIGHT COLUMN: Profile Summary + Schedule + People + Pro Card (30-32%)
+              RIGHT COLUMN: Profile Summary + People + Pro Card (Desktop Only)
               ================================================================= */}
-          <div className="space-y-5 lg:col-span-4">
+          <div className="hidden lg:block space-y-5 lg:col-span-4">
             {/* 1. USER PROFILE SUMMARY CARD */}
             <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-[#e8e6e3] bg-white shadow-2xs">
               {/* Graphic Top Banner */}
@@ -216,38 +282,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* 2. TODAY'S SCHEDULE WIDGET */}
-            <div className="rounded-3xl border border-[#e8e6e3] bg-white p-5 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-[#f5f4f3] pb-3 mb-4">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-[#1769c2]" />
-                  <h3 className="font-bold text-xs text-[#171717]">Today&apos;s Schedule</h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => router.push("/network")}
-                  className="text-[11px] font-bold text-[#1769c2] hover:underline"
-                >
-                  Explore Events &gt;
-                </button>
-              </div>
-
-              <div className="py-2 text-center">
-                <p className="text-xs text-[#77716b] font-medium">No events scheduled for today</p>
-                <p className="text-[10px] text-[#a09890] mt-0.5">
-                  Join medical webinars and community case reviews
-                </p>
-                <button
-                  type="button"
-                  onClick={() => router.push("/network")}
-                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-[#e8e6e3] bg-[#faf9f8] px-3 py-1.5 text-[11px] font-semibold text-[#171717] hover:bg-[#f0efee] transition"
-                >
-                  Browse Communities
-                </button>
-              </div>
-            </div>
-
-            {/* 3. DYNAMIC PEOPLE YOU MAY KNOW WIDGET */}
+            {/* 2. DYNAMIC PEOPLE YOU MAY KNOW WIDGET */}
             <PeopleYouMayKnow currentUserId={session.user.id} limit={4} />
 
             {/* 4. UPGRADE TO MGN PRO CARD */}
