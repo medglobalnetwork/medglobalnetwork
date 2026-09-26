@@ -50,7 +50,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
   { id: "events", label: "Events", href: "/events", icon: Calendar, icon8Id: "vwGXRtPWrZSn" },
   { id: "camps", label: "Health Camps", href: "/camps", icon: Tent, icon8Id: "HBLTBJiOS1vp" },
   { id: "research", label: "Research", href: "/research", icon: FlaskConical, icon8Id: "9ZmP1ylpYlqn" },
-  { id: "marketplace", label: "Marketplace", href: "/marketplace", icon: ShoppingBag, icon8Id: "VksxHreSn4ck" },
+  { id: "marketplace", label: "Marketplace", href: "/marketplace", icon: ShoppingBag, icon8Id: "VksxHreSn4ck", badge: "Soon" },
 ];
 
 export const WORKSPACE_NAV_ITEMS: NavItem[] = [
@@ -262,6 +262,11 @@ export function AppSidebar({
                         {item.label}
                       </span>
                     )}
+                    {item.badge && isExpanded && !active && (
+                      <span className="ml-auto rounded-full bg-[#f0efee] border border-[#e8e6e3] px-1.5 py-0.2 text-[9px] font-bold text-[#77716b]">
+                        {item.badge}
+                      </span>
+                    )}
                     {active && isExpanded && (
                       <span className="ml-auto size-1.5 rounded-full bg-[#16804d]" />
                     )}
@@ -470,6 +475,11 @@ export function AppSidebar({
                           className="size-6"
                         />
                         <span className="truncate">{item.label}</span>
+                        {item.badge && !active && (
+                          <span className="ml-auto rounded-full bg-[#f0efee] border border-[#e8e6e3] px-1.5 py-0.2 text-[9px] font-bold text-[#77716b]">
+                            {item.badge}
+                          </span>
+                        )}
                         {active && (
                           <span className="ml-auto size-1.5 rounded-full bg-[#16804d]" />
                         )}
