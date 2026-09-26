@@ -114,53 +114,61 @@ export async function GET(request: Request) {
 
     const total = parseInt(countResult?.total ?? "0", 10);
 
-    // Enrich with connection status for each profile
-    const enriched = await Promise.all(
-      profiles.map(async (p) => {
-        const [conn, req] = await Promise.all([
-          networkDb
-            .selectFrom("connections")
-            .where((eb) =>
-              eb.or([
-                eb.and([eb("user_a_id", "=", session.user.id), eb("user_b_id", "=", p.user_id)]),
-                eb.and([eb("user_b_id", "=", session.user.id), eb("user_a_id", "=", p.user_id)]),
-              ])
-            )
-            .selectAll()
-            .executeTakeFirst(),
-          networkDb
-            .selectFrom("connection_requests")
-            .where((eb) =>
-              eb.or([
-                eb.and([eb("sender_id", "=", session.user.id), eb("receiver_id", "=", p.user_id)]),
-                eb.and([eb("receiver_id", "=", session.user.id), eb("sender_id", "=", p.user_id)]),
-              ])
-            )
-            .where("status", "=", "pending")
-            .selectAll()
-            .executeTakeFirst(),
-        ]);
+    // Enrich with connection & follow status using 3 fast batch queries instead of 60 N+1 queries
+    const userIds = profiles.map((p) => p.user_id);
+    const connectionsMap = new Set<string>();
+    const requestsMap = new Map<string, { id: string; sender_id: string; receiver_id: string }>();
+    const followsMap = new Set<string>();
 
-        let connection_status = "none";
-        if (conn) connection_status = "connected";
-        else if (req?.sender_id === session.user.id) connection_status = "pending";
-        else if (req?.receiver_id === session.user.id) connection_status = "received";
+    if (userIds.length > 0) {
+      const [conns, reqs, fols] = await Promise.all([
+        sql<{ other_user_id: string }>`
+          SELECT CASE WHEN user_a_id = ${session.user.id} THEN user_b_id ELSE user_a_id END as other_user_id
+          FROM connections
+          WHERE (user_a_id = ${session.user.id} AND user_b_id = ANY(${userIds}))
+             OR (user_b_id = ${session.user.id} AND user_a_id = ANY(${userIds}))
+        `.execute(networkDb).then((r) => r.rows ?? []).catch(() => []),
 
-        const follow = await networkDb
-          .selectFrom("follows")
-          .where("follower_id", "=", session.user.id)
-          .where("following_id", "=", p.user_id)
-          .selectAll()
-          .executeTakeFirst();
+        sql<{ id: string; sender_id: string; receiver_id: string }>`
+          SELECT id, sender_id, receiver_id
+          FROM connection_requests
+          WHERE status = 'pending'
+            AND ((sender_id = ${session.user.id} AND receiver_id = ANY(${userIds}))
+              OR (receiver_id = ${session.user.id} AND sender_id = ANY(${userIds})))
+        `.execute(networkDb).then((r) => r.rows ?? []).catch(() => []),
 
-        return {
-          ...p,
-          connection_status,
-          connection_request_id: req?.id,
-          follow_status: follow ? "following" : "not_following",
-        };
-      })
-    );
+        sql<{ following_id: string }>`
+          SELECT following_id
+          FROM follows
+          WHERE follower_id = ${session.user.id}
+            AND following_id = ANY(${userIds})
+        `.execute(networkDb).then((r) => r.rows ?? []).catch(() => []),
+      ]);
+
+      conns.forEach((c) => connectionsMap.add(c.other_user_id));
+      reqs.forEach((r) => {
+        const otherId = r.sender_id === session.user.id ? r.receiver_id : r.sender_id;
+        requestsMap.set(otherId, r);
+      });
+      fols.forEach((f) => followsMap.add(f.following_id));
+    }
+
+    const enriched = profiles.map((p) => {
+      let connection_status = "none";
+      const req = requestsMap.get(p.user_id);
+      if (connectionsMap.has(p.user_id)) {
+        connection_status = "connected";
+      } else if (req) {
+        connection_status = req.sender_id === session.user.id ? "pending" : "received";
+      }
+
+      return {
+        ...p,
+        connection_status,
+        connection_request_id: req?.id,
+        follow_status: followsMap.has(p.user_id) ? "following" : "not_following",
+      };
+    });
 
     return Response.json({
       data: enriched,

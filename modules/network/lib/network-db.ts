@@ -493,6 +493,31 @@ export async function ensureNetworkingTables(): Promise<void> {
       ON professional_profiles(user_id);
     `.execute(networkDb);
 
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_connections_user_a 
+      ON connections(user_a_id);
+    `.execute(networkDb);
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_connections_user_b 
+      ON connections(user_b_id);
+    `.execute(networkDb);
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_connection_requests_receiver 
+      ON connection_requests(receiver_id, status);
+    `.execute(networkDb);
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_connection_requests_sender 
+      ON connection_requests(sender_id, status);
+    `.execute(networkDb);
+
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_follows_pair 
+      ON follows(follower_id, following_id);
+    `.execute(networkDb);
+
     networkingTablesInitialized = true;
   } catch (err) {
     console.warn("ensureNetworkingTables warning:", err);

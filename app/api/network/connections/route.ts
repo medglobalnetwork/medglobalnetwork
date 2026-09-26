@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { networkDb, generateId, createNotification, ensureNetworkingTables } from "@/modules/network/lib/network-db";
 import { headers } from "next/headers";
+import { sql } from "kysely";
 
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -18,6 +19,7 @@ export async function GET(request: Request) {
         .selectFrom("connection_requests as cr")
         .innerJoin("user as u", "u.id", "cr.receiver_id")
         .leftJoin("professional_profiles as pp", "pp.user_id", "cr.receiver_id")
+        .leftJoin("mgn_identities as mi", "mi.user_id", "cr.receiver_id")
         .select([
           "cr.id",
           "cr.receiver_id",
@@ -25,7 +27,12 @@ export async function GET(request: Request) {
           "cr.status",
           "cr.created_at",
           "u.name",
-          "u.image",
+          sql<string | null>`COALESCE(
+            NULLIF(mi.profile_photo_url, ''),
+            CASE WHEN u.image NOT LIKE '%googleusercontent%' AND u.image NOT LIKE '%ggpht.com%' THEN u.image ELSE NULL END,
+            mi.profile_photo_url,
+            u.image
+          )`.as("image"),
           "pp.profession",
           "pp.specialization",
           "pp.organization",
@@ -45,6 +52,7 @@ export async function GET(request: Request) {
         .selectFrom("connection_requests as cr")
         .innerJoin("user as u", "u.id", "cr.sender_id")
         .leftJoin("professional_profiles as pp", "pp.user_id", "cr.sender_id")
+        .leftJoin("mgn_identities as mi", "mi.user_id", "cr.sender_id")
         .select([
           "cr.id",
           "cr.sender_id",
@@ -52,7 +60,12 @@ export async function GET(request: Request) {
           "cr.status",
           "cr.created_at",
           "u.name",
-          "u.image",
+          sql<string | null>`COALESCE(
+            NULLIF(mi.profile_photo_url, ''),
+            CASE WHEN u.image NOT LIKE '%googleusercontent%' AND u.image NOT LIKE '%ggpht.com%' THEN u.image ELSE NULL END,
+            mi.profile_photo_url,
+            u.image
+          )`.as("image"),
           "pp.profession",
           "pp.specialization",
           "pp.organization",
@@ -68,45 +81,43 @@ export async function GET(request: Request) {
     }
 
     // Default: active connections
-    const connections = await networkDb
-      .selectFrom("connections as c")
-      .innerJoin("user as u", (join) =>
-        join.on((eb) =>
-          eb.or([
-            eb.and([
-              eb("c.user_a_id", "=", session.user.id),
-              eb("u.id", "=", eb.ref("c.user_b_id")),
-            ]),
-            eb.and([
-              eb("c.user_b_id", "=", session.user.id),
-              eb("u.id", "=", eb.ref("c.user_a_id")),
-            ]),
-          ])
-        )
-      )
-      .leftJoin("professional_profiles as pp", "pp.user_id", "u.id")
-      .select([
-        "c.id",
-        "c.connected_at",
-        "u.id as user_id",
-        "u.name",
-        "u.image",
-        "pp.profession",
-        "pp.specialization",
-        "pp.organization",
-        "pp.city",
-        "pp.state",
-      ])
-      .where((eb) =>
-        eb.or([
-          eb("c.user_a_id", "=", session.user.id),
-          eb("c.user_b_id", "=", session.user.id),
-        ])
-      )
-      .orderBy("c.connected_at", "desc")
-      .execute();
+    const connectionsResult = await sql<{
+      id: string;
+      connected_at: string;
+      user_id: string;
+      name: string;
+      image: string | null;
+      profession: string | null;
+      specialization: string | null;
+      organization: string | null;
+      city: string | null;
+      state: string | null;
+    }>`
+      SELECT 
+        c.id,
+        c.connected_at,
+        u.id as user_id,
+        u.name,
+        COALESCE(
+          NULLIF(mi.profile_photo_url, ''),
+          CASE WHEN u.image NOT LIKE '%googleusercontent%' AND u.image NOT LIKE '%ggpht.com%' THEN u.image ELSE NULL END,
+          mi.profile_photo_url,
+          u.image
+        ) as image,
+        pp.profession,
+        pp.specialization,
+        pp.organization,
+        pp.city,
+        pp.state
+      FROM connections c
+      JOIN "user" u ON (u.id = CASE WHEN c.user_a_id = ${session.user.id} THEN c.user_b_id ELSE c.user_a_id END)
+      LEFT JOIN professional_profiles pp ON pp.user_id = u.id
+      LEFT JOIN mgn_identities mi ON mi.user_id = u.id
+      WHERE c.user_a_id = ${session.user.id} OR c.user_b_id = ${session.user.id}
+      ORDER BY c.connected_at DESC
+    `.execute(networkDb);
 
-    return Response.json({ data: connections });
+    return Response.json({ data: connectionsResult.rows ?? [] });
   } catch (err) {
     console.error("GET /api/network/connections error:", err);
     return Response.json({ data: [], error: "Failed to fetch connections" });

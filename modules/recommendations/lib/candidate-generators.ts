@@ -1030,7 +1030,12 @@ async function getColdStartCandidates(
       SELECT 
         u.id AS user_id,
         u.name,
-        u.image,
+        COALESCE(
+          NULLIF(mi.profile_photo_url, ''),
+          CASE WHEN u.image NOT LIKE '%googleusercontent%' AND u.image NOT LIKE '%ggpht.com%' THEN u.image ELSE NULL END,
+          mi.profile_photo_url,
+          u.image
+        ) AS image,
         pp.profession,
         pp.specialization,
         pp.sub_specialization,
@@ -1052,15 +1057,17 @@ async function getColdStartCandidates(
         pp.member_id,
         pp.membership_tier,
         pp.is_founding_member
-      FROM professional_profiles pp
-      JOIN "user" u ON u.id = pp.user_id
-      WHERE pp.user_id <> ${userId}
+      FROM "user" u
+      LEFT JOIN professional_profiles pp ON pp.user_id = u.id
+      LEFT JOIN mgn_identities mi ON mi.user_id = u.id
+      WHERE u.id <> ${userId}
         AND (pp.profile_visibility IS NULL OR pp.profile_visibility <> 'private')
       ORDER BY 
         ${userProfession ? sql`CASE WHEN pp.profession = ${userProfession} THEN 0 ELSE 1 END,` : sql``}
-        pp.identity_verified DESC,
-        pp.registration_verified DESC,
-        pp.experience_years DESC
+        COALESCE(pp.identity_verified, false) DESC,
+        COALESCE(pp.registration_verified, false) DESC,
+        COALESCE(pp.experience_years, 0) DESC,
+        u."createdAt" DESC
       LIMIT ${limit};
     `.execute(networkDb);
 
