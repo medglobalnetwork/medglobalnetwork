@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useCallback, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AppSidebar } from "@/components/AppSidebar";
 import AppHeader from "@/components/AppHeader";
 import AppBottomNav from "@/components/AppBottomNav";
 import AppSplashScreen from "@/components/AppSplashScreen";
+import { initNativeApp } from "@/lib/native-mobile";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -13,10 +14,16 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const isMessagesPage = pathname?.startsWith("/messages");
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   // Default to auto-hide (collapsed at rest, expands on hover)
   const [isCollapsed, setIsCollapsed] = useState(true);
+
+  // Initialize native mobile features (Status bar color, hardware back button, native splash)
+  useEffect(() => {
+    initNativeApp(() => router.back());
+  }, [router]);
 
   // Restore user pin preference on client mount if previously set
   useEffect(() => {
