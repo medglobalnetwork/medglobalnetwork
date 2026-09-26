@@ -156,6 +156,9 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
     if (!videoRef.current) return;
     const nextMuted = !isMuted;
     videoRef.current.muted = nextMuted;
+    if (!nextMuted) {
+      videoRef.current.volume = 1.0;
+    }
     setIsMuted(nextMuted);
   };
 
@@ -405,6 +408,9 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
                 playsInline
                 muted={isMuted}
                 preload="metadata"
+                onVolumeChange={(e) => {
+                  setIsMuted(e.currentTarget.muted || e.currentTarget.volume === 0);
+                }}
                 onEnded={handleVideoEnded}
                 onPlay={() => {
                   setIsPlaying(true);
@@ -432,17 +438,23 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
                 </div>
               )}
 
-              {/* Quick Volume / Mute Button Overlay */}
+              {/* Quick Volume / Mute Button Overlay (Top-Right position avoiding native player bar) */}
               <button
                 type="button"
                 onClick={handleToggleMute}
-                title={isMuted ? "Unmute sound" : "Mute sound"}
-                className="absolute bottom-3 right-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition backdrop-blur-xs shadow-md"
+                aria-label={isMuted ? "Unmute video sound" : "Mute video sound"}
+                className="absolute top-3 right-3 z-20 flex items-center gap-1.5 rounded-full bg-black/75 px-3 py-1.5 text-white hover:bg-black/90 transition backdrop-blur-md shadow-md active:scale-95 cursor-pointer border border-white/10"
               >
                 {isMuted ? (
-                  <VolumeX className="h-4 w-4 stroke-[2.2]" />
+                  <>
+                    <VolumeX className="h-4 w-4 stroke-[2.2] text-rose-300" />
+                    <span className="text-[11px] font-semibold text-white/95">Tap for sound</span>
+                  </>
                 ) : (
-                  <Volume2 className="h-4 w-4 stroke-[2.2]" />
+                  <>
+                    <Volume2 className="h-4 w-4 stroke-[2.2] text-emerald-400" />
+                    <span className="text-[11px] font-semibold text-emerald-300">Sound on</span>
+                  </>
                 )}
               </button>
             </div>

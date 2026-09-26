@@ -4,7 +4,7 @@ import * as React from "react";
 import { StoryGroup, Story } from "../types";
 import { VerificationBadge } from "@/modules/network/components/VerificationBadge";
 import { formatContentTimestamp, formatExactDateTime } from "@/lib/date";
-import { Eye, Trash2, X, Heart, ThumbsUp, Sparkles, Flame, Lightbulb } from "lucide-react";
+import { Eye, Trash2, X, Heart, ThumbsUp, Sparkles, Flame, Lightbulb, Volume2, VolumeX } from "lucide-react";
 
 interface StoryViewerModalProps {
   isOpen: boolean;
@@ -30,6 +30,8 @@ export function StoryViewerModal({
   const [progress, setProgress] = React.useState(0);
   const [isPaused, setIsPaused] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [isMuted, setIsMuted] = React.useState(false);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -212,6 +214,28 @@ export function StoryViewerModal({
           </div>
 
           <div className="flex items-center gap-2">
+            {currentStory?.mediaType === "video" && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (videoRef.current) {
+                    const next = !isMuted;
+                    videoRef.current.muted = next;
+                    if (!next) videoRef.current.volume = 1.0;
+                    setIsMuted(next);
+                  }
+                }}
+                title={isMuted ? "Unmute sound" : "Mute sound"}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white/90 hover:bg-black/60 transition"
+              >
+                {isMuted ? (
+                  <VolumeX className="h-4 w-4 stroke-[2.2] text-rose-300" />
+                ) : (
+                  <Volume2 className="h-4 w-4 stroke-[2.2] text-emerald-400" />
+                )}
+              </button>
+            )}
             {isOwnStory && (
               <button
                 type="button"
@@ -285,10 +309,13 @@ export function StoryViewerModal({
             <div className="relative h-full w-full bg-black flex items-center justify-center">
               {currentStory.mediaUrl && (
                 <video
+                  ref={videoRef}
                   src={currentStory.mediaUrl}
                   autoPlay
                   playsInline
                   loop
+                  muted={isMuted}
+                  onVolumeChange={(e) => setIsMuted(e.currentTarget.muted || e.currentTarget.volume === 0)}
                   className="h-full w-full object-contain"
                 />
               )}
