@@ -79,75 +79,141 @@ export async function GET(req: NextRequest) {
 
     // 3. Create single-use bridge token
     const bridgeToken = await createMobileBridgeCode(sessionToken, userId);
-    const deepLink = `life.mgn.app://auth-callback?bridge_token=${encodeURIComponent(bridgeToken)}`;
+    const encodedToken = encodeURIComponent(bridgeToken);
+    const intentUri = `intent://auth-callback?bridge_token=${encodedToken}#Intent;scheme=life.mgn.app;package=life.mgn.app;end`;
+    const customSchemeUri = `life.mgn.app://auth-callback?bridge_token=${encodedToken}`;
+    const webHomeUrl = `/home?bridge_token=${encodedToken}`;
 
     return new NextResponse(
       `<!DOCTYPE html>
-      <html>
+      <html lang="en">
         <head>
           <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
           <title>Logging into MedGlobalNetwork...</title>
           <style>
+            * { box-sizing: border-box; }
             body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
               display: flex;
               align-items: center;
               justify-content: center;
               min-height: 100vh;
               margin: 0;
-              background: #0f4c81;
+              background-color: #0f4c81;
               color: white;
               text-align: center;
-              padding: 20px;
+              padding: 16px;
             }
             .card {
-              background: white;
+              background: #ffffff;
               color: #171717;
-              padding: 36px 24px;
-              border-radius: 20px;
-              max-width: 360px;
+              padding: 32px 24px;
+              border-radius: 24px;
+              max-width: 380px;
               width: 100%;
-              box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+              box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            }
+            .logo {
+              height: 48px;
+              margin-bottom: 20px;
             }
             .spinner {
-              width: 44px;
-              height: 44px;
-              border: 4px solid #eef5fc;
+              width: 42px;
+              height: 42px;
+              border: 4px solid #e2e8f0;
               border-top: 4px solid #0f4c81;
               border-radius: 50%;
               animation: spin 0.8s linear infinite;
-              margin: 0 auto 16px auto;
+              margin: 0 auto 20px auto;
             }
             @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-            .btn {
-              display: inline-block;
-              margin-top: 20px;
-              padding: 12px 28px;
+            h2 {
+              margin: 0 0 8px 0;
+              color: #0f4c81;
+              font-size: 1.35rem;
+              font-weight: 700;
+            }
+            p {
+              color: #64748b;
+              font-size: 14px;
+              line-height: 1.5;
+              margin: 0 0 24px 0;
+            }
+            .btn-primary {
+              display: block;
+              width: 100%;
+              padding: 14px 20px;
               background: #0f4c81;
-              color: white;
+              color: #ffffff;
               text-decoration: none;
-              border-radius: 10px;
-              font-weight: 600;
+              border-radius: 14px;
+              font-weight: 700;
               font-size: 15px;
+              transition: background-color 0.2s;
+              border: none;
+              cursor: pointer;
+            }
+            .btn-primary:active {
+              background: #0a355c;
+            }
+            .btn-secondary {
+              display: block;
+              width: 100%;
+              margin-top: 10px;
+              padding: 12px 20px;
+              background: #f8fafc;
+              color: #475569;
+              text-decoration: none;
+              border-radius: 14px;
+              font-weight: 600;
+              font-size: 13px;
+              border: 1px solid #e2e8f0;
+            }
+            .badge {
+              display: inline-flex;
+              align-items: center;
+              gap: 6px;
+              padding: 4px 12px;
+              background: #ecfdf5;
+              color: #059669;
+              border-radius: 9999px;
+              font-size: 12px;
+              font-weight: 600;
+              margin-bottom: 16px;
             }
           </style>
         </head>
         <body>
           <div class="card">
             <div class="spinner"></div>
-            <h3 style="margin: 0 0 8px 0; color: #0f4c81; font-size: 1.25rem;">Signing In...</h3>
-            <p style="color: #666; font-size: 14px; line-height: 1.5; margin: 0;">
-              Connecting your verified session to MedGlobalNetwork App.
+            <div class="badge">✓ Google Account Connected</div>
+            <h2>Opening MGN App...</h2>
+            <p>
+              Your healthcare session has been verified. Redirecting you back to MedGlobalNetwork.
             </p>
-            <a href="${deepLink}" class="btn" id="openBtn">Open MGN App</a>
+            <a href="${intentUri}" id="appBtn" class="btn-primary">Open MedGlobalNetwork App</a>
+            <a href="${webHomeUrl}" class="btn-secondary">Continue in Web Browser</a>
           </div>
           <script>
-            // Automatic deep link launch
-            window.location.href = "${deepLink}";
-            setTimeout(() => {
-              try { window.close(); } catch(e) {}
-            }, 2500);
+            function tryOpenApp() {
+              try {
+                // Try Android Intent URL first (works reliably on Chrome for Android)
+                window.location.href = "${intentUri}";
+              } catch(e) {
+                try {
+                  window.location.href = "${customSchemeUri}";
+                } catch(e2) {}
+              }
+            }
+
+            // Trigger immediate redirect
+            tryOpenApp();
+
+            // Set button click handler
+            document.getElementById('appBtn').addEventListener('click', function(e) {
+              tryOpenApp();
+            });
           </script>
         </body>
       </html>`,
@@ -160,9 +226,26 @@ export async function GET(req: NextRequest) {
     return new NextResponse(
       `<!DOCTYPE html>
       <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Redirecting - MGN</title>
+          <style>
+            body { font-family: sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: #0f4c81; color: white; }
+            .card { background: white; color: #171717; padding: 24px; border-radius: 16px; text-align: center; max-width: 320px; }
+            .btn { display: inline-block; margin-top: 16px; padding: 12px 20px; background: #0f4c81; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; }
+          </style>
+        </head>
         <body>
+          <div class="card">
+            <h3 style="color:#0f4c81;">Connecting to App...</h3>
+            <p style="color:#666; font-size:14px;">If the app does not open automatically, tap below.</p>
+            <a href="intent://auth-callback?error=server_error#Intent;scheme=life.mgn.app;package=life.mgn.app;end" class="btn">Return to App</a>
+          </div>
           <script>
-            window.location.href = "life.mgn.app://auth-callback?error=server_error";
+            try {
+              window.location.href = "intent://auth-callback?error=server_error#Intent;scheme=life.mgn.app;package=life.mgn.app;end";
+            } catch(e) {}
           </script>
         </body>
       </html>`,

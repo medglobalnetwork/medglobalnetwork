@@ -10,6 +10,7 @@ import {
   onAppResumeOrDeepLink,
   isNativePlatform,
   signInWithNativeGoogle,
+  exchangeBridgeToken,
 } from "@/lib/native-mobile";
 
 function cn(...inputs: Array<string | false | null | undefined>) {
@@ -130,8 +131,22 @@ function LoginFormContent() {
 
   const [isAwaitingOAuth, setIsAwaitingOAuth] = React.useState(false);
 
-  // Handle URL error params returned from OAuth flows
+  // Handle URL error or bridge_token params returned from OAuth flows
   React.useEffect(() => {
+    const bridgeToken = searchParams?.get("bridge_token");
+    if (bridgeToken) {
+      setIsSubmitting(true);
+      exchangeBridgeToken(bridgeToken).then((success) => {
+        if (success) {
+          window.location.href = "/home";
+        } else {
+          setIsSubmitting(false);
+          setFormError("Authentication synchronization failed. Please sign in again.");
+        }
+      });
+      return;
+    }
+
     const error = searchParams?.get("error");
     const errorDesc = searchParams?.get("error_description");
     if (error) {

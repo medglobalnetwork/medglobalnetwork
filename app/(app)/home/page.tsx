@@ -56,6 +56,23 @@ export default function HomePage() {
   }, [session?.user?.id]);
 
   React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const bridgeToken = urlParams.get("bridge_token");
+      if (bridgeToken) {
+        import("@/lib/native-mobile").then(({ exchangeBridgeToken }) => {
+          exchangeBridgeToken(bridgeToken).then((success) => {
+            if (success) {
+              window.location.href = "/home";
+            } else if (!isPending && !session) {
+              router.replace("/");
+            }
+          });
+        });
+        return;
+      }
+    }
+
     if (!isPending && !session) {
       router.replace("/");
     }
