@@ -11,6 +11,7 @@ import { PostCardSkeleton } from "@/modules/network/components/SkeletonLoader";
 import type { NetworkPost } from "@/modules/network/types";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { AppPageSkeleton } from "@/components/AppPageSkeleton";
 
 export default function FeedPage() {
   const router = useRouter();
@@ -49,7 +50,7 @@ export default function FeedPage() {
   }, [loadPosts]);
 
   if (isPending && posts.length === 0) {
-    return <main className="min-h-dvh bg-[#f5f5f4]" />;
+    return <AppPageSkeleton type="feed" />;
   }
 
   return (

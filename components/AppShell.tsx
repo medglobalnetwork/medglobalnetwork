@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { AppSidebar } from "@/components/AppSidebar";
 import AppHeader from "@/components/AppHeader";
 import AppBottomNav from "@/components/AppBottomNav";
+import AppSplashScreen from "@/components/AppSplashScreen";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -51,6 +52,9 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="min-h-dvh bg-[#faf9f8] flex">
+      {/* Initial Startup Splash Screen with Pulsing Logo */}
+      <AppSplashScreen />
+
       {/* 1. SIDEBAR (Desktop fixed side-nav + Mobile slide-over drawer) */}
       <AppSidebar
         isMobileDrawerOpen={isMobileDrawerOpen}

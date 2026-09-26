@@ -14,6 +14,7 @@ import { StoriesBar } from "@/modules/home/components/StoriesBar";
 import { QuickLinksBar } from "@/modules/home/components/QuickLinksBar";
 import { HomeFeed } from "@/modules/home/components/HomeFeed";
 import { PeopleYouMayKnow } from "@/modules/network/components/PeopleYouMayKnow";
+import { AppPageSkeleton } from "@/components/AppPageSkeleton";
 
 export default function HomePage() {
   const router = useRouter();
@@ -61,15 +62,7 @@ export default function HomePage() {
   }, [isPending, router, session]);
 
   if (isPending || !session) {
-    return (
-      <main className="min-h-dvh bg-[#faf9f8] p-6">
-        <div className="mx-auto max-w-[1440px] space-y-4 animate-pulse">
-          <div className="h-28 rounded-3xl bg-white/70" />
-          <div className="h-32 rounded-3xl bg-white/70" />
-          <div className="h-64 rounded-3xl bg-white/70" />
-        </div>
-      </main>
-    );
+    return <AppPageSkeleton type="feed" />;
   }
 
   const displayName = session.user.name || "Healthcare Professional";
