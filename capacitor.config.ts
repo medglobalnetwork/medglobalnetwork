@@ -15,6 +15,17 @@ const config: CapacitorConfig = {
     captureInput: true,
     webContentsDebuggingEnabled: process.env.NODE_ENV !== "production",
   },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 1000,
+      launchAutoHide: true,
+      backgroundColor: "#0f4c81",
+      androidScaleType: "CENTER_INSIDE",
+      showSpinner: false,
+      splashFullScreen: true,
+      splashImmersive: true,
+    },
+  },
 };
 
 export default config;
