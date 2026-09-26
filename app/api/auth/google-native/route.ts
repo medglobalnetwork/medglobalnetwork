@@ -133,6 +133,19 @@ export async function POST(req: NextRequest) {
       [sessionId, userId, sessionToken, expiresAt]
     );
 
+    const secret =
+      process.env.BETTER_AUTH_SECRET ||
+      "mgn-auth-super-secret-key-2026-production-stable-mgnlife";
+    
+    let signedSessionToken = sessionToken;
+    try {
+      const { makeSignature } = await import("better-auth/crypto");
+      const sig = await makeSignature(sessionToken, secret);
+      signedSessionToken = `${sessionToken}.${sig}`;
+    } catch (sigErr) {
+      console.warn("Could not sign session cookie with better-auth:", sigErr);
+    }
+
     const isProduction = process.env.NODE_ENV === "production";
     const maxAge = 60 * 60 * 24 * 30; // 30 days
 
@@ -150,10 +163,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Set standard session cookie
+    // Set standard signed session cookie
     response.cookies.set({
       name: "better-auth.session_token",
-      value: sessionToken,
+      value: signedSessionToken,
       httpOnly: true,
       path: "/",
       sameSite: "lax",
@@ -165,7 +178,7 @@ export async function POST(req: NextRequest) {
     if (isProduction) {
       response.cookies.set({
         name: "__Secure-better-auth.session_token",
-        value: sessionToken,
+        value: signedSessionToken,
         httpOnly: true,
         path: "/",
         sameSite: "lax",

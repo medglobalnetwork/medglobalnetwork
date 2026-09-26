@@ -128,7 +128,7 @@ export const auth = betterAuth({
       enabled: true,
       trustedProviders: ["google"],
       requireLocalEmailVerified: false,
-      disableImplicitLinking: true,
+      disableImplicitLinking: false,
     },
   },
   plugins: process.env.BETTER_AUTH_API_KEY ? [dash()] : [],
