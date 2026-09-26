@@ -108,7 +108,7 @@ export function ProfessionalCard({
 
   if (variant === "list") {
     return (
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#e8e6e3] bg-white p-3.5 transition hover:border-[#1769c2]/40 hover:shadow-xs">
+      <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#ded8d1] bg-white p-3.5 transition hover:border-[#1769c2]/40 hover:shadow-xs">
         {/* Avatar */}
         <button
           type="button"
@@ -190,7 +190,7 @@ export function ProfessionalCard({
 
   // Grid variant: Full-width portrait cover photo matching the design mockup exactly
   return (
-    <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#e8e6e3] bg-white shadow-xs transition duration-150 hover:border-[#1769c2]/40 hover:shadow-md">
+    <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#ded8d1] bg-white shadow-xs transition duration-150 hover:border-[#1769c2]/40 hover:shadow-md">
       {/* 1. TOP PORTRAIT COVER PHOTO */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#eef5fc]">
         <button

@@ -239,7 +239,7 @@ export function PeopleYouMayKnow({
             return (
               <li
                 key={person.user_id}
-                className="group relative flex flex-col gap-1.5 rounded-xl p-2 transition hover:bg-[#faf9f8] border border-transparent hover:border-[#f0efee]"
+                className="group relative flex flex-col gap-1.5 rounded-xl p-2 transition hover:bg-[#faf9f8] border border-transparent hover:border-[#ded8d1]"
               >
                 <div className="flex items-start justify-between gap-2.5">
                   <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -250,7 +250,7 @@ export function PeopleYouMayKnow({
                       className="shrink-0 mt-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded-full"
                     >
                       <div
-                        className="flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold text-[#3f3f3c] overflow-hidden border border-[#e8e6e3] shadow-2xs"
+                        className="flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold text-[#3f3f3c] overflow-hidden border border-[#ded8d1] shadow-2xs"
                         style={{ background: color }}
                       >
                         {person.image ? (
@@ -271,26 +271,21 @@ export function PeopleYouMayKnow({
                         <button
                           type="button"
                           onClick={() => router.push(`/profile/${person.username || person.user_id}`)}
-                          className="truncate text-xs font-bold text-[#171717] hover:text-[#0f4c81] transition text-left"
+                          className="truncate text-xs sm:text-sm font-bold text-[#171717] hover:text-[#0f4c81] transition text-left"
                         >
                           {person.name}
                         </button>
                         {isVerified && <VerificationBadge size="sm" />}
                       </div>
 
-                      <p className="truncate text-[11px] text-[#77716b] font-medium">
+                      <p className="truncate text-[11px] sm:text-xs text-[#77716b] font-medium">
                         {person.profession || "Clinician"}
                         {person.specialization ? ` · ${person.specialization}` : ""}
                       </p>
 
                       {/* Recommendation reason tag */}
                       {person.primary_reason && (
-                        <div className="mt-1 flex items-center gap-1 text-[10px] text-[#0f4c81] font-semibold">
-                          {person.is_exploration ? (
-                            <span className="inline-flex items-center gap-0.5 rounded-md bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 border border-amber-200/60">
-                              ✦ Discover
-                            </span>
-                          ) : null}
+                        <div className="mt-1 flex items-center gap-1 text-[10px] sm:text-[11px] text-[#0f4c81] font-semibold">
                           <span className="truncate">{person.primary_reason}</span>
                         </div>
                       )}
@@ -384,7 +379,7 @@ export function PeopleYouMayKnow({
 
       {/* Card Footer */}
       {showSeeAll && (
-        <CardFooter className="py-2.5 px-4 min-h-11 border-t border-[#f0efee] justify-center bg-[#faf9f8]/60">
+        <CardFooter className="py-2.5 px-4 min-h-11 border-t border-[#ded8d1] justify-center bg-[#faf9f8]/60">
           <button
             type="button"
             onClick={() => router.push("/network")}
@@ -398,8 +393,8 @@ export function PeopleYouMayKnow({
       {/* "Why am I seeing this?" Modal */}
       {activeReasonUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl border border-[#e8e6e3] text-left animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-[#f0efee]">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl border border-[#ded8d1] text-left animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-[#ded8d1]">
               <div className="flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-blue-50 text-[#0f4c81]">
                   <HelpCircle className="h-4 w-4" />
@@ -420,7 +415,7 @@ export function PeopleYouMayKnow({
                 MGN suggests <span className="font-bold text-[#171717]">{activeReasonUser.name}</span> based on your verified professional identity and clinical interests:
               </p>
 
-              <div className="space-y-2 rounded-2xl bg-[#faf9f8] border border-[#f0efee] p-3.5 text-xs text-[#171717]">
+              <div className="space-y-2 rounded-2xl bg-[#faf9f8] border border-[#ded8d1] p-3.5 text-xs text-[#171717]">
                 {activeReasonUser.recommendation_reasons && activeReasonUser.recommendation_reasons.length > 0 ? (
                   activeReasonUser.recommendation_reasons.map((r, i) => (
                     <div key={i} className="flex items-start gap-2">
