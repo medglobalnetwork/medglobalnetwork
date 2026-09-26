@@ -126,6 +126,8 @@ function LoginFormContent() {
   const passwordsMatch = password === confirmPassword;
   const hasPasswordMismatch = mode === "signup" && confirmPassword.length > 0 && !passwordsMatch;
 
+  const [isAwaitingOAuth, setIsAwaitingOAuth] = React.useState(false);
+
   // Handle URL error params returned from OAuth flows
   React.useEffect(() => {
     const error = searchParams?.get("error");
@@ -146,10 +148,10 @@ function LoginFormContent() {
   }, [searchParams]);
 
   React.useEffect(() => {
-    if (!isSessionPending && session) {
+    if (!isSessionPending && session && !isAwaitingOAuth) {
       router.replace("/home");
     }
-  }, [isSessionPending, router, session]);
+  }, [isSessionPending, isAwaitingOAuth, router, session]);
 
   // Handle native app resume / focus / deep link after Google OAuth completes
   React.useEffect(() => {
@@ -157,13 +159,14 @@ function LoginFormContent() {
       try {
         if (authSuccess) {
           await closeOAuthBrowser();
-          router.replace("/home");
+          // Force hard navigation to ensure clean state and session hydration
+          window.location.href = "/home";
           return;
         }
 
         if (deepUrl && (deepUrl.includes("/home") || deepUrl.includes("home"))) {
           await closeOAuthBrowser();
-          router.replace("/home");
+          window.location.href = "/home";
           return;
         }
 
@@ -171,26 +174,38 @@ function LoginFormContent() {
           await closeOAuthBrowser();
           setFormError("Google authentication could not be completed. Please try again.");
           setIsSubmitting(false);
+          setIsAwaitingOAuth(false);
           return;
         }
 
-        const currentSession = await authClient.getSession();
-        if (currentSession?.data?.session || currentSession?.data?.user) {
-          await closeOAuthBrowser();
-          router.replace("/home");
-        } else {
-          // If returned but not yet authenticated, reset spinner after brief pause
-          setTimeout(() => {
-            setIsSubmitting(false);
-          }, 1500);
+        // If generic app resume while waiting for OAuth, do not prematurely navigate with stale session
+        if (isAwaitingOAuth) {
+          setTimeout(async () => {
+            try {
+              const currentSession = await authClient.getSession({
+                fetchOptions: { headers: { "Cache-Control": "no-cache" } },
+              });
+              if (currentSession?.data?.session || currentSession?.data?.user) {
+                await closeOAuthBrowser();
+                window.location.href = "/home";
+              } else {
+                setIsSubmitting(false);
+                setIsAwaitingOAuth(false);
+              }
+            } catch {
+              setIsSubmitting(false);
+              setIsAwaitingOAuth(false);
+            }
+          }, 2200);
         }
       } catch {
         setIsSubmitting(false);
+        setIsAwaitingOAuth(false);
       }
     });
 
     return cleanup;
-  }, [router]);
+  }, [isAwaitingOAuth, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -301,9 +316,15 @@ function LoginFormContent() {
     setFormError("");
     setSuccessMessage("");
     setIsSubmitting(true);
+    setIsAwaitingOAuth(true);
     try {
-      const isNative = typeof window !== "undefined" && (window.location.origin.includes("life.mgn.app") || window.location.origin.includes("localhost") || window.navigator.userAgent.includes("Capacitor") || window.navigator.userAgent.includes("Android"));
-      
+      const isNative =
+        typeof window !== "undefined" &&
+        (window.location.origin.includes("life.mgn.app") ||
+          window.location.origin.includes("localhost") ||
+          window.navigator.userAgent.includes("Capacitor") ||
+          window.navigator.userAgent.includes("Android"));
+
       const callbackURL = isNative
         ? "https://www.mgn.life/auth/mobile-callback"
         : "/home";
@@ -316,6 +337,7 @@ function LoginFormContent() {
       if (result?.error) {
         setFormError(result.error.message || "Failed to sign in with Google.");
         setIsSubmitting(false);
+        setIsAwaitingOAuth(false);
         return;
       }
 
@@ -325,6 +347,7 @@ function LoginFormContent() {
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Failed to sign in with Google.");
       setIsSubmitting(false);
+      setIsAwaitingOAuth(false);
     }
   }
 
