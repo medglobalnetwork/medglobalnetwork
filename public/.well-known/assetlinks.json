@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "life.mgn.app",
+      "sha256_cert_fingerprints": [
+        "14:6D:E9:7D:0F:52:AB:E0:EC:4C:E6:D3:5F:A7:24:D3:49:15:37:A6:49:EE:4B:FA:83:B3:01:A0:04:E2:20:C6"
+      ]
+    }
+  }
+]

@@ -20,12 +20,23 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: "cover",
+  themeColor: "#0f4c81",
 };
 
 export const metadata: Metadata = {
   title: "MGN.life — Healthcare Professional Social & Learning Ecosystem",
   description:
     "Connect with verified doctors, physical therapists, surgeons, and medical researchers. Share clinical insights, enroll in accredited CME courses, and advance your healthcare career.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "MGN",
+  },
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/icon-192.png",
+  },
 };
 
 export default function RootLayout({
