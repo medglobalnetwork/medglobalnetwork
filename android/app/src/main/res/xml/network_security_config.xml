@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Enforce HTTPS only (Disallow unencrypted HTTP traffic to protect user privacy) -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">mgn.life</domain>
+        <domain includeSubdomains="true">www.mgn.life</domain>
+        <domain includeSubdomains="true">googleapis.com</domain>
+        <domain includeSubdomains="true">googleusercontent.com</domain>
+        <domain includeSubdomains="true">icons8.com</domain>
+        <domain includeSubdomains="true">cloudflare.com</domain>
+    </domain-config>
+</network-security-config>
