@@ -356,6 +356,9 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                 >
                   <HeaderMessageIcon className="size-6" />
                 </button>
+
+                {/* Profile & Logout Menu */}
+                <UserMenu />
               </div>
             </div>
 
@@ -488,6 +491,9 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                 >
                   <HeaderMessageIcon className="size-6" />
                 </button>
+
+                {/* Profile Avatar & Logout Dropdown */}
+                <UserMenu />
               </div>
             </div>
 

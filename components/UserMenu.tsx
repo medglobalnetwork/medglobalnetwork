@@ -86,8 +86,13 @@ export default function UserMenu() {
 
   const handleSignOut = async () => {
     setOpen(false);
-    await authClient.signOut();
-    router.replace("/");
+    try {
+      await authClient.signOut();
+    } catch {}
+    try {
+      localStorage.removeItem("better-auth.session_token");
+    } catch {}
+    window.location.href = "/";
   };
 
   const navTo = (path: string) => {
