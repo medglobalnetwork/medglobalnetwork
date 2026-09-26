@@ -285,7 +285,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
   return (
     <article
       id={`post-${post.id}`}
-      className="rounded-none sm:rounded-3xl border-y sm:border border-[#f0efee] sm:border-[#e8e6e3] bg-white p-3.5 sm:p-5 shadow-none sm:shadow-xs transition hover:border-[#ded8d1] relative overflow-hidden"
+      className="rounded-none sm:rounded-3xl border-y sm:border border-[#e8e6e3] bg-[#f5f5f4] p-3.5 sm:p-5 shadow-none sm:shadow-2xs transition hover:border-[#ded8d1] relative overflow-hidden"
     >
       {/* 1. Header: Author info, Post Type Badge, Timestamp */}
       <div className="flex items-start justify-between gap-3">

@@ -175,7 +175,7 @@ function ConnectionsTab() {
         const color = getProfessionColor(c.profession);
         const initials = (c.name || "U").split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
         return (
-          <div key={c.id} className="flex items-center gap-3.5 rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs">
+          <div key={c.id} className="flex items-center gap-3.5 rounded-2xl border border-[#e8e6e3] bg-[#f5f5f4] p-4 shadow-xs">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-[#3f3f3c]" style={{ background: color }}>
               {c.image ? <img src={c.image} alt={c.name} className="h-full w-full rounded-full object-cover" /> : initials}
             </div>
@@ -192,14 +192,14 @@ function ConnectionsTab() {
               <button
                 type="button"
                 onClick={() => router.push(`/messages?to=${c.user_id}`)}
-                className="rounded-xl border border-[#ded8d1] px-3 py-1.5 text-xs font-semibold text-[#5d5854] transition hover:bg-[#f8f7f6]"
+                className="rounded-xl border border-[#ded8d1] bg-white px-3 py-1.5 text-xs font-semibold text-[#5d5854] transition hover:bg-[#faf9f8]"
               >
                 Message
               </button>
               <button
                 type="button"
                 onClick={() => router.push(`/profile/${c.user_id}`)}
-                className="rounded-xl border border-[#ded8d1] px-3 py-1.5 text-xs font-semibold text-[#5d5854] transition hover:bg-[#f8f7f6]"
+                className="rounded-xl border border-[#ded8d1] bg-white px-3 py-1.5 text-xs font-semibold text-[#5d5854] transition hover:bg-[#faf9f8]"
               >
                 View
               </button>
@@ -812,7 +812,7 @@ export default function NetworkPage() {
   }
 
   return (
-    <main className="min-h-dvh bg-[#f5f5f4] pb-24 md:pb-12 text-[#171717]">
+    <main className="min-h-dvh bg-white pb-24 md:pb-12 text-[#171717]">
       <div className="mx-auto max-w-[1440px] px-2 py-4 sm:px-4 lg:px-6">
         {/* Page Header */}
         <div className="mb-5">

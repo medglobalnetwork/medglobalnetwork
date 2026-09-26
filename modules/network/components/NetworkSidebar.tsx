@@ -105,7 +105,7 @@ export function NetworkSidebar({ currentUserId }: NetworkSidebarProps) {
 
       {/* 3. Suggested Communities (Only displayed when real communities exist) */}
       {communities.length > 0 && (
-        <div className="rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs">
+        <div className="rounded-2xl border border-[#e8e6e3] bg-[#f5f5f4] p-4 shadow-xs">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="flex items-center gap-1.5 text-sm font-bold text-[#171717]">
               <Users className="h-4 w-4 text-[#1769c2]" />

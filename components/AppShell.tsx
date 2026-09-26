@@ -102,7 +102,7 @@ export function AppShell({ children }: AppShellProps) {
   }, [isMobileDrawerOpen]);
 
   return (
-    <div className="min-h-dvh bg-[#faf9f8] flex">
+    <div className="min-h-dvh bg-white flex">
       {/* Initial Startup Splash Screen with Pulsing Logo */}
       <AppSplashScreen />
 

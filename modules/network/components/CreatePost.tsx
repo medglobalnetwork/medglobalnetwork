@@ -144,7 +144,7 @@ export function CreatePost({
       className={
         borderless
           ? `border-0 bg-transparent p-0 shadow-none ${className}`
-          : `rounded-none sm:rounded-3xl border-y sm:border border-[#f0efee] sm:border-[#e8e6e3] bg-white p-3.5 sm:p-5 shadow-none sm:shadow-2xs ${className}`
+          : `rounded-none sm:rounded-3xl border-y sm:border border-[#e8e6e3] bg-[#f5f5f4] p-3.5 sm:p-5 shadow-none sm:shadow-2xs ${className}`
       }
     >
       <input
@@ -157,7 +157,7 @@ export function CreatePost({
 
       <div className="flex items-start gap-3">
         {/* User Avatar */}
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#eef5fc] text-sm font-bold text-[#1769c2]">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#eef5fc] text-sm font-bold text-[#0f4c81]">
           {userImage ? (
             <img
               src={userImage}
@@ -177,8 +177,8 @@ export function CreatePost({
               onClick={() => setExpanded(true)}
               className={`w-full rounded-2xl border px-4 py-3 text-left text-xs font-medium transition ${
                 borderless
-                  ? "border-[#e2e8f0] bg-white text-[#64748b] shadow-2xs hover:border-[#1769c2]/50 hover:bg-white"
-                  : "border-[#e8e6e3] bg-[#f8f7f6] text-[#77716b] hover:border-[#1769c2]/40 hover:bg-white"
+                  ? "border-[#e8e6e3] bg-[#f5f5f4] text-[#64748b] shadow-2xs hover:border-[#0f4c81]/50 hover:bg-[#eceae8]"
+                  : "border-[#e8e6e3] bg-white text-[#77716b] hover:border-[#0f4c81]/40 hover:bg-[#f5f5f4]"
               }`}
             >
               What&apos;s happening in healthcare?
@@ -191,7 +191,7 @@ export function CreatePost({
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Share a clinical case, discussion, research finding, or update with your healthcare network..."
                 rows={3}
-                className="w-full resize-none rounded-2xl border border-[#ded8d1] p-3 text-xs text-[#171717] placeholder:text-[#8a8784] focus:border-[#1769c2] focus:outline-none focus:ring-2 focus:ring-[#1769c2]/20"
+                className="w-full resize-none rounded-2xl border border-[#ded8d1] bg-[#f5f5f4] p-3 text-xs text-[#171717] placeholder:text-[#8a8784] focus:border-[#0f4c81] focus:outline-none focus:ring-2 focus:ring-[#0f4c81]/20"
               />
 
               {/* Uploading progress bar with CallChip */}
