@@ -4,6 +4,11 @@ import * as React from "react";
 import { JSX, SVGProps, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import {
+  openOAuthBrowser,
+  closeOAuthBrowser,
+  onAppResumeOrDeepLink,
+} from "@/lib/native-mobile";
 
 function cn(...inputs: Array<string | false | null | undefined>) {
   return inputs.filter(Boolean).join(" ");
@@ -146,6 +151,34 @@ function LoginFormContent() {
     }
   }, [isSessionPending, router, session]);
 
+  // Handle native app resume / focus / deep link after Google OAuth completes
+  React.useEffect(() => {
+    const cleanup = onAppResumeOrDeepLink(async (deepUrl) => {
+      try {
+        if (deepUrl && (deepUrl.includes("/home") || deepUrl.includes("home"))) {
+          await closeOAuthBrowser();
+          router.replace("/home");
+          return;
+        }
+
+        const currentSession = await authClient.getSession();
+        if (currentSession?.data?.session || currentSession?.data?.user) {
+          await closeOAuthBrowser();
+          router.replace("/home");
+        } else {
+          // If returned but not yet authenticated, reset spinner after brief pause
+          setTimeout(() => {
+            setIsSubmitting(false);
+          }, 1200);
+        }
+      } catch {
+        setIsSubmitting(false);
+      }
+    });
+
+    return cleanup;
+  }, [router]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitted(true);
@@ -268,7 +301,7 @@ function LoginFormContent() {
       }
 
       if (result?.data?.url) {
-        window.location.href = result.data.url;
+        await openOAuthBrowser(result.data.url);
       }
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Failed to sign in with Google.");

@@ -33,6 +33,14 @@
                 <data android:scheme="https" android:host="mgn.life" />
             </intent-filter>
 
+            <!-- Custom URL Scheme for Mobile OAuth callbacks -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="life.mgn.app" />
+            </intent-filter>
+
         </activity>
 
         <provider

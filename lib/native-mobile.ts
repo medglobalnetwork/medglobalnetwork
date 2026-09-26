@@ -111,3 +111,95 @@ export const registerPushNotifications = async (): Promise<string | null> => {
   }
   return null;
 };
+
+/**
+ * Open OAuth URLs inside native Custom Tabs / In-App Browser
+ */
+export const openOAuthBrowser = async (url: string) => {
+  if (isNativePlatform()) {
+    try {
+      const { Browser } = await import("@capacitor/browser");
+      await Browser.open({
+        url,
+        windowName: "_blank",
+        toolbarColor: "#0f4c81",
+        presentationStyle: "popover",
+      });
+      return;
+    } catch (err) {
+      console.warn("Error opening in-app browser, falling back to window.location:", err);
+    }
+  }
+  window.location.href = url;
+};
+
+/**
+ * Close native In-App Browser if open
+ */
+export const closeOAuthBrowser = async () => {
+  if (isNativePlatform()) {
+    try {
+      const { Browser } = await import("@capacitor/browser");
+      await Browser.close();
+    } catch {
+      // Ignore if not open
+    }
+  }
+};
+
+/**
+ * Listen for app resume or deep link return
+ */
+export const onAppResumeOrDeepLink = (callback: (url?: string) => void) => {
+  if (typeof window === "undefined") return () => {};
+
+  const cleanups: Array<() => void> = [];
+
+  // 1. Web visibility change
+  const handleVisibility = () => {
+    if (document.visibilityState === "visible") {
+      callback();
+    }
+  };
+  document.addEventListener("visibilitychange", handleVisibility);
+  cleanups.push(() => document.removeEventListener("visibilitychange", handleVisibility));
+
+  // 2. Web window focus
+  const handleFocus = () => {
+    callback();
+  };
+  window.addEventListener("focus", handleFocus);
+  cleanups.push(() => window.removeEventListener("focus", handleFocus));
+
+  // 3. Capacitor App state change & deep link
+  if (isNativePlatform()) {
+    try {
+      CapApp.addListener("appStateChange", ({ isActive }) => {
+        if (isActive) {
+          callback();
+        }
+      }).then((handle) => {
+        cleanups.push(() => handle.remove());
+      });
+
+      CapApp.addListener("appUrlOpen", (data) => {
+        callback(data.url);
+      }).then((handle) => {
+        cleanups.push(() => handle.remove());
+      });
+    } catch {
+      // ignore
+    }
+  }
+
+  return () => {
+    cleanups.forEach((fn) => {
+      try {
+        fn();
+      } catch {
+        // ignore
+      }
+    });
+  };
+};
+
