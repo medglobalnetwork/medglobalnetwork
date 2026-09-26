@@ -6,6 +6,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import AppHeader from "@/components/AppHeader";
 import AppBottomNav from "@/components/AppBottomNav";
 import AppSplashScreen from "@/components/AppSplashScreen";
+import { PullToRefresh } from "@/components/PullToRefresh";
 import { initNativeApp } from "@/lib/native-mobile";
 
 interface AppShellProps {
@@ -123,9 +124,9 @@ export function AppShell({ children }: AppShellProps) {
         {/* Top Header with Hamburger trigger for mobile and clean search/actions for desktop */}
         <AppHeader onOpenMobileDrawer={handleOpenMobileDrawer} />
 
-        {/* Page Content */}
+        {/* Page Content with Native-like Pull to Refresh on Mobile */}
         <main className={`flex-1 ${isMessagesPage ? "pb-0 overflow-hidden" : "pb-20 md:pb-6"}`}>
-          {children}
+          {isMessagesPage ? children : <PullToRefresh>{children}</PullToRefresh>}
         </main>
 
         {/* Bottom Nav (Mobile only, exactly 4 core tabs: Home, Network, Learn, Opportunities) */}

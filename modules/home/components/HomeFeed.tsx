@@ -75,6 +75,14 @@ export function HomeFeed({
     fetchPosts(1, false, activeTab);
   }, [fetchPosts, activeTab]);
 
+  React.useEffect(() => {
+    const handlePullRefresh = () => {
+      fetchPosts(1, false, activeTab);
+    };
+    window.addEventListener("mgn-pull-to-refresh", handlePullRefresh);
+    return () => window.removeEventListener("mgn-pull-to-refresh", handlePullRefresh);
+  }, [fetchPosts, activeTab]);
+
   const handlePostCreated = () => {
     fetchPosts(1, false, activeTab);
   };

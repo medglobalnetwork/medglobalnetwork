@@ -65,6 +65,14 @@ export function StoriesBar({
     fetchStories();
   }, [fetchStories]);
 
+  React.useEffect(() => {
+    const handlePullRefresh = () => {
+      fetchStories();
+    };
+    window.addEventListener("mgn-pull-to-refresh", handlePullRefresh);
+    return () => window.removeEventListener("mgn-pull-to-refresh", handlePullRefresh);
+  }, [fetchStories]);
+
   // Find user's own story group if any
   const ownStoryGroupIndex = groups.findIndex((g) => g.userId === currentUserId);
   const ownStoryGroup = ownStoryGroupIndex >= 0 ? groups[ownStoryGroupIndex] : null;

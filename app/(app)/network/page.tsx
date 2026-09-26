@@ -85,6 +85,15 @@ function DiscoverCenter({
     load(filters, 1, searchQuery);
   }, [filters, searchQuery, load]);
 
+  React.useEffect(() => {
+    const handlePullRefresh = () => {
+      setPage(1);
+      load(filters, 1, searchQuery);
+    };
+    window.addEventListener("mgn-pull-to-refresh", handlePullRefresh);
+    return () => window.removeEventListener("mgn-pull-to-refresh", handlePullRefresh);
+  }, [filters, searchQuery, load]);
+
   const handleLoadMore = () => {
     const next = page + 1;
     setPage(next);
