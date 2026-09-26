@@ -159,16 +159,22 @@ export function GlobalSearchBar({
     } catch {}
   };
 
-  // Close dropdown on outside click
+  // Close dropdown and collapse search on outside click / tap
   React.useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+    const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
+      const target = (e.target || (e as TouchEvent).touches?.[0]?.target) as Node;
+      if (containerRef.current && target && !containerRef.current.contains(target)) {
         setIsOpen(false);
+        onCloseMobile?.();
       }
     };
     document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, []);
+    document.addEventListener("touchstart", handleOutsideClick, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
+    };
+  }, [onCloseMobile]);
 
   // Global keyboard shortcut Ctrl+K / Cmd+K
   React.useEffect(() => {

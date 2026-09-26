@@ -230,34 +230,52 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
     });
   };
 
+  React.useEffect(() => {
+    if (!mobileSearchOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileSearchOpen(false);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [mobileSearchOpen]);
+
+  // Close mobile search on route navigation
+  React.useEffect(() => {
+    setMobileSearchOpen(false);
+  }, [pathname]);
+
   const isProfilePage = pathname?.startsWith("/profile");
 
   return (
-    <header
-      className={`sticky top-0 z-30 border-b border-[#e8e6e3] bg-white transition-transform duration-300 ease-in-out ${
-        hidden ? "-translate-y-full" : "translate-y-0"
-      }`}
-    >
-      <div className="mx-auto flex h-14 sm:h-16 max-w-[1440px] items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6 lg:px-8">
-        {/* MOBILE SEARCH OVERLAY (when toggled on mobile) */}
-        {mobileSearchOpen ? (
-          <div className="flex w-full items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150 py-1">
-            <div className="flex-1">
-              <GlobalSearchBar
-                isMobile={true}
-                onCloseMobile={() => setMobileSearchOpen(false)}
-                placeholder="Search doctors, specialties, jobs, courses..."
-              />
+    <>
+      <header
+        className={`sticky top-0 z-30 border-b border-[#e8e6e3] bg-white transition-transform duration-300 ease-in-out ${
+          hidden ? "-translate-y-full" : "translate-y-0"
+        }`}
+        style={{
+          paddingTop: "env(safe-area-inset-top, 0px)",
+        }}
+      >
+        <div className="mx-auto flex h-14 sm:h-16 max-w-[1440px] items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6 lg:px-8">
+          {/* MOBILE SEARCH OVERLAY (when toggled on mobile) */}
+          {mobileSearchOpen ? (
+            <div className="flex w-full items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-150 py-1">
+              <div className="flex-1">
+                <GlobalSearchBar
+                  isMobile={true}
+                  onCloseMobile={() => setMobileSearchOpen(false)}
+                  placeholder="Search doctors, specialties, jobs, courses..."
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileSearchOpen(false)}
+                className="shrink-0 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-3 py-2 text-xs font-semibold text-[#5d5854] hover:bg-white hover:text-[#171717]"
+              >
+                Cancel
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setMobileSearchOpen(false)}
-              className="shrink-0 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-3 py-2 text-xs font-semibold text-[#5d5854] hover:bg-white hover:text-[#171717]"
-            >
-              Cancel
-            </button>
-          </div>
-        ) : isProfilePage ? (
+          ) : isProfilePage ? (
           <>
             {/* 1. MOBILE PROFILE HEADER (< md) */}
             <div className="flex md:hidden w-full items-center justify-between">
@@ -519,7 +537,18 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
             </div>
           </>
         )}
-      </div>
-    </header>
+        </div>
+      </header>
+
+      {/* Backdrop to collapse search when tapping anywhere on the screen */}
+      {mobileSearchOpen && (
+        <div
+          onClick={() => setMobileSearchOpen(false)}
+          onTouchStart={() => setMobileSearchOpen(false)}
+          className="fixed inset-0 top-[calc(3.5rem+env(safe-area-inset-top,0px))] z-20 bg-black/20 backdrop-blur-2xs animate-in fade-in duration-150"
+          aria-hidden="true"
+        />
+      )}
+    </>
   );
 }

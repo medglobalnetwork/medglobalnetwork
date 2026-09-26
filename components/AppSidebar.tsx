@@ -390,7 +390,13 @@ export function AppSidebar({
           />
 
           {/* Drawer Content */}
-          <div className="relative flex flex-col w-72 sm:w-80 max-w-[85vw] bg-white h-full shadow-2xl border-r border-[#ded8d1] z-10 animate-in slide-in-from-left duration-250">
+          <div
+            className="relative flex flex-col w-72 sm:w-80 max-w-[85vw] bg-white h-full shadow-2xl border-r border-[#ded8d1] z-10 animate-in slide-in-from-left duration-250"
+            style={{
+              paddingTop: "env(safe-area-inset-top, 0px)",
+              paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))",
+            }}
+          >
             {/* Header / User Profile Banner */}
             <div className="p-4 border-b border-[#f0efee] bg-[#faf9f8] flex items-center justify-between">
               <Link href="/home" onClick={onCloseMobileDrawer} className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded">

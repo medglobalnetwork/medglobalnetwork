@@ -25,9 +25,10 @@ export const initNativeApp = (routerBack?: () => void) => {
   if (!isNativePlatform()) return;
 
   try {
-    // 1. Status Bar Setup
+    // 1. Status Bar Setup (Status bar notification area must not overlay web content)
     StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
     StatusBar.setBackgroundColor({ color: "#0f4c81" }).catch(() => {});
+    StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
 
     // 2. Hide hardware splash screen once web UI loads
     SplashScreen.hide().catch(() => {});

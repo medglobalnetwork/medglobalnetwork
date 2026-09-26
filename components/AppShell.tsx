@@ -57,6 +57,50 @@ export function AppShell({ children }: AppShellProps) {
     });
   }, []);
 
+  // Left edge swipe-to-open gesture (< 45px from left edge) and swipe-to-close
+  useEffect(() => {
+    let startX = 0;
+    let startY = 0;
+    let startTime = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      startTime = Date.now();
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.changedTouches.length !== 1) return;
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+      const deltaX = endX - startX;
+      const deltaY = endY - startY;
+      const deltaTime = Date.now() - startTime;
+
+      // Only trigger on swift horizontal gestures (< 800ms, mostly horizontal)
+      if (deltaTime > 800 || Math.abs(deltaY) > 80) return;
+
+      // 1. Swipe right from left edge (0-45px) to open sidebar drawer
+      if (!isMobileDrawerOpen && startX <= 45 && deltaX > 45) {
+        setIsMobileDrawerOpen(true);
+      }
+
+      // 2. Swipe left to close drawer when open
+      if (isMobileDrawerOpen && deltaX < -45) {
+        setIsMobileDrawerOpen(false);
+      }
+    };
+
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [isMobileDrawerOpen]);
+
   return (
     <div className="min-h-dvh bg-[#faf9f8] flex">
       {/* Initial Startup Splash Screen with Pulsing Logo */}
