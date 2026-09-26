@@ -88,6 +88,7 @@ export const auth = betterAuth({
     "http://localhost",
     "life.mgn.app://",
     "life.mgn.app",
+    "life.mgn.app://auth-callback",
     ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
     ...(process.env.VERCEL_PROJECT_PRODUCTION_URL ? [`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`] : []),
     ...(process.env.NEXT_PUBLIC_APP_URL ? [process.env.NEXT_PUBLIC_APP_URL] : []),

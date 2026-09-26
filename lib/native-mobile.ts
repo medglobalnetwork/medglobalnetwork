@@ -149,12 +149,66 @@ export const closeOAuthBrowser = async () => {
 };
 
 /**
+ * Exchange bridge token received via deep link to establish authenticated session inside Android WebView
+ */
+export const exchangeBridgeToken = async (bridgeToken: string): Promise<boolean> => {
+  try {
+    const baseUrl =
+      typeof window !== "undefined" && window.location.origin.startsWith("http")
+        ? window.location.origin
+        : "https://www.mgn.life";
+
+    const res = await fetch(`${baseUrl}/api/auth/mobile-bridge/exchange`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ bridge_token: bridgeToken }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.sessionToken) {
+        try {
+          localStorage.setItem("better-auth.session_token", data.sessionToken);
+        } catch {}
+      }
+      return true;
+    }
+  } catch (err) {
+    console.error("Failed to exchange mobile bridge token:", err);
+  }
+  return false;
+};
+
+/**
  * Listen for app resume or deep link return
  */
-export const onAppResumeOrDeepLink = (callback: (url?: string) => void) => {
+export const onAppResumeOrDeepLink = (
+  callback: (url?: string, authSuccess?: boolean) => void
+) => {
   if (typeof window === "undefined") return () => {};
 
   const cleanups: Array<() => void> = [];
+
+  const handleDeepLinkUrl = async (rawUrl: string) => {
+    try {
+      if (rawUrl.includes("bridge_token=")) {
+        const match = rawUrl.match(/bridge_token=([^&]+)/);
+        if (match && match[1]) {
+          const token = decodeURIComponent(match[1]);
+          const success = await exchangeBridgeToken(token);
+          await closeOAuthBrowser();
+          callback(rawUrl, success);
+          return;
+        }
+      }
+    } catch (err) {
+      console.error("Deep link parse error:", err);
+    }
+    callback(rawUrl, false);
+  };
 
   // 1. Web visibility change
   const handleVisibility = () => {
@@ -184,7 +238,7 @@ export const onAppResumeOrDeepLink = (callback: (url?: string) => void) => {
       });
 
       CapApp.addListener("appUrlOpen", (data) => {
-        callback(data.url);
+        handleDeepLinkUrl(data.url);
       }).then((handle) => {
         cleanups.push(() => handle.remove());
       });
@@ -203,4 +257,5 @@ export const onAppResumeOrDeepLink = (callback: (url?: string) => void) => {
     });
   };
 };
+
 

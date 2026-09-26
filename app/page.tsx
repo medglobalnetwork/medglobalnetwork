@@ -153,11 +153,24 @@ function LoginFormContent() {
 
   // Handle native app resume / focus / deep link after Google OAuth completes
   React.useEffect(() => {
-    const cleanup = onAppResumeOrDeepLink(async (deepUrl) => {
+    const cleanup = onAppResumeOrDeepLink(async (deepUrl, authSuccess) => {
       try {
+        if (authSuccess) {
+          await closeOAuthBrowser();
+          router.replace("/home");
+          return;
+        }
+
         if (deepUrl && (deepUrl.includes("/home") || deepUrl.includes("home"))) {
           await closeOAuthBrowser();
           router.replace("/home");
+          return;
+        }
+
+        if (deepUrl && deepUrl.includes("error=")) {
+          await closeOAuthBrowser();
+          setFormError("Google authentication could not be completed. Please try again.");
+          setIsSubmitting(false);
           return;
         }
 
@@ -169,7 +182,7 @@ function LoginFormContent() {
           // If returned but not yet authenticated, reset spinner after brief pause
           setTimeout(() => {
             setIsSubmitting(false);
-          }, 1200);
+          }, 1500);
         }
       } catch {
         setIsSubmitting(false);
@@ -289,9 +302,15 @@ function LoginFormContent() {
     setSuccessMessage("");
     setIsSubmitting(true);
     try {
+      const isNative = typeof window !== "undefined" && (window.location.origin.includes("life.mgn.app") || window.location.origin.includes("localhost") || window.navigator.userAgent.includes("Capacitor") || window.navigator.userAgent.includes("Android"));
+      
+      const callbackURL = isNative
+        ? "https://www.mgn.life/auth/mobile-callback"
+        : "/home";
+
       const result = await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/home",
+        callbackURL,
       });
 
       if (result?.error) {
