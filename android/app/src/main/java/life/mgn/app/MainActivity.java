@@ -28,6 +28,17 @@ public class MainActivity extends BridgeActivity {
             CookieManager cookieManager = CookieManager.getInstance();
             cookieManager.setAcceptCookie(true);
             cookieManager.setAcceptThirdPartyCookies(this.bridge.getWebView(), true);
+            // Flush cookies immediately so any Set-Cookie from the initial load is persisted
+            cookieManager.flush();
         }
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Flush cookies whenever the app comes to foreground — ensures session cookies
+        // set by fetch() are written to disk before the next page navigation reads them.
+        CookieManager.getInstance().flush();
+    }
 }
+

@@ -159,6 +159,7 @@ export async function POST(req: NextRequest) {
       },
       session: {
         token: sessionToken,
+        signedToken: signedSessionToken,
         expiresAt: expiresAt.toISOString(),
       },
     });

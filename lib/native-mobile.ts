@@ -314,11 +314,18 @@ export const signInWithNativeGoogle = async (): Promise<{
 
     if (res.ok) {
       const data = await res.json();
-      if (data?.session?.token) {
+      if (data?.session?.signedToken || data?.session?.token) {
         try {
-          localStorage.setItem("better-auth.session_token", data.session.token);
+          const tokenToStore = data.session.signedToken || data.session.token;
+          // Store signed session token under both key variants Better Auth checks
+          localStorage.setItem("better-auth.session_token", tokenToStore);
+          localStorage.setItem("__Secure-better-auth.session_token", tokenToStore);
         } catch {}
       }
+      // Wait for Android WebView CookieManager to flush Set-Cookie headers to disk
+      // before triggering navigation — prevents race condition where session isn't
+      // persisted yet when the next page loads.
+      await new Promise((resolve) => setTimeout(resolve, 500));
       return { success: true };
     } else {
       const errData = await res.json().catch(() => ({}));
