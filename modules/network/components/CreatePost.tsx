@@ -144,7 +144,7 @@ export function CreatePost({
       className={
         borderless
           ? `border-0 bg-transparent p-0 shadow-none ${className}`
-          : `rounded-none sm:rounded-3xl border-y sm:border border-[#e8e6e3] bg-white p-3.5 sm:p-5 shadow-none sm:shadow-2xs ${className}`
+          : `rounded-none sm:rounded-3xl border-y sm:border border-[#ded8d1] bg-white p-3.5 sm:p-5 shadow-none sm:shadow-2xs ${className}`
       }
     >
       <input
@@ -157,7 +157,7 @@ export function CreatePost({
 
       <div className="flex items-start gap-3">
         {/* User Avatar */}
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#eef5fc] text-sm font-bold text-[#0f4c81]">
+        <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#eef5fc] text-xs sm:text-sm font-bold text-[#0f4c81] border border-[#ded8d1]">
           {userImage ? (
             <img
               src={userImage}
@@ -175,10 +175,10 @@ export function CreatePost({
             <button
               type="button"
               onClick={() => setExpanded(true)}
-              className={`w-full rounded-2xl border px-4 py-3 text-left text-xs font-medium transition ${
+              className={`w-full rounded-2xl border px-4 py-3 text-left text-xs sm:text-sm font-medium transition ${
                 borderless
-                  ? "border-[#e8e6e3] bg-white text-[#64748b] shadow-2xs hover:border-[#0f4c81]/50 hover:bg-[#faf9f8]"
-                  : "border-[#e8e6e3] bg-white text-[#77716b] hover:border-[#0f4c81]/40 hover:bg-[#faf9f8]"
+                  ? "border-[#ded8d1] bg-white text-[#64748b] shadow-2xs hover:border-[#0f4c81]/50 hover:bg-[#faf9f8]"
+                  : "border-[#ded8d1] bg-white text-[#77716b] hover:border-[#0f4c81]/40 hover:bg-[#faf9f8]"
               }`}
             >
               What&apos;s happening in healthcare?
@@ -191,7 +191,7 @@ export function CreatePost({
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Share a clinical case, discussion, research finding, or update with your healthcare network..."
                 rows={3}
-                className="w-full resize-none rounded-2xl border border-[#ded8d1] bg-white p-3 text-xs text-[#171717] placeholder:text-[#8a8784] focus:border-[#0f4c81] focus:outline-none focus:ring-2 focus:ring-[#0f4c81]/20"
+                className="w-full resize-none rounded-2xl border border-[#ded8d1] bg-white p-3 text-xs sm:text-sm text-[#171717] placeholder:text-[#8a8784] focus:border-[#0f4c81] focus:outline-none focus:ring-2 focus:ring-[#0f4c81]/20"
               />
 
               {/* Uploading progress bar with CallChip */}
@@ -270,12 +270,8 @@ export function CreatePost({
       </div>
 
       {/* Action triggers bottom bar */}
-      <div
-        className={`mt-4 flex items-center justify-between pt-3 text-xs ${
-          borderless ? "border-t border-[#e2e8f0]/60" : "border-t border-[#f5f4f3]"
-        }`}
-      >
-        <div className="flex flex-wrap items-center gap-4 text-[#5d5854]">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[#ded8d1] pt-3 text-xs sm:text-sm">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-[#5d5854]">
           <button
             type="button"
             onClick={() => handleTriggerFileInput("image")}
@@ -331,7 +327,7 @@ export function CreatePost({
                 setMediaPreviews([]);
                 setError(null);
               }}
-              className="rounded-xl border border-[#ded8d1] px-3.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8]"
+              className="rounded-xl border border-[#ded8d1] px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-[#5d5854] hover:bg-[#faf9f8]"
             >
               Cancel
             </button>
@@ -344,7 +340,7 @@ export function CreatePost({
               else handlePost();
             }}
             disabled={posting || isUploading || (expanded && !content.trim() && mediaPreviews.length === 0)}
-            className="rounded-xl bg-[#1769c2] px-6 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-[#12569f] disabled:opacity-50"
+            className="rounded-xl bg-[#1769c2] px-5 sm:px-6 py-2 text-xs sm:text-sm font-bold text-white shadow-xs transition hover:bg-[#12569f] disabled:opacity-50"
           >
             {posting ? "Posting..." : "Post"}
           </button>

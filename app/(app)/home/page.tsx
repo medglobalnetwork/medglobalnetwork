@@ -102,8 +102,8 @@ export default function HomePage() {
 
             {/* TODAY'S SCHEDULE (Only shown if user has active items scheduled today) */}
             {todaySchedule.length > 0 && (
-              <div className="rounded-2xl border border-[#e8e6e3] bg-white p-3.5 sm:p-4 shadow-2xs">
-                <div className="flex items-center justify-between border-b border-[#f0efee] pb-2.5 mb-3">
+              <div className="rounded-2xl border border-[#ded8d1] bg-white p-3.5 sm:p-4 shadow-2xs">
+                <div className="flex items-center justify-between border-b border-[#ded8d1] pb-2.5 mb-3">
                   <div className="flex items-center gap-2">
                     <Calendar className="size-4 text-[#1769c2]" />
                     <h3 className="font-bold text-xs sm:text-sm text-[#171717] text-balance">Today&apos;s Schedule</h3>
@@ -123,7 +123,7 @@ export default function HomePage() {
                   {todaySchedule.map((item: any) => (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-[#faf9f8] transition border border-[#f0efee]"
+                      className="flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-[#faf9f8] transition border border-[#ded8d1]"
                     >
                       <div className="min-w-0 pr-2">
                         <h4 className="text-xs font-bold text-[#171717] truncate">{item.title}</h4>
@@ -164,10 +164,10 @@ export default function HomePage() {
               ================================================================= */}
           <div className="hidden lg:block space-y-5 lg:col-span-4">
             {/* 1. AD PLACEHOLDER */}
-            <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-[#e8e6e3] bg-white shadow-2xs">
-              <div className="px-4 py-2.5 border-b border-[#f0efee] flex items-center justify-between text-xs bg-white">
+            <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-[#ded8d1] bg-white shadow-2xs">
+              <div className="px-4 py-2.5 border-b border-[#ded8d1] flex items-center justify-between text-xs bg-white">
                 <span className="text-[10px] font-bold uppercase text-[#77716b]">Partner Spotlight</span>
-                <span className="rounded bg-white border border-[#e8e6e3] px-1.5 py-0.5 text-[9px] font-semibold text-[#77716b]">Ad</span>
+                <span className="rounded bg-white border border-[#ded8d1] px-1.5 py-0.5 text-[9px] font-semibold text-[#77716b]">Ad</span>
               </div>
               <div className="p-4 sm:p-5 flex flex-col items-center text-center">
                 <div className="w-full h-32 rounded-2xl bg-[#1769c2] p-4 text-white flex flex-col justify-between mb-3 relative overflow-hidden">

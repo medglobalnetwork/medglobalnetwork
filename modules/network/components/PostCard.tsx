@@ -285,9 +285,9 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
   return (
     <article
       id={`post-${post.id}`}
-      className="rounded-none sm:rounded-3xl border-y sm:border border-[#e8e6e3] bg-white p-3.5 sm:p-5 shadow-none sm:shadow-2xs transition hover:border-[#ded8d1] relative overflow-hidden"
+      className="rounded-none sm:rounded-3xl border-y sm:border border-[#ded8d1] bg-white p-3.5 sm:p-5 shadow-none sm:shadow-2xs transition hover:border-[#cbc6bf] relative overflow-hidden"
     >
-      {/* 1. Header: Author info, Post Type Badge, Timestamp */}
+      {/* 1. Header: Author info, Timestamp */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0 flex-1">
           {/* Avatar */}
@@ -297,7 +297,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
             className="shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded-full"
           >
             <div
-              className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full text-sm font-bold text-[#3f3f3c] overflow-hidden border border-[#e8e6e3] shadow-2xs"
+              className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full text-xs sm:text-sm font-bold text-[#3f3f3c] overflow-hidden border border-[#ded8d1] shadow-2xs"
               style={{ background: avatarColor }}
             >
               {author?.image ? (
@@ -318,32 +318,14 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
               <button
                 type="button"
                 onClick={() => router.push(`/profile/${author?.user_id ?? post.author_id}`)}
-                className="text-sm font-bold text-[#171717] hover:text-[#0f4c81] transition truncate text-left"
+                className="text-xs sm:text-sm md:text-base font-bold text-[#171717] hover:text-[#0f4c81] transition truncate text-left"
               >
                 {author?.name ?? "Healthcare Professional"}
               </button>
               {isVerified && <VerificationBadge size="sm" />}
-
-              {post.post_type !== "text" && (
-                <span
-                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold border shadow-2xs"
-                  style={{
-                    backgroundColor: badge.bg,
-                    borderColor: badge.color + "30",
-                    color: badge.color,
-                  }}
-                >
-                  {post.post_type === "video" ? (
-                    <Film className="h-3 w-3 stroke-[2.2]" />
-                  ) : post.post_type === "document" ? (
-                    <FileText className="h-3 w-3 stroke-[2.2]" />
-                  ) : null}
-                  {badge.label}
-                </span>
-              )}
             </div>
 
-            <p className="text-[11px] text-[#77716b] truncate font-medium mt-0.5">
+            <p className="text-[11px] sm:text-xs text-[#77716b] truncate font-medium mt-0.5">
               {author?.profession || "Healthcare Professional"}
               {author?.specialization ? ` · ${author.specialization}` : ""}
               {author?.organization ? ` · ${author.organization}` : ""}
@@ -352,7 +334,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
             <time
               dateTime={new Date(post.created_at).toISOString()}
               title={formatExactDateTime(post.created_at)}
-              className="text-[11px] text-[#8a8784] font-medium block mt-0.5 hover:text-[#171717] transition cursor-default"
+              className="text-[10px] sm:text-[11px] text-[#8a8784] font-medium block mt-0.5 hover:text-[#171717] transition cursor-default"
             >
               {formatContentTimestamp(post.created_at)}
             </time>
@@ -369,9 +351,9 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
             className="p-1.5 rounded-lg text-[#a09890] hover:bg-[#f8f7f6] hover:text-rose-600 transition"
           >
             {reported ? (
-              <span className="text-[10px] font-bold text-rose-600">Reported</span>
+              <span className="text-[10px] sm:text-xs font-bold text-rose-600">Reported</span>
             ) : (
-              <span className="text-xs">🚩</span>
+              <span className="text-xs sm:text-sm">🚩</span>
             )}
           </button>
         </div>
@@ -380,7 +362,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
       {/* 2. Text Content (Above Media, LinkedIn/Instagram Style) */}
       {post.content && post.content.trim() && (
         <div className="mt-3">
-          <p className="whitespace-pre-line text-sm leading-relaxed text-[#171717]">
+          <p className="whitespace-pre-line text-xs sm:text-sm md:text-[15px] leading-relaxed text-[#171717]">
             {displayContent}
           </p>
           {isLongContent && (
@@ -397,7 +379,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
 
       {/* 3. Rich Media Container (Instagram / LinkedIn Feed Experience) */}
       {mediaUrls.length > 0 && (
-        <div className="mt-3 rounded-xl sm:rounded-2xl overflow-hidden border border-[#f0efee] sm:border-[#e8e6e3] bg-[#0c0d0e] shadow-2xs">
+        <div className="mt-3 rounded-xl sm:rounded-2xl overflow-hidden border border-[#ded8d1] bg-[#0c0d0e] shadow-2xs">
           {/* A. Video Post */}
           {isVideoPost ? (
             <div className="relative w-full bg-black flex items-center justify-center overflow-hidden group">
@@ -546,7 +528,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
       )}
 
       {/* 4. Action Bar (Instagram / LinkedIn Style: Like, Comment, Share, Save) */}
-      <div className="mt-4 flex items-center justify-between border-t border-[#f0efee] pt-3 text-xs">
+      <div className="mt-4 flex items-center justify-between border-t border-[#ded8d1] pt-3 text-xs sm:text-sm">
         <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Like — PulseHeart */}
           <PulseHeart
@@ -575,7 +557,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
           <button
             type="button"
             onClick={loadComments}
-            className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-bold transition active:scale-95 ${
+            className={`flex items-center gap-1.5 rounded-xl px-2.5 sm:px-3 py-1.5 font-bold transition active:scale-95 text-xs sm:text-sm ${
               showComments
                 ? "bg-[#eef5fc] text-[#0f4c81]"
                 : "text-[#5d5854] hover:bg-[#f5f4f2] hover:text-[#171717]"
@@ -593,7 +575,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
           <button
             type="button"
             onClick={handleShare}
-            className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-bold text-[#5d5854] hover:bg-[#f5f4f2] hover:text-[#171717] transition active:scale-95"
+            className="flex items-center gap-1.5 rounded-xl px-2.5 sm:px-3 py-1.5 font-bold text-[#5d5854] hover:bg-[#f5f4f2] hover:text-[#171717] transition active:scale-95 text-xs sm:text-sm"
           >
             {copiedLink ? (
               <>
@@ -614,7 +596,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
           type="button"
           onClick={handleToggleSave}
           title={saved ? "Saved to your bookmarks" : "Save post"}
-          className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 font-bold transition active:scale-95 ${
+          className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 font-bold transition active:scale-95 text-xs sm:text-sm ${
             saved
               ? "text-[#0f4c81] bg-[#eef5fc]"
               : "text-[#5d5854] hover:bg-[#f5f4f2] hover:text-[#171717]"
@@ -631,7 +613,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
 
       {/* 5. Expandable Comments Section */}
       {showComments && (
-        <div className="mt-3.5 space-y-3 border-t border-[#f0efee] pt-3.5 animate-in fade-in duration-200">
+        <div className="mt-3.5 space-y-3 border-t border-[#ded8d1] pt-3.5 animate-in fade-in duration-200">
           {/* Add Comment Input */}
           <form onSubmit={handleAddComment} className="flex gap-2">
             <input
@@ -639,12 +621,12 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Add a clinical comment or insight..."
-              className="h-9 flex-1 rounded-xl border border-[#ded8d1] px-3 text-xs text-[#171717] placeholder:text-[#8a8784] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+              className="h-9 flex-1 rounded-xl border border-[#ded8d1] px-3 text-xs sm:text-sm text-[#171717] placeholder:text-[#8a8784] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
             />
             <button
               type="submit"
               disabled={commentLoading || !commentText.trim()}
-              className="rounded-xl bg-[#0f4c81] px-4 py-1.5 text-xs font-bold text-white transition hover:bg-[#0c3c66] disabled:opacity-50 shadow-2xs"
+              className="rounded-xl bg-[#0f4c81] px-4 py-1.5 text-xs sm:text-sm font-bold text-white transition hover:bg-[#0c3c66] disabled:opacity-50 shadow-2xs"
             >
               {commentLoading ? "…" : "Post"}
             </button>
@@ -656,7 +638,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
               {comments.map((c) => (
                 <li
                   key={c.id}
-                  className="rounded-2xl bg-[#faf9f8] p-3 text-xs border border-[#f0efee]"
+                  className="rounded-2xl bg-[#faf9f8] p-3 text-xs sm:text-[13px] border border-[#ded8d1]"
                 >
                   <div className="flex items-center justify-between">
                     <button
