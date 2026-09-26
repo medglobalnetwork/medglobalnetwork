@@ -144,7 +144,7 @@ export function CreatePost({
       className={
         borderless
           ? `border-0 bg-transparent p-0 shadow-none ${className}`
-          : `rounded-none sm:rounded-3xl border-y sm:border border-[#e8e6e3] bg-[#f5f5f4] p-3.5 sm:p-5 shadow-none sm:shadow-2xs ${className}`
+          : `rounded-none sm:rounded-3xl border-y sm:border border-[#e8e6e3] bg-white p-3.5 sm:p-5 shadow-none sm:shadow-2xs ${className}`
       }
     >
       <input
@@ -177,8 +177,8 @@ export function CreatePost({
               onClick={() => setExpanded(true)}
               className={`w-full rounded-2xl border px-4 py-3 text-left text-xs font-medium transition ${
                 borderless
-                  ? "border-[#e8e6e3] bg-[#f5f5f4] text-[#64748b] shadow-2xs hover:border-[#0f4c81]/50 hover:bg-[#eceae8]"
-                  : "border-[#e8e6e3] bg-white text-[#77716b] hover:border-[#0f4c81]/40 hover:bg-[#f5f5f4]"
+                  ? "border-[#e8e6e3] bg-white text-[#64748b] shadow-2xs hover:border-[#0f4c81]/50 hover:bg-[#faf9f8]"
+                  : "border-[#e8e6e3] bg-white text-[#77716b] hover:border-[#0f4c81]/40 hover:bg-[#faf9f8]"
               }`}
             >
               What&apos;s happening in healthcare?
@@ -191,7 +191,7 @@ export function CreatePost({
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Share a clinical case, discussion, research finding, or update with your healthcare network..."
                 rows={3}
-                className="w-full resize-none rounded-2xl border border-[#ded8d1] bg-[#f5f5f4] p-3 text-xs text-[#171717] placeholder:text-[#8a8784] focus:border-[#0f4c81] focus:outline-none focus:ring-2 focus:ring-[#0f4c81]/20"
+                className="w-full resize-none rounded-2xl border border-[#ded8d1] bg-white p-3 text-xs text-[#171717] placeholder:text-[#8a8784] focus:border-[#0f4c81] focus:outline-none focus:ring-2 focus:ring-[#0f4c81]/20"
               />
 
               {/* Uploading progress bar with CallChip */}

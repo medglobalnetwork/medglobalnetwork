@@ -175,7 +175,7 @@ function ConnectionsTab() {
         const color = getProfessionColor(c.profession);
         const initials = (c.name || "U").split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
         return (
-          <div key={c.id} className="flex items-center gap-3.5 rounded-2xl border border-[#e8e6e3] bg-[#f5f5f4] p-4 shadow-xs">
+          <div key={c.id} className="flex items-center gap-3.5 rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-[#3f3f3c]" style={{ background: color }}>
               {c.image ? <img src={c.image} alt={c.name} className="h-full w-full rounded-full object-cover" /> : initials}
             </div>

@@ -248,7 +248,7 @@ export default function MyNetworkPage() {
                     const color = getProfessionColor(c.profession);
                     const initials = (c.name || "U").split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
                     return (
-                      <div key={c.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-[#e8e6e3] bg-[#f5f5f4] p-4 shadow-xs">
+                      <div key={c.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs">
                         <div className="flex items-center gap-3 min-w-0">
                           <button type="button" onClick={() => router.push(`/profile/${c.user_id}`)} className="shrink-0">
                             <div className="flex h-12 w-12 items-center justify-center rounded-full text-sm font-bold text-[#3f3f3c]" style={{ background: color }}>
@@ -317,7 +317,7 @@ export default function MyNetworkPage() {
                     const color = getProfessionColor(r.profession);
                     const initials = (r.name || "U").split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
                     return (
-                      <div key={r.id} className="rounded-2xl border border-[#e8e6e3] bg-[#f5f5f4] p-4 shadow-xs">
+                      <div key={r.id} className="rounded-2xl border border-[#e8e6e3] bg-white p-4 shadow-xs">
                         <div className="flex items-start gap-3">
                           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold" style={{ background: color }}>
                             {r.image ? <img src={r.image} alt={r.name} className="h-full w-full rounded-full object-cover" /> : initials}
@@ -325,7 +325,7 @@ export default function MyNetworkPage() {
                           <div className="min-w-0 flex-1">
                             <button type="button" onClick={() => router.push(`/profile/${r.sender_id}`)} className="text-sm font-semibold text-[#171717] hover:text-[#1769c2]">{r.name}</button>
                             <p className="text-xs text-[#77716b]">{r.profession}{r.specialization ? ` · ${r.specialization}` : ""}</p>
-                            {r.message && <p className="mt-2 rounded-xl bg-white p-3 text-xs text-[#5d5854] italic">&ldquo;{r.message}&rdquo;</p>}
+                            {r.message && <p className="mt-2 rounded-xl bg-[#faf9f8] p-3 text-xs text-[#5d5854] italic border border-[#f0efee]">&ldquo;{r.message}&rdquo;</p>}
                             <time
                               dateTime={new Date(r.created_at).toISOString()}
                               title={formatExactDateTime(r.created_at)}
@@ -356,7 +356,7 @@ export default function MyNetworkPage() {
                     const color = getProfessionColor(s.profession);
                     const initials = (s.name || "U").split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
                     return (
-                      <div key={s.id} className="flex items-center justify-between gap-3 rounded-2xl border border-[#e8e6e3] bg-[#f5f5f4] p-3.5 shadow-xs">
+                      <div key={s.id} className="flex items-center justify-between gap-3 rounded-2xl border border-[#e8e6e3] bg-white p-3.5 shadow-xs">
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold" style={{ background: color }}>
                             {s.image ? <img src={s.image} alt={s.name} className="h-full w-full rounded-full object-cover" /> : initials}
@@ -386,7 +386,7 @@ export default function MyNetworkPage() {
                     const color = getProfessionColor(f.profession);
                     const initials = (f.name || "U").split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
                     return (
-                      <div key={f.id} className="flex items-center justify-between gap-3 rounded-2xl border border-[#e8e6e3] bg-[#f5f5f4] p-3.5 shadow-xs">
+                      <div key={f.id} className="flex items-center justify-between gap-3 rounded-2xl border border-[#e8e6e3] bg-white p-3.5 shadow-xs">
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold" style={{ background: color }}>
                             {f.image ? <img src={f.image} alt={f.name} className="h-full w-full rounded-full object-cover" /> : initials}
@@ -423,7 +423,7 @@ export default function MyNetworkPage() {
                     const color = getProfessionColor(f.profession);
                     const initials = (f.name || "U").split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
                     return (
-                      <div key={f.id} className="flex items-center justify-between gap-3 rounded-2xl border border-[#e8e6e3] bg-[#f5f5f4] p-3.5 shadow-xs">
+                      <div key={f.id} className="flex items-center justify-between gap-3 rounded-2xl border border-[#e8e6e3] bg-white p-3.5 shadow-xs">
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold" style={{ background: color }}>
                             {f.image ? <img src={f.image} alt={f.name} className="h-full w-full rounded-full object-cover" /> : initials}
