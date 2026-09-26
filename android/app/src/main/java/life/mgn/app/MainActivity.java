@@ -1,6 +1,7 @@
 package life.mgn.app;
 
 import android.os.Bundle;
+import android.webkit.CookieManager;
 import android.webkit.WebSettings;
 import com.getcapacitor.BridgeActivity;
 
@@ -11,6 +12,22 @@ public class MainActivity extends BridgeActivity {
         if (this.bridge != null && this.bridge.getWebView() != null) {
             WebSettings settings = this.bridge.getWebView().getSettings();
             settings.setMediaPlaybackRequiresUserGesture(false);
+            settings.setDomStorageEnabled(true);
+            settings.setDatabaseEnabled(true);
+            settings.setJavaScriptCanOpenWindowsAutomatically(true);
+            settings.setSupportMultipleWindows(false);
+
+            // Clean User Agent to standard mobile Chrome format so Google OAuth works seamlessly in-app
+            String defaultUa = settings.getUserAgentString();
+            if (defaultUa != null) {
+                String cleanUa = defaultUa.replaceAll(";\\s*wv", "").replaceAll("Version/[0-9.]+\\s*", "");
+                settings.setUserAgentString(cleanUa);
+            }
+
+            // Ensure cookies & 3rd-party auth cookies are accepted and persisted
+            CookieManager cookieManager = CookieManager.getInstance();
+            cookieManager.setAcceptCookie(true);
+            cookieManager.setAcceptThirdPartyCookies(this.bridge.getWebView(), true);
         }
     }
 }

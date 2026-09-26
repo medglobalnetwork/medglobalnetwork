@@ -359,21 +359,10 @@ function LoginFormContent() {
         console.warn("Native Google auth fallback to browser:", nativeRes.error);
       }
 
-      // 2. Web / Browser OAuth Flow
-      const isNative =
-        typeof window !== "undefined" &&
-        (window.location.origin.includes("life.mgn.app") ||
-          window.location.origin.includes("localhost") ||
-          window.navigator.userAgent.includes("Capacitor") ||
-          window.navigator.userAgent.includes("Android"));
-
-      const callbackURL = isNative
-        ? "https://www.mgn.life/auth/mobile-callback"
-        : "/home";
-
+      // 2. In-App WebView / Browser OAuth Flow
       const result = await authClient.signIn.social({
         provider: "google",
-        callbackURL,
+        callbackURL: "/home",
       });
 
       if (result?.error) {
@@ -384,7 +373,7 @@ function LoginFormContent() {
       }
 
       if (result?.data?.url) {
-        await openOAuthBrowser(result.data.url);
+        window.location.href = result.data.url;
       }
     } catch (error) {
       setFormError(
