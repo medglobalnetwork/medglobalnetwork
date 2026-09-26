@@ -258,4 +258,89 @@ export const onAppResumeOrDeepLink = (
   };
 };
 
+/**
+ * Native Google Sign In using Google Play Services bottom-sheet dialog inside the app
+ */
+export const signInWithNativeGoogle = async (): Promise<{
+  success: boolean;
+  error?: string;
+}> => {
+  if (!isNativePlatform()) {
+    return { success: false, error: "Not on native platform" };
+  }
+
+  try {
+    const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth");
+
+    try {
+      await GoogleAuth.initialize({
+        clientId:
+          "241814547071-mkam9r4khm5gi5i0j0pfevjtarab8ebc.apps.googleusercontent.com",
+        scopes: ["profile", "email"],
+        grantOfflineAccess: true,
+      });
+    } catch {
+      // already initialized or fallback
+    }
+
+    const googleUser = await GoogleAuth.signIn();
+
+    const idToken =
+      googleUser.authentication?.idToken ||
+      (googleUser as { idToken?: string }).idToken;
+
+    if (!idToken) {
+      return { success: false, error: "No ID token returned from Google" };
+    }
+
+    const baseUrl =
+      typeof window !== "undefined" && window.location.origin.startsWith("http")
+        ? window.location.origin
+        : "https://www.mgn.life";
+
+    const res = await fetch(`${baseUrl}/api/auth/google-native`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        idToken,
+        user: {
+          email: googleUser.email,
+          name: googleUser.name || googleUser.givenName,
+          imageUrl: googleUser.imageUrl,
+        },
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.session?.token) {
+        try {
+          localStorage.setItem("better-auth.session_token", data.session.token);
+        } catch {}
+      }
+      return { success: true };
+    } else {
+      const errData = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        error: errData.error || "Authentication failed on server",
+      };
+    }
+  } catch (err: unknown) {
+    const errorMessage =
+      err instanceof Error
+        ? err.message
+        : typeof err === "object" && err !== null && "message" in err
+        ? String((err as { message: unknown }).message)
+        : "Google Sign-In was cancelled or failed";
+    console.error("Native Google Sign-In error:", err);
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
+
+
 

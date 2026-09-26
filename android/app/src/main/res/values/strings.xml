@@ -4,4 +4,5 @@
     <string name="title_activity_main">MedGlobalNetwork</string>
     <string name="package_name">life.mgn.app</string>
     <string name="custom_url_scheme">life.mgn.app</string>
+    <string name="server_client_id">241814547071-mkam9r4khm5gi5i0j0pfevjtarab8ebc.apps.googleusercontent.com</string>
 </resources>

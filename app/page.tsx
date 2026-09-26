@@ -8,6 +8,8 @@ import {
   openOAuthBrowser,
   closeOAuthBrowser,
   onAppResumeOrDeepLink,
+  isNativePlatform,
+  signInWithNativeGoogle,
 } from "@/lib/native-mobile";
 
 function cn(...inputs: Array<string | false | null | undefined>) {
@@ -317,7 +319,32 @@ function LoginFormContent() {
     setSuccessMessage("");
     setIsSubmitting(true);
     setIsAwaitingOAuth(true);
+
     try {
+      // 1. If running inside Native Android App shell, invoke Native Google Play Dialog
+      if (isNativePlatform()) {
+        const nativeRes = await signInWithNativeGoogle();
+        if (nativeRes.success) {
+          window.location.href = "/home";
+          return;
+        }
+
+        // If user cancelled, just reset loading state cleanly
+        if (
+          nativeRes.error?.toLowerCase().includes("cancel") ||
+          nativeRes.error?.toLowerCase().includes("abort") ||
+          nativeRes.error?.toLowerCase().includes("user closed")
+        ) {
+          setIsSubmitting(false);
+          setIsAwaitingOAuth(false);
+          return;
+        }
+
+        // If native auth had an issue, fallback smoothly to browser-based OAuth flow below
+        console.warn("Native Google auth fallback to browser:", nativeRes.error);
+      }
+
+      // 2. Web / Browser OAuth Flow
       const isNative =
         typeof window !== "undefined" &&
         (window.location.origin.includes("life.mgn.app") ||
@@ -345,7 +372,9 @@ function LoginFormContent() {
         await openOAuthBrowser(result.data.url);
       }
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Failed to sign in with Google.");
+      setFormError(
+        error instanceof Error ? error.message : "Failed to sign in with Google."
+      );
       setIsSubmitting(false);
       setIsAwaitingOAuth(false);
     }
