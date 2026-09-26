@@ -2,7 +2,18 @@
 // modules/network/components/ProfessionalCard.tsx
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Heart, MessageSquare, MoreHorizontal, Share2, Copy, Check } from "lucide-react";
+import {
+  MoreVertical,
+  User,
+  UserPlus,
+  UserCheck,
+  MessageSquare,
+  Share2,
+  Ban,
+  Flag,
+  Copy,
+  Check,
+} from "lucide-react";
 import type { ProfessionalProfile, ConnectionStatus } from "../types";
 import { VerificationBadge } from "./VerificationBadge";
 import { ConnectionButton } from "./ConnectionButton";
@@ -22,11 +33,13 @@ export function ProfessionalCard({
   variant = "grid",
 }: ProfessionalCardProps) {
   const router = useRouter();
-  const customImageSrc = (profile.image && !isGoogleOrExternalAvatar(profile.image)) ? profile.image : null;
+  const customImageSrc =
+    profile.image && !isGoogleOrExternalAvatar(profile.image) ? profile.image : null;
   const [connectionStatus, setConnectionStatus] = React.useState<ConnectionStatus>(
     profile.connection_status ?? "none"
   );
-  const [isSaved, setIsSaved] = React.useState(false);
+  const [isFollowing, setIsFollowing] = React.useState(false);
+  const [followLoading, setFollowLoading] = React.useState(false);
   const [showMenu, setShowMenu] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
   const [showModal, setShowModal] = React.useState(false);
@@ -78,45 +91,102 @@ export function ProfessionalCard({
   const handleShare = () => {
     const slug = profile.username || profile.user_id;
     if (typeof window !== "undefined" && navigator.share) {
-      navigator.share({
-        title: `${profile.name} - MGN Professional`,
-        url: `${window.location.origin}/profile/${slug}`,
-      }).catch(() => {});
+      navigator
+        .share({
+          title: `${profile.name} - MGN Professional`,
+          url: `${window.location.origin}/profile/${slug}`,
+        })
+        .catch(() => {});
     } else {
       handleCopyLink();
     }
     setShowMenu(false);
   };
 
-  // Build specialty tags
-  const specialtyTags = React.useMemo(() => {
-    const tags: string[] = [];
-    if (profile.specialization) tags.push(profile.specialization);
-    if (profile.sub_specialization) tags.push(profile.sub_specialization);
-    if (profile.skills && Array.isArray(profile.skills)) {
-      for (const s of profile.skills) {
-        if (s && !tags.includes(s) && tags.length < 2) {
-          tags.push(s);
-        }
-      }
-    }
-    if (tags.length === 0 && profile.profession) {
-      tags.push(profile.profession);
-    }
-    return tags.slice(0, 2);
-  }, [profile.specialization, profile.sub_specialization, profile.skills, profile.profession]);
+  const handleToggleFollow = async () => {
+    if (followLoading) return;
+    setFollowLoading(true);
+    const newFollowState = !isFollowing;
+    setIsFollowing(newFollowState);
+    setShowMenu(false);
 
+    try {
+      if (newFollowState) {
+        await fetch("/api/network/follows", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ followingId: profile.user_id }),
+        });
+      } else {
+        await fetch("/api/network/follows", {
+          method: "DELETE",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ followingId: profile.user_id }),
+        });
+      }
+    } catch (err) {
+      console.error("Failed to toggle follow state:", err);
+      setIsFollowing(!newFollowState);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
+  const handleBlock = async () => {
+    setShowMenu(false);
+    if (!confirm(`Are you sure you want to block ${profile.name}?`)) return;
+    try {
+      const res = await fetch("/api/v1/communication/safety/block", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetUserId: profile.user_id }),
+      });
+      if (res.ok) {
+        alert(`${profile.name} has been blocked.`);
+      }
+    } catch (err) {
+      console.error("Block error:", err);
+    }
+  };
+
+  const handleReport = async () => {
+    setShowMenu(false);
+    const reason = prompt(`Reason for reporting ${profile.name}:`, "Inappropriate profile / spam");
+    if (!reason) return;
+    try {
+      const res = await fetch("/api/v1/communication/safety/report", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reportedUserId: profile.user_id, reason }),
+      });
+      if (res.ok) {
+        alert("Report submitted to MGN moderation team.");
+      }
+    } catch (err) {
+      console.error("Report error:", err);
+    }
+  };
+
+  const destinationSlug = profile.username || profile.user_id;
+
+  // ─────────────────────────────────────────────────────────
+  // List Variant (Borderless horizontal item)
+  // ─────────────────────────────────────────────────────────
   if (variant === "list") {
     return (
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#ded8d1] bg-white p-3.5 transition hover:border-[#1769c2]/40 hover:shadow-xs">
-        {/* Avatar */}
+      <div className="group relative flex items-center justify-between gap-3 sm:gap-4 rounded-2xl bg-white p-3.5 sm:p-4 shadow-none sm:shadow-2xs transition hover:bg-[#faf9f8] hover:shadow-xs">
+        {/* Left: Circular Avatar */}
         <button
           type="button"
-          onClick={() => router.push(`/profile/${profile.user_id}`)}
-          className="shrink-0"
+          onClick={() => router.push(`/profile/${destinationSlug}`)}
+          className="shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded-full"
         >
           <div
-            className="flex h-12 w-12 items-center justify-center rounded-full text-base font-bold text-[#3f3f3c] ring-2 ring-[#f4f3f0]"
+            className="flex size-12 sm:size-14 items-center justify-center rounded-full text-sm sm:text-base font-bold text-[#3f3f3c] overflow-hidden border border-[#ded8d1] shadow-2xs"
             style={{ background: avatarColor }}
           >
             {customImageSrc ? (
@@ -131,39 +201,38 @@ export function ProfessionalCard({
           </div>
         </button>
 
-        {/* Info */}
-        <div className="min-w-0 flex-1">
+        {/* Center: Info */}
+        <div className="min-w-0 flex-1 text-left">
           <div className="flex items-center gap-1.5 flex-wrap">
             <button
               type="button"
-              onClick={() => router.push(`/profile/${profile.user_id}`)}
-              className="truncate text-sm font-semibold text-[#171717] hover:text-[#1769c2]"
+              onClick={() => router.push(`/profile/${destinationSlug}`)}
+              className="truncate text-xs sm:text-sm font-bold text-[#171717] hover:text-[#0f4c81] transition text-left"
             >
               {profile.name}
             </button>
             {isVerified && <VerificationBadge size="sm" />}
+            {profile.is_founding_member && (
+              <span className="text-[10px] font-bold text-amber-600" title="Founder">
+                👑
+              </span>
+            )}
           </div>
-          <p className="truncate text-xs text-[#77716b]">
-            {profile.designation || profile.profession}
+
+          <p className="truncate text-xs font-semibold text-[#0f4c81] mt-0.5">
+            {profile.designation || profile.profession || "Healthcare Professional"}
             {profile.specialization ? ` · ${profile.specialization}` : ""}
           </p>
+
           {(profile.organization || profile.city) && (
-            <p className="truncate text-[11px] text-[#a09890]">
-              {[profile.organization, profile.city].filter(Boolean).join(", ")}
+            <p className="truncate text-[11px] text-[#77716b] mt-0.5">
+              {[profile.organization, profile.city].filter(Boolean).join(" · ")}
             </p>
           )}
         </div>
 
-        {/* Actions */}
-        <div className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            onClick={() => router.push(`/messages?to=${profile.user_id}`)}
-            className="rounded-xl border border-[#ded8d1] p-2 text-[#5d5854] transition hover:bg-[#f8f7f6] hover:text-[#171717]"
-            title="Send Message"
-          >
-            <MessageSquare className="h-4 w-4" />
-          </button>
+        {/* Right: Connect + Dropdown */}
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <ConnectionButton
             targetUserId={profile.user_id}
             initialStatus={connectionStatus}
@@ -171,6 +240,87 @@ export function ProfessionalCard({
             onConnectClick={() => setShowModal(true)}
             size="sm"
           />
+
+          {/* Three-dot dropdown */}
+          <div className="relative" ref={menuRef}>
+            <button
+              type="button"
+              onClick={() => setShowMenu(!showMenu)}
+              className="flex size-8 items-center justify-center rounded-xl text-[#77716b] hover:bg-[#f0efee] hover:text-[#171717] transition"
+              title="Options"
+            >
+              <MoreVertical className="size-4" />
+            </button>
+
+            {showMenu && (
+              <div className="absolute right-0 top-full z-40 mt-1 w-44 rounded-2xl border border-[#ded8d1] bg-white p-1.5 shadow-xl text-left animate-in fade-in zoom-in-95 duration-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMenu(false);
+                    router.push(`/profile/${destinationSlug}`);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8] hover:text-[#171717]"
+                >
+                  <User className="size-3.5 text-[#0f4c81]" />
+                  View profile
+                </button>
+                <button
+                  type="button"
+                  onClick={handleToggleFollow}
+                  className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8] hover:text-[#171717]"
+                >
+                  {isFollowing ? (
+                    <>
+                      <UserCheck className="size-3.5 text-emerald-600" />
+                      Following
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="size-3.5 text-[#0f4c81]" />
+                      Follow
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMenu(false);
+                    router.push(`/messages?to=${profile.user_id}`);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8] hover:text-[#171717]"
+                >
+                  <MessageSquare className="size-3.5 text-[#0f4c81]" />
+                  Message
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8] hover:text-[#171717]"
+                >
+                  {copied ? <Check className="size-3.5 text-emerald-600" /> : <Share2 className="size-3.5" />}
+                  {copied ? "Copied!" : "Share account"}
+                </button>
+                <div className="my-1 border-t border-[#f0efee]" />
+                <button
+                  type="button"
+                  onClick={handleBlock}
+                  className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                >
+                  <Ban className="size-3.5 text-rose-500" />
+                  Block
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReport}
+                  className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                >
+                  <Flag className="size-3.5 text-rose-500" />
+                  Report
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {showModal && (
@@ -188,164 +338,168 @@ export function ProfessionalCard({
     );
   }
 
-  // Grid variant: Full-width portrait cover photo matching the design mockup exactly
+  // ─────────────────────────────────────────────────────────
+  // Grid Variant: Borderless Card with Circular Avatar
+  // ─────────────────────────────────────────────────────────
   return (
-    <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#ded8d1] bg-white shadow-xs transition duration-150 hover:border-[#1769c2]/40 hover:shadow-md">
-      {/* 1. TOP PORTRAIT COVER PHOTO */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#eef5fc]">
+    <div className="group relative flex flex-col justify-between items-center text-center rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-5 shadow-none sm:shadow-2xs transition hover:bg-[#faf9f8] hover:shadow-xs">
+      {/* Top-Right Three Dots Menu */}
+      <div className="absolute right-2.5 top-2.5 sm:right-3.5 sm:top-3.5 z-20" ref={menuRef}>
         <button
           type="button"
-          onClick={() => router.push(`/profile/${profile.user_id}`)}
-          className="h-full w-full block text-left"
+          onClick={() => setShowMenu(!showMenu)}
+          className="flex size-7 sm:size-8 items-center justify-center rounded-full text-[#8a8784] hover:bg-[#f0efee] hover:text-[#171717] transition cursor-pointer"
+          title="More options"
+          aria-label="More options"
         >
-          {customImageSrc ? (
-            <img
-              src={customImageSrc}
-              alt={profile.name}
-              className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-            />
-          ) : (
-            <div
-              className="flex h-full w-full items-center justify-center text-4xl font-bold text-slate-700/80"
-              style={{ background: avatarColor }}
-            >
-              {initials}
-            </div>
-          )}
+          <MoreVertical className="size-4" />
         </button>
 
-        {/* Top-Left: Verified Badge Overlay & Founder Badge */}
-        <div className="absolute left-2 top-2 sm:left-3 sm:top-3 flex flex-col items-start gap-1">
-          {profile.is_founding_member && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 px-2 py-0.5 text-[9px] sm:text-[10px] font-black text-amber-950 shadow-xs backdrop-blur-xs">
-              👑 Founder
-            </span>
-          )}
-          {isVerified && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[11px] font-bold text-emerald-700 shadow-xs backdrop-blur-xs">
-              <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-emerald-500" />
-              Verified
-            </span>
-          )}
-        </div>
-
-        {/* Top-Right: Options and Bookmark Stack */}
-        <div className="absolute right-2 top-2 sm:right-3 sm:top-3 flex flex-col items-center gap-1 sm:gap-1.5">
-          {/* More Options Menu */}
-          <div className="relative" ref={menuRef}>
+        {showMenu && (
+          <div className="absolute right-0 top-full z-40 mt-1 w-44 rounded-2xl border border-[#ded8d1] bg-white p-1.5 shadow-xl text-left animate-in fade-in zoom-in-95 duration-100">
             <button
               type="button"
-              onClick={() => setShowMenu(!showMenu)}
-              className="flex h-6.5 w-6.5 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-white/90 text-[#3f3f3c] shadow-xs backdrop-blur-xs transition hover:bg-white hover:text-[#171717]"
-              title="More options"
+              onClick={() => {
+                setShowMenu(false);
+                router.push(`/profile/${destinationSlug}`);
+              }}
+              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8] hover:text-[#171717]"
             >
-              <MoreHorizontal className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <User className="size-3.5 text-[#0f4c81]" />
+              View profile
             </button>
+            <button
+              type="button"
+              onClick={handleToggleFollow}
+              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8] hover:text-[#171717]"
+            >
+              {isFollowing ? (
+                <>
+                  <UserCheck className="size-3.5 text-emerald-600" />
+                  Following
+                </>
+              ) : (
+                <>
+                  <UserPlus className="size-3.5 text-[#0f4c81]" />
+                  Follow
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowMenu(false);
+                router.push(`/messages?to=${profile.user_id}`);
+              }}
+              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8] hover:text-[#171717]"
+            >
+              <MessageSquare className="size-3.5 text-[#0f4c81]" />
+              Message
+            </button>
+            <button
+              type="button"
+              onClick={handleShare}
+              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8] hover:text-[#171717]"
+            >
+              {copied ? <Check className="size-3.5 text-emerald-600" /> : <Share2 className="size-3.5" />}
+              {copied ? "Copied!" : "Share account"}
+            </button>
+            <div className="my-1 border-t border-[#f0efee]" />
+            <button
+              type="button"
+              onClick={handleBlock}
+              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+            >
+              <Ban className="size-3.5 text-rose-500" />
+              Block
+            </button>
+            <button
+              type="button"
+              onClick={handleReport}
+              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+            >
+              <Flag className="size-3.5 text-rose-500" />
+              Report
+            </button>
+          </div>
+        )}
+      </div>
 
-            {showMenu && (
-              <div className="absolute right-0 top-full z-30 mt-1 w-40 sm:w-44 rounded-xl border border-[#e8e6e3] bg-white py-1 shadow-xl">
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[11px] sm:text-xs text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
-                >
-                  {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-                  {copied ? "Copied!" : "Copy profile link"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[11px] sm:text-xs text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
-                >
-                  <Share2 className="h-3.5 w-3.5" />
-                  Share profile
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowMenu(false);
-                    router.push(`/profile/${profile.user_id}`);
-                  }}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[11px] sm:text-xs text-[#5d5854] hover:bg-[#f8f7f6] hover:text-[#171717]"
-                >
-                  View full profile
-                </button>
-              </div>
+      {/* Main Profile Info Column */}
+      <div className="flex flex-col items-center text-center w-full pt-1">
+        {/* Circular Avatar */}
+        <button
+          type="button"
+          onClick={() => router.push(`/profile/${destinationSlug}`)}
+          className="relative group/avatar focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded-full"
+        >
+          <div
+            className="size-20 sm:size-24 rounded-full overflow-hidden flex items-center justify-center text-xl sm:text-2xl font-bold text-[#3f3f3c] border-2 border-white shadow-xs ring-2 ring-[#0f4c81]/15 transition duration-200 group-hover/avatar:scale-105"
+            style={{ background: avatarColor }}
+          >
+            {customImageSrc ? (
+              <img
+                src={customImageSrc}
+                alt={profile.name}
+                className="h-full w-full rounded-full object-cover"
+              />
+            ) : (
+              initials
             )}
           </div>
 
-          {/* Heart Bookmark Button */}
+          {profile.is_founding_member && (
+            <span
+              className="absolute -bottom-1 -right-1 flex size-6 items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-950 shadow-xs ring-2 ring-white text-xs"
+              title="Founding Member"
+            >
+              👑
+            </span>
+          )}
+        </button>
+
+        {/* Name with Verification Badge */}
+        <div className="mt-3 flex items-center justify-center gap-1.5 flex-wrap max-w-full px-1">
           <button
             type="button"
-            onClick={() => setIsSaved(!isSaved)}
-            className="flex h-6.5 w-6.5 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-white/90 shadow-xs backdrop-blur-xs transition hover:bg-white hover:text-rose-500"
-            title={isSaved ? "Saved" : "Save professional"}
+            onClick={() => router.push(`/profile/${destinationSlug}`)}
+            className="truncate text-sm sm:text-base font-bold text-[#171717] hover:text-[#0f4c81] transition text-center"
           >
-            <Heart
-              className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${
-                isSaved ? "fill-rose-500 text-rose-500" : "text-rose-500"
-              }`}
-            />
+            {profile.name}
           </button>
+          {isVerified && <VerificationBadge size="sm" />}
         </div>
+
+        {/* Profession */}
+        <p className="mt-0.5 truncate text-xs font-semibold text-[#0f4c81] max-w-full px-2">
+          {profile.designation || profile.profession || "Healthcare Professional"}
+        </p>
+
+        {/* Specialization */}
+        {profile.specialization && (
+          <p className="mt-0.5 truncate text-[11px] sm:text-xs text-[#77716b] font-medium max-w-full px-2">
+            {profile.specialization}
+          </p>
+        )}
+
+        {/* Organization / City */}
+        {(profile.organization || profile.city) && (
+          <p className="mt-0.5 truncate text-[10px] sm:text-[11px] text-[#8a8784] font-medium max-w-full px-2">
+            {[profile.organization, profile.city].filter(Boolean).join(" · ")}
+          </p>
+        )}
       </div>
 
-      {/* 2. BOTTOM CARD CONTENT */}
-      <div className="flex flex-1 flex-col justify-between p-2.5 sm:p-3.5">
-        <div>
-          {/* Name with Blue Verified Badge */}
-          <div className="flex items-center gap-1 flex-wrap">
-            <button
-              type="button"
-              onClick={() => router.push(`/profile/${profile.user_id}`)}
-              className="truncate text-left text-xs sm:text-sm font-bold text-[#171717] hover:text-[#1769c2]"
-            >
-              {profile.name}
-            </button>
-            <VerificationBadge size="sm" />
-          </div>
-
-          {/* Profession Subtitle */}
-          <p className="mt-1 truncate text-left text-[10px] sm:text-xs font-medium text-[#77716b]">
-            {profile.designation || profile.profession || "Healthcare"}
-          </p>
-
-          {/* Specialty Pill Tags */}
-          {specialtyTags.length > 0 && (
-            <div className="mt-1.5 sm:mt-2.5 flex flex-wrap gap-1 sm:gap-1.5">
-              {specialtyTags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-md sm:rounded-lg bg-[#f0f4f9] px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[11px] font-medium text-[#475569] truncate max-w-full"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 3. ACTION BUTTONS: Connect + Message Button */}
-        <div className="mt-2.5 sm:mt-3.5 flex items-center gap-1.5 sm:gap-2">
-          <div className="flex-1 min-w-0">
-            <ConnectionButton
-              targetUserId={profile.user_id}
-              initialStatus={connectionStatus}
-              onStatusChange={handleStatusChange}
-              onConnectClick={() => setShowModal(true)}
-              size="sm"
-            />
-          </div>
-
-          <button
-            type="button"
-            onClick={() => router.push(`/messages?to=${profile.user_id}`)}
-            className="flex h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 shrink-0 items-center justify-center rounded-lg sm:rounded-xl border border-[#ded8d1] text-[#1769c2] transition hover:bg-[#f8f7f6]"
-            title="Send message"
-          >
-            <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-          </button>
-        </div>
+      {/* Connect Button at Bottom */}
+      <div className="mt-4 w-full pt-1">
+        <ConnectionButton
+          targetUserId={profile.user_id}
+          initialStatus={connectionStatus}
+          onStatusChange={handleStatusChange}
+          onConnectClick={() => setShowModal(true)}
+          size="sm"
+          className="w-full justify-center !rounded-xl"
+        />
       </div>
 
       {showModal && (

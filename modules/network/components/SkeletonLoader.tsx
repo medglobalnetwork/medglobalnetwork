@@ -3,20 +3,14 @@ import * as React from "react";
 
 export function ProfessionalCardSkeleton() {
   return (
-    <div className="animate-pulse overflow-hidden rounded-2xl border border-[#e8e6e3] bg-white">
-      <div className="aspect-[4/3] w-full bg-[#f0efee]" />
-      <div className="p-3.5 space-y-2.5">
-        <div className="h-4 w-2/3 rounded bg-[#f0efee]" />
-        <div className="h-3 w-1/2 rounded bg-[#f0efee]" />
-        <div className="flex gap-1.5 pt-1">
-          <div className="h-5 w-16 rounded-lg bg-[#f0efee]" />
-          <div className="h-5 w-20 rounded-lg bg-[#f0efee]" />
-        </div>
-        <div className="mt-3 flex gap-2 pt-2">
-          <div className="h-8 flex-1 rounded-xl bg-[#f0efee]" />
-          <div className="h-8 w-8 rounded-xl bg-[#f0efee]" />
-        </div>
+    <div className="animate-pulse flex flex-col items-center justify-between rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-5">
+      <div className="flex flex-col items-center w-full">
+        <div className="size-20 sm:size-24 rounded-full bg-[#f0efee]" />
+        <div className="mt-3 h-4 w-28 rounded bg-[#f0efee]" />
+        <div className="mt-1.5 h-3 w-36 rounded bg-[#f0efee]" />
+        <div className="mt-1 h-3 w-20 rounded bg-[#f0efee]" />
       </div>
+      <div className="mt-4 h-8 w-full rounded-xl bg-[#f0efee]" />
     </div>
   );
 }
