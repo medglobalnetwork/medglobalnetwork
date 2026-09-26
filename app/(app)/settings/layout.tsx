@@ -47,6 +47,19 @@ export default function SettingsLayout({
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
+
+  const handleSignOut = async () => {
+    setIsLoggingOut(true);
+    try {
+      await authClient.signOut();
+    } catch {}
+    try {
+      localStorage.removeItem("better-auth.session_token");
+    } catch {}
+    window.location.href = "/";
+  };
+
   React.useEffect(() => {
     if (!isPending && !session) {
       router.replace("/");
@@ -98,16 +111,25 @@ export default function SettingsLayout({
                         >
                           {item.icon}
                           {item.label}
-                          {/* Delete account hint badge */}
-                          {item.href === "/settings/account" && (
-                            <span className="ml-auto inline-flex items-center rounded-full bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-600">
-                              Delete
-                            </span>
-                          )}
                         </Link>
                       </li>
                     );
                   })}
+                  <li>
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      disabled={isLoggingOut}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50/80 transition-colors disabled:opacity-50"
+                    >
+                      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
+                      {isLoggingOut ? "Signing out..." : "Sign Out"}
+                    </button>
+                  </li>
                 </ul>
               </div>
             ))}

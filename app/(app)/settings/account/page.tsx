@@ -6,7 +6,7 @@ import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl, setUserCustomAvatar } from "@/lib/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
-import { Trash2, User, Camera, Check, ExternalLink, Loader2, Sparkles, ShieldCheck } from "lucide-react";
+import { Trash2, User, Camera, Check, ExternalLink, Loader2, Sparkles, ShieldCheck, LogOut } from "lucide-react";
 import { ImageSelectorModal } from "@/components/media/ImageSelectorModal";
 import { MemberBadge } from "@/modules/network/components/MemberBadge";
 
@@ -14,11 +14,23 @@ export default function AccountSettingsPage() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
   const [showConfirm, setShowConfirm] = React.useState(false);
   const [password, setPassword] = React.useState("");
   const [confirmText, setConfirmText] = React.useState("");
   const [hasPassword, setHasPassword] = React.useState<boolean | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+
+  const handleSignOut = async () => {
+    setIsLoggingOut(true);
+    try {
+      await authClient.signOut();
+    } catch {}
+    try {
+      localStorage.removeItem("better-auth.session_token");
+    } catch {}
+    window.location.href = "/";
+  };
   
   // Name & Avatar & Username & Member ID
   const [name, setName] = React.useState("");
@@ -451,6 +463,27 @@ export default function AccountSettingsPage() {
           <p className="mt-2 text-xs font-bold text-emerald-700">{usernameSuccess}</p>
         )}
       </form>
+
+      {/* Session & Log Out section */}
+      <div className="rounded-2xl border border-[#ded8d1] bg-white p-5 sm:p-6 mb-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-sm font-semibold text-[#171717]">Active Session & Log Out</h2>
+            <p className="mt-0.5 text-xs text-[#77716b]">
+              Sign out of your active MGN account on this device. You will need to sign in again to access your account.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={isLoggingOut}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-5 py-2.5 text-xs font-bold text-rose-600 shadow-xs hover:bg-rose-100 hover:border-rose-300 transition active:scale-95 disabled:opacity-50"
+          >
+            {isLoggingOut ? <Loader2 className="size-4 animate-spin" /> : <LogOut className="size-4" />}
+            <span>{isLoggingOut ? "Signing out..." : "Log Out of MGN"}</span>
+          </button>
+        </div>
+      </div>
 
       {/* Delete Account section */}
       <div className="rounded-2xl border border-red-200 bg-white p-5 sm:p-6 shadow-xs">
