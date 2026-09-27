@@ -18,6 +18,7 @@ import {
   KeyRound,
   CheckCircle2,
   Phone,
+  AtSign,
 } from "lucide-react";
 
 interface AuthModalProps {
@@ -125,8 +126,10 @@ const MODAL_ORGANISATION_TYPES = [
 
 interface FormErrors {
   name?: string;
+  username?: string;
   orgName?: string;
   repName?: string;
+  identifier?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;
@@ -142,7 +145,9 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
   const [mode, setMode] = React.useState<"signin" | "signup">(initialMode);
   const [accountType, setAccountType] = React.useState<"INDIVIDUAL" | "ORGANISATION">("INDIVIDUAL");
 
+  const [identifier, setIdentifier] = React.useState("");
   const [email, setEmail] = React.useState("");
+  const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const [phone, setPhone] = React.useState("");
@@ -172,10 +177,11 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
   // Load saved email on mount
   React.useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedEmail = localStorage.getItem("userEmail");
+      const savedIdentifier = localStorage.getItem("userIdentifier") || localStorage.getItem("userEmail");
       const savedRemember = localStorage.getItem("rememberMe") === "true";
-      if (savedEmail) {
-        setEmail(savedEmail);
+      if (savedIdentifier) {
+        setIdentifier(savedIdentifier);
+        setEmail(savedIdentifier);
         setRememberMe(savedRemember);
       }
     }
@@ -195,6 +201,14 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
     const newErrors = { ...errors };
 
     switch (name) {
+      case "identifier":
+        if (mode === "signin" && (!value || (typeof value === "string" && !value.trim()))) {
+          newErrors.identifier = "Email or Username is required";
+        } else {
+          delete newErrors.identifier;
+        }
+        break;
+
       case "name":
         if (mode === "signup" && accountType === "INDIVIDUAL") {
           if (!value || (typeof value === "string" && value.trim().length < 2)) {
@@ -226,15 +240,17 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
         break;
 
       case "email":
-        if (!value || (typeof value === "string" && !value.trim())) {
-          newErrors.email = "Email address is required";
-        } else if (
-          typeof value === "string" &&
-          !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value.trim())
-        ) {
-          newErrors.email = "Please enter a valid email address";
-        } else {
-          delete newErrors.email;
+        if (mode === "signup") {
+          if (!value || (typeof value === "string" && !value.trim())) {
+            newErrors.email = "Email address is required";
+          } else if (
+            typeof value === "string" &&
+            !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value.trim())
+          ) {
+            newErrors.email = "Please enter a valid email address";
+          } else {
+            delete newErrors.email;
+          }
         }
         break;
 
@@ -277,6 +293,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
 
   const handleBlur = (fieldName: string) => {
     setFieldTouched((prev) => ({ ...prev, [fieldName]: true }));
+    if (fieldName === "identifier") validateField("identifier", identifier);
     if (fieldName === "email") validateField("email", email);
     if (fieldName === "password") validateField("password", password);
     if (fieldName === "confirmPassword") validateField("confirmPassword", confirmPassword);
@@ -290,17 +307,17 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!email.trim()) {
-      newErrors.email = "Email address is required";
-    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email.trim())) {
-      newErrors.email = "Please enter a valid email address";
-    }
+    if (mode === "signin") {
+      if (!identifier.trim()) {
+        newErrors.identifier = "Email or Username is required";
+      }
+    } else {
+      if (!email.trim()) {
+        newErrors.email = "Email address is required";
+      } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email.trim())) {
+        newErrors.email = "Please enter a valid email address";
+      }
 
-    if (!password.trim()) {
-      newErrors.password = "Password is required";
-    }
-
-    if (mode === "signup") {
       if (accountType === "INDIVIDUAL") {
         if (!fullName.trim() || fullName.trim().length < 2) {
           newErrors.name = "Full name is required (at least 2 characters)";
@@ -328,6 +345,10 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
       }
     }
 
+    if (!password.trim()) {
+      newErrors.password = "Password is required";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -336,6 +357,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
     e.preventDefault();
     setSuccessMessage("");
     setFieldTouched({
+      identifier: true,
       name: true,
       orgName: true,
       repName: true,
@@ -350,10 +372,10 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
     // Handle Remember Me persistence
     if (typeof window !== "undefined") {
       if (rememberMe) {
-        localStorage.setItem("userEmail", email.trim());
+        localStorage.setItem("userIdentifier", (mode === "signin" ? identifier : email).trim());
         localStorage.setItem("rememberMe", "true");
       } else {
-        localStorage.removeItem("userEmail");
+        localStorage.removeItem("userIdentifier");
         localStorage.removeItem("rememberMe");
       }
     }
@@ -367,11 +389,12 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
             ? fullName.trim()
             : `${orgName.trim()} (${repName.trim()})`;
 
-        // Pre-save onboarding draft so onboarding starts with the chosen account type
+        // Pre-save onboarding draft
         if (typeof window !== "undefined") {
           const draftPayload: Record<string, any> = {
             accountType,
             phone: phone.trim(),
+            username: username.trim().toLowerCase(),
             step: 1,
           };
 
@@ -410,13 +433,32 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
       }
     } else {
       try {
+        let resolvedEmail = identifier.trim();
+
+        const resolveRes = await fetch("/api/auth/resolve-identifier", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ identifier: resolvedEmail }),
+        });
+
+        if (resolveRes.ok) {
+          const resolveData = await resolveRes.json();
+          if (resolveData.found && resolveData.email) {
+            resolvedEmail = resolveData.email;
+          } else if (!resolvedEmail.includes("@")) {
+            setErrors({ general: "No account found with this username or Member ID." });
+            setIsSubmitting(false);
+            return;
+          }
+        }
+
         const { error } = await authClient.signIn.email({
-          email: email.trim(),
+          email: resolvedEmail,
           password,
         });
 
         if (error) {
-          setErrors({ general: error.message || "Invalid email or password." });
+          setErrors({ general: error.message || "Invalid username/email or password." });
           setIsSubmitting(false);
         } else {
           onClose();
@@ -431,22 +473,36 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
 
   async function handleForgotPassword(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.trim()) {
-      setErrors({ email: "Please enter your email address to reset password." });
+    if (!identifier.trim() && !email.trim()) {
+      setErrors({ email: "Please enter your email or username to reset password." });
       return;
     }
 
     setIsSubmitting(true);
     setErrors({});
     try {
+      let resetEmail = (identifier || email).trim();
+      const resolveRes = await fetch("/api/auth/resolve-identifier", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: resetEmail }),
+      });
+
+      if (resolveRes.ok) {
+        const resolveData = await resolveRes.json();
+        if (resolveData.found && resolveData.email) {
+          resetEmail = resolveData.email;
+        }
+      }
+
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: resetEmail }),
       });
       const data = await res.json();
       if (res.ok) {
-        setSuccessMessage("Password reset link sent to your email.");
+        setSuccessMessage("Password reset link sent to your registered email.");
       } else {
         setErrors({ general: data.error || "Failed to send reset link." });
       }
@@ -495,12 +551,12 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
 
           <p className="mt-1 text-xs sm:text-sm text-[#77716b] dark:text-[#8b949e] font-medium">
             {isForgotPassword
-              ? "Enter your email to receive a secure recovery link"
+              ? "Enter your email or username to receive a secure recovery link"
               : mode === "signup"
               ? accountType === "ORGANISATION"
                 ? "For hospitals, clinics, colleges, diagnostic centers & health enterprises"
                 : "For doctors, clinicians, students & healthcare professionals"
-              : "Sign in to access your clinical dashboard"}
+              : "Sign in with your email, username, or MGN ID"}
           </p>
         </div>
 
@@ -625,35 +681,21 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
           <form onSubmit={handleForgotPassword} className="mt-4 space-y-4 text-left">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                Email address
+                Email Address or Username
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
                   <Mail className="size-4" />
                 </div>
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (errors.email) validateField("email", e.target.value);
-                  }}
-                  onBlur={() => handleBlur("email")}
-                  placeholder="doctor@hospital.org"
+                  type="text"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  placeholder="doctor@hospital.org or @username"
                   required
-                  className={`h-11 w-full rounded-xl border pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 ${
-                    fieldTouched.email && errors.email
-                      ? "border-rose-500 focus:ring-rose-500/20"
-                      : "border-[#ded8d1] dark:border-[#30363d] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:ring-[#0f4c81]/15"
-                  }`}
+                  className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:ring-[#0f4c81]/15"
                 />
               </div>
-              {fieldTouched.email && errors.email && (
-                <p className="mt-1 text-xs font-semibold text-rose-500 flex items-center gap-1">
-                  <AlertTriangle className="size-3 shrink-0" />
-                  {errors.email}
-                </p>
-              )}
             </div>
 
             {errors.general && (
@@ -708,6 +750,42 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
               <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-xs font-semibold text-rose-700 dark:text-rose-300 flex items-center gap-2">
                 <AlertTriangle className="size-4 shrink-0 text-rose-500" />
                 <span>{errors.general}</span>
+              </div>
+            )}
+
+            {/* Sign In Mode: Email or Username */}
+            {mode === "signin" && (
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                  Email or Username
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
+                    <User className="size-4" />
+                  </div>
+                  <input
+                    type="text"
+                    value={identifier}
+                    onChange={(e) => {
+                      setIdentifier(e.target.value);
+                      if (errors.identifier) validateField("identifier", e.target.value);
+                    }}
+                    onBlur={() => handleBlur("identifier")}
+                    placeholder="doctor@hospital.org or @username"
+                    required
+                    className={`h-11 w-full rounded-xl border pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 ${
+                      fieldTouched.identifier && errors.identifier
+                        ? "border-rose-500 focus:ring-rose-500/20"
+                        : "border-[#ded8d1] dark:border-[#30363d] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:ring-[#0f4c81]/15"
+                    }`}
+                  />
+                </div>
+                {fieldTouched.identifier && errors.identifier && (
+                  <p className="mt-1 text-xs font-semibold text-rose-500 flex items-center gap-1">
+                    <AlertTriangle className="size-3 shrink-0" />
+                    {errors.identifier}
+                  </p>
+                )}
               </div>
             )}
 
@@ -840,45 +918,47 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
               </>
             )}
 
-            {/* Email Address */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                {mode === "signup" && accountType === "ORGANISATION"
-                  ? "Official / Work Email Address"
-                  : "Email address"}
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
-                  <Mail className="size-4" />
+            {/* Sign Up Mode: Email Address */}
+            {mode === "signup" && (
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                  {accountType === "ORGANISATION"
+                    ? "Official / Work Email Address"
+                    : "Email address"}
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
+                    <Mail className="size-4" />
+                  </div>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (errors.email) validateField("email", e.target.value);
+                    }}
+                    onBlur={() => handleBlur("email")}
+                    placeholder={
+                      accountType === "ORGANISATION"
+                        ? "contact@hospital.org"
+                        : "doctor@hospital.org"
+                    }
+                    required
+                    className={`h-11 w-full rounded-xl border pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 ${
+                      fieldTouched.email && errors.email
+                        ? "border-rose-500 focus:ring-rose-500/20"
+                        : "border-[#ded8d1] dark:border-[#30363d] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:ring-[#0f4c81]/15"
+                    }`}
+                  />
                 </div>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (errors.email) validateField("email", e.target.value);
-                  }}
-                  onBlur={() => handleBlur("email")}
-                  placeholder={
-                    mode === "signup" && accountType === "ORGANISATION"
-                      ? "contact@hospital.org"
-                      : "doctor@hospital.org"
-                  }
-                  required
-                  className={`h-11 w-full rounded-xl border pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 ${
-                    fieldTouched.email && errors.email
-                      ? "border-rose-500 focus:ring-rose-500/20"
-                      : "border-[#ded8d1] dark:border-[#30363d] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:ring-[#0f4c81]/15"
-                  }`}
-                />
+                {fieldTouched.email && errors.email && (
+                  <p className="mt-1 text-xs font-semibold text-rose-500 flex items-center gap-1">
+                    <AlertTriangle className="size-3 shrink-0" />
+                    {errors.email}
+                  </p>
+                )}
               </div>
-              {fieldTouched.email && errors.email && (
-                <p className="mt-1 text-xs font-semibold text-rose-500 flex items-center gap-1">
-                  <AlertTriangle className="size-3 shrink-0" />
-                  {errors.email}
-                </p>
-              )}
-            </div>
+            )}
 
             {/* Password */}
             <div>
@@ -1015,7 +1095,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                     onChange={(e) => setRememberMe(e.target.checked)}
                     className="size-4 rounded border-[#ded8d1] dark:border-[#30363d] text-[#0f4c81] dark:text-[#1f6feb] focus:ring-[#0f4c81]"
                   />
-                  <span>Remember my email</span>
+                  <span>Remember this device</span>
                 </label>
               ) : (
                 <div>

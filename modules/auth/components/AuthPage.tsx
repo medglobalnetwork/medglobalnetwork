@@ -19,8 +19,7 @@ import {
   CheckCircle2,
   Building2,
   Hospital,
-  Stethoscope,
-  ChevronRight,
+  AtSign,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -127,10 +126,12 @@ interface AuthPageProps {
 
 interface FormErrors {
   name?: string;
+  username?: string;
   orgName?: string;
   repName?: string;
   orgType?: string;
   email?: string;
+  identifier?: string;
   password?: string;
   confirmPassword?: string;
   phone?: string;
@@ -152,7 +153,9 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   const [accountType, setAccountType] = React.useState<"INDIVIDUAL" | "ORGANISATION">("INDIVIDUAL");
 
   // Common Fields
-  const [email, setEmail] = React.useState("");
+  const [identifier, setIdentifier] = React.useState(""); // For login (email or username)
+  const [email, setEmail] = React.useState(""); // For signup
+  const [username, setUsername] = React.useState(""); // For signup
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const [phone, setPhone] = React.useState("");
@@ -175,13 +178,14 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
-  // Load saved email on mount
+  // Load saved email/username on mount
   React.useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedEmail = localStorage.getItem("userEmail");
+      const savedIdentifier = localStorage.getItem("userIdentifier") || localStorage.getItem("userEmail");
       const savedRemember = localStorage.getItem("rememberMe") === "true";
-      if (savedEmail) {
-        setEmail(savedEmail);
+      if (savedIdentifier) {
+        setIdentifier(savedIdentifier);
+        setEmail(savedIdentifier);
         setRememberMe(savedRemember);
       }
     }
@@ -210,11 +214,40 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     }
   }, [isSessionPending, session, router]);
 
+  // Auto-generate username suggestion on name input
+  const handleNameChange = (val: string) => {
+    setFullName(val);
+    if (!username || username === fullName.toLowerCase().replace(/[^a-z0-9]/g, "")) {
+      const suggested = val
+        .toLowerCase()
+        .replace(/^(dr\.|dr|mr\.|ms\.|prof\.)\s*/i, "")
+        .replace(/[^a-z0-9_.]/g, "")
+        .slice(0, 20);
+      setUsername(suggested);
+    }
+  };
+
+  const handleOrgNameChange = (val: string) => {
+    setOrgName(val);
+    if (!username || username === orgName.toLowerCase().replace(/[^a-z0-9]/g, "")) {
+      const suggested = val
+        .toLowerCase()
+        .replace(/[^a-z0-9_.]/g, "")
+        .slice(0, 20);
+      setUsername(suggested);
+    }
+  };
+
   // Field validator
   const validateField = React.useCallback(
     (field: string, value: string | boolean) => {
       let error = "";
       switch (field) {
+        case "identifier":
+          if (mode === "signin" && (!value || (typeof value === "string" && !value.trim()))) {
+            error = "Email or Username is required";
+          }
+          break;
         case "name":
           if (mode === "signup" && accountType === "INDIVIDUAL") {
             if (!value || (typeof value === "string" && value.trim().length < 2)) {
@@ -237,10 +270,21 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           }
           break;
         case "email":
-          if (!value || (typeof value === "string" && !value.trim())) {
-            error = "Email address is required";
-          } else if (typeof value === "string" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
-            error = "Please enter a valid email address";
+          if (mode === "signup") {
+            if (!value || (typeof value === "string" && !value.trim())) {
+              error = "Email address is required";
+            } else if (typeof value === "string" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
+              error = "Please enter a valid email address";
+            }
+          }
+          break;
+        case "username":
+          if (mode === "signup" && value && typeof value === "string") {
+            if (value.length < 3) {
+              error = "Username must be at least 3 characters";
+            } else if (!/^[a-zA-Z0-9_.]+$/.test(value)) {
+              error = "Username can only contain letters, numbers, dots, and underscores";
+            }
           }
           break;
         case "password":
@@ -280,11 +324,13 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
+    if (field === "identifier") setIdentifier(value as string);
     if (field === "email") setEmail(value as string);
+    if (field === "username") setUsername(value as string);
     if (field === "password") setPassword(value as string);
     if (field === "confirmPassword") setConfirmPassword(value as string);
-    if (field === "name") setFullName(value as string);
-    if (field === "orgName") setOrgName(value as string);
+    if (field === "name") handleNameChange(value as string);
+    if (field === "orgName") handleOrgNameChange(value as string);
     if (field === "repName") setRepName(value as string);
     if (field === "orgType") setOrgType(value as string);
     if (field === "phone") setPhone(value as string);
@@ -299,13 +345,19 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-    const emailErr = validateField("email", email);
-    if (emailErr) newErrors.email = emailErr;
 
-    const passErr = validateField("password", password);
-    if (passErr) newErrors.password = passErr;
+    if (mode === "signin") {
+      const idErr = validateField("identifier", identifier);
+      if (idErr) newErrors.identifier = idErr;
+      const passErr = validateField("password", password);
+      if (passErr) newErrors.password = passErr;
+    } else {
+      const emailErr = validateField("email", email);
+      if (emailErr) newErrors.email = emailErr;
 
-    if (mode === "signup") {
+      const passErr = validateField("password", password);
+      if (passErr) newErrors.password = passErr;
+
       if (accountType === "INDIVIDUAL") {
         const nameErr = validateField("name", fullName);
         if (nameErr) newErrors.name = nameErr;
@@ -314,6 +366,11 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         if (orgNameErr) newErrors.orgName = orgNameErr;
         const repNameErr = validateField("repName", repName);
         if (repNameErr) newErrors.repName = repNameErr;
+      }
+
+      if (username) {
+        const uErr = validateField("username", username);
+        if (uErr) newErrors.username = uErr;
       }
 
       const confErr = validateField("confirmPassword", confirmPassword);
@@ -336,10 +393,10 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     setSuccessMessage("");
 
     if (rememberMe && typeof window !== "undefined") {
-      localStorage.setItem("userEmail", email.trim());
+      localStorage.setItem("userIdentifier", (mode === "signin" ? identifier : email).trim());
       localStorage.setItem("rememberMe", "true");
     } else if (typeof window !== "undefined") {
-      localStorage.removeItem("userEmail");
+      localStorage.removeItem("userIdentifier");
       localStorage.removeItem("rememberMe");
     }
 
@@ -350,11 +407,12 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
             ? fullName.trim()
             : `${orgName.trim()} (${repName.trim()})`;
 
-        // Pre-save onboarding draft so onboarding starts with the chosen account type
+        // Pre-save onboarding draft
         if (typeof window !== "undefined") {
           const draftPayload: Record<string, any> = {
             accountType,
             phone: phone.trim(),
+            username: username.trim().toLowerCase(),
             step: 1,
           };
 
@@ -393,13 +451,33 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
       }
     } else {
       try {
+        // Resolve email if user entered a username, member ID, or direct email
+        let resolvedEmail = identifier.trim();
+
+        const resolveRes = await fetch("/api/auth/resolve-identifier", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ identifier: resolvedEmail }),
+        });
+
+        if (resolveRes.ok) {
+          const resolveData = await resolveRes.json();
+          if (resolveData.found && resolveData.email) {
+            resolvedEmail = resolveData.email;
+          } else if (!resolvedEmail.includes("@")) {
+            setErrors({ general: "No account found with this username or Member ID." });
+            setIsSubmitting(false);
+            return;
+          }
+        }
+
         const { error } = await authClient.signIn.email({
-          email: email.trim(),
+          email: resolvedEmail,
           password,
         });
 
         if (error) {
-          setErrors({ general: error.message || "Invalid email or password." });
+          setErrors({ general: error.message || "Invalid username/email or password." });
           setIsSubmitting(false);
         } else {
           setSuccessMessage("Sign in successful! Redirecting...");
@@ -414,22 +492,36 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
   async function handleForgotPassword(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.trim()) {
-      setErrors({ email: "Please enter your email address to reset password." });
+    if (!identifier.trim() && !email.trim()) {
+      setErrors({ email: "Please enter your email or username to reset password." });
       return;
     }
 
     setIsSubmitting(true);
     setErrors({});
     try {
+      let resetEmail = (identifier || email).trim();
+      const resolveRes = await fetch("/api/auth/resolve-identifier", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: resetEmail }),
+      });
+
+      if (resolveRes.ok) {
+        const resolveData = await resolveRes.json();
+        if (resolveData.found && resolveData.email) {
+          resetEmail = resolveData.email;
+        }
+      }
+
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: resetEmail }),
       });
       const data = await res.json();
       if (res.ok) {
-        setSuccessMessage("Password reset link sent to your email!");
+        setSuccessMessage("Password reset link sent to your registered email!");
       } else {
         setErrors({ general: data.error || "Failed to send reset link." });
       }
@@ -492,12 +584,12 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
             <p className="mt-1.5 text-xs sm:text-sm text-[#77716b] dark:text-[#8b949e] font-medium leading-relaxed">
               {isForgotPassword
-                ? "Enter your email to receive password recovery instructions"
+                ? "Enter your email or username to receive password recovery instructions"
                 : mode === "signup"
                 ? accountType === "ORGANISATION"
                   ? "For Hospitals, Clinics, Colleges, Diagnostic Labs & Healthcare Companies"
                   : "For Doctors, Nurses, Therapists, Students & Healthcare Professionals"
-                : "Sign in to access your verified clinical dashboard"}
+                : "Sign in with your email, username, or MGN ID"}
             </p>
           </div>
 
@@ -637,31 +729,24 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
             <form onSubmit={handleForgotPassword} className="space-y-4 text-left">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                  Registered Email Address
+                  Email Address or Username
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#8a8784]" />
                   <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    onBlur={() => handleFieldBlur("email", email)}
-                    placeholder="doctor@hospital.org"
+                    type="text"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    placeholder="doctor@hospital.org or @username"
                     required
                     className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-[#faf9f8] dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] placeholder:text-[#8a8784] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
                   />
                 </div>
-                {errors.email && (
-                  <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
-                    <AlertTriangle className="size-3" />
-                    {errors.email}
-                  </p>
-                )}
               </div>
 
               <button
                 type="submit"
-                disabled={isSubmitting || !email}
+                disabled={isSubmitting || !identifier}
                 className="w-full rounded-xl bg-[#0f4c81] dark:bg-[#14559b] py-3 text-xs sm:text-sm font-bold text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition disabled:opacity-50 cursor-pointer"
               >
                 {isSubmitting ? (
@@ -693,6 +778,33 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
             </form>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3.5 text-left">
+              {/* Sign In Mode: Email or Username */}
+              {mode === "signin" && (
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                    Email or Username
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#8a8784]" />
+                    <input
+                      type="text"
+                      value={identifier}
+                      onChange={(e) => handleInputChange("identifier", e.target.value)}
+                      onBlur={() => handleFieldBlur("identifier", identifier)}
+                      placeholder="doctor@hospital.org or @username"
+                      required
+                      className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-[#faf9f8] dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] placeholder:text-[#8a8784] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                    />
+                  </div>
+                  {errors.identifier && (
+                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                      <AlertTriangle className="size-3" />
+                      {errors.identifier}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Sign Up Fields for Individual */}
               {mode === "signup" && accountType === "INDIVIDUAL" && (
                 <div>
@@ -793,36 +905,64 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                 </>
               )}
 
-              {/* Email Address */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                  {mode === "signup" && accountType === "ORGANISATION"
-                    ? "Official / Work Email Address"
-                    : "Email Address"}
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#8a8784]" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    onBlur={() => handleFieldBlur("email", email)}
-                    placeholder={
-                      mode === "signup" && accountType === "ORGANISATION"
-                        ? "contact@hospital.org"
-                        : "doctor@hospital.org"
-                    }
-                    required
-                    className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-[#faf9f8] dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] placeholder:text-[#8a8784] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
-                  />
+              {/* Sign Up Mode: Email Address */}
+              {mode === "signup" && (
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                    {accountType === "ORGANISATION"
+                      ? "Official / Work Email Address"
+                      : "Email Address"}
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#8a8784]" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => handleInputChange("email", e.target.value)}
+                      onBlur={() => handleFieldBlur("email", email)}
+                      placeholder={
+                        accountType === "ORGANISATION"
+                          ? "contact@hospital.org"
+                          : "doctor@hospital.org"
+                      }
+                      required
+                      className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-[#faf9f8] dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] placeholder:text-[#8a8784] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                    />
+                  </div>
+                  {errors.email && (
+                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                      <AlertTriangle className="size-3" />
+                      {errors.email}
+                    </p>
+                  )}
                 </div>
-                {errors.email && (
-                  <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
-                    <AlertTriangle className="size-3" />
-                    {errors.email}
-                  </p>
-                )}
-              </div>
+              )}
+
+              {/* Sign Up Mode: Custom Username */}
+              {mode === "signup" && (
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                    Preferred Username
+                  </label>
+                  <div className="relative">
+                    <AtSign className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#8a8784]" />
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => handleInputChange("username", e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ""))}
+                      onBlur={() => handleFieldBlur("username", username)}
+                      placeholder="dr_rajesh"
+                      className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-[#faf9f8] dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] placeholder:text-[#8a8784] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                    />
+                  </div>
+                  {errors.username && (
+                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                      <AlertTriangle className="size-3" />
+                      {errors.username}
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Password */}
               <div>

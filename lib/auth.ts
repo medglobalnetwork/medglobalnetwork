@@ -96,6 +96,66 @@ export const auth = betterAuth({
   ],
   database: pool,
   databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          try {
+            if (!user?.id) return;
+            // 1. Generate base username from name or email
+            let baseUsername = "";
+            if (user.name) {
+              baseUsername = user.name
+                .toLowerCase()
+                .replace(/^(dr\.|dr|mr\.|ms\.|mrs\.|prof\.)\s*/i, "")
+                .replace(/[^a-z0-9_.]/g, "");
+            }
+            if (!baseUsername && user.email) {
+              baseUsername = user.email.split("@")[0].toLowerCase().replace(/[^a-z0-9_.]/g, "");
+            }
+            if (!baseUsername || baseUsername.length < 3) {
+              baseUsername = "mgn_member";
+            }
+
+            baseUsername = baseUsername.slice(0, 20);
+
+            // Find available unique username
+            let candidateUsername = baseUsername;
+            let suffix = 1;
+            while (true) {
+              const check = await pool.query(
+                `SELECT id FROM "user" WHERE LOWER(username) = LOWER($1) AND id != $2 LIMIT 1`,
+                [candidateUsername, user.id]
+              );
+              if (check.rows.length === 0) break;
+              candidateUsername = `${baseUsername}${suffix++}`;
+            }
+
+            // Generate unique member_id
+            const randomNum = Math.floor(100000 + Math.random() * 900000);
+            const memberId = `MGN-${randomNum}`;
+
+            // Update user record with username
+            await pool.query(
+              `UPDATE "user" SET username = COALESCE(username, $1) WHERE id = $2`,
+              [candidateUsername, user.id]
+            );
+
+            // Insert or update professional_profiles
+            await pool.query(
+              `INSERT INTO professional_profiles (id, user_id, username, member_id, created_at, updated_at)
+               VALUES ($1, $2, $3, $4, NOW(), NOW())
+               ON CONFLICT (user_id) DO UPDATE SET 
+                 username = COALESCE(professional_profiles.username, EXCLUDED.username),
+                 member_id = COALESCE(professional_profiles.member_id, EXCLUDED.member_id),
+                 updated_at = NOW()`,
+              [`pp_${user.id}`, user.id, candidateUsername, memberId]
+            );
+          } catch (hookErr) {
+            console.error("User post-creation hook error:", hookErr);
+          }
+        },
+      },
+    },
     session: {
       create: {
         after: async (session) => {
