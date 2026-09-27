@@ -15,7 +15,8 @@ import {
   SlidersHorizontal,
   Repeat,
   UserCheck,
-  CheckCircle2
+  CheckCircle2,
+  Trash2,
 } from "lucide-react";
 
 export interface MediaPost {
@@ -54,6 +55,32 @@ export function ProfileContentGrid({ userId, isOwnProfile }: ProfileContentGridP
   const [commentInput, setCommentInput] = React.useState("");
   const [posts, setPosts] = React.useState<MediaPost[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+
+  const handleDeletePost = async (postId: string) => {
+    if (isDeleting) return;
+    if (!confirm("Are you sure you want to delete this post? This action cannot be undone.")) return;
+
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/network/posts/${postId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (res.ok) {
+        setPosts((prev) => prev.filter((p) => p.id !== postId));
+        setSelectedPost(null);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to delete post");
+      }
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+      alert("An error occurred while deleting the post.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Fetch real posts for this user
   React.useEffect(() => {
@@ -333,17 +360,31 @@ export function ProfileContentGrid({ userId, isOwnProfile }: ProfileContentGridP
             <div className="flex flex-col md:w-2/5 p-4 sm:p-6 justify-between bg-white overflow-y-auto">
               <div className="space-y-4">
                 {/* Author row */}
-                <div className="flex items-center gap-3 pb-3 border-b border-[#f0efee]">
-                  <div className="h-10 w-10 rounded-full bg-[#1769c2] text-white flex items-center justify-center font-bold text-sm">
-                    MGN
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1">
-                      <p className="text-xs font-bold text-[#171717]">Professional Clinician</p>
-                      <CheckCircle2 className="h-3.5 w-3.5 text-blue-500 fill-blue-500 text-white" />
+                <div className="flex items-center justify-between pb-3 border-b border-[#f0efee]">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-[#1769c2] text-white flex items-center justify-center font-bold text-sm">
+                      MGN
                     </div>
-                    <p className="text-[11px] text-[#77716b]">{selectedPost.timestamp}</p>
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <p className="text-xs font-bold text-[#171717]">Professional Clinician</p>
+                        <CheckCircle2 className="h-3.5 w-3.5 text-blue-500 fill-blue-500 text-white" />
+                      </div>
+                      <p className="text-[11px] text-[#77716b]">{selectedPost.timestamp}</p>
+                    </div>
                   </div>
+
+                  {isOwnProfile && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeletePost(selectedPost.id)}
+                      disabled={isDeleting}
+                      title="Delete Post"
+                      className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition cursor-pointer disabled:opacity-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
 
                 {/* Caption */}

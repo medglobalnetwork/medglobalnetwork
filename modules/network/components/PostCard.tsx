@@ -25,6 +25,7 @@ import {
   Volume2,
   VolumeX,
   RotateCcw,
+  Trash2,
 } from "lucide-react";
 
 const POST_TYPE_BADGE: Record<string, { label: string; color: string; bg: string }> = {
@@ -43,10 +44,12 @@ const POST_TYPE_BADGE: Record<string, { label: string; color: string; bg: string
 interface PostCardProps {
   post: NetworkPost;
   currentUserId?: string;
+  onDelete?: (postId: string) => void;
 }
 
-export function PostCard({ post, currentUserId }: PostCardProps) {
+export function PostCard({ post, currentUserId, onDelete }: PostCardProps) {
   const router = useRouter();
+  const [isDeleting, setIsDeleting] = React.useState(false);
   const [reacted, setReacted] = React.useState(post.user_reacted ?? false);
   const [reactionCount, setReactionCount] = React.useState(post.reaction_count || 0);
   const [likeLoading, setLikeLoading] = React.useState(false);
@@ -263,6 +266,37 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
     setSaved((prev) => !prev);
   };
 
+  const isAuthor = Boolean(
+    currentUserId &&
+      (post.author_id === currentUserId ||
+        author?.user_id === currentUserId ||
+        author?.id === currentUserId)
+  );
+
+  const handleDeletePost = async () => {
+    if (isDeleting) return;
+    if (!confirm("Are you sure you want to delete this post? This action cannot be undone.")) return;
+
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/network/posts/${post.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (res.ok) {
+        onDelete?.(post.id);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to delete post");
+      }
+    } catch (err) {
+      console.error("Delete post error:", err);
+      alert("An error occurred while deleting the post.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleReport = () => {
     if (confirm("Report this post for healthcare community guidelines review?")) {
       setReported(true);
@@ -329,21 +363,33 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
           </div>
         </div>
 
-        {/* Top Right: Report & Options */}
+        {/* Top Right: Delete (if author) & Report (if other) */}
         <div className="flex items-center gap-1 shrink-0">
-          <button
-            type="button"
-            onClick={handleReport}
-            title={reported ? "Reported" : "Report post"}
-            disabled={reported}
-            className="p-1.5 rounded-lg text-[#a09890] dark:text-[#8b949e] hover:bg-[#f8f7f6] dark:hover:bg-[#21262d] hover:text-rose-600 transition cursor-pointer"
-          >
-            {reported ? (
-              <span className="text-[10px] sm:text-xs font-bold text-rose-600 dark:text-rose-400">Reported</span>
-            ) : (
-              <span className="text-xs sm:text-sm">🚩</span>
-            )}
-          </button>
+          {isAuthor ? (
+            <button
+              type="button"
+              onClick={handleDeletePost}
+              disabled={isDeleting}
+              title="Delete post"
+              className="p-1.5 rounded-lg text-[#a09890] dark:text-[#8b949e] hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer disabled:opacity-50"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleReport}
+              title={reported ? "Reported" : "Report post"}
+              disabled={reported}
+              className="p-1.5 rounded-lg text-[#a09890] dark:text-[#8b949e] hover:bg-[#f8f7f6] dark:hover:bg-[#21262d] hover:text-rose-600 transition cursor-pointer"
+            >
+              {reported ? (
+                <span className="text-[10px] sm:text-xs font-bold text-rose-600 dark:text-rose-400">Reported</span>
+              ) : (
+                <span className="text-xs sm:text-sm">🚩</span>
+              )}
+            </button>
+          )}
         </div>
       </div>
 

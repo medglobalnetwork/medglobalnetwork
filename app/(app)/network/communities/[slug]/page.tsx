@@ -238,6 +238,7 @@ export default function CommunityDetailPage() {
                         key={post.id}
                         post={post}
                         currentUserId={session.user.id}
+                        onDelete={(deletedId) => setPosts((prev) => prev.filter((p) => p.id !== deletedId))}
                       />
                     ))
                   )}

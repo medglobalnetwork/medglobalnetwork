@@ -195,7 +195,12 @@ export function HomeFeed({
         <div className="space-y-5">
           {/* Post Items */}
           {posts.map((post) => (
-            <PostCard key={post.id} post={post} currentUserId={currentUserId} />
+            <PostCard
+              key={post.id}
+              post={post}
+              currentUserId={currentUserId}
+              onDelete={(deletedId) => setPosts((prev) => prev.filter((p) => p.id !== deletedId))}
+            />
           ))}
 
           {/* Load More Button */}

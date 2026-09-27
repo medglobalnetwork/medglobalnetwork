@@ -103,7 +103,12 @@ export default function FeedPage() {
               <>
                 <div className="space-y-4">
                   {posts.map((post) => (
-                    <PostCard key={post.id} post={post} currentUserId={session?.user?.id} />
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      currentUserId={session?.user?.id}
+                      onDelete={(deletedId) => setPosts((prev) => prev.filter((p) => p.id !== deletedId))}
+                    />
                   ))}
                 </div>
                 {hasMore && (
