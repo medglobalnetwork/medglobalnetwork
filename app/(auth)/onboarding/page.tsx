@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ShieldCheck,
@@ -13,16 +14,33 @@ import {
   ArrowRight,
   ArrowLeft,
   Clock,
-  AlertCircle,
+  AlertTriangle,
   Stethoscope,
   Hospital,
   Sparkles,
   Check,
+  Trash2,
+  RefreshCw,
+  Eye,
+  FileCheck,
+  AlertCircle,
+  HelpCircle,
+  Camera,
+  Activity,
+  Award,
+  BadgeCheck,
+  HeartPulse,
+  Syringe,
+  Microscope,
+  Briefcase,
+  Layers,
+  ChevronRight,
 } from "lucide-react";
 import {
   INDIVIDUAL_CATEGORIES,
-  ORGANISATION_TYPES,
+  ORGANISATION_CATEGORIES,
   CATEGORY_PROFESSIONS,
+  STUDENT_STAGES,
   PROFESSION_SCHEMAS,
   ORGANISATION_SCHEMAS,
   getProfessionSchema,
@@ -31,7 +49,9 @@ import {
   type DynamicFormField,
   type DocumentRequirement,
   type ProfessionSchema,
+  type RequirementLevel,
 } from "@/modules/onboarding/config/schemas";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const DRAFT_STORAGE_KEY = "mgn_onboarding_form_draft";
 
@@ -41,37 +61,52 @@ export default function OnboardingPage() {
   const [loading, setLoading] = React.useState<boolean>(true);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = React.useState<string | null>(null);
 
-  // Form State
+  // ─────────────────────────────────────────────
+  // Core Selection States
+  // ─────────────────────────────────────────────
   const [accountType, setAccountType] = React.useState<AccountType>("INDIVIDUAL");
-  const [category, setCategory] = React.useState<string>("healthcare_professional");
-  const [professionOrType, setProfessionOrType] = React.useState<string>("doctor");
+  const [category, setCategory] = React.useState<string>("clinical_practitioner");
+  const [professionOrType, setProfessionOrType] = React.useState<string>("general_physician");
 
-  // Basic Details
+  // Student specific stage
+  const [studentStage, setStudentStage] = React.useState<string>("ug_1");
+
+  // Basic Personal / Organization Info
   const [legalFirstName, setLegalFirstName] = React.useState<string>("");
   const [legalMiddleName, setLegalMiddleName] = React.useState<string>("");
   const [legalLastName, setLegalLastName] = React.useState<string>("");
+  const [displayName, setDisplayName] = React.useState<string>("");
   const [dob, setDob] = React.useState<string>("");
   const [gender, setGender] = React.useState<string>("male");
   const [country, setCountry] = React.useState<string>("India");
   const [state, setState] = React.useState<string>("");
   const [city, setCity] = React.useState<string>("");
   const [phone, setPhone] = React.useState<string>("");
-
-  // Professional / Org Dynamic Details
   const [claimedTitle, setClaimedTitle] = React.useState<string>("Dr.");
   const [titleType, setTitleType] = React.useState<"PREFIX" | "SUFFIX">("PREFIX");
+
+  // Dynamic Profile Form Values (mapped to fields in schema)
   const [dynamicValues, setDynamicValues] = React.useState<Record<string, any>>({});
 
   // Documents
-  const [uploadedDocs, setUploadedDocs] = React.useState<Record<string, { id: string; name: string; size: number }>>({});
+  const [uploadedDocs, setUploadedDocs] = React.useState<
+    Record<string, { id: string; name: string; size: number; url?: string; status?: string; rejectionReason?: string }>
+  >({});
   const [uploadingDocId, setUploadingDocId] = React.useState<string | null>(null);
-  // Correction notes & identity state
-  const [correctionNote, setCorrectionNote] = React.useState<string | null>(null);
 
-  // 1. Initial Load: Hydrate from localStorage first, then sync with Server DB
+  // Declaration
+  const [confirmedDeclaration, setConfirmedDeclaration] = React.useState<boolean>(false);
+
+  // Status & Correction States
+  const [correctionNote, setCorrectionNote] = React.useState<string | null>(null);
+  const [rejectedDocTypes, setRejectedDocTypes] = React.useState<string[]>([]);
+
+  // ─────────────────────────────────────────────
+  // 1. Initial Load & Server Synchronization
+  // ─────────────────────────────────────────────
   React.useEffect(() => {
-    // Read local cache immediately to prevent blank forms on refresh
     let savedLocalStep = 1;
     if (typeof window !== "undefined") {
       try {
@@ -81,9 +116,11 @@ export default function OnboardingPage() {
           if (p.accountType) setAccountType(p.accountType);
           if (p.category) setCategory(p.category);
           if (p.professionOrType) setProfessionOrType(p.professionOrType);
+          if (p.studentStage) setStudentStage(p.studentStage);
           if (p.legalFirstName) setLegalFirstName(p.legalFirstName);
           if (p.legalMiddleName) setLegalMiddleName(p.legalMiddleName);
           if (p.legalLastName) setLegalLastName(p.legalLastName);
+          if (p.displayName) setDisplayName(p.displayName);
           if (p.dob) setDob(p.dob);
           if (p.gender) setGender(p.gender);
           if (p.country) setCountry(p.country);
@@ -93,7 +130,7 @@ export default function OnboardingPage() {
           if (p.claimedTitle !== undefined) setClaimedTitle(p.claimedTitle);
           if (p.titleType) setTitleType(p.titleType);
           if (p.dynamicValues) setDynamicValues(p.dynamicValues);
-          if (p.step && p.step >= 1 && p.step <= 5) {
+          if (p.step && p.step >= 1 && p.step <= 6) {
             savedLocalStep = p.step;
             setStep(p.step);
           }
@@ -103,7 +140,7 @@ export default function OnboardingPage() {
       }
     }
 
-    // Fetch server record
+    // Fetch authoritative server record
     fetch("/api/onboarding", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
@@ -125,8 +162,7 @@ export default function OnboardingPage() {
 
           if (id.verification_status === "CORRECTION_REQUIRED") {
             setCorrectionNote(id.correction_reason || "Reviewer requested corrections to your uploaded KYC documents.");
-            setStep(4);
-            return;
+            setStep(5); // Jump directly to document upload step for correction
           }
 
           if (id.account_type) setAccountType(id.account_type);
@@ -135,6 +171,7 @@ export default function OnboardingPage() {
           if (id.legal_first_name) setLegalFirstName(id.legal_first_name);
           if (id.legal_middle_name) setLegalMiddleName(id.legal_middle_name);
           if (id.legal_last_name) setLegalLastName(id.legal_last_name);
+          if (id.display_name) setDisplayName(id.display_name);
           if (id.dob) setDob(id.dob.slice(0, 10));
           if (id.gender) setGender(id.gender);
           if (id.country) setCountry(id.country);
@@ -145,11 +182,9 @@ export default function OnboardingPage() {
           if (data.titles && data.titles.length > 0) {
             setClaimedTitle(data.titles[0].claimed_title);
             setTitleType(data.titles[0].title_type);
-          } else if (id.category === "student" || id.profession_or_type?.includes("student")) {
-            setClaimedTitle("");
           }
 
-          // Merge qualifications/registrations into dynamicValues if available
+          // Hydrate dynamic values
           const dynUpdates: Record<string, any> = {};
           if (data.qualifications && data.qualifications.length > 0) {
             const q = data.qualifications[0];
@@ -162,13 +197,10 @@ export default function OnboardingPage() {
             const reg = data.registrations[0];
             if (reg.council_name) dynUpdates.medical_council = reg.council_name;
             if (reg.registration_number) dynUpdates.registration_number = reg.registration_number;
+            if (reg.state_or_jurisdiction) dynUpdates.registration_state = reg.state_or_jurisdiction;
           }
-          if (id.current_organization) {
-            dynUpdates.current_organization = id.current_organization;
-          }
-          if (id.specialization) {
-            dynUpdates.specialization = id.specialization;
-          }
+          if (id.current_organization) dynUpdates.current_organization = id.current_organization;
+          if (id.specialization) dynUpdates.specialization = id.specialization;
           if (id.experience_years !== undefined && id.experience_years !== null) {
             dynUpdates.experience_years = id.experience_years;
           }
@@ -176,34 +208,31 @@ export default function OnboardingPage() {
           setDynamicValues((prev) => ({ ...dynUpdates, ...prev }));
 
           const existingDocs: Record<string, any> = {};
+          const rejected: string[] = [];
           data.documents?.forEach((d: any) => {
             existingDocs[d.document_type] = {
               id: d.id,
               name: d.file_name,
               size: d.file_size,
+              url: d.file_path,
+              status: d.status,
+              rejectionReason: d.rejection_reason,
             };
+            if (d.status === "REJECTED") {
+              rejected.push(d.document_type);
+            }
           });
           setUploadedDocs((prev) => ({ ...existingDocs, ...prev }));
-
-          // Determine step if local didn't specify higher
-          if (savedLocalStep <= 1) {
-            if (data.documents && data.documents.length > 0) {
-              setStep(4);
-            } else if (data.qualifications && data.qualifications.length > 0) {
-              setStep(4);
-            } else if (id.legal_first_name && id.city) {
-              setStep(3);
-            } else if (id.profession_or_type) {
-              setStep(2);
-            }
-          }
+          setRejectedDocTypes(rejected);
         }
       })
       .catch((err) => console.error("Error loading onboarding state:", err))
       .finally(() => setLoading(false));
   }, [router]);
 
-  // 2. Persist to localStorage whenever form values change
+  // ─────────────────────────────────────────────
+  // 2. Local Storage Autosave
+  // ─────────────────────────────────────────────
   React.useEffect(() => {
     if (loading) return;
     if (typeof window === "undefined") return;
@@ -213,9 +242,11 @@ export default function OnboardingPage() {
         accountType,
         category,
         professionOrType,
+        studentStage,
         legalFirstName,
         legalMiddleName,
         legalLastName,
+        displayName,
         dob,
         gender,
         country,
@@ -236,9 +267,11 @@ export default function OnboardingPage() {
     accountType,
     category,
     professionOrType,
+    studentStage,
     legalFirstName,
     legalMiddleName,
     legalLastName,
+    displayName,
     dob,
     gender,
     country,
@@ -251,992 +284,1117 @@ export default function OnboardingPage() {
     loading,
   ]);
 
-  // Handle Category Switch
-  const handleCategoryChange = (newCategory: string) => {
-    setCategory(newCategory);
-    if (newCategory === "student") {
-      setProfessionOrType("student");
-      setClaimedTitle("");
-    } else {
-      const availableProfs = CATEGORY_PROFESSIONS[newCategory] || [];
-      if (availableProfs.length > 0) {
-        setProfessionOrType(availableProfs[0].id);
-        if (availableProfs[0].id === "doctor") setClaimedTitle("Dr.");
-        else if (availableProfs[0].id === "nurse") setClaimedTitle("RN");
-        else setClaimedTitle("");
-      }
+  // ─────────────────────────────────────────────
+  // Active Schema & Document Requirements Resolver
+  // ─────────────────────────────────────────────
+  const currentSchema: ProfessionSchema | any = React.useMemo(() => {
+    if (accountType === "INDIVIDUAL") {
+      return getProfessionSchema(professionOrType || category);
     }
-  };
+    return getOrganisationSchema(professionOrType || category);
+  }, [accountType, category, professionOrType]);
 
-  const isStudentMode = category === "student" || professionOrType.includes("student");
+  const documentRequirements: DocumentRequirement[] = React.useMemo(() => {
+    return currentSchema.documents || [];
+  }, [currentSchema]);
 
-  const activeSchema =
-    accountType === "INDIVIDUAL"
-      ? (isStudentMode ? PROFESSION_SCHEMAS.student : getProfessionSchema(professionOrType))
-      : getOrganisationSchema(professionOrType);
-
-  const handleStartEnrollment = async () => {
+  // ─────────────────────────────────────────────
+  // Step Navigation & Validation
+  // ─────────────────────────────────────────────
+  const handleNextStep = async () => {
     setError(null);
-    setSubmitting(true);
-    try {
-      const effectiveProfession = isStudentMode ? "student" : professionOrType;
-      const res = await fetch("/api/onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          action: "START",
-          account_type: accountType,
-          category,
-          profession_or_type: effectiveProfession,
-        }),
-      });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error || "Failed to initialize enrollment");
+
+    if (step === 1) {
+      // Step 1: Account Type chosen -> proceed
       setStep(2);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleSaveBasicInfo = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    if (!legalFirstName.trim() || !country.trim() || !city.trim()) {
-      setError("Please fill all required basic identity fields.");
       return;
     }
 
-    setSubmitting(true);
-    try {
-      const res = await fetch("/api/onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          legal_first_name: legalFirstName.trim(),
-          legal_middle_name: legalMiddleName.trim(),
-          legal_last_name: legalLastName.trim(),
-          display_name: `${legalFirstName.trim()} ${legalLastName.trim()}`.trim(),
-          dob: dob || null,
-          gender,
-          country,
-          state,
-          city,
-          phone,
-        }),
-      });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error || "Failed to save details");
+    if (step === 2) {
+      // Step 2: Category & Role chosen -> initialize server session
+      try {
+        await fetch("/api/onboarding", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            account_type: accountType,
+            category,
+            profession_or_type: professionOrType,
+          }),
+        });
+      } catch (e) {
+        console.warn("Could not sync category to server:", e);
+      }
       setStep(3);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setSubmitting(false);
+      return;
     }
-  };
 
-  const handleSaveProfessionalDetails = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    // Validate active schema required fields
-    for (const f of activeSchema.fields) {
-      if (f.required && !dynamicValues[f.name]?.toString().trim()) {
-        setError(`Please fill required field: ${f.label}`);
+    if (step === 3) {
+      // Step 3: Personal Information validation
+      if (!legalFirstName.trim()) {
+        setError("Legal First Name is required as per government identity proof.");
         return;
       }
+      if (!city.trim() || !state.trim()) {
+        setError("City and State are required.");
+        return;
+      }
+      setStep(4);
+      return;
     }
 
-    setSubmitting(true);
-    try {
-      const res = await fetch("/api/onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          claimed_title: isStudentMode ? null : (claimedTitle || null),
-          title_type: titleType,
-          ...dynamicValues,
-        }),
-      });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error || "Failed to save credentials");
-      setStep(4);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setSubmitting(false);
+    if (step === 4) {
+      // Step 4: Dynamic Professional Fields validation
+      for (const field of currentSchema.fields || []) {
+        if (field.required && !dynamicValues[field.name]) {
+          setError(`Please fill in "${field.label}" to proceed.`);
+          return;
+        }
+      }
+
+      // Save draft details to server
+      try {
+        await fetch("/api/onboarding", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            legal_first_name: legalFirstName,
+            legal_middle_name: legalMiddleName,
+            legal_last_name: legalLastName,
+            display_name: displayName || `${legalFirstName} ${legalLastName}`.trim(),
+            dob,
+            gender,
+            country,
+            state,
+            city,
+            phone,
+            claimed_title: claimedTitle,
+            title_type: titleType,
+            ...dynamicValues,
+          }),
+        });
+      } catch (e) {
+        console.warn("Could not save draft details to server:", e);
+      }
+
+      setStep(5);
+      return;
+    }
+
+    if (step === 5) {
+      // Step 5: Document requirements check
+      const missingMandatory = documentRequirements
+        .filter((d) => d.mandatory && !uploadedDocs[d.id])
+        .map((d) => d.name);
+
+      if (missingMandatory.length > 0) {
+        setError(`Please upload all required documents: ${missingMandatory.join(", ")}`);
+        return;
+      }
+
+      setStep(6);
+      return;
     }
   };
 
-  const handleFileUpload = async (docType: string, file: File) => {
+  // ─────────────────────────────────────────────
+  // Document Upload Handler
+  // ─────────────────────────────────────────────
+  const handleFileUpload = async (docId: string, file: File) => {
     setError(null);
-    setUploadingDocId(docType);
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("document_type", docType);
+    setUploadingDocId(docId);
 
     try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("document_type", docId);
+
       const res = await fetch("/api/onboarding/documents", {
         method: "POST",
         credentials: "include",
         body: formData,
       });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error || "Upload failed");
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to upload document");
+      }
 
       setUploadedDocs((prev) => ({
         ...prev,
-        [docType]: {
-          id: d.document.id,
-          name: d.document.file_name,
-          size: d.document.file_size,
+        [docId]: {
+          id: data.document.id,
+          name: file.name,
+          size: file.size,
+          url: data.document.file_path,
+          status: "UPLOADED",
         },
       }));
+
+      // Remove from rejected list if replaced
+      setRejectedDocTypes((prev) => prev.filter((t) => t !== docId));
+      setSuccessMsg(`"${file.name}" uploaded successfully.`);
+      setTimeout(() => setSuccessMsg(null), 3000);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Failed to upload file. Please try again.");
     } finally {
       setUploadingDocId(null);
     }
   };
 
-  const handleFinalSubmitReview = async () => {
-    setError(null);
-    // Check all mandatory documents uploaded
-    const missing = activeSchema.documents.filter((d) => d.mandatory && !uploadedDocs[d.id]);
-    if (missing.length > 0) {
-      setError(`Please upload all mandatory documents: ${missing.map((m) => m.name).join(", ")}`);
+  // ─────────────────────────────────────────────
+  // Final Review & Submission Handler
+  // ─────────────────────────────────────────────
+  const handleSubmitReview = async () => {
+    if (!confirmedDeclaration) {
+      setError("Please confirm the verification declaration to submit your application.");
       return;
     }
 
     setSubmitting(true);
+    setError(null);
+
     try {
+      // Final synchronization of all draft details
+      await fetch("/api/onboarding", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          legal_first_name: legalFirstName,
+          legal_middle_name: legalMiddleName,
+          legal_last_name: legalLastName,
+          display_name: displayName || `${legalFirstName} ${legalLastName}`.trim(),
+          dob,
+          gender,
+          country,
+          state,
+          city,
+          phone,
+          claimed_title: claimedTitle,
+          title_type: titleType,
+          ...dynamicValues,
+        }),
+      });
+
       const res = await fetch("/api/onboarding/submit-review", {
         method: "POST",
         credentials: "include",
       });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error || "Failed to submit for review");
 
-      // Clean local storage draft upon successful completion
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to submit verification request");
+      }
+
+      // Clear local storage draft upon clean submission
       if (typeof window !== "undefined") {
         localStorage.removeItem(DRAFT_STORAGE_KEY);
       }
 
       router.push("/onboarding/status");
     } catch (err: any) {
-      setError(err.message);
-    } finally {
+      setError(err.message || "Failed to submit application. Please try again.");
       setSubmitting(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-[#faf9f8]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="size-9 animate-spin rounded-full border-3 border-[#1769c2] border-t-transparent" />
-          <p className="text-xs font-semibold text-[#77716b]">Restoring MGN Identity Portal...</p>
-        </div>
+      <div className="min-h-dvh flex flex-col items-center justify-center bg-[#faf9f8] dark:bg-[#0b0f17]">
+        <div className="size-10 rounded-full border-2 border-[#0f4c81] border-t-transparent animate-spin mb-4" />
+        <p className="text-xs sm:text-sm text-[#77716b] dark:text-[#8b949e] font-medium">
+          Loading your verification application...
+        </p>
       </div>
     );
   }
 
-  const stepsList = [
-    { num: 1, title: "Account Type" },
-    { num: 2, title: "Basic Identity" },
-    { num: 3, title: isStudentMode ? "Enrollment" : "Credentials" },
-    { num: 4, title: "Documents" },
-    { num: 5, title: "Review & Submit" },
-  ];
-
-  const availableProfessions =
-    CATEGORY_PROFESSIONS[category] || [
-      { id: "doctor", label: "Doctor / Medical Practitioner" },
-      { id: "physiotherapist", label: "Physiotherapist" },
-      { id: "nurse", label: "Nursing Professional" },
-      { id: "student", label: "Medical / Health Science Student" },
-      { id: "researcher", label: "Medical Researcher / Scientist" },
-      { id: "other", label: "Other Health Science Professional" },
-    ];
-
   return (
-    <div className="min-h-dvh bg-[#faf9f8] text-[#171717]">
-      {/* Header */}
-      <header className="border-b border-[#e8e6e3] bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3.5 sm:px-6">
-          <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="MGN" className="h-7 w-auto object-contain" />
-            <span className="hidden sm:inline-block h-4 w-px bg-[#ded8d1]" />
-            <span className="hidden sm:inline-block text-xs font-bold text-[#171717]">
-              Identity & Verification Gateway
+    <div className="min-h-dvh bg-[#faf9f8] dark:bg-[#0b0f17] flex flex-col selection:bg-[#0f4c81]/20 font-sans transition-colors">
+      {/* Top Application Header */}
+      <header className="sticky top-0 z-40 w-full border-b border-[#ded8d1]/70 dark:border-[#1e293b] bg-white/90 dark:bg-[#0b0f17]/90 backdrop-blur-md px-4 sm:px-8 py-3.5 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <img
+            src="/logo.png"
+            alt="Med Global Network"
+            className="h-8 sm:h-9 w-auto object-contain transition-transform group-hover:scale-105"
+          />
+          <div className="flex flex-col">
+            <span className="text-sm sm:text-base font-semibold tracking-tight text-[#171717] dark:text-[#f0f6fc]">
+              Med Global Network
+            </span>
+            <span className="text-[10px] text-[#16804d] font-medium flex items-center gap-1">
+              <ShieldCheck className="size-3" />
+              Official Verification Engine
             </span>
           </div>
-          <div className="flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200 px-3 py-1 text-[11px] font-bold text-[#1769c2]">
-            <Clock className="h-3.5 w-3.5" />
-            <span>3-Day Verification Window</span>
-          </div>
+        </Link>
+
+        {/* Wizard Step Progress Pills */}
+        <div className="hidden md:flex items-center gap-2">
+          {[
+            { num: 1, label: "Account" },
+            { num: 2, label: "Category" },
+            { num: 3, label: "Identity" },
+            { num: 4, label: "Professional" },
+            { num: 5, label: "Documents" },
+            { num: 6, label: "Review" },
+          ].map((s) => (
+            <div
+              key={s.num}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition ${
+                step === s.num
+                  ? "bg-[#0f4c81] text-white shadow-xs"
+                  : step > s.num
+                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
+                  : "bg-[#f0efee] text-[#77716b] dark:bg-[#161b22] dark:text-[#8b949e]"
+              }`}
+            >
+              {step > s.num ? (
+                <Check className="size-3.5" />
+              ) : (
+                <span className="size-4 rounded-full bg-white/20 flex items-center justify-center text-[10px]">
+                  {s.num}
+                </span>
+              )}
+              <span>{s.label}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <ThemeToggle collapsed={true} />
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="mx-auto max-w-3xl px-4 py-6 sm:py-10">
-        {/* Step Progress Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            {stepsList.map((s, idx) => (
-              <div key={s.num} className="flex flex-1 items-center">
-                <div className="flex flex-col items-center">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (step > s.num) setStep(s.num);
-                    }}
-                    className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-xs font-bold transition ${
-                      step > s.num
-                        ? "bg-emerald-600 text-white cursor-pointer hover:bg-emerald-700"
-                        : step === s.num
-                        ? "bg-[#1769c2] text-white shadow-md ring-4 ring-[#1769c2]/15"
-                        : "bg-[#e8e6e3] text-[#77716b]"
-                    }`}
-                  >
-                    {step > s.num ? <Check className="h-4 w-4 stroke-[3]" /> : s.num}
-                  </button>
-                  <span
-                    className={`mt-1 text-[10px] sm:text-xs font-semibold hidden md:block ${
-                      step === s.num ? "text-[#1769c2]" : "text-[#77716b]"
-                    }`}
-                  >
-                    {s.title}
-                  </span>
-                </div>
-                {idx < stepsList.length - 1 && (
-                  <div
-                    className={`h-0.5 flex-1 mx-2 transition-colors ${
-                      step > s.num ? "bg-emerald-600" : "bg-[#e8e6e3]"
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
+      {/* Main Form Container */}
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {/* Correction Alert Banner */}
+        {correctionNote && (
+          <div className="mb-6 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-start gap-3">
+            <AlertTriangle className="size-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-xs sm:text-sm font-semibold text-amber-900 dark:text-amber-200">
+                Action Required: Verification Corrections Requested
+              </h4>
+              <p className="text-xs text-amber-800 dark:text-amber-300/90 mt-1 leading-relaxed">
+                {correctionNote}
+              </p>
+              <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 font-medium">
+                Please re-upload the corrected documents below and re-submit your verification.
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Error Alert */}
+        {/* Global Error Banner */}
         {error && (
-          <div className="mb-6 flex items-start gap-2.5 rounded-2xl bg-rose-50 border border-rose-200 p-4 text-xs font-medium text-rose-800 animate-in fade-in duration-150">
-            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
+          <div className="mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 flex items-center gap-3 text-xs font-medium text-rose-700 dark:text-rose-400 animate-in fade-in">
+            <AlertCircle className="size-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        {/* STEP 1: ACCOUNT TYPE SELECTION */}
+        {/* Global Success Banner */}
+        {successMsg && (
+          <div className="mb-6 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center gap-3 text-xs font-medium text-emerald-700 dark:text-emerald-400 animate-in fade-in">
+            <CheckCircle2 className="size-4 shrink-0" />
+            <span>{successMsg}</span>
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════
+            STEP 1: ACCOUNT TYPE SELECTION
+            ═══════════════════════════════════════════════ */}
         {step === 1 && (
-          <div className="rounded-3xl border border-[#e8e6e3] bg-white p-6 sm:p-8 shadow-xs">
-            <h1 className="text-xl sm:text-2xl font-black text-[#171717] tracking-tight">
-              What are you joining MGN as?
-            </h1>
-            <p className="mt-1 text-xs sm:text-sm text-[#77716b] mb-6">
-              MGN enforces a strict verified canonical identity. Select your primary account type.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              {/* Individual Option */}
-              <div
-                onClick={() => setAccountType("INDIVIDUAL")}
-                className={`relative flex flex-col justify-between rounded-2xl border-2 p-5 cursor-pointer transition ${
-                  accountType === "INDIVIDUAL"
-                    ? "border-[#1769c2] bg-blue-50/40 shadow-xs"
-                    : "border-[#e8e6e3] hover:border-[#ded8d1] bg-white"
-                }`}
-              >
-                <div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-[#1769c2] mb-3">
-                    <User className="h-6 w-6 stroke-[2]" />
-                  </div>
-                  <h3 className="text-base font-bold text-[#171717]">Individual</h3>
-                  <p className="mt-1 text-xs text-[#77716b]">
-                    Doctor, Physiotherapist, Nurse, Researcher, Medical Student or Healthcare Practitioner.
-                  </p>
-                </div>
-                {accountType === "INDIVIDUAL" && (
-                  <div className="mt-4 flex items-center gap-1 text-xs font-bold text-[#1769c2]">
-                    <CheckCircle2 className="h-4 w-4" /> Selected
-                  </div>
-                )}
-              </div>
-
-              {/* Organisation Option */}
-              <div
-                onClick={() => setAccountType("ORGANISATION")}
-                className={`relative flex flex-col justify-between rounded-2xl border-2 p-5 cursor-pointer transition ${
-                  accountType === "ORGANISATION"
-                    ? "border-[#1769c2] bg-blue-50/40 shadow-xs"
-                    : "border-[#e8e6e3] hover:border-[#ded8d1] bg-white"
-                }`}
-              >
-                <div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-[#4f46e5] mb-3">
-                    <Building2 className="h-6 w-6 stroke-[2]" />
-                  </div>
-                  <h3 className="text-base font-bold text-[#171717]">Organisation</h3>
-                  <p className="mt-1 text-xs text-[#77716b]">
-                    Hospital, Clinic, Medical College, Diagnostic Lab, NGO or HealthTech Company.
-                  </p>
-                </div>
-                {accountType === "ORGANISATION" && (
-                  <div className="mt-4 flex items-center gap-1 text-xs font-bold text-[#1769c2]">
-                    <CheckCircle2 className="h-4 w-4" /> Selected
-                  </div>
-                )}
-              </div>
+          <div className="space-y-6 animate-in fade-in">
+            <div className="text-left">
+              <span className="text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] uppercase tracking-wider">
+                Step 1 of 6
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#171717] dark:text-[#f0f6fc] mt-1">
+                What are you joining MGN as?
+              </h1>
+              <p className="text-xs sm:text-sm text-[#77716b] dark:text-[#8b949e] mt-1.5 leading-relaxed">
+                Select your primary account identity. Organization and Individual verification requirements are distinct.
+              </p>
             </div>
 
-            {/* Category and Specific Profession */}
-            {accountType === "INDIVIDUAL" ? (
-              <div className="space-y-4 mb-6">
-                <div>
-                  <label className="block text-xs font-bold text-[#5d5854] mb-1.5">
-                    Professional Category
-                  </label>
-                  <select
-                    value={category}
-                    onChange={(e) => handleCategoryChange(e.target.value)}
-                    className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm font-medium focus:border-[#1769c2] focus:outline-none bg-white"
-                  >
-                    {INDIVIDUAL_CATEGORIES.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#5d5854] mb-1.5">
-                    {category === "student" ? "Course / Student Stream" : "Specific Profession"}
-                  </label>
-                  <select
-                    value={professionOrType}
-                    onChange={(e) => setProfessionOrType(e.target.value)}
-                    className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm font-medium focus:border-[#1769c2] focus:outline-none bg-white"
-                  >
-                    {availableProfessions.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4 mb-6">
-                <div>
-                  <label className="block text-xs font-bold text-[#5d5854] mb-1.5">
-                    Organisation Type
-                  </label>
-                  <select
-                    value={professionOrType}
-                    onChange={(e) => setProfessionOrType(e.target.value)}
-                    className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm font-medium focus:border-[#1769c2] focus:outline-none bg-white"
-                  >
-                    {ORGANISATION_TYPES.map((o) => (
-                      <option key={o.id} value={o.id}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            )}
-
-            <div className="flex justify-end pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              {/* Individual Card */}
               <button
                 type="button"
-                onClick={handleStartEnrollment}
-                disabled={submitting}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#1769c2] px-6 py-3 text-xs sm:text-sm font-bold text-white shadow hover:bg-[#12569f] transition active:scale-95 disabled:opacity-50"
+                onClick={() => {
+                  setAccountType("INDIVIDUAL");
+                  setCategory("clinical_practitioner");
+                  setProfessionOrType("general_physician");
+                }}
+                className={`p-6 rounded-3xl border-2 text-left transition cursor-pointer flex flex-col justify-between group ${
+                  accountType === "INDIVIDUAL"
+                    ? "border-[#0f4c81] bg-[#eef5fc]/60 dark:bg-[#1f2937]/70 ring-2 ring-[#0f4c81]/20 shadow-xs"
+                    : "border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] hover:border-[#8a8784]"
+                }`}
               >
-                <span>Continue</span>
-                <ArrowRight className="h-4 w-4" />
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div
+                      className={`size-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 ${
+                        accountType === "INDIVIDUAL"
+                          ? "bg-[#0f4c81] text-white"
+                          : "bg-[#f0efee] dark:bg-[#21262d] text-[#5d5854] dark:text-[#8b949e]"
+                      }`}
+                    >
+                      <User className="size-6" />
+                    </div>
+                    {accountType === "INDIVIDUAL" && (
+                      <span className="size-3 rounded-full bg-[#0f4c81] dark:bg-[#58a6ff]" />
+                    )}
+                  </div>
+
+                  <h3 className="text-lg font-semibold text-[#171717] dark:text-[#f0f6fc]">
+                    Individual Professional
+                  </h3>
+                  <p className="text-xs text-[#77716b] dark:text-[#8b949e] mt-1.5 leading-relaxed">
+                    For Medical Doctors, Surgeons, Allied Health Specialists, Nurses, Students & Healthcare Professionals.
+                  </p>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-[#ded8d1]/50 dark:border-[#30363d]/50 flex items-center justify-between text-xs font-medium text-[#0f4c81] dark:text-[#58a6ff]">
+                  <span>Personal Verified Identity</span>
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                </div>
+              </button>
+
+              {/* Organization Card */}
+              <button
+                type="button"
+                onClick={() => {
+                  setAccountType("ORGANISATION");
+                  setCategory("healthcare_organization");
+                  setProfessionOrType("hospital");
+                }}
+                className={`p-6 rounded-3xl border-2 text-left transition cursor-pointer flex flex-col justify-between group ${
+                  accountType === "ORGANISATION"
+                    ? "border-[#0f4c81] bg-[#eef5fc]/60 dark:bg-[#1f2937]/70 ring-2 ring-[#0f4c81]/20 shadow-xs"
+                    : "border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] hover:border-[#8a8784]"
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div
+                      className={`size-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105 ${
+                        accountType === "ORGANISATION"
+                          ? "bg-[#0f4c81] text-white"
+                          : "bg-[#f0efee] dark:bg-[#21262d] text-[#5d5854] dark:text-[#8b949e]"
+                      }`}
+                    >
+                      <Building2 className="size-6" />
+                    </div>
+                    {accountType === "ORGANISATION" && (
+                      <span className="size-3 rounded-full bg-[#0f4c81] dark:bg-[#58a6ff]" />
+                    )}
+                  </div>
+
+                  <h3 className="text-lg font-semibold text-[#171717] dark:text-[#f0f6fc]">
+                    Healthcare Organization
+                  </h3>
+                  <p className="text-xs text-[#77716b] dark:text-[#8b949e] mt-1.5 leading-relaxed">
+                    For Hospitals, Clinics, Diagnostic Labs, Blood Banks, Medical Colleges, Healthcare NGOs & Enterprises.
+                  </p>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-[#ded8d1]/50 dark:border-[#30363d]/50 flex items-center justify-between text-xs font-medium text-[#0f4c81] dark:text-[#58a6ff]">
+                  <span>Institutional Accreditation</span>
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                </div>
               </button>
             </div>
           </div>
         )}
 
-        {/* STEP 2: BASIC IDENTITY */}
+        {/* ═══════════════════════════════════════════════
+            STEP 2: CATEGORY & SUB-ROLE ENGINE
+            ═══════════════════════════════════════════════ */}
         {step === 2 && (
-          <form onSubmit={handleSaveBasicInfo} className="rounded-3xl border border-[#e8e6e3] bg-white p-6 sm:p-8 shadow-xs">
-            <h2 className="text-xl font-black text-[#171717] tracking-tight">
-              Legal Identity & Location
-            </h2>
-            <p className="mt-1 text-xs text-[#77716b] mb-6">
-              Enter legal details matching your government identity proof for verification.
-            </p>
+          <div className="space-y-6 animate-in fade-in">
+            <div className="text-left">
+              <span className="text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] uppercase tracking-wider">
+                Step 2 of 6
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#171717] dark:text-[#f0f6fc] mt-1">
+                Choose your professional category & role
+              </h1>
+              <p className="text-xs sm:text-sm text-[#77716b] dark:text-[#8b949e] mt-1.5 leading-relaxed">
+                The verification requirement engine automatically customizes your credentials checklist according to your field.
+              </p>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-              <div>
-                <label className="block text-xs font-bold text-[#5d5854] mb-1">
-                  Legal First Name *
+            {/* Individual Category Selector */}
+            {accountType === "INDIVIDUAL" && (
+              <div className="space-y-4">
+                <label className="block text-xs font-semibold text-[#171717] dark:text-[#f0f6fc]">
+                  1. Select Professional Category
+                </label>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {INDIVIDUAL_CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => {
+                        setCategory(cat.id);
+                        const firstRole = CATEGORY_PROFESSIONS[cat.id]?.[0]?.id || "other";
+                        setProfessionOrType(firstRole);
+                      }}
+                      className={`p-4 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between ${
+                        category === cat.id
+                          ? "border-[#0f4c81] bg-[#eef5fc]/60 dark:bg-[#1f2937] ring-1.5 ring-[#0f4c81]/30 shadow-xs"
+                          : "border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] hover:border-[#8a8784]"
+                      }`}
+                    >
+                      <div>
+                        <div className="text-xs font-semibold text-[#171717] dark:text-[#f0f6fc]">
+                          {cat.label}
+                        </div>
+                        <div className="text-[11px] text-[#77716b] dark:text-[#8b949e] mt-1 line-clamp-2">
+                          {cat.description}
+                        </div>
+                      </div>
+                      <div className="mt-3 text-[10px] font-semibold text-[#0f4c81] dark:text-[#58a6ff]">
+                        {cat.badge}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Sub-Role Picker */}
+                <div className="mt-6 pt-4 border-t border-[#ded8d1]/60 dark:border-[#30363d]">
+                  <label className="block text-xs font-semibold text-[#171717] dark:text-[#f0f6fc] mb-2">
+                    2. Select Your Specific Role / Clinical Title
+                  </label>
+                  <select
+                    value={professionOrType}
+                    onChange={(e) => setProfessionOrType(e.target.value)}
+                    className="h-12 w-full rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-4 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81] font-medium cursor-pointer"
+                  >
+                    {(CATEGORY_PROFESSIONS[category] || []).map((r) => (
+                      <option key={r.id} value={r.id} className="bg-white dark:bg-[#161b22] text-[#171717] dark:text-white">
+                        {r.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* If Medical Student, select Academic Stage */}
+                {category === "medical_student" && (
+                  <div className="mt-4">
+                    <label className="block text-xs font-semibold text-[#171717] dark:text-[#f0f6fc] mb-2">
+                      3. Current Stage of Medical Training
+                    </label>
+                    <select
+                      value={studentStage}
+                      onChange={(e) => setStudentStage(e.target.value)}
+                      className="h-12 w-full rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-4 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81] font-medium cursor-pointer"
+                    >
+                      {STUDENT_STAGES.map((st) => (
+                        <option key={st.value} value={st.value} className="bg-white dark:bg-[#161b22] text-[#171717] dark:text-white">
+                          {st.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Organisation Category Selector */}
+            {accountType === "ORGANISATION" && (
+              <div className="space-y-4">
+                <label className="block text-xs font-semibold text-[#171717] dark:text-[#f0f6fc]">
+                  Select Organization Type
+                </label>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {CATEGORY_PROFESSIONS.healthcare_organization.map((org) => (
+                    <button
+                      key={org.id}
+                      type="button"
+                      onClick={() => setProfessionOrType(org.id)}
+                      className={`p-4 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between ${
+                        professionOrType === org.id
+                          ? "border-[#0f4c81] bg-[#eef5fc]/60 dark:bg-[#1f2937] ring-1.5 ring-[#0f4c81]/30 shadow-xs"
+                          : "border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] hover:border-[#8a8784]"
+                      }`}
+                    >
+                      <div className="text-xs font-semibold text-[#171717] dark:text-[#f0f6fc]">
+                        {org.label}
+                      </div>
+                      <span className="mt-2 text-[10px] text-[#0f4c81] dark:text-[#58a6ff] font-medium">
+                        Institution Profile
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════
+            STEP 3: PERSONAL & CONTACT INFORMATION
+            ═══════════════════════════════════════════════ */}
+        {step === 3 && (
+          <div className="space-y-6 animate-in fade-in">
+            <div className="text-left">
+              <span className="text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] uppercase tracking-wider">
+                Step 3 of 6
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#171717] dark:text-[#f0f6fc] mt-1">
+                {accountType === "ORGANISATION"
+                  ? "Organization Identity & Location"
+                  : "Personal Identity & Contact"}
+              </h1>
+              <p className="text-xs sm:text-sm text-[#77716b] dark:text-[#8b949e] mt-1.5 leading-relaxed">
+                Enter legal details exactly matching your official government and registration documents.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+              {/* Title Prefix (Only for Individual) */}
+              {accountType === "INDIVIDUAL" && (
+                <div>
+                  <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                    Prefix Title
+                  </label>
+                  <select
+                    value={claimedTitle}
+                    onChange={(e) => setClaimedTitle(e.target.value)}
+                    className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                  >
+                    <option value="Dr.">Dr.</option>
+                    <option value="Prof.">Prof.</option>
+                    <option value="PT">PT</option>
+                    <option value="RN">RN</option>
+                    <option value="Mr.">Mr.</option>
+                    <option value="Ms.">Ms.</option>
+                    <option value="">None</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Legal First Name */}
+              <div className={accountType === "INDIVIDUAL" ? "sm:col-span-2" : "sm:col-span-3"}>
+                <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                  {accountType === "ORGANISATION" ? "Official Legal Organization Name *" : "Legal First & Middle Name *"}
                 </label>
                 <input
                   type="text"
-                  required
-                  placeholder="e.g. Shubham"
                   value={legalFirstName}
                   onChange={(e) => setLegalFirstName(e.target.value)}
-                  className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#5d5854] mb-1">
-                  Middle Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="Optional"
-                  value={legalMiddleName}
-                  onChange={(e) => setLegalMiddleName(e.target.value)}
-                  className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#5d5854] mb-1">
-                  Legal Last Name *
-                </label>
-                <input
-                  type="text"
+                  placeholder={accountType === "ORGANISATION" ? "e.g. Apex Multispeciality Hospital Pvt Ltd" : "e.g. Rajesh Kumar"}
                   required
-                  placeholder="e.g. Sharma"
-                  value={legalLastName}
-                  onChange={(e) => setLegalLastName(e.target.value)}
-                  className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-              <div>
-                <label className="block text-xs font-bold text-[#5d5854] mb-1">
-                  Date of Birth
-                </label>
-                <input
-                  type="date"
-                  value={dob}
-                  onChange={(e) => setDob(e.target.value)}
-                  className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none"
+                  className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] placeholder:text-[#8a8784] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-[#5d5854] mb-1">
-                  Gender
-                </label>
-                <select
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value)}
-                  className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none bg-white"
-                >
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                  <option value="prefer_not_to_say">Prefer not to say</option>
-                </select>
-              </div>
+              {/* Legal Last Name */}
+              {accountType === "INDIVIDUAL" && (
+                <div className="sm:col-span-3">
+                  <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                    Legal Last Name / Surname
+                  </label>
+                  <input
+                    type="text"
+                    value={legalLastName}
+                    onChange={(e) => setLegalLastName(e.target.value)}
+                    placeholder="e.g. Sharma"
+                    className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] placeholder:text-[#8a8784] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                  />
+                </div>
+              )}
 
-              <div>
-                <label className="block text-xs font-bold text-[#5d5854] mb-1">
-                  Contact Phone Number
-                </label>
-                <input
-                  type="tel"
-                  placeholder="e.g. +91 9876543210"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none"
-                />
-              </div>
-            </div>
+              {/* Date of Birth & Gender (For Individual) */}
+              {accountType === "INDIVIDUAL" && (
+                <>
+                  <div>
+                    <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                      Date of Birth
+                    </label>
+                    <input
+                      type="date"
+                      value={dob}
+                      onChange={(e) => setDob(e.target.value)}
+                      className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                    />
+                  </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              <div>
-                <label className="block text-xs font-bold text-[#5d5854] mb-1">
-                  Country *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none"
-                />
-              </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                      Gender
+                    </label>
+                    <select
+                      value={gender}
+                      onChange={(e) => setGender(e.target.value)}
+                      className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                    >
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
 
-              <div>
-                <label className="block text-xs font-bold text-[#5d5854] mb-1">
-                  State / Province
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Maharashtra"
-                  value={state}
-                  onChange={(e) => setState(e.target.value)}
-                  className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none"
-                />
-              </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                      Official Contact Phone
+                    </label>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+91 98765 43210"
+                      className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                    />
+                  </div>
+                </>
+              )}
 
+              {/* Location: City, State, Country */}
               <div>
-                <label className="block text-xs font-bold text-[#5d5854] mb-1">
+                <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
                   City *
                 </label>
                 <input
                   type="text"
-                  required
-                  placeholder="e.g. Mumbai"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none"
+                  placeholder="e.g. Mumbai, New Delhi, Bengaluru"
+                  required
+                  className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                  State / Province *
+                </label>
+                <input
+                  type="text"
+                  value={state}
+                  onChange={(e) => setState(e.target.value)}
+                  placeholder="e.g. Maharashtra, Delhi, Karnataka"
+                  required
+                  className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                  Country
+                </label>
+                <input
+                  type="text"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  placeholder="India"
+                  className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
                 />
               </div>
             </div>
-
-            <div className="flex items-center justify-between pt-4 border-t border-[#f0efee]">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] px-4 py-2.5 text-xs font-semibold text-[#5d5854] hover:bg-[#f8f7f6]"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back</span>
-              </button>
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#1769c2] px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow hover:bg-[#12569f] transition active:scale-95 disabled:opacity-50"
-              >
-                <span>Save & Continue</span>
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </div>
-          </form>
+          </div>
         )}
 
-        {/* STEP 3: DYNAMIC PROFESSIONAL CREDENTIALS / STUDENT ENROLLMENT */}
-        {step === 3 && (
-          <form onSubmit={handleSaveProfessionalDetails} className="rounded-3xl border border-[#e8e6e3] bg-white p-6 sm:p-8 shadow-xs">
-            <h2 className="text-xl font-black text-[#171717] tracking-tight">
-              {isStudentMode ? "Student Enrollment & Academic Details" : `${activeSchema.name} Credentials`}
-            </h2>
-            <p className="mt-1 text-xs text-[#77716b] mb-6">
-              {isStudentMode
-                ? "Provide your current college and expected year of graduation. (No license or council registration required for students)"
-                : "Provide your verified qualification and council registration details."}
-            </p>
+        {/* ═══════════════════════════════════════════════
+            STEP 4: DYNAMIC PROFESSIONAL DETAILS FORM
+            ═══════════════════════════════════════════════ */}
+        {step === 4 && (
+          <div className="space-y-6 animate-in fade-in">
+            <div className="text-left">
+              <span className="text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] uppercase tracking-wider">
+                Step 4 of 6
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#171717] dark:text-[#f0f6fc] mt-1">
+                Professional Credentials & Registration
+              </h1>
+              <p className="text-xs sm:text-sm text-[#77716b] dark:text-[#8b949e] mt-1.5 leading-relaxed">
+                Provide details for{" "}
+                <span className="font-semibold text-[#0f4c81] dark:text-[#58a6ff]">
+                  {currentSchema.name || "your chosen discipline"}
+                </span>
+                . These will be verified against your council registries.
+              </p>
+            </div>
 
-            {/* Title Selection for Individual (Skipped for students) */}
-            {accountType === "INDIVIDUAL" && !isStudentMode && (() => {
-              const indSchema = activeSchema as ProfessionSchema;
-              if (!indSchema.allowedPrefixes?.length && !indSchema.allowedSuffixes?.length) return null;
-              return (
-                <div className="mb-6 rounded-2xl bg-[#f0f7ff] border border-[#d0e5fc] p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <ShieldCheck className="h-4 w-4 text-[#1769c2]" />
-                    <span className="text-xs font-bold text-[#1769c2]">
-                      Claimed Professional Title (Subject to Verification)
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-[#5d5854] mb-3">
-                    This title will only appear publicly with verified badge after document approval.
-                  </p>
-
-                  <div className="flex flex-wrap gap-2">
-                    {indSchema.allowedPrefixes?.map((prefix) => (
-                      <button
-                        key={prefix}
-                        type="button"
-                        onClick={() => {
-                          setClaimedTitle(prefix);
-                          setTitleType("PREFIX");
-                        }}
-                        className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
-                          claimedTitle === prefix
-                            ? "bg-[#1769c2] text-white shadow-xs"
-                            : "bg-white text-[#5d5854] border border-[#ded8d1] hover:bg-[#f8f7f6]"
-                        }`}
-                      >
-                        {prefix}
-                      </button>
-                    ))}
-                    {indSchema.allowedSuffixes?.map((suffix) => (
-                      <button
-                        key={suffix}
-                        type="button"
-                        onClick={() => {
-                          setClaimedTitle(suffix);
-                          setTitleType("SUFFIX");
-                        }}
-                        className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
-                          claimedTitle === suffix
-                            ? "bg-[#1769c2] text-white shadow-xs"
-                            : "bg-white text-[#5d5854] border border-[#ded8d1] hover:bg-[#f8f7f6]"
-                        }`}
-                      >
-                        , {suffix}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => setClaimedTitle("")}
-                      className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
-                        !claimedTitle
-                          ? "bg-[#1769c2] text-white"
-                          : "bg-white text-[#5d5854] border border-[#ded8d1] hover:bg-[#f8f7f6]"
-                      }`}
-                    >
-                      No Title
-                    </button>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Dynamic Fields */}
-            <div className="space-y-4 mb-6">
-              {activeSchema.fields.map((f) => (
-                <div key={f.name}>
-                  <label className="block text-xs font-bold text-[#5d5854] mb-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              {(currentSchema.fields || []).map((f: DynamicFormField) => (
+                <div key={f.name} className={f.type === "textarea" ? "sm:col-span-2" : ""}>
+                  <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
                     {f.label} {f.required && "*"}
                   </label>
+
                   {f.type === "select" ? (
                     <select
-                      required={f.required}
                       value={dynamicValues[f.name] || ""}
                       onChange={(e) =>
                         setDynamicValues((prev) => ({ ...prev, [f.name]: e.target.value }))
                       }
-                      className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none bg-white"
+                      className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81] cursor-pointer"
                     >
                       <option value="">Select {f.label}</option>
-                      {f.options?.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
+                      {(f.options || []).map((opt) => (
+                        <option key={opt.value} value={opt.value} className="bg-white dark:bg-[#161b22] text-[#171717] dark:text-white">
                           {opt.label}
                         </option>
                       ))}
                     </select>
-                  ) : (
-                    <input
-                      type={f.type}
-                      required={f.required}
-                      placeholder={f.placeholder}
+                  ) : f.type === "textarea" ? (
+                    <textarea
+                      rows={3}
                       value={dynamicValues[f.name] || ""}
                       onChange={(e) =>
                         setDynamicValues((prev) => ({ ...prev, [f.name]: e.target.value }))
                       }
-                      className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm focus:border-[#1769c2] focus:outline-none"
+                      placeholder={f.placeholder}
+                      className="w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-3 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
                     />
+                  ) : (
+                    <input
+                      type={f.type === "number" ? "number" : "text"}
+                      value={dynamicValues[f.name] || ""}
+                      onChange={(e) =>
+                        setDynamicValues((prev) => ({ ...prev, [f.name]: e.target.value }))
+                      }
+                      placeholder={f.placeholder}
+                      className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] placeholder:text-[#8a8784] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                    />
+                  )}
+                  {f.helpText && (
+                    <p className="text-[10px] text-[#77716b] dark:text-[#8b949e] mt-1">{f.helpText}</p>
                   )}
                 </div>
               ))}
             </div>
-
-            <div className="flex items-center justify-between pt-4 border-t border-[#f0efee]">
-              <button
-                type="button"
-                onClick={() => setStep(2)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] px-4 py-2.5 text-xs font-semibold text-[#5d5854] hover:bg-[#f8f7f6]"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back</span>
-              </button>
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#1769c2] px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow hover:bg-[#12569f] transition active:scale-95 disabled:opacity-50"
-              >
-                <span>Save & Continue</span>
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </div>
-          </form>
+          </div>
         )}
 
-        {/* STEP 4: DOCUMENT UPLOAD */}
-        {step === 4 && (
-          <div className="rounded-3xl border border-[#e8e6e3] bg-white p-6 sm:p-8 shadow-xs">
-            {correctionNote && (
-              <div className="mb-6 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-xs text-amber-900">
-                <div className="flex items-center gap-2 font-bold mb-1">
-                  <AlertCircle className="h-4 w-4 text-amber-700" />
-                  <span>Reviewer Requested Corrections:</span>
-                </div>
-                <p className="leading-relaxed">{correctionNote}</p>
-              </div>
-            )}
-
-            <div className="mb-6 rounded-2xl bg-[#f0f7ff] border border-[#d0e5fc] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-start gap-3">
-                <Clock className="h-5 w-5 text-[#1769c2] shrink-0 mt-0.5" />
-                <div>
-                  <h3 className="text-xs font-bold text-[#1769c2] uppercase tracking-wide">
-                    3-Day Verification Grace Period
-                  </h3>
-                  <p className="text-xs text-[#5d5854] mt-0.5">
-                    Document upload is not mandatory right now. You can skip and enjoy full platform access for 72 hours!
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => router.push("/home")}
-                className="shrink-0 rounded-xl bg-white border border-[#1769c2] px-3.5 py-1.5 text-xs font-bold text-[#1769c2] hover:bg-blue-50 transition shadow-2xs"
-              >
-                Skip & Start Exploring →
-              </button>
+        {/* ═══════════════════════════════════════════════
+            STEP 5: DYNAMIC DOCUMENT REQUIREMENTS & UPLOADS
+            ═══════════════════════════════════════════════ */}
+        {step === 5 && (
+          <div className="space-y-6 animate-in fade-in">
+            <div className="text-left">
+              <span className="text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] uppercase tracking-wider">
+                Step 5 of 6
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#171717] dark:text-[#f0f6fc] mt-1">
+                Upload Verification Documents
+              </h1>
+              <p className="text-xs sm:text-sm text-[#77716b] dark:text-[#8b949e] mt-1.5 leading-relaxed">
+                Our verification compliance team validates your identity, clinical registration, and degree certificates.
+                Documents are kept securely private and never shown publicly.
+              </p>
             </div>
 
-            <h2 className="text-xl font-black text-[#171717] tracking-tight">
-              Verification KYC Documents
-            </h2>
-            <p className="mt-1 text-xs text-[#77716b] mb-6">
-              Upload clear PDF or image copies. Documents are stored in secure private storage.
-            </p>
-
-            <div className="space-y-4 mb-6">
-              {activeSchema.documents.map((docReq) => {
-                const uploaded = uploadedDocs[docReq.id];
+            {/* Document Cards List */}
+            <div className="space-y-4 pt-2">
+              {documentRequirements.map((docReq) => {
+                const isUploaded = !!uploadedDocs[docReq.id];
+                const docData = uploadedDocs[docReq.id];
+                const isRejected = rejectedDocTypes.includes(docReq.id) || docData?.status === "REJECTED";
                 const isUploading = uploadingDocId === docReq.id;
 
                 return (
                   <div
                     key={docReq.id}
-                    className={`rounded-2xl border p-4 sm:p-5 transition ${
-                      uploaded
-                        ? "border-emerald-200 bg-emerald-50/40"
-                        : docReq.mandatory
-                        ? "border-[#ded8d1] bg-white"
-                        : "border-[#e8e6e3] bg-[#faf9f8]"
+                    className={`p-5 sm:p-6 rounded-3xl border transition-all ${
+                      isRejected
+                        ? "border-rose-300 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/20"
+                        : isUploaded
+                        ? "border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/40 dark:bg-emerald-950/20"
+                        : "border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22]"
                     }`}
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs sm:text-sm font-bold text-[#171717]">
-                            {docReq.name}
-                          </span>
-                          {docReq.mandatory ? (
-                            <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700">
-                              Mandatory
-                            </span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      {/* Document Details */}
+                      <div className="flex items-start gap-3.5">
+                        <div
+                          className={`size-10 rounded-2xl flex items-center justify-center shrink-0 mt-0.5 ${
+                            isRejected
+                              ? "bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300"
+                              : isUploaded
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
+                              : "bg-[#f0efee] dark:bg-[#21262d] text-[#5d5854] dark:text-[#8b949e]"
+                          }`}
+                        >
+                          {isRejected ? (
+                            <AlertTriangle className="size-5" />
+                          ) : isUploaded ? (
+                            <Check className="size-5" />
                           ) : (
-                            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-[#77716b]">
-                              Optional
-                            </span>
+                            <FileText className="size-5" />
                           )}
                         </div>
-                        <p className="mt-0.5 text-xs text-[#77716b]">{docReq.description}</p>
+
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="text-sm font-semibold text-[#171717] dark:text-[#f0f6fc]">
+                              {docReq.name}
+                            </h4>
+                            <span
+                              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                                docReq.mandatory
+                                  ? "bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300"
+                                  : docReq.level === "RECOMMENDED"
+                                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
+                                  : "bg-[#f0efee] text-[#5d5854] dark:bg-[#21262d] dark:text-[#8b949e]"
+                              }`}
+                            >
+                              {docReq.mandatory ? "Required" : docReq.level}
+                            </span>
+                          </div>
+                          <p className="text-xs text-[#77716b] dark:text-[#8b949e] mt-1">
+                            {docReq.description}
+                          </p>
+
+                          {/* Rejection Note */}
+                          {isRejected && docData?.rejectionReason && (
+                            <div className="mt-2 text-xs font-medium text-rose-700 dark:text-rose-400 flex items-center gap-1.5">
+                              <AlertCircle className="size-3.5 shrink-0" />
+                              <span>Reason: {docData.rejectionReason}</span>
+                            </div>
+                          )}
+
+                          {/* Uploaded File Meta */}
+                          {isUploaded && !isRejected && (
+                            <div className="mt-2 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                              <FileCheck className="size-3.5 shrink-0" />
+                              <span>
+                                {docData.name} ({(docData.size / 1024 / 1024).toFixed(2)} MB)
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
-                      {/* Upload CTA */}
-                      <div>
-                        {uploaded ? (
-                          <div className="flex items-center gap-2">
-                            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-100/80 px-3 py-1.5 rounded-xl">
-                              <CheckCircle2 className="h-4 w-4" />
-                              <span className="truncate max-w-[140px]">{uploaded.name}</span>
-                            </span>
-                            <label className="cursor-pointer text-[11px] font-semibold text-[#1769c2] hover:underline">
-                              Replace
-                              <input
-                                type="file"
-                                className="hidden"
-                                accept=".pdf,image/jpeg,image/png"
-                                onChange={(e) => {
-                                  const f = e.target.files?.[0];
-                                  if (f) handleFileUpload(docReq.id, f);
-                                }}
-                              />
-                            </label>
-                          </div>
-                        ) : (
-                          <label
-                            className={`inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-white px-4 py-2 text-xs font-bold text-[#171717] hover:bg-[#f8f7f6] hover:border-[#1769c2] transition cursor-pointer shadow-2xs ${
-                              isUploading ? "opacity-50 pointer-events-none" : ""
-                            }`}
-                          >
-                            <UploadCloud className="h-4 w-4 text-[#1769c2]" />
-                            <span>{isUploading ? "Uploading..." : "Upload File"}</span>
-                            <input
-                              type="file"
-                              className="hidden"
-                              accept=".pdf,image/jpeg,image/png"
-                              onChange={(e) => {
-                                const f = e.target.files?.[0];
-                                if (f) handleFileUpload(docReq.id, f);
-                              }}
-                            />
-                          </label>
-                        )}
+                      {/* Upload CTA Button */}
+                      <div className="shrink-0 flex items-center gap-2">
+                        <label className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-white dark:bg-[#21262d] border border-[#ded8d1] dark:border-[#30363d] px-4 py-2 text-xs font-medium text-[#171717] dark:text-[#f0f6fc] hover:bg-[#f0efee] dark:hover:bg-[#30363d] transition shadow-xs">
+                          {isUploading ? (
+                            <RefreshCw className="size-3.5 animate-spin text-[#0f4c81]" />
+                          ) : isUploaded ? (
+                            <RefreshCw className="size-3.5" />
+                          ) : (
+                            <UploadCloud className="size-3.5 text-[#0f4c81] dark:text-[#58a6ff]" />
+                          )}
+                          <span>{isUploading ? "Uploading..." : isUploaded ? "Replace" : "Upload"}</span>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept={docReq.acceptedFormats.join(",")}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFileUpload(docReq.id, file);
+                            }}
+                            disabled={isUploading}
+                          />
+                        </label>
                       </div>
                     </div>
                   </div>
                 );
               })}
             </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-[#f0efee]">
-              <button
-                type="button"
-                onClick={() => setStep(3)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] px-4 py-2.5 text-xs font-semibold text-[#5d5854] hover:bg-[#f8f7f6]"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back</span>
-              </button>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => router.push("/home")}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-4 py-2.5 text-xs font-bold text-[#5d5854] hover:bg-[#eae8e5] transition"
-                >
-                  <Clock className="h-3.5 w-3.5 text-[#1769c2]" />
-                  <span>Skip for now</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setStep(5)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#1769c2] px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow hover:bg-[#12569f] transition active:scale-95"
-                >
-                  <span>Proceed to Review</span>
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
           </div>
         )}
 
-        {/* STEP 5: REVIEW & FINAL SUBMIT */}
-        {step === 5 && (
-          <div className="rounded-3xl border border-[#e8e6e3] bg-white p-6 sm:p-8 shadow-xs">
-            <h2 className="text-xl font-black text-[#171717] tracking-tight">
-              Confirm & Submit for Review
-            </h2>
-            <p className="mt-1 text-xs text-[#77716b] mb-6">
-              Review your information. Once submitted, your profile will enter the admin verification queue.
-            </p>
+        {/* ═══════════════════════════════════════════════
+            STEP 6: APPLICATION REVIEW & DECLARATION
+            ═══════════════════════════════════════════════ */}
+        {step === 6 && (
+          <div className="space-y-6 animate-in fade-in">
+            <div className="text-left">
+              <span className="text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] uppercase tracking-wider">
+                Step 6 of 6
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#171717] dark:text-[#f0f6fc] mt-1">
+                Review Your Verification Application
+              </h1>
+              <p className="text-xs sm:text-sm text-[#77716b] dark:text-[#8b949e] mt-1.5 leading-relaxed">
+                Confirm your claimed professional credentials before submission to the verification compliance desk.
+              </p>
+            </div>
 
-            <div className="space-y-4 mb-6">
-              {/* Summary Card */}
-              <div className="rounded-2xl bg-[#f8f7f6] border border-[#e8e6e3] p-4 sm:p-5 space-y-3">
-                <div className="flex justify-between items-center border-b border-[#e8e6e3] pb-3">
+            {/* Application Overview Card */}
+            <div className="p-6 sm:p-8 rounded-3xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] space-y-6">
+              {/* Header profile summary */}
+              <div className="flex items-start justify-between pb-5 border-b border-[#ded8d1]/60 dark:border-[#30363d]">
+                <div className="flex items-center gap-3.5">
+                  <div className="size-14 rounded-2xl bg-[#0f4c81] text-white flex items-center justify-center font-semibold text-lg">
+                    {legalFirstName[0] || "M"}
+                  </div>
                   <div>
-                    <span className="text-[11px] font-bold text-[#77716b] uppercase">
-                      Canonical Identity
-                    </span>
-                    <h3 className="text-base font-bold text-[#171717]">
+                    <h3 className="text-lg font-semibold text-[#171717] dark:text-[#f0f6fc]">
                       {claimedTitle ? `${claimedTitle} ` : ""}
                       {legalFirstName} {legalLastName}
                     </h3>
+                    <p className="text-xs text-[#0f4c81] dark:text-[#58a6ff] font-medium">
+                      {currentSchema.name} • {city}, {state}
+                    </p>
                   </div>
-                  <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-[11px] font-bold text-[#1769c2]">
-                    {activeSchema.name}
+                </div>
+
+                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                  Pending Submission
+                </span>
+              </div>
+
+              {/* Grid of details */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <span className="text-[#77716b] dark:text-[#8b949e] block">Account Type:</span>
+                  <span className="font-semibold text-[#171717] dark:text-[#f0f6fc]">
+                    {accountType === "INDIVIDUAL" ? "Individual Healthcare Professional" : "Healthcare Organization"}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="text-[#77716b]">Location:</span>{" "}
-                    <strong className="text-[#171717]">{city}, {country}</strong>
-                  </div>
-                  {dynamicValues.primary_degree && (
-                    <div>
-                      <span className="text-[#77716b]">{isStudentMode ? "Course Enrolled:" : "Degree:"}</span>{" "}
-                      <strong className="text-[#171717]">{dynamicValues.primary_degree}</strong>
-                    </div>
-                  )}
-                  {dynamicValues.institution && (
-                    <div>
-                      <span className="text-[#77716b]">College / University:</span>{" "}
-                      <strong className="text-[#171717]">{dynamicValues.institution}</strong>
-                    </div>
-                  )}
-                  {dynamicValues.graduation_year && (
-                    <div>
-                      <span className="text-[#77716b]">{isStudentMode ? "Expected Graduation:" : "Graduation Year:"}</span>{" "}
-                      <strong className="text-[#171717]">{dynamicValues.graduation_year}</strong>
-                    </div>
-                  )}
-                  {dynamicValues.medical_council && (
-                    <div>
-                      <span className="text-[#77716b]">Council:</span>{" "}
-                      <strong className="text-[#171717]">{dynamicValues.medical_council}</strong>
-                    </div>
-                  )}
-                  {dynamicValues.registration_number && (
-                    <div>
-                      <span className="text-[#77716b]">Reg Number:</span>{" "}
-                      <strong className="text-[#171717]">{dynamicValues.registration_number}</strong>
-                    </div>
-                  )}
+                <div>
+                  <span className="text-[#77716b] dark:text-[#8b949e] block">Category:</span>
+                  <span className="font-semibold text-[#171717] dark:text-[#f0f6fc]">
+                    {category} ({professionOrType})
+                  </span>
                 </div>
+
+                {dynamicValues.primary_degree && (
+                  <div>
+                    <span className="text-[#77716b] dark:text-[#8b949e] block">Qualification:</span>
+                    <span className="font-semibold text-[#171717] dark:text-[#f0f6fc]">
+                      {dynamicValues.primary_degree}
+                    </span>
+                  </div>
+                )}
+
+                {dynamicValues.registration_number && (
+                  <div>
+                    <span className="text-[#77716b] dark:text-[#8b949e] block">Council Registration #:</span>
+                    <span className="font-semibold text-[#171717] dark:text-[#f0f6fc]">
+                      {dynamicValues.registration_number} ({dynamicValues.medical_council || "Council"})
+                    </span>
+                  </div>
+                )}
+
+                {dynamicValues.institution && (
+                  <div>
+                    <span className="text-[#77716b] dark:text-[#8b949e] block">Institution / College:</span>
+                    <span className="font-semibold text-[#171717] dark:text-[#f0f6fc]">
+                      {dynamicValues.institution}
+                    </span>
+                  </div>
+                )}
+
+                {dynamicValues.current_organization && (
+                  <div>
+                    <span className="text-[#77716b] dark:text-[#8b949e] block">Hospital / Clinic Practice:</span>
+                    <span className="font-semibold text-[#171717] dark:text-[#f0f6fc]">
+                      {dynamicValues.current_organization}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {/* Uploaded Documents Check */}
-              <div className="rounded-2xl border border-[#e8e6e3] p-4">
-                <h4 className="text-xs font-bold text-[#171717] mb-2">Attached KYC Documents</h4>
-                <div className="space-y-1.5">
-                  {activeSchema.documents.map((d) => {
-                    const isUp = uploadedDocs[d.id];
-                    return (
-                      <div key={d.id} className="flex items-center justify-between text-xs">
-                        <span className="text-[#5d5854]">{d.name}</span>
-                        {isUp ? (
-                          <span className="inline-flex items-center gap-1 font-bold text-emerald-700">
-                            <Check className="h-3.5 w-3.5" /> Uploaded
-                          </span>
-                        ) : d.mandatory ? (
-                          <span className="font-bold text-rose-600">Missing *</span>
-                        ) : (
-                          <span className="text-[#8a8784]">Optional (Not added)</span>
-                        )}
-                      </div>
-                    );
-                  })}
+              {/* Document checklist */}
+              <div className="pt-4 border-t border-[#ded8d1]/60 dark:border-[#30363d]">
+                <h4 className="text-xs font-semibold text-[#171717] dark:text-[#f0f6fc] mb-3">
+                  Verification Documents Checklist ({Object.keys(uploadedDocs).length}/{documentRequirements.length})
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {documentRequirements.map((d) => (
+                    <div
+                      key={d.id}
+                      className="flex items-center gap-2 p-2.5 rounded-xl bg-[#faf9f8] dark:bg-[#0d1117] border border-[#ded8d1]/40 dark:border-[#30363d]/40 text-xs"
+                    >
+                      {uploadedDocs[d.id] ? (
+                        <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      ) : (
+                        <Clock className="size-4 text-amber-500 shrink-0" />
+                      )}
+                      <span className="truncate">{d.name}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-4 border-t border-[#f0efee]">
-              <button
-                type="button"
-                onClick={() => setStep(4)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] px-4 py-2.5 text-xs font-semibold text-[#5d5854] hover:bg-[#f8f7f6]"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleFinalSubmitReview}
-                disabled={submitting}
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-xs sm:text-sm font-bold text-white shadow-md hover:bg-emerald-700 transition active:scale-95 disabled:opacity-50"
-              >
-                <ShieldCheck className="h-4.5 w-4.5" />
-                <span>{submitting ? "Submitting..." : "Submit & Request Review"}</span>
-              </button>
+            {/* Legal Declaration Checkbox */}
+            <div className="p-5 rounded-2xl bg-[#eef5fc]/60 dark:bg-[#161b22] border border-[#0f4c81]/20 dark:border-[#58a6ff]/20">
+              <label className="flex items-start gap-3 cursor-pointer text-xs text-[#171717] dark:text-[#f0f6fc]">
+                <input
+                  type="checkbox"
+                  checked={confirmedDeclaration}
+                  onChange={(e) => setConfirmedDeclaration(e.target.checked)}
+                  className="mt-0.5 size-4 rounded border-[#ded8d1] dark:border-[#30363d] text-[#0f4c81] focus:ring-[#0f4c81]"
+                />
+                <span className="leading-relaxed font-normal">
+                  I solemnly declare and confirm that the professional qualifications, registration certificates, and
+                  identity documents provided are true, valid, and authentic. I understand that fraudulent claims are
+                  subject to account suspension and reporting under applicable regulatory bodies.
+                </span>
+              </label>
             </div>
           </div>
         )}
+
+        {/* ═══════════════════════════════════════════════
+            BOTTOM ACTION BUTTONS
+            ═══════════════════════════════════════════════ */}
+        <div className="mt-8 pt-6 border-t border-[#ded8d1]/70 dark:border-[#1e293b] flex items-center justify-between">
+          {step > 1 ? (
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setStep((prev) => Math.max(1, prev - 1));
+              }}
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-medium text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f0efee] dark:hover:bg-[#21262d] transition cursor-pointer"
+            >
+              <ArrowLeft className="size-4" />
+              <span>Back</span>
+            </button>
+          ) : (
+            <div />
+          )}
+
+          {step < 6 ? (
+            <button
+              type="button"
+              onClick={handleNextStep}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0f4c81] dark:bg-[#14559b] px-6 py-2.5 text-xs sm:text-sm font-medium text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition cursor-pointer active:scale-98"
+            >
+              <span>Continue</span>
+              <ArrowRight className="size-4" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSubmitReview}
+              disabled={submitting || !confirmedDeclaration}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#16804d] px-6 py-3 text-xs sm:text-sm font-medium text-white shadow-xs hover:bg-[#136b40] transition disabled:opacity-50 cursor-pointer active:scale-98"
+            >
+              {submitting ? (
+                <>
+                  <RefreshCw className="size-4 animate-spin" />
+                  <span>Submitting Verification...</span>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="size-4" />
+                  <span>Submit & Request Verification</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </main>
     </div>
   );

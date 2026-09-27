@@ -107,6 +107,7 @@ export interface MgnVerificationDocumentTable {
   file_size: number;
   mime_type: string;
   status: string;
+  rejection_reason?: OptionalColumn<string | null>;
   uploaded_at: OptionalColumn<Date>;
 }
 
@@ -256,9 +257,11 @@ export async function ensureVerificationTables(): Promise<void> {
         file_size INT NOT NULL,
         mime_type VARCHAR(100) NOT NULL,
         status VARCHAR(32) NOT NULL DEFAULT 'PENDING',
+        rejection_reason TEXT,
         uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
       CREATE INDEX IF NOT EXISTS idx_mgn_verif_docs_user ON mgn_verification_documents(user_id);
+      ALTER TABLE mgn_verification_documents ADD COLUMN IF NOT EXISTS rejection_reason TEXT;
 
       CREATE TABLE IF NOT EXISTS mgn_verification_audit_logs (
         id VARCHAR(64) PRIMARY KEY,
