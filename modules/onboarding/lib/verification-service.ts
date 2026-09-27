@@ -354,6 +354,45 @@ export class VerificationService {
   }
 
   /**
+   * Allows user to skip document upload for now and enter the 72-hour grace period (ENROLLED).
+   */
+  static async skipDocumentsAndEnroll(userId: string) {
+    const identity = await this.getIdentity(userId);
+    if (!identity) throw new Error("Identity record not found");
+
+    const now = new Date();
+    const deadline = identity.verification_deadline || new Date(now.getTime() + 72 * 60 * 60 * 1000);
+
+    await verifDb
+      .updateTable("mgn_identities")
+      .set({
+        verification_status: "ENROLLED",
+        verification_deadline: deadline,
+        updated_at: now,
+      })
+      .where("user_id", "=", userId)
+      .execute();
+
+    await verifDb
+      .insertInto("mgn_verification_audit_logs" as any)
+      .values({
+        id: nanoid(),
+        target_user_id: userId,
+        actor_id: userId,
+        action: "onboarding.skipped_documents",
+        reason: "User deferred document upload to 72-hour grace window",
+        previous_state: identity.verification_status,
+        new_state: "ENROLLED",
+        metadata: JSON.stringify({ deadline }),
+        created_at: now,
+      })
+      .execute();
+
+    await syncUserDossier(userId);
+    return { success: true, message: "Enrolled in 72-hour verification grace window." };
+  }
+
+  /**
    * Admin Review Actions: APPROVE, REQUEST_CORRECTION, REJECT, SUSPEND.
    */
   static async processAdminReview(

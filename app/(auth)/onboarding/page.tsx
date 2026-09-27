@@ -102,6 +102,7 @@ export default function OnboardingPage() {
   // Status & Correction States
   const [correctionNote, setCorrectionNote] = React.useState<string | null>(null);
   const [rejectedDocTypes, setRejectedDocTypes] = React.useState<string[]>([]);
+  const [skippedDocuments, setSkippedDocuments] = React.useState<boolean>(false);
 
   // ─────────────────────────────────────────────
   // 1. Initial Load & Server Synchronization
@@ -301,6 +302,14 @@ export default function OnboardingPage() {
   // ─────────────────────────────────────────────
   // Step Navigation & Validation
   // ─────────────────────────────────────────────
+  // Step Navigation & Validation
+  // ─────────────────────────────────────────────
+  const handleSkipDocuments = () => {
+    setSkippedDocuments(true);
+    setError(null);
+    setStep(6);
+  };
+
   const handleNextStep = async () => {
     setError(null);
 
@@ -390,10 +399,14 @@ export default function OnboardingPage() {
         .map((d) => d.name);
 
       if (missingMandatory.length > 0) {
-        setError(`Please upload all required documents: ${missingMandatory.join(", ")}`);
+        // If mandatory documents are missing, user can either upload or click Skip for Now
+        setError(
+          `Please upload all required documents: ${missingMandatory.join(", ")} or click "Skip for now" to upload later within 72 hours.`
+        );
         return;
       }
 
+      setSkippedDocuments(false);
       setStep(6);
       return;
     }
@@ -457,7 +470,7 @@ export default function OnboardingPage() {
     setError(null);
 
     try {
-      // Final synchronization of all draft details
+      // 1. Final synchronization of all draft details
       await fetch("/api/onboarding", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -479,14 +492,28 @@ export default function OnboardingPage() {
         }),
       });
 
-      const res = await fetch("/api/onboarding/submit-review", {
-        method: "POST",
-        credentials: "include",
-      });
+      // 2. Check if user skipped mandatory docs or provided all
+      const missingMandatory = documentRequirements
+        .filter((d) => d.mandatory && !uploadedDocs[d.id])
+        .map((d) => d.id);
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to submit verification request");
+      if (missingMandatory.length > 0 || skippedDocuments) {
+        // Defer document upload and enter 72h grace period
+        await fetch("/api/onboarding/skip", {
+          method: "POST",
+          credentials: "include",
+        });
+      } else {
+        // Full documents submitted -> Move to UNDER_REVIEW
+        const res = await fetch("/api/onboarding/submit-review", {
+          method: "POST",
+          credentials: "include",
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to submit verification request");
+        }
       }
 
       // Clear local storage draft upon clean submission
@@ -1093,12 +1120,37 @@ export default function OnboardingPage() {
               </h1>
               <p className="text-xs sm:text-sm text-[#77716b] dark:text-[#8b949e] mt-1.5 leading-relaxed">
                 Our verification compliance team validates your identity, clinical registration, and degree certificates.
-                Documents are kept securely private and never shown publicly.
+                Documents are kept strictly private in encrypted storage and never exposed publicly.
               </p>
             </div>
 
+            {/* Skip for now Banner */}
+            <div className="p-4 rounded-2xl bg-[#eef5fc] dark:bg-[#161b22] border border-[#0f4c81]/20 dark:border-[#58a6ff]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+              <div className="flex items-center gap-3">
+                <div className="size-9 rounded-xl bg-[#0f4c81]/10 dark:bg-[#58a6ff]/10 text-[#0f4c81] dark:text-[#58a6ff] flex items-center justify-center shrink-0">
+                  <Clock className="size-4.5" />
+                </div>
+                <div className="text-left">
+                  <h4 className="text-xs sm:text-sm font-semibold text-[#171717] dark:text-[#f0f6fc]">
+                    Don't have your documents ready right now?
+                  </h4>
+                  <p className="text-[11px] text-[#5d5854] dark:text-[#8b949e] mt-0.5">
+                    You can skip this step and upload your certificates anytime within your 72-hour grace period.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleSkipDocuments}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-[#21262d] border border-[#0f4c81]/40 dark:border-[#58a6ff]/40 text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:bg-[#0f4c81]/5 transition shrink-0 cursor-pointer self-start sm:self-auto shadow-2xs"
+              >
+                <span>Skip for now</span>
+                <ArrowRight className="size-3.5" />
+              </button>
+            </div>
+
             {/* Document Cards List */}
-            <div className="space-y-4 pt-2">
+            <div className="space-y-4 pt-1">
               {documentRequirements.map((docReq) => {
                 const isUploaded = !!uploadedDocs[docReq.id];
                 const docData = uploadedDocs[docReq.id];
@@ -1113,7 +1165,9 @@ export default function OnboardingPage() {
                         ? "border-rose-300 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/20"
                         : isUploaded
                         ? "border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/40 dark:bg-emerald-950/20"
-                        : "border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22]"
+                        : docReq.mandatory
+                        ? "border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] hover:border-[#0f4c81]/40"
+                        : "border-[#ded8d1]/80 dark:border-[#30363d]/80 bg-white/70 dark:bg-[#161b22]/70"
                     }`}
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1125,6 +1179,8 @@ export default function OnboardingPage() {
                               ? "bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300"
                               : isUploaded
                               ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
+                              : docReq.mandatory
+                              ? "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400"
                               : "bg-[#f0efee] dark:bg-[#21262d] text-[#5d5854] dark:text-[#8b949e]"
                           }`}
                         >
@@ -1142,18 +1198,27 @@ export default function OnboardingPage() {
                             <h4 className="text-sm font-semibold text-[#171717] dark:text-[#f0f6fc]">
                               {docReq.name}
                             </h4>
-                            <span
-                              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                                docReq.mandatory
-                                  ? "bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300"
-                                  : docReq.level === "RECOMMENDED"
-                                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
-                                  : "bg-[#f0efee] text-[#5d5854] dark:bg-[#21262d] dark:text-[#8b949e]"
-                              }`}
-                            >
-                              {docReq.mandatory ? "Required" : docReq.level}
-                            </span>
+
+                            {/* Precise Requirement Badges */}
+                            {docReq.mandatory ? (
+                              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-900">
+                                Required
+                              </span>
+                            ) : docReq.level === "CONDITIONAL" ? (
+                              <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-900">
+                                Conditional (If Applicable)
+                              </span>
+                            ) : docReq.level === "RECOMMENDED" ? (
+                              <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-900">
+                                Recommended
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-medium px-2.5 py-0.5 rounded-full bg-[#f0efee] text-[#5d5854] border border-[#ded8d1] dark:bg-[#21262d] dark:text-[#8b949e] dark:border-[#30363d]">
+                                Optional
+                              </span>
+                            )}
                           </div>
+
                           <p className="text-xs text-[#77716b] dark:text-[#8b949e] mt-1">
                             {docReq.description}
                           </p>
@@ -1225,6 +1290,22 @@ export default function OnboardingPage() {
                 Confirm your claimed professional credentials before submission to the verification compliance desk.
               </p>
             </div>
+
+            {/* If documents were deferred/skipped */}
+            {(skippedDocuments ||
+              documentRequirements.some((d) => d.mandatory && !uploadedDocs[d.id])) && (
+              <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 flex items-start gap-3 text-xs text-amber-800 dark:text-amber-300">
+                <Clock className="size-4.5 shrink-0 text-amber-600 mt-0.5" />
+                <div>
+                  <h4 className="font-semibold text-amber-900 dark:text-amber-200">
+                    Documents Pending — 72-Hour Verification Grace Period
+                  </h4>
+                  <p className="mt-0.5 leading-relaxed">
+                    You have chosen to upload documents later. You will be able to explore MGN and can complete your document uploads anytime from your profile or settings within the 72-hour window.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Application Overview Card */}
             <div className="p-6 sm:p-8 rounded-3xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] space-y-6">
@@ -1320,6 +1401,9 @@ export default function OnboardingPage() {
                         <Clock className="size-4 text-amber-500 shrink-0" />
                       )}
                       <span className="truncate">{d.name}</span>
+                      <span className="text-[10px] text-[#77716b] ml-auto font-normal">
+                        {d.mandatory ? "Required" : "Optional"}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -1336,9 +1420,9 @@ export default function OnboardingPage() {
                   className="mt-0.5 size-4 rounded border-[#ded8d1] dark:border-[#30363d] text-[#0f4c81] focus:ring-[#0f4c81]"
                 />
                 <span className="leading-relaxed font-normal">
-                  I solemnly declare and confirm that the professional qualifications, registration certificates, and
-                  identity documents provided are true, valid, and authentic. I understand that fraudulent claims are
-                  subject to account suspension and reporting under applicable regulatory bodies.
+                  I solemnly declare and confirm that the professional qualifications, registration credentials, and
+                  information provided are authentic. I understand that full verification of my clinical credentials
+                  requires valid documents within 72 hours, and fraudulent claims are subject to account restriction.
                 </span>
               </label>
             </div>
@@ -1348,7 +1432,7 @@ export default function OnboardingPage() {
         {/* ═══════════════════════════════════════════════
             BOTTOM ACTION BUTTONS
             ═══════════════════════════════════════════════ */}
-        <div className="mt-8 pt-6 border-t border-[#ded8d1]/70 dark:border-[#1e293b] flex items-center justify-between">
+        <div className="mt-8 pt-6 border-t border-[#ded8d1]/70 dark:border-[#1e293b] flex items-center justify-between gap-3">
           {step > 1 ? (
             <button
               type="button"
@@ -1365,35 +1449,53 @@ export default function OnboardingPage() {
             <div />
           )}
 
-          {step < 6 ? (
-            <button
-              type="button"
-              onClick={handleNextStep}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0f4c81] dark:bg-[#14559b] px-6 py-2.5 text-xs sm:text-sm font-medium text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition cursor-pointer active:scale-98"
-            >
-              <span>Continue</span>
-              <ArrowRight className="size-4" />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleSubmitReview}
-              disabled={submitting || !confirmedDeclaration}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#16804d] px-6 py-3 text-xs sm:text-sm font-medium text-white shadow-xs hover:bg-[#136b40] transition disabled:opacity-50 cursor-pointer active:scale-98"
-            >
-              {submitting ? (
-                <>
-                  <RefreshCw className="size-4 animate-spin" />
-                  <span>Submitting Verification...</span>
-                </>
-              ) : (
-                <>
-                  <ShieldCheck className="size-4" />
-                  <span>Submit & Request Verification</span>
-                </>
-              )}
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {step === 5 && (
+              <button
+                type="button"
+                onClick={handleSkipDocuments}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] dark:border-[#30363d] px-4 py-2.5 text-xs sm:text-sm font-medium text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f0efee] dark:hover:bg-[#21262d] transition cursor-pointer"
+              >
+                <span>Skip for now</span>
+                <ArrowRight className="size-3.5" />
+              </button>
+            )}
+
+            {step < 6 ? (
+              <button
+                type="button"
+                onClick={handleNextStep}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#0f4c81] dark:bg-[#14559b] px-6 py-2.5 text-xs sm:text-sm font-medium text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition cursor-pointer active:scale-98"
+              >
+                <span>Continue</span>
+                <ArrowRight className="size-4" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSubmitReview}
+                disabled={submitting || !confirmedDeclaration}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#16804d] px-6 py-3 text-xs sm:text-sm font-medium text-white shadow-xs hover:bg-[#136b40] transition disabled:opacity-50 cursor-pointer active:scale-98"
+              >
+                {submitting ? (
+                  <>
+                    <RefreshCw className="size-4 animate-spin" />
+                    <span>Processing Submission...</span>
+                  </>
+                ) : skippedDocuments || documentRequirements.some((d) => d.mandatory && !uploadedDocs[d.id]) ? (
+                  <>
+                    <Clock className="size-4" />
+                    <span>Complete Setup (72h Grace Window)</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="size-4" />
+                    <span>Submit & Request Verification</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </main>
     </div>
