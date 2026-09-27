@@ -30,18 +30,15 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
   const isLoggedIn = !isPending && Boolean(session?.user);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[#ded8d1] dark:border-[#30363d] bg-white/90 dark:bg-[#161b22]/90 backdrop-blur-md transition-all">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 w-full bg-white/80 dark:bg-[#161b22]/80 backdrop-blur-md transition-all">
+      <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
+        <Link href="/" className="flex items-center group">
           <img
             src="/logo.png"
-            alt="Med Global Network"
-            className="h-9 sm:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+            alt="MGN Logo"
+            className="h-11 sm:h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
           />
-          <span className="hidden sm:inline-block text-base sm:text-lg font-black tracking-tight text-[#171717] dark:text-[#f0f6fc] group-hover:text-[#0f4c81] dark:group-hover:text-[#388bfd] transition-colors">
-            Med Global Network
-          </span>
         </Link>
 
         {/* Desktop Navigation Links */}
