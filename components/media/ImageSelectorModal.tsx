@@ -4,6 +4,7 @@ import * as React from "react";
 import { X, UploadCloud, Link as LinkIcon, Check, Image as ImageIcon, Trash2, Sparkles, Loader2 } from "lucide-react";
 import { useMediaUpload } from "@/lib/use-media-upload";
 import CallChip from "@/components/ui/CallChip";
+import ProgressBar from "@/components/ProgressBar";
 
 interface ImageSelectorModalProps {
   isOpen: boolean;
@@ -201,16 +202,14 @@ export function ImageSelectorModal({
                 </p>
 
                 {isUploading && (
-                  <div className="w-full max-w-xs mt-4">
-                    <div className="h-1.5 w-full rounded-full bg-[#ded8d1] overflow-hidden">
-                      <div
-                        className="h-full bg-[#1769c2] transition-all duration-300"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                    <span className="text-[10px] font-bold text-[#1769c2] mt-1 block">
-                      {progress}% uploaded
-                    </span>
+                  <div className="w-full max-w-sm mt-4 px-2">
+                    <ProgressBar
+                      value={progress}
+                      max={100}
+                      label={`Uploading ${uploadingFileName || "image"}...`}
+                      pendingLabel="Uploading"
+                      completeLabel="Ready"
+                    />
                   </div>
                 )}
               </div>

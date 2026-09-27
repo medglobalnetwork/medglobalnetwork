@@ -13,6 +13,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useMediaUpload, UploadResult } from "@/lib/use-media-upload";
+import ProgressBar from "@/components/ProgressBar";
 
 export interface MediaUploaderProps {
   folder?: string;
@@ -173,19 +174,14 @@ export function MediaUploader({
 
           {/* Upload Progress Bar */}
           {isUploading && (
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-blue-400 flex items-center gap-1.5">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Uploading...
-                </span>
-                <span className="font-mono text-slate-400">{progress}%</span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
-                <div
-                  className="h-full bg-blue-600 transition-all duration-150 rounded-full"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
+            <div className="py-1">
+              <ProgressBar
+                value={progress}
+                max={100}
+                label={`Uploading ${selectedFile?.name || "file"}...`}
+                pendingLabel="Uploading"
+                completeLabel="Complete"
+              />
             </div>
           )}
 

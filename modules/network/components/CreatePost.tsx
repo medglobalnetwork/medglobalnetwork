@@ -15,6 +15,7 @@ import {
 import type { PostType } from "../types";
 import { useMediaUpload } from "@/lib/use-media-upload";
 import CallChip from "@/components/ui/CallChip";
+import ProgressBar from "@/components/ProgressBar";
 
 interface CreatePostProps {
   userImage?: string;
@@ -194,9 +195,9 @@ export function CreatePost({
                 className="w-full resize-none rounded-2xl border border-[#ded8d1] bg-white p-3 text-xs sm:text-sm text-[#171717] placeholder:text-[#8a8784] focus:border-[#0f4c81] focus:outline-none focus:ring-2 focus:ring-[#0f4c81]/20"
               />
 
-              {/* Uploading progress bar with CallChip */}
+              {/* Uploading progress bar with ProgressBar & CallChip */}
               {(isUploading || uploadingFileName) && (
-                <div className="flex flex-col gap-2 rounded-2xl border border-blue-100 bg-[#f8fafd] p-3 animate-fade-in">
+                <div className="flex flex-col gap-3 rounded-2xl border border-blue-100 bg-[#f8fafd] p-3.5 animate-fade-in shadow-2xs">
                   <div className="flex items-center justify-between">
                     <CallChip
                       icon={fileAccept.includes("image") ? "image" : fileAccept.includes("video") ? "file" : "file"}
@@ -214,19 +215,15 @@ export function CreatePost({
                         if (fileInputRef.current) fileInputRef.current.click();
                       }}
                     />
-                    {isUploading && (
-                      <span className="text-[11px] font-bold text-[#0f4c81] tabular-nums">
-                        {progress}%
-                      </span>
-                    )}
                   </div>
                   {isUploading && (
-                    <div className="h-1.5 w-full rounded-full bg-blue-100 overflow-hidden">
-                      <div
-                        className="h-full bg-[#0f4c81] transition-all duration-200"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
+                    <ProgressBar
+                      value={progress}
+                      max={100}
+                      label={`Uploading ${uploadingFileName || "file"}...`}
+                      pendingLabel="Uploading"
+                      completeLabel="Ready"
+                    />
                   )}
                 </div>
               )}
