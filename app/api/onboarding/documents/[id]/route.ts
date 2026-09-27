@@ -75,3 +75,47 @@ export async function GET(
     return Response.json({ error: "Failed to load document" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) {
+    return Response.json({ error: "Authentication required" }, { status: 401 });
+  }
+
+  const { id } = await params;
+
+  try {
+    const doc = await verifDb
+      .selectFrom("mgn_verification_documents")
+      .selectAll()
+      .where("id", "=", id)
+      .executeTakeFirst();
+
+    if (!doc) {
+      return Response.json({ error: "Document not found" }, { status: 404 });
+    }
+
+    const isAdmin =
+      session.user.email?.toLowerCase() === "patreshubham141@gmail.com" ||
+      (session.user as any).role === "SUPER_ADMIN" ||
+      (session.user as any).role === "ADMIN" ||
+      (session.user as any).role === "VERIFICATION_ADMIN";
+
+    if (doc.user_id !== session.user.id && !isAdmin) {
+      return Response.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    await verifDb
+      .deleteFrom("mgn_verification_documents")
+      .where("id", "=", id)
+      .execute();
+
+    return Response.json({ success: true, message: "Document deleted" });
+  } catch (err: any) {
+    console.error("DELETE /api/onboarding/documents/[id] error:", err);
+    return Response.json({ error: "Failed to delete document" }, { status: 500 });
+  }
+}
