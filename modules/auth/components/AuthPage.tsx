@@ -1150,9 +1150,9 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
       </div>
 
       {/* Right 50% Column: Full Screen Edge-to-Edge Clean Image (No Overlays, No Rounded Corners) */}
-      <div className="hidden lg:block lg:w-1/2 min-h-dvh sticky top-0 h-dvh relative bg-[#eef5fc] dark:bg-[#161b22] overflow-hidden rounded-none">
+      <div className="hidden lg:block lg:w-1/2 min-h-dvh sticky top-0 h-dvh relative bg-[#0d1117] overflow-hidden rounded-none">
         <img
-          src="/auth-hero-3d.jpg"
+          src="/auth-hero.png"
           alt="Med Global Network Healthcare Innovation"
           className="w-full h-full object-cover object-center rounded-none select-none pointer-events-none"
         />
