@@ -35,9 +35,12 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
         <Link href="/" className="flex items-center gap-2.5 group">
           <img
             src="/logo.png"
-            alt="MedGlobalNetwork"
+            alt="Med Global Network"
             className="h-9 sm:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
           />
+          <span className="hidden sm:inline-block text-base sm:text-lg font-black tracking-tight text-[#171717] group-hover:text-[#0f4c81] transition-colors">
+            Med Global Network
+          </span>
         </Link>
 
         {/* Desktop Navigation Links */}

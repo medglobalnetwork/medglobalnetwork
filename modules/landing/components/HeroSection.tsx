@@ -127,7 +127,7 @@ export function HeroSection({ onOpenAuth }: HeroSectionProps) {
                   <div className="size-3 rounded-full bg-amber-400" />
                   <div className="size-3 rounded-full bg-emerald-400" />
                   <span className="ml-2 text-xs font-bold text-[#171717] hidden sm:inline">
-                    MGN.life · Healthcare Intelligence Feed
+                    Med Global Network · Healthcare Intelligence Feed
                   </span>
                 </div>
                 <div className="flex items-center gap-2">

@@ -19,12 +19,15 @@ export function LandingFooter({ onOpenAuth }: LandingFooterProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12 pb-12 border-b border-slate-800">
           {/* Brand Col */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-3">
               <img
                 src="/logo.png"
-                alt="MedGlobalNetwork"
-                className="h-9 sm:h-10 w-auto object-contain brightness-0 invert"
+                alt="Med Global Network"
+                className="h-10 sm:h-11 w-auto object-contain brightness-0 invert"
               />
+              <span className="text-lg sm:text-xl font-black tracking-tight text-white">
+                Med Global Network
+              </span>
             </div>
 
             <p className="text-xs sm:text-sm text-slate-400 max-w-sm leading-relaxed">
@@ -170,7 +173,7 @@ export function LandingFooter({ onOpenAuth }: LandingFooterProps) {
 
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} MedGlobalNetwork (MGN.life). All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Med Global Network. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <a href="#" className="hover:text-slate-400 transition">
               Terms of Service

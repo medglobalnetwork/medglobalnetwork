@@ -298,12 +298,15 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     <div className="min-h-dvh bg-[#faf9f8] flex flex-col justify-between selection:bg-[#0f4c81]/20">
       {/* Top Navbar */}
       <header className="w-full border-b border-[#ded8d1] bg-white px-4 sm:px-8 py-3.5 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group">
+        <Link href="/" className="flex items-center gap-2.5 group">
           <img
             src="/logo.png"
-            alt="MedGlobalNetwork"
+            alt="Med Global Network"
             className="h-9 sm:h-10 w-auto object-contain transition-transform group-hover:scale-105"
           />
+          <span className="text-base sm:text-lg font-black tracking-tight text-[#171717] group-hover:text-[#0f4c81] transition-colors">
+            Med Global Network
+          </span>
         </Link>
 
         <Link
@@ -594,7 +597,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
       {/* Footer */}
       <footer className="py-4 text-center text-xs text-[#8a8784] border-t border-[#ded8d1] bg-white">
-        © {new Date().getFullYear()} MedGlobalNetwork (MGN.life). Verified Healthcare Network.
+        © {new Date().getFullYear()} Med Global Network. Verified Healthcare Network.
       </footer>
     </div>
   );
