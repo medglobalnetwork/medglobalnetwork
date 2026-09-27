@@ -542,18 +542,16 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     <div className="min-h-dvh w-full flex flex-col lg:flex-row bg-white dark:bg-[#0b0f17] font-sans selection:bg-[#0f4c81]/20">
       
       {/* ═══════════════════════════════════════════════
-          LEFT 50% COLUMN: FULL SCREEN EDGE-TO-EDGE
+          LEFT 50% COLUMN: FULL SCREEN EDGE-TO-EDGE IMAGE
           ═══════════════════════════════════════════════ */}
       <div className="w-full lg:w-1/2 min-h-dvh bg-[#eaf3fc] dark:bg-[#0c1829] flex flex-col justify-between p-6 sm:p-10 lg:p-14 xl:p-16 relative overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-200/80 dark:border-slate-800">
         
-        {/* Background Subtle Medical Crosses in Top Right */}
-        <div className="absolute top-6 right-8 pointer-events-none opacity-20 dark:opacity-10 hidden sm:block">
-          <div className="relative">
-            <span className="text-4xl text-[#0f4c81] font-thin leading-none select-none">+</span>
-            <span className="text-6xl text-[#0f4c81] font-thin leading-none select-none ml-6 -mt-2 inline-block">+</span>
-            <span className="text-2xl text-[#0f4c81] font-thin leading-none select-none block ml-14 -mt-2">+</span>
-          </div>
-        </div>
+        {/* Full-Screen Edge-to-Edge Illustration Background */}
+        <img
+          src="/login-team.png"
+          alt="MGN Healthcare Team"
+          className="absolute inset-0 w-full h-full object-cover object-bottom select-none pointer-events-none z-0"
+        />
 
         {/* Top: Logo */}
         <div className="flex items-center justify-between z-10">
@@ -572,9 +570,9 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           </div>
         </div>
 
-        {/* Middle: Headline, Subtitle & 4 Pillars */}
-        <div className="space-y-5 my-auto pt-6 pb-2 z-10 max-w-xl text-left">
-          <h1 className="text-3xl sm:text-5xl lg:text-[46px] xl:text-[52px] font-black tracking-tight text-[#0c2b4e] dark:text-[#f0f6fc] leading-[1.14]">
+        {/* Middle: Headline, Subtitle & 4 Pillars (Overlaid over the image top half) */}
+        <div className="space-y-4 my-auto pt-6 pb-2 z-10 max-w-xl text-left">
+          <h1 className="text-3xl sm:text-5xl lg:text-[44px] xl:text-[50px] font-black tracking-tight text-[#0c2b4e] dark:text-[#f0f6fc] leading-[1.14]">
             One Network. <br />
             <span className="text-[#16804d] dark:text-[#2ea043]">
               Endless Opportunities.
@@ -586,61 +584,55 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           </p>
 
           {/* 4 Value Pillars Row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-3 pt-2 text-left">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-3 pt-2 text-left">
             {/* Connect */}
-            <div className="space-y-1.5">
-              <div className="size-9 rounded-none bg-blue-100/70 dark:bg-blue-950/50 text-[#0f4c81] dark:text-[#58a6ff] flex items-center justify-center">
-                <Users className="size-5" />
+            <div className="space-y-1">
+              <div className="size-8.5 rounded-none bg-blue-100/80 dark:bg-blue-950/70 text-[#0f4c81] dark:text-[#58a6ff] flex items-center justify-center shadow-2xs">
+                <Users className="size-4.5" />
               </div>
               <div className="text-xs font-bold text-[#0c2b4e] dark:text-white">Connect</div>
-              <div className="text-[11px] text-[#6b7280] dark:text-[#8b949e] leading-snug">
+              <div className="text-[10.5px] text-[#6b7280] dark:text-[#8b949e] leading-snug">
                 Build meaningful professional connections
               </div>
             </div>
 
             {/* Learn */}
-            <div className="space-y-1.5">
-              <div className="size-9 rounded-none bg-emerald-100/70 dark:bg-emerald-950/50 text-[#16804d] dark:text-[#34d399] flex items-center justify-center">
-                <BookOpen className="size-5" />
+            <div className="space-y-1">
+              <div className="size-8.5 rounded-none bg-emerald-100/80 dark:bg-emerald-950/70 text-[#16804d] dark:text-[#34d399] flex items-center justify-center shadow-2xs">
+                <BookOpen className="size-4.5" />
               </div>
               <div className="text-xs font-bold text-[#0c2b4e] dark:text-white">Learn</div>
-              <div className="text-[11px] text-[#6b7280] dark:text-[#8b949e] leading-snug">
+              <div className="text-[10.5px] text-[#6b7280] dark:text-[#8b949e] leading-snug">
                 Access quality courses and resources
               </div>
             </div>
 
             {/* Grow */}
-            <div className="space-y-1.5">
-              <div className="size-9 rounded-none bg-teal-100/70 dark:bg-teal-950/50 text-[#0d9488] dark:text-[#2dd4bf] flex items-center justify-center">
-                <TrendingUp className="size-5" />
+            <div className="space-y-1">
+              <div className="size-8.5 rounded-none bg-teal-100/80 dark:bg-teal-950/70 text-[#0d9488] dark:text-[#2dd4bf] flex items-center justify-center shadow-2xs">
+                <TrendingUp className="size-4.5" />
               </div>
               <div className="text-xs font-bold text-[#0c2b4e] dark:text-white">Grow</div>
-              <div className="text-[11px] text-[#6b7280] dark:text-[#8b949e] leading-snug">
+              <div className="text-[10.5px] text-[#6b7280] dark:text-[#8b949e] leading-snug">
                 Discover opportunities and advance career
               </div>
             </div>
 
             {/* Thrive */}
-            <div className="space-y-1.5">
-              <div className="size-9 rounded-none bg-sky-100/70 dark:bg-sky-950/50 text-[#0284c7] dark:text-[#38bdf8] flex items-center justify-center">
-                <ShieldCheck className="size-5" />
+            <div className="space-y-1">
+              <div className="size-8.5 rounded-none bg-sky-100/80 dark:bg-sky-950/70 text-[#0284c7] dark:text-[#38bdf8] flex items-center justify-center shadow-2xs">
+                <ShieldCheck className="size-4.5" />
               </div>
               <div className="text-xs font-bold text-[#0c2b4e] dark:text-white">Thrive</div>
-              <div className="text-[11px] text-[#6b7280] dark:text-[#8b949e] leading-snug">
+              <div className="text-[10.5px] text-[#6b7280] dark:text-[#8b949e] leading-snug">
                 Be part of a trusted and verified network
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom: Team Artwork Edge-to-Edge */}
-        <div className="relative w-full mt-auto pt-4 flex justify-center z-10">
-          <img
-            src="/login-team.png"
-            alt="MGN Healthcare Team"
-            className="w-full max-h-[340px] sm:max-h-[390px] lg:max-h-[440px] object-contain object-bottom select-none pointer-events-none drop-shadow-md"
-          />
-        </div>
+        {/* Transparent bottom spacer to let the doctors in the background image shine through */}
+        <div className="h-44 sm:h-56 lg:h-64 z-10 pointer-events-none" />
       </div>
 
       {/* ═══════════════════════════════════════════════
