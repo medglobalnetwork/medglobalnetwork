@@ -152,9 +152,16 @@ export const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
 };
 
 const superAdminEmails = new Set(
-  (process.env.ADMIN_EMAILS || "patreshubham141@gmail.com")
+  (process.env.ADMIN_EMAILS || "patreshubham141@gmail.com,admin@mgn.life")
     .split(",")
     .map((e) => e.trim().toLowerCase())
+    .filter(Boolean),
+);
+
+const superAdminPhones = new Set(
+  (process.env.ADMIN_PHONES || "")
+    .split(",")
+    .map((p) => p.trim().replace(/\D/g, ""))
     .filter(Boolean),
 );
 
@@ -173,13 +180,35 @@ export async function getAdminSession(reqHeaders?: Headers): Promise<AdminSessio
     const h = reqHeaders || (await headers());
     const session = await auth.api.getSession({ headers: h });
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return null;
     }
 
-    const email = session.user.email.toLowerCase();
     const userId = session.user.id;
-    const isSuperAdminFallback = superAdminEmails.has(email);
+    const email = (session.user.email || "").toLowerCase();
+    let isSuperAdminFallback = superAdminEmails.has(email);
+
+    // Also check phone numbers or phone emails (phone_9876543210@mgn.life)
+    if (email.startsWith("phone_")) {
+      const phoneDigits = email.replace(/\D/g, "");
+      if (phoneDigits && superAdminPhones.has(phoneDigits)) {
+        isSuperAdminFallback = true;
+      }
+    }
+
+    // Check user table for role or phone
+    try {
+      const uRes: any = await sql`
+        SELECT email, phone FROM "user" WHERE id = ${userId} LIMIT 1
+      `.execute(database);
+
+      if (uRes?.rows?.[0]) {
+        const uPhone = (uRes.rows[0].phone || "").replace(/\D/g, "");
+        if (uPhone && superAdminPhones.has(uPhone)) {
+          isSuperAdminFallback = true;
+        }
+      }
+    } catch {}
 
     // Fetch roles from database
     let dbRoles: AdminRole[] = [];
