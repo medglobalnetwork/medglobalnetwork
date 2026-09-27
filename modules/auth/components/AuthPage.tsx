@@ -4,37 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import {
-  openOAuthBrowser,
-  closeOAuthBrowser,
-  onAppResumeOrDeepLink,
-  isNativePlatform,
-  signInWithNativeGoogle,
-  exchangeBridgeToken,
-} from "@/lib/native-mobile";
 import { ShieldCheck, Eye, EyeOff, Loader2, ArrowLeft, CheckCircle2, Lock, Sparkles } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-
-const GoogleIcon = () => (
-  <svg viewBox="0 0 48 48" className="h-5 w-5 shrink-0" aria-hidden="true">
-    <path
-      fill="#EA4335"
-      d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z"
-    />
-    <path
-      fill="#4285F4"
-      d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65Z"
-    />
-    <path
-      fill="#FBBC05"
-      d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19Z"
-    />
-    <path
-      fill="#34A853"
-      d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z"
-    />
-  </svg>
-);
 
 interface AuthPageProps {
   defaultMode?: "signin" | "signup";
@@ -61,7 +32,6 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   const [isForgotPassword, setIsForgotPassword] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
-  const [isAwaitingOAuth, setIsAwaitingOAuth] = React.useState(false);
 
   // Sync mode if query param changes
   React.useEffect(() => {
@@ -70,36 +40,12 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     }
   }, [queryMode]);
 
-  // Handle URL error or bridge_token params returned from OAuth flows
+  // Handle URL errors if any
   React.useEffect(() => {
-    const bridgeToken = searchParams?.get("bridge_token");
-    if (bridgeToken) {
-      setIsSubmitting(true);
-      exchangeBridgeToken(bridgeToken).then((success) => {
-        if (success) {
-          window.location.href = "/home";
-        } else {
-          setIsSubmitting(false);
-          setFormError("Authentication synchronization failed. Please sign in again.");
-        }
-      });
-      return;
-    }
-
     const error = searchParams?.get("error");
     const errorDesc = searchParams?.get("error_description");
     if (error) {
-      if (error === "access_denied") {
-        setFormError("Google sign-in was cancelled.");
-      } else if (error === "account_not_linked" || error === "OAuthAccountNotLinked") {
-        setFormError("An account with this email already exists. Sign in with your password or use your linked account.");
-      } else if (error === "state_not_found") {
-        setFormError("Sign-in session expired. Please click Sign in with Google again.");
-      } else if (error === "invalid_callback_request") {
-        setFormError("Google authentication encountered an invalid callback. Please try again.");
-      } else {
-        setFormError(errorDesc || `Authentication error: ${error}`);
-      }
+      setFormError(errorDesc || `Authentication error: ${error}`);
     }
   }, [searchParams]);
 
@@ -109,58 +55,6 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
       router.replace("/home");
     }
   }, [isSessionPending, session, router]);
-
-  // Handle native app resume / deep link after Google OAuth completes
-  React.useEffect(() => {
-    const cleanup = onAppResumeOrDeepLink(async (deepUrl, authSuccess) => {
-      try {
-        if (authSuccess) {
-          await closeOAuthBrowser();
-          window.location.href = "/home";
-          return;
-        }
-
-        if (deepUrl && (deepUrl.includes("/home") || deepUrl.includes("home"))) {
-          await closeOAuthBrowser();
-          window.location.href = "/home";
-          return;
-        }
-
-        if (deepUrl && deepUrl.includes("error=")) {
-          await closeOAuthBrowser();
-          setFormError("Google authentication could not be completed. Please try again.");
-          setIsSubmitting(false);
-          setIsAwaitingOAuth(false);
-          return;
-        }
-
-        if (isAwaitingOAuth) {
-          setTimeout(async () => {
-            try {
-              const currentSession = await authClient.getSession({
-                fetchOptions: { headers: { "Cache-Control": "no-cache" } },
-              });
-              if (currentSession?.data?.session || currentSession?.data?.user) {
-                await closeOAuthBrowser();
-                window.location.href = "/home";
-              } else {
-                setIsSubmitting(false);
-                setIsAwaitingOAuth(false);
-              }
-            } catch {
-              setIsSubmitting(false);
-              setIsAwaitingOAuth(false);
-            }
-          }, 2200);
-        }
-      } catch {
-        setIsSubmitting(false);
-        setIsAwaitingOAuth(false);
-      }
-    });
-
-    return cleanup;
-  }, [isAwaitingOAuth, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -229,41 +123,6 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         setFormError("An unexpected error occurred. Please try again.");
         setIsSubmitting(false);
       }
-    }
-  }
-
-  async function handleGoogleSignIn() {
-    setFormError("");
-    setIsSubmitting(true);
-    setIsAwaitingOAuth(true);
-
-    try {
-      if (isNativePlatform()) {
-        const nativeResult = await signInWithNativeGoogle();
-        if (nativeResult.success) {
-          window.location.href = "/home";
-          return;
-        }
-      }
-
-      const callbackUrl = `${window.location.origin}/home`;
-
-      if (isNativePlatform()) {
-        const authUrl = `${window.location.origin}/api/auth/sign-in/social?provider=google&callbackURL=${encodeURIComponent(
-          callbackUrl
-        )}`;
-        await openOAuthBrowser(authUrl);
-      } else {
-        await authClient.signIn.social({
-          provider: "google",
-          callbackURL: callbackUrl,
-        });
-      }
-    } catch (err: any) {
-      console.error("Google sign in error:", err);
-      setFormError(err?.message || "Could not connect to Google. Please try again.");
-      setIsSubmitting(false);
-      setIsAwaitingOAuth(false);
     }
   }
 
@@ -381,37 +240,6 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               >
                 Create Account
               </button>
-            </div>
-          )}
-
-          {/* Google OAuth Button */}
-          {!isForgotPassword && (
-            <div className="space-y-4">
-              <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                disabled={isSubmitting}
-                className="w-full flex items-center justify-center gap-3 rounded-2xl border border-[#ded8d1] bg-[#faf9f8] px-4 py-3 text-xs sm:text-sm font-bold text-[#171717] hover:bg-white hover:border-[#0f4c81]/40 shadow-2xs transition active:scale-95 disabled:opacity-50 cursor-pointer"
-              >
-                {isSubmitting && isAwaitingOAuth ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin text-[#0f4c81]" />
-                    <span>Connecting to Google...</span>
-                  </>
-                ) : (
-                  <>
-                    <GoogleIcon />
-                    <span>Continue with Google</span>
-                  </>
-                )}
-              </button>
-
-              <div className="relative flex items-center justify-center">
-                <div className="w-full border-t border-[#ded8d1]" />
-                <span className="absolute bg-white px-3 text-[10px] font-bold uppercase tracking-widest text-[#8a8784]">
-                  or with email
-                </span>
-              </div>
             </div>
           )}
 

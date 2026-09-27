@@ -123,27 +123,11 @@ export const auth = betterAuth({
       maxAge: 5 * 60,
     },
   },
-  account: {
-    accountLinking: {
-      enabled: true,
-      trustedProviders: ["google"],
-      requireLocalEmailVerified: false,
-      disableImplicitLinking: false,
-    },
-  },
   plugins: process.env.BETTER_AUTH_API_KEY ? [dash()] : [],
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, url }) => {
       console.info(`Password reset requested for ${user.email}: ${url}`);
-    },
-  },
-  socialProviders: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      prompt: "select_account",
-      accessType: "offline",
     },
   },
   secret:
