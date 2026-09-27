@@ -5,10 +5,11 @@ import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LandingHeader } from "@/modules/landing/components/LandingHeader";
 import { HeroSection } from "@/modules/landing/components/HeroSection";
-import { EcosystemSection } from "@/modules/landing/components/EcosystemSection";
-import { CliniciansShowcase } from "@/modules/landing/components/CliniciansShowcase";
-import { VerificationTrustSection } from "@/modules/landing/components/VerificationTrustSection";
-import { SpecialtiesGrid } from "@/modules/landing/components/SpecialtiesGrid";
+import { PlatformFeaturesSection } from "@/modules/landing/components/PlatformFeaturesSection";
+import { AudienceSection } from "@/modules/landing/components/AudienceSection";
+import { StatsBanner } from "@/modules/landing/components/StatsBanner";
+import { MobileAppSection } from "@/modules/landing/components/MobileAppSection";
+import { CtaBanner } from "@/modules/landing/components/CtaBanner";
 import { LandingFooter } from "@/modules/landing/components/LandingFooter";
 
 function LandingContent() {
@@ -40,28 +41,32 @@ function LandingContent() {
   };
 
   return (
-    <div className="min-h-dvh bg-white text-[#171717] flex flex-col selection:bg-[#0f4c81]/15 selection:text-[#0f4c81]">
-      {/* 1. Header */}
+    <div className="min-h-dvh bg-white text-[#171717] dark:bg-[#0b0f17] dark:text-[#f0f6fc] flex flex-col selection:bg-[#0f4c81]/15 selection:text-[#0f4c81]">
+      {/* 1. Header with Borderless Nav & Dropdowns */}
       <LandingHeader onOpenAuth={handleNavigateAuth} />
 
-      {/* 2. Hero Section with Interactive Mockup */}
+      {/* Main Content Sections */}
       <main className="flex-1">
+        {/* 2. Hero Section */}
         <HeroSection onOpenAuth={handleNavigateAuth} />
 
-        {/* 3. Healthcare Ecosystem (6 Core Pillars) */}
-        <EcosystemSection onOpenAuth={handleNavigateAuth} />
+        {/* 3. Platform Features ("Everything You Need. All in One Platform.") */}
+        <PlatformFeaturesSection />
 
-        {/* 4. Verified Clinicians & Network Showcase */}
-        <CliniciansShowcase onOpenAuth={handleNavigateAuth} />
+        {/* 4. Audience Grid ("Who Is MGN For?") */}
+        <AudienceSection />
 
-        {/* 5. License Verification & Trust Process */}
-        <VerificationTrustSection onOpenAuth={handleNavigateAuth} />
+        {/* 5. Impact Stats Banner */}
+        <StatsBanner />
 
-        {/* 6. Medical Specialties Hubs */}
-        <SpecialtiesGrid onOpenAuth={handleNavigateAuth} />
+        {/* 6. Mobile App Showcase */}
+        <MobileAppSection />
+
+        {/* 7. Bottom CTA Banner */}
+        <CtaBanner onOpenAuth={handleNavigateAuth} />
       </main>
 
-      {/* 7. Comprehensive Healthcare Footer */}
+      {/* 8. Comprehensive Footer */}
       <LandingFooter onOpenAuth={handleNavigateAuth} />
     </div>
   );
@@ -74,4 +79,3 @@ export default function LandingPage() {
     </Suspense>
   );
 }
-

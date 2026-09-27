@@ -1,25 +1,24 @@
 "use client";
 
 import * as React from "react";
-import {
-  ArrowRight,
-  ShieldCheck,
-  Sparkles,
-  Users,
-  Award,
-  Stethoscope,
-  HeartPulse,
-  Briefcase,
-  BookOpen,
-  Calendar,
-  Microscope,
-} from "lucide-react";
-
 import Link from "next/link";
+import {
+  Users,
+  BookOpen,
+  TrendingUp,
+  Sparkles,
+  ShieldCheck,
+  ArrowRight,
+  GraduationCap,
+  Briefcase,
+  ShoppingCart,
+  Stethoscope,
+  CheckCircle2,
+} from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
 interface HeroSectionProps {
-  onOpenAuth: (mode?: "signin" | "signup") => void;
+  onOpenAuth?: (mode?: "signin" | "signup") => void;
 }
 
 export function HeroSection({ onOpenAuth }: HeroSectionProps) {
@@ -27,206 +26,184 @@ export function HeroSection({ onOpenAuth }: HeroSectionProps) {
   const isLoggedIn = Boolean(session?.user);
 
   return (
-    <section className="relative overflow-hidden bg-white pt-10 pb-16 sm:pt-16 sm:pb-24 lg:pt-20 lg:pb-32">
-      {/* Background Decorative Ambient Gradients */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 -z-10 w-full max-w-7xl h-[600px] pointer-events-none opacity-40">
-        <div className="absolute top-10 left-1/4 size-[420px] rounded-full bg-gradient-to-tr from-[#0f4c81]/20 to-[#16804d]/20 blur-3xl" />
-        <div className="absolute top-28 right-1/4 size-[380px] rounded-full bg-gradient-to-br from-[#16804d]/15 to-[#0f4c81]/15 blur-3xl" />
+    <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#fbfbfb] to-[#faf9f8] dark:from-[#0b0f17] dark:via-[#0e141f] dark:to-[#0b0f17] pt-8 pb-16 sm:pt-14 sm:pb-24 lg:pt-18 lg:pb-28">
+      {/* Subtle Background Glow */}
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 -z-10 w-full max-w-7xl h-[550px] pointer-events-none opacity-40">
+        <div className="absolute top-0 right-10 size-[480px] rounded-full bg-gradient-to-br from-[#0f4c81]/15 to-[#16804d]/15 blur-3xl" />
+        <div className="absolute bottom-0 left-10 size-[400px] rounded-full bg-gradient-to-tr from-[#16804d]/10 to-[#0f4c81]/10 blur-3xl" />
       </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center text-center">
-          {/* Trust Banner Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#ded8d1] bg-[#faf9f8] px-3.5 py-1.5 shadow-2xs transition hover:border-[#0f4c81]/40 mb-6">
-            <span className="flex size-2 rounded-full bg-[#16804d] animate-pulse" />
-            <ShieldCheck className="size-4 text-[#16804d]" />
-            <span className="text-xs font-bold text-[#171717]">
-              100% Medical License & Credential Verified Platform
-            </span>
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+          {/* ═══════════════════════════════════════════════
+              LEFT COLUMN: HEADLINE & ACTIONS
+              ═══════════════════════════════════════════════ */}
+          <div className="lg:col-span-6 space-y-6 sm:space-y-7 text-left">
+            {/* Main Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-extrabold tracking-tight text-[#171717] dark:text-[#f0f6fc] leading-[1.12]">
+              One Network. <br />
+              <span className="text-[#16804d] dark:text-[#2ea043]">
+                Endless Opportunities.
+              </span>
+            </h1>
 
-          {/* Hero Headline */}
-          <h1 className="max-w-4xl text-3xl font-black tracking-tight text-[#171717] sm:text-5xl md:text-6xl lg:leading-[1.12]">
-            Connect, Collaborate & Advance{" "}
-            <span className="bg-gradient-to-r from-[#0f4c81] via-[#134e8a] to-[#16804d] bg-clip-text text-transparent">
-              Healthcare Worldwide
-            </span>
-          </h1>
+            {/* Subheading */}
+            <p className="text-sm sm:text-base text-[#4b5563] dark:text-[#9ca3af] leading-relaxed max-w-xl font-normal">
+              MGN connects healthcare professionals, students, organizations, and businesses on a single platform to learn, grow, collaborate, and thrive.
+            </p>
 
-          {/* Subheading */}
-          <p className="mt-5 max-w-2xl text-base sm:text-lg text-[#5d5854] font-medium leading-relaxed">
-            The global professional network for doctors, surgeons, physiotherapists, researchers, and healthcare institutions. Exchange clinical cases, access accredited CME, discover verified careers, and publish medical research.
-          </p>
+            {/* 4 Value Proposition Badges */}
+            <div className="flex items-center gap-4 sm:gap-6 flex-wrap pt-1 text-xs font-semibold text-[#1f2937] dark:text-[#f0f6fc]">
+              <div className="flex items-center gap-1.5 text-[#0f4c81] dark:text-[#58a6ff]">
+                <Users className="size-4" />
+                <span>Connect</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-[#16804d] dark:text-[#3fb950]">
+                <BookOpen className="size-4" />
+                <span>Learn</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-[#0d9488] dark:text-[#2dd4bf]">
+                <TrendingUp className="size-4" />
+                <span>Grow</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-[#eab308] dark:text-[#facc15]">
+                <Sparkles className="size-4" />
+                <span>Thrive</span>
+              </div>
+            </div>
 
-          {/* CTA Buttons */}
-          <div className="mt-8 flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto">
-            {isLoggedIn ? (
-              <>
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-center gap-3.5 pt-2">
+              {isLoggedIn ? (
                 <Link
                   href="/home"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0f4c81] px-7 py-3.5 text-sm sm:text-base font-bold text-white shadow-md hover:bg-[#0c3c66] transition active:scale-95"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#0f4c81] dark:bg-[#14559b] px-7 py-3.5 text-xs sm:text-sm font-semibold text-white shadow-md hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition active:scale-98"
                 >
                   <span>Go to Your Dashboard</span>
-                  <ArrowRight className="size-4.5" />
+                  <ArrowRight className="size-4" />
                 </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/signup"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#0f4c81] dark:bg-[#14559b] px-7 py-3.5 text-xs sm:text-sm font-semibold text-white shadow-md hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition active:scale-98 cursor-pointer"
+                  >
+                    <span>Get Started – It&apos;s Free</span>
+                  </Link>
 
-                <Link
-                  href="/network"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl border border-[#ded8d1] bg-white px-6 py-3.5 text-sm sm:text-base font-bold text-[#171717] shadow-2xs hover:bg-[#faf9f8] transition active:scale-95"
-                >
-                  <span>Explore Network</span>
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/signup"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0f4c81] px-7 py-3.5 text-sm sm:text-base font-bold text-white shadow-md hover:bg-[#0c3c66] transition active:scale-95 cursor-pointer"
-                >
-                  <span>Join Verified Network</span>
-                  <ArrowRight className="size-4.5" />
-                </Link>
+                  <a
+                    href="#features"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-[#0f4c81]/40 dark:border-[#58a6ff]/40 bg-white dark:bg-[#161b22] px-6 py-3.5 text-xs sm:text-sm font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:bg-[#0f4c81]/5 transition active:scale-98 cursor-pointer"
+                  >
+                    <span>Explore Features</span>
+                  </a>
+                </>
+              )}
+            </div>
 
-                <Link
-                  href="/login"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl border border-[#ded8d1] bg-white px-6 py-3.5 text-sm sm:text-base font-bold text-[#171717] shadow-2xs hover:bg-[#faf9f8] transition active:scale-95 cursor-pointer"
-                >
-                  <span>Sign in to Account</span>
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Stats Bar */}
-          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 w-full max-w-4xl border-y border-[#ded8d1] py-6 sm:py-8">
-            <div className="flex flex-col items-center">
-              <span className="text-2xl sm:text-3xl font-black text-[#0f4c81]">50,000+</span>
-              <span className="text-xs font-semibold text-[#77716b] mt-1">Verified Clinicians</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="text-2xl sm:text-3xl font-black text-[#16804d]">500+</span>
-              <span className="text-xs font-semibold text-[#77716b] mt-1">Healthcare Institutions</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="text-2xl sm:text-3xl font-black text-[#0f4c81]">1,200+</span>
-              <span className="text-xs font-semibold text-[#77716b] mt-1">CME & Medical Camps</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="text-2xl sm:text-3xl font-black text-[#16804d]">100%</span>
-              <span className="text-xs font-semibold text-[#77716b] mt-1">Credential Authenticated</span>
+            {/* Trust Footnote */}
+            <div className="flex items-center gap-2 text-xs font-medium text-[#4b5563] dark:text-[#8b949e] pt-1">
+              <ShieldCheck className="size-4 text-[#16804d]" />
+              <span>Trusted | Verified | Healthcare Focused</span>
             </div>
           </div>
 
-          {/* Interactive Platform Mockup Preview */}
-          <div className="mt-12 sm:mt-16 w-full max-w-5xl">
-            <div className="rounded-3xl border border-[#ded8d1] bg-gradient-to-b from-[#faf9f8] to-white p-3 sm:p-5 shadow-xl">
-              {/* App Shell Mock Header */}
-              <div className="rounded-2xl border border-[#ded8d1] bg-white p-3 sm:p-4 shadow-xs flex items-center justify-between gap-3 mb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="size-3 rounded-full bg-rose-400" />
-                  <div className="size-3 rounded-full bg-amber-400" />
-                  <div className="size-3 rounded-full bg-emerald-400" />
-                  <span className="ml-2 text-xs font-bold text-[#171717] hidden sm:inline">
-                    Med Global Network · Healthcare Intelligence Feed
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-[#eef5fc] text-[#0f4c81] px-2.5 py-1 text-[10px] sm:text-xs font-bold flex items-center gap-1">
-                    <ShieldCheck className="size-3.5 text-[#16804d]" />
-                    Verified Clinician Session
-                  </span>
-                </div>
+          {/* ═══════════════════════════════════════════════
+              RIGHT COLUMN: REALISTIC DEVICE & HERO COMPOSITION
+              ═══════════════════════════════════════════════ */}
+          <div className="lg:col-span-6 relative flex items-center justify-center">
+            {/* Orbiting Floating Icon Badges */}
+            <div className="relative w-full max-w-[540px]">
+              {/* Floating Orbit Icons */}
+              <div className="absolute -top-6 left-12 size-10 rounded-full bg-white dark:bg-[#161b22] shadow-md border border-[#ded8d1]/60 dark:border-[#30363d] flex items-center justify-center text-[#0f4c81] z-20 animate-bounce duration-1000">
+                <GraduationCap className="size-5" />
               </div>
 
-              {/* Mock Feed & Profiles Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 text-left">
-                {/* Left: Feed Case Card (8 Cols) */}
-                <div className="md:col-span-8 rounded-2xl border border-[#ded8d1] bg-white p-4 sm:p-5 shadow-2xs space-y-3.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="size-11 rounded-full bg-[#0f4c81] text-white font-bold flex items-center justify-center text-sm ring-2 ring-[#0f4c81]/20">
-                        DR
+              <div className="absolute -top-8 right-28 size-10 rounded-full bg-white dark:bg-[#161b22] shadow-md border border-[#ded8d1]/60 dark:border-[#30363d] flex items-center justify-center text-[#16804d] z-20">
+                <Briefcase className="size-5" />
+              </div>
+
+              <div className="absolute top-1/4 -left-3 size-10 rounded-full bg-white dark:bg-[#161b22] shadow-md border border-[#ded8d1]/60 dark:border-[#30363d] flex items-center justify-center text-[#0f4c81] z-20">
+                <Users className="size-5" />
+              </div>
+
+              <div className="absolute top-1/3 -right-2 size-10 rounded-full bg-white dark:bg-[#161b22] shadow-md border border-[#ded8d1]/60 dark:border-[#30363d] flex items-center justify-center text-[#0d9488] z-20">
+                <ShoppingCart className="size-5" />
+              </div>
+
+              {/* Medical Professionals Banner Layer */}
+              <div className="relative z-10 mx-auto w-full pt-6">
+                {/* Laptop Mockup Wrapper */}
+                <div className="relative mx-auto rounded-t-2xl border-4 border-[#333e48] bg-[#1e293b] p-1.5 shadow-2xl">
+                  {/* Laptop Camera dot */}
+                  <div className="mx-auto size-1.5 rounded-full bg-slate-600 mb-1" />
+
+                  {/* Laptop Screen Content */}
+                  <div className="rounded-lg bg-white dark:bg-[#0d1117] p-3 text-left overflow-hidden border border-slate-200 dark:border-slate-800">
+                    {/* Header inside laptop */}
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800 text-[10px]">
+                      <div className="flex items-center gap-1 font-bold text-[#0f4c81] dark:text-[#58a6ff]">
+                        <img src="/logo.png" alt="MGN" className="h-4 w-auto object-contain" />
                       </div>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <h4 className="text-sm font-bold text-[#171717]">Dr. Rahul Sharma, MS</h4>
-                          <span className="inline-flex items-center gap-1 rounded-full bg-[#eef8f2] px-2 py-0.5 text-[10px] font-bold text-[#16804d]">
-                            ✓ Verified Surgeon
-                          </span>
+                      <span className="text-[#555] dark:text-slate-400 font-medium">Welcome back, Dr. Priya</span>
+                    </div>
+
+                    {/* Dashboard Mini Cards inside laptop */}
+                    <div className="pt-2 space-y-2">
+                      <div className="text-[10px] font-bold text-[#171717] dark:text-white">Discover Opportunities</div>
+                      <div className="grid grid-cols-4 gap-1 text-[8px] text-center font-medium">
+                        <div className="p-1.5 rounded-md bg-[#eef5fc] dark:bg-[#1e293b] text-[#0f4c81] dark:text-[#58a6ff]">
+                          Network
                         </div>
-                        <p className="text-[11px] text-[#77716b]">
-                          Orthopedic Surgeon · Joint Reconstruction · AIIMS New Delhi
-                        </p>
+                        <div className="p-1.5 rounded-md bg-[#ecfdf5] dark:bg-[#064e3b]/30 text-[#16804d] dark:text-[#34d399]">
+                          Jobs
+                        </div>
+                        <div className="p-1.5 rounded-md bg-[#f0f9ff] dark:bg-[#0c4a6e]/30 text-[#0284c7] dark:text-[#38bdf8]">
+                          Learning
+                        </div>
+                        <div className="p-1.5 rounded-md bg-[#faf5ff] dark:bg-[#581c87]/30 text-[#7c3aed] dark:text-[#c084fc]">
+                          Marketplace
+                        </div>
+                      </div>
+
+                      {/* Mini Job / Feed item */}
+                      <div className="p-2 rounded-lg bg-[#faf9f8] dark:bg-[#161b22] border border-[#e5e7eb] dark:border-slate-800 flex items-center justify-between text-[9px]">
+                        <div className="flex items-center gap-1.5">
+                          <div className="size-5 rounded-full bg-[#0f4c81] text-white flex items-center justify-center font-bold text-[8px]">
+                            P
+                          </div>
+                          <div>
+                            <div className="font-semibold text-[#171717] dark:text-white">Physiotherapist (Sports Rehab)</div>
+                            <div className="text-slate-400 text-[8px]">Apollo Hospital • Full Time</div>
+                          </div>
+                        </div>
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[8px] font-semibold">
+                          Verified
+                        </span>
                       </div>
                     </div>
-                    <span className="text-[11px] text-[#8a8784]">2h ago</span>
                   </div>
 
-                  <p className="text-xs sm:text-sm text-[#171717] leading-relaxed">
-                    Successful arthroscopic rotator cuff reconstruction using augmented bio-inductive collagen implants. Significant reduction in post-op stiffness and accelerated clinical rehabilitation at 6-week milestone.
-                  </p>
-
-                  <div className="rounded-xl bg-[#0f4c81]/5 border border-[#0f4c81]/15 p-3 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2 text-[#0f4c81] font-bold">
-                      <Microscope className="size-4" />
-                      <span>Clinical Study & Protocol Attached (PDF)</span>
-                    </div>
-                    <span className="text-[10px] font-bold text-[#16804d] bg-white px-2 py-1 rounded-md border border-[#ded8d1]">
-                      Peer Reviewed
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-4 text-xs font-bold text-[#77716b] pt-1 border-t border-[#f0efee]">
-                    <span className="text-[#0f4c81]">❤️ 48 Clinicians Reacted</span>
-                    <span>💬 14 Specialist Insights</span>
-                    <span>🔗 9 Shares</span>
-                  </div>
+                  {/* Laptop Base */}
+                  <div className="h-3 w-[106%] -ml-[3%] bg-[#475569] rounded-b-xl border-t border-[#64748b]" />
                 </div>
 
-                {/* Right: Quick Recommendations & Stats (4 Cols) */}
-                <div className="md:col-span-4 space-y-3">
-                  <div className="rounded-2xl border border-[#ded8d1] bg-white p-4 shadow-2xs space-y-3">
-                    <h5 className="text-xs font-bold text-[#171717] flex items-center gap-1.5">
-                      <Sparkles className="size-3.5 text-[#0f4c81]" />
-                      Specialist Discovery
-                    </h5>
-                    <div className="space-y-2.5">
-                      <div className="flex items-center gap-2.5 p-1.5 rounded-xl hover:bg-[#faf9f8]">
-                        <div className="size-8 rounded-full bg-[#16804d] text-white text-xs font-bold flex items-center justify-center">
-                          PA
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold text-[#171717] truncate">Dr. Priya Agrawal</p>
-                          <p className="text-[10px] text-[#77716b] truncate">Sports Physiotherapy</p>
-                        </div>
-                        <span className="text-[10px] font-bold text-[#0f4c81] bg-[#eef5fc] px-2 py-0.5 rounded-lg">
-                          Connect
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2.5 p-1.5 rounded-xl hover:bg-[#faf9f8]">
-                        <div className="size-8 rounded-full bg-[#4f46e5] text-white text-xs font-bold flex items-center justify-center">
-                          VK
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold text-[#171717] truncate">Dr. Vikram Kapoor</p>
-                          <p className="text-[10px] text-[#77716b] truncate">Cardiothoracic Surgery</p>
-                        </div>
-                        <span className="text-[10px] font-bold text-[#0f4c81] bg-[#eef5fc] px-2 py-0.5 rounded-lg">
-                          Connect
-                        </span>
-                      </div>
+                {/* Overlaid Smartphone Mockup on Right */}
+                <div className="absolute -bottom-4 right-2 sm:right-6 w-32 sm:w-36 rounded-2xl border-4 border-[#1e293b] bg-white dark:bg-[#161b22] p-1.5 shadow-2xl z-30 transform rotate-1">
+                  {/* Speaker pill */}
+                  <div className="mx-auto h-1 w-8 rounded-full bg-slate-400 mb-1" />
+                  <div className="space-y-1.5 text-[8px]">
+                    <div className="flex items-center justify-between border-b pb-1 text-[7px] text-[#0f4c81] font-bold">
+                      <span>+MGN</span>
+                      <span className="size-1.5 rounded-full bg-emerald-500" />
                     </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-[#ded8d1] bg-gradient-to-br from-[#0f4c81] to-[#16804d] p-4 text-white shadow-xs">
-                    <div className="flex items-center gap-2 text-xs font-bold text-amber-300">
-                      <Award className="size-4" />
-                      <span>Accredited CME Webinar</span>
+                    <div className="font-bold text-[#171717] dark:text-white text-[8px]">Top Learning Picks</div>
+                    <div className="p-1 rounded bg-[#eef5fc] dark:bg-[#1e293b] text-[#0f4c81] font-semibold text-[7px]">
+                      Accredited CME: ICU Critical Care
                     </div>
-                    <p className="text-xs font-bold text-white mt-1">
-                      Advanced Cardiac Imaging Summit 2026
-                    </p>
-                    <p className="text-[11px] text-white/80 mt-0.5">3 Credit Points · Online</p>
+                    <div className="p-1 rounded bg-[#ecfdf5] dark:bg-[#064e3b]/30 text-[#16804d] font-semibold text-[7px]">
+                      Clinical Case: Sports Knee Injury
+                    </div>
                   </div>
                 </div>
               </div>
