@@ -2,7 +2,19 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ChevronDown, ArrowRight, Menu, X, LayoutDashboard, Stethoscope, Building2, BookOpen } from "lucide-react";
+import {
+  ChevronDown,
+  ArrowRight,
+  Menu,
+  X,
+  LayoutDashboard,
+  Home,
+  Info,
+  Sparkles,
+  Stethoscope,
+  Building2,
+  BookOpen,
+} from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import UserMenu from "@/components/UserMenu";
 
@@ -15,6 +27,7 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState<boolean>(false);
   const [activeDropdown, setActiveDropdown] = React.useState<string | null>(null);
   const [mobileExpandedSection, setMobileExpandedSection] = React.useState<string | null>(null);
+  const [activeNav, setActiveNav] = React.useState<string>("home");
 
   const isLoggedIn = !isPending && Boolean(session?.user);
 
@@ -43,29 +56,63 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
           />
         </Link>
 
-        {/* 2. Desktop Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-[13.5px] font-medium text-[#4b5563] dark:text-[#9ca3af]">
+        {/* 2. Desktop Navigation Links (Icon + Label + Active Bottom Underline) */}
+        <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-[13.5px]">
+          {/* Home */}
           <Link
             href="/"
-            className="text-[#0f4c81] dark:text-[#388bfd] font-semibold transition hover:text-[#0f4c81]"
+            onClick={() => setActiveNav("home")}
+            className={`relative flex items-center gap-1.5 py-2 font-medium transition cursor-pointer ${
+              activeNav === "home"
+                ? "text-[#171717] dark:text-[#f0f6fc] font-semibold"
+                : "text-[#5d5854] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
+            }`}
           >
-            Home
+            <Home className="size-4 shrink-0" />
+            <span>Home</span>
+            {activeNav === "home" && (
+              <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#171717] dark:bg-[#f0f6fc] rounded-none animate-in fade-in duration-150" />
+            )}
           </Link>
 
+          {/* About Us */}
           <button
             type="button"
-            onClick={() => scrollToSection("features")}
-            className="hover:text-[#0f4c81] dark:hover:text-[#f0f6fc] transition cursor-pointer"
+            onClick={() => {
+              setActiveNav("about");
+              scrollToSection("features");
+            }}
+            className={`relative flex items-center gap-1.5 py-2 font-medium transition cursor-pointer ${
+              activeNav === "about"
+                ? "text-[#171717] dark:text-[#f0f6fc] font-semibold"
+                : "text-[#5d5854] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
+            }`}
           >
-            About Us
+            <Info className="size-4 shrink-0" />
+            <span>About Us</span>
+            {activeNav === "about" && (
+              <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#171717] dark:bg-[#f0f6fc] rounded-none animate-in fade-in duration-150" />
+            )}
           </button>
 
+          {/* Features */}
           <button
             type="button"
-            onClick={() => scrollToSection("features")}
-            className="hover:text-[#0f4c81] dark:hover:text-[#f0f6fc] transition cursor-pointer"
+            onClick={() => {
+              setActiveNav("features");
+              scrollToSection("features");
+            }}
+            className={`relative flex items-center gap-1.5 py-2 font-medium transition cursor-pointer ${
+              activeNav === "features"
+                ? "text-[#171717] dark:text-[#f0f6fc] font-semibold"
+                : "text-[#5d5854] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
+            }`}
           >
-            Features
+            <Sparkles className="size-4 shrink-0" />
+            <span>Features</span>
+            {activeNav === "features" && (
+              <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#171717] dark:bg-[#f0f6fc] rounded-none animate-in fade-in duration-150" />
+            )}
           </button>
 
           {/* For Professionals Dropdown */}
@@ -76,10 +123,19 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
           >
             <button
               type="button"
-              className="flex items-center gap-1 hover:text-[#0f4c81] dark:hover:text-[#f0f6fc] transition cursor-pointer py-2"
+              onClick={() => setActiveNav("professionals")}
+              className={`relative flex items-center gap-1.5 py-2 font-medium transition cursor-pointer ${
+                activeNav === "professionals"
+                  ? "text-[#171717] dark:text-[#f0f6fc] font-semibold"
+                  : "text-[#5d5854] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
+              }`}
             >
+              <Stethoscope className="size-4 shrink-0" />
               <span>For Professionals</span>
               <ChevronDown className="size-3.5 opacity-70" />
+              {activeNav === "professionals" && (
+                <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#171717] dark:bg-[#f0f6fc] rounded-none animate-in fade-in duration-150" />
+              )}
             </button>
             {activeDropdown === "professionals" && (
               <div className="absolute top-full left-0 mt-0.5 w-60 rounded-2xl bg-white dark:bg-[#161b22] p-2 shadow-xl border border-[#ded8d1]/60 dark:border-[#30363d] animate-in fade-in slide-in-from-top-1 z-50">
@@ -119,10 +175,19 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
           >
             <button
               type="button"
-              className="flex items-center gap-1 hover:text-[#0f4c81] dark:hover:text-[#f0f6fc] transition cursor-pointer py-2"
+              onClick={() => setActiveNav("organizations")}
+              className={`relative flex items-center gap-1.5 py-2 font-medium transition cursor-pointer ${
+                activeNav === "organizations"
+                  ? "text-[#171717] dark:text-[#f0f6fc] font-semibold"
+                  : "text-[#5d5854] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
+              }`}
             >
+              <Building2 className="size-4 shrink-0" />
               <span>For Organizations</span>
               <ChevronDown className="size-3.5 opacity-70" />
+              {activeNav === "organizations" && (
+                <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#171717] dark:bg-[#f0f6fc] rounded-none animate-in fade-in duration-150" />
+              )}
             </button>
             {activeDropdown === "organizations" && (
               <div className="absolute top-full left-0 mt-0.5 w-60 rounded-2xl bg-white dark:bg-[#161b22] p-2 shadow-xl border border-[#ded8d1]/60 dark:border-[#30363d] animate-in fade-in slide-in-from-top-1 z-50">
@@ -156,10 +221,19 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
           >
             <button
               type="button"
-              className="flex items-center gap-1 hover:text-[#0f4c81] dark:hover:text-[#f0f6fc] transition cursor-pointer py-2"
+              onClick={() => setActiveNav("resources")}
+              className={`relative flex items-center gap-1.5 py-2 font-medium transition cursor-pointer ${
+                activeNav === "resources"
+                  ? "text-[#171717] dark:text-[#f0f6fc] font-semibold"
+                  : "text-[#5d5854] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
+              }`}
             >
+              <BookOpen className="size-4 shrink-0" />
               <span>Resources</span>
               <ChevronDown className="size-3.5 opacity-70" />
+              {activeNav === "resources" && (
+                <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#171717] dark:bg-[#f0f6fc] rounded-none animate-in fade-in duration-150" />
+              )}
             </button>
             {activeDropdown === "resources" && (
               <div className="absolute top-full left-0 mt-0.5 w-56 rounded-2xl bg-white dark:bg-[#161b22] p-2 shadow-xl border border-[#ded8d1]/60 dark:border-[#30363d] animate-in fade-in slide-in-from-top-1 z-50">
@@ -254,25 +328,28 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
             <Link
               href="/"
               onClick={() => setMobileMenuOpen(false)}
-              className="py-2.5 px-3 rounded-lg text-[#0f4c81] dark:text-[#58a6ff] font-semibold bg-[#eef5fc]/60 dark:bg-[#1e293b]"
+              className="flex items-center gap-2.5 py-2.5 px-3 rounded-lg text-[#0f4c81] dark:text-[#58a6ff] font-semibold bg-[#eef5fc]/60 dark:bg-[#1e293b]"
             >
-              Home
+              <Home className="size-4 text-[#0f4c81]" />
+              <span>Home</span>
             </Link>
 
             <button
               type="button"
               onClick={() => scrollToSection("features")}
-              className="text-left py-2.5 px-3 rounded-lg hover:bg-[#faf9f8] dark:hover:bg-[#21262d]"
+              className="flex items-center gap-2.5 text-left py-2.5 px-3 rounded-lg hover:bg-[#faf9f8] dark:hover:bg-[#21262d]"
             >
-              About Us
+              <Info className="size-4 text-[#5d5854] dark:text-[#8b949e]" />
+              <span>About Us</span>
             </button>
 
             <button
               type="button"
               onClick={() => scrollToSection("features")}
-              className="text-left py-2.5 px-3 rounded-lg hover:bg-[#faf9f8] dark:hover:bg-[#21262d]"
+              className="flex items-center gap-2.5 text-left py-2.5 px-3 rounded-lg hover:bg-[#faf9f8] dark:hover:bg-[#21262d]"
             >
-              Features
+              <Sparkles className="size-4 text-[#5d5854] dark:text-[#8b949e]" />
+              <span>Features</span>
             </button>
 
             {/* Accordion 1: For Professionals */}
