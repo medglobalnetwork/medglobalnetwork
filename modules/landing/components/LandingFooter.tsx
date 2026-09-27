@@ -169,7 +169,9 @@ export function LandingFooter({ onOpenAuth }: LandingFooterProps) {
               </li>
               <li className="flex items-center gap-2 truncate">
                 <Phone className="size-3.5 text-emerald-400 shrink-0" />
-                <span>+91 98765 43210</span>
+                <a href="tel:+916263585180" className="hover:text-white transition cursor-pointer">
+                  +91 62635 85180
+                </a>
               </li>
               <li className="flex items-center gap-2 truncate">
                 <Globe className="size-3.5 text-emerald-400 shrink-0" />
