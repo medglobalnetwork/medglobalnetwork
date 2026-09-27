@@ -26,7 +26,6 @@ import {
   RefreshCw,
   Smartphone,
 } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 // Password strength calculation utility
 interface PasswordStrength {
@@ -765,7 +764,6 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           >
             ← Back to Home
           </Link>
-          <ThemeToggle collapsed={true} />
         </div>
 
         {/* Center Main Form Area (Rounded-None) */}

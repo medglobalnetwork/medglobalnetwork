@@ -51,7 +51,6 @@ import {
   type ProfessionSchema,
   type RequirementLevel,
 } from "@/modules/onboarding/config/schemas";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 const DRAFT_STORAGE_KEY = "mgn_onboarding_form_draft";
 
@@ -593,7 +592,12 @@ export default function OnboardingPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <ThemeToggle collapsed={true} />
+          <Link
+            href="/login"
+            className="text-xs font-semibold text-[#5d5854] dark:text-[#8b949e] hover:text-[#0f4c81] dark:hover:text-[#58a6ff] transition"
+          >
+            Exit to Login
+          </Link>
         </div>
       </header>
 

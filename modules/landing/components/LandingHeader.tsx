@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ChevronDown, ArrowRight, Menu, X, LayoutDashboard, Stethoscope, Building2, BookOpen } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import UserMenu from "@/components/UserMenu";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface LandingHeaderProps {
   onOpenAuth?: (mode?: "signin" | "signup") => void;
@@ -192,8 +191,6 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
 
         {/* 3. Right CTA Buttons (Tablet & Desktop) */}
         <div className="hidden sm:flex items-center gap-2.5 sm:gap-3 shrink-0">
-          <ThemeToggle collapsed={true} />
-
           {isLoggedIn ? (
             <div className="flex items-center gap-2.5">
               <Link
@@ -229,7 +226,6 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
 
         {/* 4. Mobile Toggle Bar (Mobile Only) */}
         <div className="flex sm:hidden items-center gap-2 shrink-0">
-          <ThemeToggle collapsed={true} />
           {isLoggedIn ? (
             <UserMenu />
           ) : (
