@@ -15,11 +15,17 @@ import {
   Microscope,
 } from "lucide-react";
 
+import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
+
 interface HeroSectionProps {
   onOpenAuth: (mode?: "signin" | "signup") => void;
 }
 
 export function HeroSection({ onOpenAuth }: HeroSectionProps) {
+  const { data: session } = authClient.useSession();
+  const isLoggedIn = Boolean(session?.user);
+
   return (
     <section className="relative overflow-hidden bg-white pt-10 pb-16 sm:pt-16 sm:pb-24 lg:pt-20 lg:pb-32">
       {/* Background Decorative Ambient Gradients */}
@@ -54,22 +60,43 @@ export function HeroSection({ onOpenAuth }: HeroSectionProps) {
 
           {/* CTA Buttons */}
           <div className="mt-8 flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto">
-            <button
-              type="button"
-              onClick={() => onOpenAuth("signup")}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0f4c81] px-7 py-3.5 text-sm sm:text-base font-bold text-white shadow-md hover:bg-[#0c3c66] transition active:scale-95 cursor-pointer"
-            >
-              <span>Join Verified Network</span>
-              <ArrowRight className="size-4.5" />
-            </button>
+            {isLoggedIn ? (
+              <>
+                <Link
+                  href="/home"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0f4c81] px-7 py-3.5 text-sm sm:text-base font-bold text-white shadow-md hover:bg-[#0c3c66] transition active:scale-95"
+                >
+                  <span>Go to Your Dashboard</span>
+                  <ArrowRight className="size-4.5" />
+                </Link>
 
-            <button
-              type="button"
-              onClick={() => onOpenAuth("signin")}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl border border-[#ded8d1] bg-white px-6 py-3.5 text-sm sm:text-base font-bold text-[#171717] shadow-2xs hover:bg-[#faf9f8] transition active:scale-95 cursor-pointer"
-            >
-              <span>Sign in to Account</span>
-            </button>
+                <Link
+                  href="/network"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl border border-[#ded8d1] bg-white px-6 py-3.5 text-sm sm:text-base font-bold text-[#171717] shadow-2xs hover:bg-[#faf9f8] transition active:scale-95"
+                >
+                  <span>Explore Network</span>
+                </Link>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onOpenAuth("signup")}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0f4c81] px-7 py-3.5 text-sm sm:text-base font-bold text-white shadow-md hover:bg-[#0c3c66] transition active:scale-95 cursor-pointer"
+                >
+                  <span>Join Verified Network</span>
+                  <ArrowRight className="size-4.5" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onOpenAuth("signin")}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl border border-[#ded8d1] bg-white px-6 py-3.5 text-sm sm:text-base font-bold text-[#171717] shadow-2xs hover:bg-[#faf9f8] transition active:scale-95 cursor-pointer"
+                >
+                  <span>Sign in to Account</span>
+                </button>
+              </>
+            )}
           </div>
 
           {/* Stats Bar */}

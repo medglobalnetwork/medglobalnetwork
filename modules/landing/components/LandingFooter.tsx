@@ -3,12 +3,16 @@
 import * as React from "react";
 import Link from "next/link";
 import { ShieldCheck, Heart } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 interface LandingFooterProps {
   onOpenAuth: (mode?: "signin" | "signup") => void;
 }
 
 export function LandingFooter({ onOpenAuth }: LandingFooterProps) {
+  const { data: session } = authClient.useSession();
+  const isLoggedIn = Boolean(session?.user);
+
   return (
     <footer className="bg-[#111827] text-white pt-16 pb-12 border-t border-slate-800">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -144,23 +148,34 @@ export function LandingFooter({ onOpenAuth }: LandingFooterProps) {
           {/* Account / Actions */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Get Started
+              {isLoggedIn ? "My Account" : "Get Started"}
             </h4>
             <div className="space-y-2.5">
-              <button
-                type="button"
-                onClick={() => onOpenAuth("signup")}
-                className="w-full text-center rounded-xl bg-[#0f4c81] py-2 text-xs font-bold text-white hover:bg-[#0c3c66] transition shadow-xs cursor-pointer"
-              >
-                Join Free as Clinician
-              </button>
-              <button
-                type="button"
-                onClick={() => onOpenAuth("signin")}
-                className="w-full text-center rounded-xl border border-slate-700 bg-slate-800 py-2 text-xs font-bold text-slate-200 hover:bg-slate-700 transition cursor-pointer"
-              >
-                Sign In to Account
-              </button>
+              {isLoggedIn ? (
+                <Link
+                  href="/home"
+                  className="w-full text-center rounded-xl bg-[#0f4c81] py-2.5 text-xs font-bold text-white hover:bg-[#0c3c66] transition shadow-xs block"
+                >
+                  Open Clinical Dashboard →
+                </Link>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => onOpenAuth("signup")}
+                    className="w-full text-center rounded-xl bg-[#0f4c81] py-2 text-xs font-bold text-white hover:bg-[#0c3c66] transition shadow-xs cursor-pointer"
+                  >
+                    Join Free as Clinician
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onOpenAuth("signin")}
+                    className="w-full text-center rounded-xl border border-slate-700 bg-slate-800 py-2 text-xs font-bold text-slate-200 hover:bg-slate-700 transition cursor-pointer"
+                  >
+                    Sign In to Account
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

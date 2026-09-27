@@ -2,14 +2,28 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, ShieldCheck, Menu, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowRight, ShieldCheck, Menu, X, LayoutDashboard, User } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl, getInitials } from "@/lib/avatar";
 
 interface LandingHeaderProps {
   onOpenAuth: (mode?: "signin" | "signup") => void;
 }
 
 export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
+  const router = useRouter();
+  const { data: session, isPending } = authClient.useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+
+  // Dynamic Avatar sync
+  const [avatarUrl, setAvatarUrl] = React.useState<string>(DEFAULT_BLANK_AVATAR);
+
+  React.useEffect(() => {
+    if (session?.user?.id) {
+      setAvatarUrl(getUserAvatarUrl(session.user.id, session.user.image));
+    }
+  }, [session?.user?.id, session?.user?.image]);
 
   const scrollToSection = (id: string) => {
     setMobileMenuOpen(false);
@@ -18,6 +32,9 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
       element.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  const userInitials = getInitials(session?.user?.name, session?.user?.email);
+  const isLoggedIn = !isPending && Boolean(session?.user);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-[#ded8d1] bg-white/90 backdrop-blur-md transition-all">
@@ -65,36 +82,86 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
 
         {/* Right CTA Actions */}
         <div className="hidden sm:flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => onOpenAuth("signin")}
-            className="px-4 py-2 text-xs font-bold text-[#171717] hover:text-[#0f4c81] transition rounded-xl"
-          >
-            Sign in
-          </button>
-          <button
-            type="button"
-            onClick={() => onOpenAuth("signup")}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] px-4.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0c3c66] transition active:scale-95"
-          >
-            <span>Join Network</span>
-            <ArrowRight className="size-3.5" />
-          </button>
+          {isLoggedIn ? (
+            <div className="flex items-center gap-2.5">
+              {/* User Avatar + Name chip */}
+              <Link
+                href="/home"
+                className="flex items-center gap-2 p-1 pr-3 rounded-full border border-[#ded8d1] bg-[#faf9f8] hover:bg-white hover:border-[#0f4c81]/40 transition group"
+                title="View Profile / Dashboard"
+              >
+                <div className="size-8 rounded-full overflow-hidden bg-[#eef5fc] border border-[#ded8d1] flex items-center justify-center text-xs font-bold text-[#0f4c81]">
+                  {session?.user?.image || (avatarUrl && avatarUrl !== DEFAULT_BLANK_AVATAR) ? (
+                    <img
+                      src={avatarUrl}
+                      alt={session?.user?.name || "User"}
+                      className="size-full rounded-full object-cover"
+                    />
+                  ) : (
+                    userInitials
+                  )}
+                </div>
+                <span className="text-xs font-bold text-[#171717] group-hover:text-[#0f4c81] transition truncate max-w-[130px]">
+                  {session?.user?.name || "My Account"}
+                </span>
+              </Link>
+
+              {/* Go to Dashboard CTA */}
+              <Link
+                href="/home"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] px-4.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0c3c66] transition active:scale-95"
+              >
+                <LayoutDashboard className="size-3.5" />
+                <span>Go to Dashboard</span>
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => onOpenAuth("signin")}
+                className="px-4 py-2 text-xs font-bold text-[#171717] hover:text-[#0f4c81] transition rounded-xl cursor-pointer"
+              >
+                Sign in
+              </button>
+              <button
+                type="button"
+                onClick={() => onOpenAuth("signup")}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] px-4.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0c3c66] transition active:scale-95 cursor-pointer"
+              >
+                <span>Join Network</span>
+                <ArrowRight className="size-3.5" />
+              </button>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Toggle */}
         <div className="flex sm:hidden items-center gap-2">
-          <button
-            type="button"
-            onClick={() => onOpenAuth("signin")}
-            className="px-3 py-1.5 text-xs font-bold text-[#0f4c81]"
-          >
-            Sign in
-          </button>
+          {isLoggedIn ? (
+            <Link
+              href="/home"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0f4c81] text-white text-xs font-bold shadow-xs"
+            >
+              <div className="size-5 rounded-full overflow-hidden bg-white/20 flex items-center justify-center text-[10px]">
+                {userInitials}
+              </div>
+              <span>Dashboard</span>
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onOpenAuth("signin")}
+              className="px-3 py-1.5 text-xs font-bold text-[#0f4c81]"
+            >
+              Sign in
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-[#5d5854] hover:text-[#171717] rounded-lg"
+            className="p-2 text-[#5d5854] hover:text-[#171717] rounded-lg cursor-pointer"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -137,16 +204,27 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
           </div>
 
           <div className="pt-2 border-t border-[#ded8d1] flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenAuth("signup");
-              }}
-              className="w-full text-center py-2.5 rounded-xl bg-[#0f4c81] text-xs font-bold text-white shadow-xs"
-            >
-              Join Verified Network
-            </button>
+            {isLoggedIn ? (
+              <Link
+                href="/home"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full text-center py-2.5 rounded-xl bg-[#0f4c81] text-xs font-bold text-white shadow-xs flex items-center justify-center gap-2"
+              >
+                <LayoutDashboard className="size-4" />
+                <span>Open Clinical Dashboard</span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAuth("signup");
+                }}
+                className="w-full text-center py-2.5 rounded-xl bg-[#0f4c81] text-xs font-bold text-white shadow-xs"
+              >
+                Join Verified Network
+              </button>
+            )}
           </div>
         </div>
       )}

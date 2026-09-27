@@ -97,8 +97,9 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
     }
   }, [searchParams]);
 
+  // Only redirect if user actively performed an authentication action in modal
   React.useEffect(() => {
-    if (!isSessionPending && session && !isAwaitingOAuth) {
+    if (isAwaitingOAuth && !isSessionPending && session) {
       router.replace("/home");
     }
   }, [isSessionPending, isAwaitingOAuth, router, session]);
