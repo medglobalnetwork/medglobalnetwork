@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   Users,
   Briefcase,
@@ -129,14 +130,13 @@ export function EcosystemSection({ onOpenAuth }: EcosystemSectionProps) {
                 </div>
 
                 <div className="mt-6 pt-4 border-t border-[#f0efee]">
-                  <button
-                    type="button"
-                    onClick={() => onOpenAuth("signup")}
+                  <Link
+                    href="/signup"
                     className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0f4c81] hover:text-[#0c3c66] transition cursor-pointer"
                   >
                     <span>Explore {pillar.title.split(" ")[0]}</span>
                     <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />
-                  </button>
+                  </Link>
                 </div>
               </div>
             );

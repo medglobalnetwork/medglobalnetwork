@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { ShieldCheck, UserPlus, Sparkles, ArrowRight } from "lucide-react";
 
 interface CliniciansShowcaseProps {
@@ -139,14 +140,13 @@ export function CliniciansShowcase({ onOpenAuth }: CliniciansShowcaseProps) {
 
               {/* Connect CTA */}
               <div className="mt-5 w-full pt-3 border-t border-[#f0efee]">
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth("signup")}
+                <Link
+                  href="/signup"
                   className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#0f4c81] py-2 text-xs font-bold text-white shadow-2xs hover:bg-[#0c3c66] transition active:scale-95 cursor-pointer"
                 >
                   <UserPlus className="size-3.5" />
                   <span>Connect</span>
-                </button>
+                </Link>
               </div>
             </div>
           ))}

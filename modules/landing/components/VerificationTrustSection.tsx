@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { ShieldCheck, CheckCircle2, Lock, FileCheck, Award, ArrowRight } from "lucide-react";
 
 interface VerificationTrustSectionProps {
@@ -107,14 +108,13 @@ export function VerificationTrustSection({ onOpenAuth }: VerificationTrustSectio
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => onOpenAuth("signup")}
+            <Link
+              href="/signup"
               className="shrink-0 w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3 text-xs sm:text-sm font-bold text-[#0f4c81] shadow-sm hover:bg-[#faf9f8] transition active:scale-95 cursor-pointer"
             >
               <span>Get Verified Now</span>
               <ArrowRight className="size-4" />
-            </button>
+            </Link>
           </div>
         </div>
       </div>

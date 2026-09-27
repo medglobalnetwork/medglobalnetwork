@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   Stethoscope,
   Activity,
@@ -57,10 +58,9 @@ export function SpecialtiesGrid({ onOpenAuth }: SpecialtiesGridProps) {
           {specialties.map((spec, idx) => {
             const IconComp = spec.icon;
             return (
-              <button
+              <Link
                 key={idx}
-                type="button"
-                onClick={() => onOpenAuth("signup")}
+                href="/signup"
                 className="group flex flex-col items-start p-4 sm:p-5 rounded-2xl border border-[#ded8d1] bg-[#faf9f8] hover:bg-white hover:border-[#0f4c81]/40 hover:shadow-sm transition-all duration-150 text-left cursor-pointer"
               >
                 <div className="size-10 rounded-xl bg-white border border-[#ded8d1] flex items-center justify-center text-[#0f4c81] group-hover:bg-[#0f4c81] group-hover:text-white transition-colors duration-150 mb-3">
@@ -72,7 +72,7 @@ export function SpecialtiesGrid({ onOpenAuth }: SpecialtiesGridProps) {
                 <p className="text-[10px] sm:text-[11px] text-[#77716b] font-medium mt-0.5">
                   {spec.count}
                 </p>
-              </button>
+              </Link>
             );
           })}
         </div>
@@ -83,14 +83,13 @@ export function SpecialtiesGrid({ onOpenAuth }: SpecialtiesGridProps) {
             <span className="text-xs sm:text-sm font-bold text-[#171717]">
               Are you a hospital, medical college, or healthcare organisation?
             </span>
-            <button
-              type="button"
-              onClick={() => onOpenAuth("signup")}
+            <Link
+              href="/signup"
               className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0f4c81] hover:underline"
             >
               <span>Register as Verified Institution</span>
               <ArrowRight className="size-3.5" />
-            </button>
+            </Link>
           </div>
         </div>
       </div>

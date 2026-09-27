@@ -79,22 +79,20 @@ export function HeroSection({ onOpenAuth }: HeroSectionProps) {
               </>
             ) : (
               <>
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth("signup")}
+                <Link
+                  href="/signup"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0f4c81] px-7 py-3.5 text-sm sm:text-base font-bold text-white shadow-md hover:bg-[#0c3c66] transition active:scale-95 cursor-pointer"
                 >
                   <span>Join Verified Network</span>
                   <ArrowRight className="size-4.5" />
-                </button>
+                </Link>
 
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth("signin")}
+                <Link
+                  href="/login"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl border border-[#ded8d1] bg-white px-6 py-3.5 text-sm sm:text-base font-bold text-[#171717] shadow-2xs hover:bg-[#faf9f8] transition active:scale-95 cursor-pointer"
                 >
                   <span>Sign in to Account</span>
-                </button>
+                </Link>
               </>
             )}
           </div>

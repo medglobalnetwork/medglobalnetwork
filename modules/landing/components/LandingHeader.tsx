@@ -91,21 +91,19 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
             </div>
           ) : (
             <>
-              <button
-                type="button"
-                onClick={() => onOpenAuth("signin")}
+              <Link
+                href="/login"
                 className="px-4 py-2 text-xs font-bold text-[#171717] hover:text-[#0f4c81] transition rounded-xl cursor-pointer"
               >
                 Sign in
-              </button>
-              <button
-                type="button"
-                onClick={() => onOpenAuth("signup")}
+              </Link>
+              <Link
+                href="/signup"
                 className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] px-4.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0c3c66] transition active:scale-95 cursor-pointer"
               >
                 <span>Join Network</span>
                 <ArrowRight className="size-3.5" />
-              </button>
+              </Link>
             </>
           )}
         </div>
@@ -117,13 +115,12 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
               <UserMenu />
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => onOpenAuth("signin")}
+            <Link
+              href="/login"
               className="px-3 py-1.5 text-xs font-bold text-[#0f4c81]"
             >
               Sign in
-            </button>
+            </Link>
           )}
           <button
             type="button"

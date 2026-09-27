@@ -44,58 +44,52 @@ export function LandingFooter({ onOpenAuth }: LandingFooterProps) {
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth("signup")}
+                <Link
+                  href="/signup"
                   className="hover:text-white transition cursor-pointer"
                 >
                   Doctor-to-Doctor Network
-                </button>
+                </Link>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth("signup")}
+                <Link
+                  href="/signup"
                   className="hover:text-white transition cursor-pointer"
                 >
                   Clinical Opportunities & Jobs
-                </button>
+                </Link>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth("signup")}
+                <Link
+                  href="/signup"
                   className="hover:text-white transition cursor-pointer"
                 >
                   Accredited Learn & CME
-                </button>
+                </Link>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth("signup")}
+                <Link
+                  href="/signup"
                   className="hover:text-white transition cursor-pointer"
                 >
                   Conferences & Events
-                </button>
+                </Link>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth("signup")}
+                <Link
+                  href="/signup"
                   className="hover:text-white transition cursor-pointer"
                 >
                   Community Medical Camps
-                </button>
+                </Link>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth("signup")}
+                <Link
+                  href="/signup"
                   className="hover:text-white transition cursor-pointer"
                 >
                   Collaborative Research
-                </button>
+                </Link>
               </li>
             </ul>
           </div>
@@ -107,40 +101,36 @@ export function LandingFooter({ onOpenAuth }: LandingFooterProps) {
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth("signup")}
+                <Link
+                  href="/signup"
                   className="hover:text-white transition cursor-pointer"
                 >
                   License Verification Process
-                </button>
+                </Link>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth("signup")}
+                <Link
+                  href="/signup"
                   className="hover:text-white transition cursor-pointer"
                 >
                   Healthcare Organization Portals
-                </button>
+                </Link>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth("signup")}
+                <Link
+                  href="/signup"
                   className="hover:text-white transition cursor-pointer"
                 >
                   Clinical Data Encryption
-                </button>
+                </Link>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth("signup")}
+                <Link
+                  href="/signup"
                   className="hover:text-white transition cursor-pointer"
                 >
                   Community Guidelines
-                </button>
+                </Link>
               </li>
             </ul>
           </div>
@@ -160,20 +150,18 @@ export function LandingFooter({ onOpenAuth }: LandingFooterProps) {
                 </Link>
               ) : (
                 <>
-                  <button
-                    type="button"
-                    onClick={() => onOpenAuth("signup")}
-                    className="w-full text-center rounded-xl bg-[#0f4c81] py-2 text-xs font-bold text-white hover:bg-[#0c3c66] transition shadow-xs cursor-pointer"
+                  <Link
+                    href="/signup"
+                    className="w-full text-center rounded-xl bg-[#0f4c81] py-2 text-xs font-bold text-white hover:bg-[#0c3c66] transition shadow-xs block"
                   >
                     Join Free as Clinician
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onOpenAuth("signin")}
-                    className="w-full text-center rounded-xl border border-slate-700 bg-slate-800 py-2 text-xs font-bold text-slate-200 hover:bg-slate-700 transition cursor-pointer"
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="w-full text-center rounded-xl border border-slate-700 bg-slate-800 py-2 text-xs font-bold text-slate-200 hover:bg-slate-700 transition block"
                   >
                     Sign In to Account
-                  </button>
+                  </Link>
                 </>
               )}
             </div>
