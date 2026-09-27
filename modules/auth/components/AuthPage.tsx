@@ -562,16 +562,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
       {/* Main Open / Frameless Auth Layout */}
       <main className="flex-1 flex flex-col items-center justify-center py-8 sm:py-12 px-4 sm:px-6">
         <div className="w-full max-w-[440px] mx-auto animate-in fade-in duration-200">
-          {/* Brand Icon & Page Header */}
+          {/* Page Header */}
           <div className="flex flex-col items-center text-center mb-6">
-            <div className="flex items-center justify-center size-12 rounded-2xl bg-[#eef5fc] dark:bg-[#1f2937] text-[#0f4c81] dark:text-[#58a6ff] mb-3">
-              {mode === "signup" && accountType === "ORGANISATION" ? (
-                <Building2 className="size-6" />
-              ) : (
-                <ShieldCheck className="size-6" />
-              )}
-            </div>
-
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#171717] dark:text-[#f0f6fc]">
               {isForgotPassword
                 ? "Reset Your Password"
