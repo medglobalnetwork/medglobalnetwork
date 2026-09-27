@@ -564,23 +564,12 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         <main className="w-full max-w-[440px] mx-auto my-8 sm:my-10 animate-in fade-in duration-200">
           {/* Page Heading */}
           <div className="text-left mb-6">
-            <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight text-[#171717] dark:text-[#f0f6fc] flex items-center gap-2">
-              {isForgotPassword ? (
-                <>
-                  <span>Reset password</span>
-                  <span className="text-xl">🔒</span>
-                </>
-              ) : mode === "signup" ? (
-                <>
-                  <span>Sign up</span>
-                  <span className="text-xl">🔑</span>
-                </>
-              ) : (
-                <>
-                  <span>Welcome back</span>
-                  <span className="text-xl">👋</span>
-                </>
-              )}
+            <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight text-[#171717] dark:text-[#f0f6fc]">
+              {isForgotPassword
+                ? "Reset password"
+                : mode === "signup"
+                ? "Sign up"
+                : "Welcome back"}
             </h1>
 
             <p className="mt-1.5 text-xs sm:text-sm text-[#77716b] dark:text-[#8b949e] font-normal leading-relaxed">
