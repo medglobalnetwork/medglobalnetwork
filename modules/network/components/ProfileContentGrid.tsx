@@ -31,6 +31,9 @@ export interface MediaPost {
   isVideo?: boolean;
   timestamp: string;
   tags?: string[];
+  authorName?: string;
+  authorImage?: string;
+  authorProfession?: string;
   comments?: Array<{
     id: string;
     author: string;
@@ -98,10 +101,22 @@ export function ProfileContentGrid({ userId, isOwnProfile }: ProfileContentGridP
                 const parsed = typeof p.media_urls === "string" ? JSON.parse(p.media_urls) : p.media_urls;
                 if (Array.isArray(parsed) && parsed.length > 0) {
                   media = parsed[0];
-                  isVideo = media.endsWith(".mp4") || media.endsWith(".webm") || p.post_type === "video";
                 }
               } catch {}
             }
+
+            const checkIsVideo = (url: string, type: string) => {
+              if (type === "video") return true;
+              if (!url) return false;
+              return Boolean(
+                url.match(/\.(mp4|webm|mov|m4v|mkv|ogg)(\?.*)?$/i) ||
+                url.includes("/video/") ||
+                url.includes("video")
+              );
+            };
+
+            isVideo = checkIsVideo(media, p.post_type);
+
             if (!media) {
               // Standard medical card background placeholder if text post
               media = "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80";
@@ -115,6 +130,9 @@ export function ProfileContentGrid({ userId, isOwnProfile }: ProfileContentGridP
               likes: p.reaction_count || 0,
               commentsCount: p.comment_count || 0,
               isVideo,
+              authorName: p.name || "Healthcare Professional",
+              authorImage: p.image,
+              authorProfession: p.profession || p.specialization || "Clinician",
               timestamp: new Date(p.created_at).toLocaleDateString(undefined, {
                 month: "short",
                 day: "numeric",
@@ -288,12 +306,22 @@ export function ProfileContentGrid({ userId, isOwnProfile }: ProfileContentGridP
                 onClick={() => setSelectedPost(post)}
                 className="group relative aspect-square sm:aspect-4/5 w-full overflow-hidden cursor-pointer bg-black/5 transition-transform active:scale-98 rounded-xl sm:rounded-2xl"
               >
-                {/* Image Thumbnail */}
-                <img
-                  src={post.mediaUrl}
-                  alt={post.caption}
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
+                {/* Image or Video Thumbnail */}
+                {post.isVideo ? (
+                  <video
+                    src={post.mediaUrl}
+                    muted
+                    preload="metadata"
+                    playsInline
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={post.mediaUrl}
+                    alt={post.caption}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                )}
 
                 {/* Dark Vignette Overlay on Hover */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -307,7 +335,7 @@ export function ProfileContentGrid({ userId, isOwnProfile }: ProfileContentGridP
 
                 {/* Video Icon (Bottom/Top Right) */}
                 {post.isVideo && !post.isPinned && (
-                  <div className="absolute top-2 right-2 flex items-center justify-center">
+                  <div className="absolute top-2 right-2 flex items-center justify-center pointer-events-none">
                     <Film className="h-4 w-4 text-white drop-shadow-md" />
                   </div>
                 )}
@@ -342,17 +370,21 @@ export function ProfileContentGrid({ userId, isOwnProfile }: ProfileContentGridP
 
             {/* Left Image / Video Display */}
             <div className="relative md:w-3/5 bg-black flex items-center justify-center min-h-[280px] sm:min-h-[420px]">
-              <img
-                src={selectedPost.mediaUrl}
-                alt={selectedPost.caption}
-                className="max-h-[70vh] w-full object-contain"
-              />
-              {selectedPost.isVideo && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/30 backdrop-blur-md text-white shadow-xl hover:scale-110 transition cursor-pointer">
-                    <Play className="h-7 w-7 fill-white ml-1" />
-                  </div>
-                </div>
+              {selectedPost.isVideo ? (
+                <video
+                  key={selectedPost.id}
+                  src={selectedPost.mediaUrl}
+                  controls
+                  autoPlay
+                  playsInline
+                  className="max-h-[70vh] w-full object-contain bg-black focus:outline-none"
+                />
+              ) : (
+                <img
+                  src={selectedPost.mediaUrl}
+                  alt={selectedPost.caption}
+                  className="max-h-[70vh] w-full object-contain"
+                />
               )}
             </div>
 
@@ -362,15 +394,28 @@ export function ProfileContentGrid({ userId, isOwnProfile }: ProfileContentGridP
                 {/* Author row */}
                 <div className="flex items-center justify-between pb-3 border-b border-[#f0efee]">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-[#1769c2] text-white flex items-center justify-center font-bold text-sm">
-                      MGN
+                    <div className="h-10 w-10 rounded-full bg-[#1769c2] text-white flex items-center justify-center font-bold text-sm overflow-hidden border border-[#ded8d1]">
+                      {selectedPost.authorImage ? (
+                        <img
+                          src={selectedPost.authorImage}
+                          alt={selectedPost.authorName || "Author"}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        (selectedPost.authorName || "MGN").slice(0, 2).toUpperCase()
+                      )}
                     </div>
                     <div>
                       <div className="flex items-center gap-1">
-                        <p className="text-xs font-bold text-[#171717]">Professional Clinician</p>
+                        <p className="text-xs font-bold text-[#171717]">
+                          {selectedPost.authorName || "Healthcare Professional"}
+                        </p>
                         <CheckCircle2 className="h-3.5 w-3.5 text-blue-500 fill-blue-500 text-white" />
                       </div>
-                      <p className="text-[11px] text-[#77716b]">{selectedPost.timestamp}</p>
+                      <p className="text-[11px] text-[#77716b]">
+                        {selectedPost.authorProfession ? `${selectedPost.authorProfession} · ` : ""}
+                        {selectedPost.timestamp}
+                      </p>
                     </div>
                   </div>
 
