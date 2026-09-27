@@ -67,18 +67,18 @@ export default function SettingsLayout({
   }, [isPending, router, session]);
 
   if (isPending || !session) {
-    return <div className="min-h-dvh bg-[#f5f3f1]" />;
+    return <div className="min-h-dvh bg-[#faf9f8] dark:bg-[#0d1117]" />;
   }
 
   return (
-    <div className="min-h-dvh bg-[#f5f3f1]">
+    <div className="min-h-dvh bg-[#faf9f8] dark:bg-[#0d1117]">
       <div className="mx-auto flex max-w-5xl flex-col gap-0 px-4 py-8 lg:flex-row lg:gap-10">
         {/* Settings Sidebar */}
         <aside className="w-full shrink-0 lg:w-52">
           {/* Back to home */}
           <a
             href="/home"
-            className="mb-6 flex items-center gap-1.5 text-sm text-[#77716b] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] rounded"
+            className="mb-6 flex items-center gap-1.5 text-sm text-[#77716b] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded"
           >
             <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="m15 18-6-6 6-6" />
@@ -86,13 +86,13 @@ export default function SettingsLayout({
             Back
           </a>
 
-          <h2 className="mb-4 text-base font-semibold text-[#171717]">Settings</h2>
+          <h2 className="mb-4 text-base font-semibold text-[#171717] dark:text-[#f0f6fc]">Settings</h2>
 
           <nav className="space-y-5">
             {settingsNav.map((group) => (
               <div key={group.section}>
                 {/* Section label */}
-                <p className="mb-1 px-2 text-[11px] font-semibold uppercase text-[#a09890]">
+                <p className="mb-1 px-2 text-[11px] font-semibold uppercase text-[#a09890] dark:text-[#8b949e]">
                   {group.section}
                 </p>
                 <ul className="space-y-0.5">
@@ -105,8 +105,8 @@ export default function SettingsLayout({
                           className={cn(
                             "flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-medium transition-colors",
                             isActive
-                              ? "bg-white text-[#171717] shadow-sm"
-                              : "text-[#5d5854] hover:bg-white/60 hover:text-[#171717]"
+                              ? "bg-white dark:bg-[#161b22] text-[#171717] dark:text-[#f0f6fc] shadow-xs"
+                              : "text-[#5d5854] dark:text-[#8b949e] hover:bg-white/60 dark:hover:bg-[#161b22]/60 hover:text-[#171717] dark:hover:text-[#f0f6fc]"
                           )}
                         >
                           {item.icon}
@@ -120,7 +120,7 @@ export default function SettingsLayout({
                       type="button"
                       onClick={handleSignOut}
                       disabled={isLoggingOut}
-                      className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50/80 transition-colors disabled:opacity-50"
+                      className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50/80 dark:hover:bg-rose-950/30 transition-colors disabled:opacity-50 cursor-pointer"
                     >
                       <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />

@@ -6,12 +6,14 @@ import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl, setUserCustomAvatar } from "@/lib/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
-import { Trash2, User, Camera, Check, ExternalLink, Loader2, Sparkles, ShieldCheck, LogOut } from "lucide-react";
+import { Trash2, User, Camera, Check, ExternalLink, Loader2, Sparkles, ShieldCheck, LogOut, Sun, Moon, Laptop } from "lucide-react";
 import { ImageSelectorModal } from "@/components/media/ImageSelectorModal";
 import { MemberBadge } from "@/modules/network/components/MemberBadge";
+import { useTheme } from "@/components/ThemeProvider";
 
 export default function AccountSettingsPage() {
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
   const { data: session, isPending } = authClient.useSession();
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [isLoggingOut, setIsLoggingOut] = React.useState(false);
@@ -463,6 +465,82 @@ export default function AccountSettingsPage() {
           <p className="mt-2 text-xs font-bold text-emerald-700">{usernameSuccess}</p>
         )}
       </form>
+
+      {/* Interface Theme Preference Card */}
+      <div className="rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-5 sm:p-6 mb-6 shadow-xs">
+        <h2 className="text-sm font-semibold text-[#171717] dark:text-[#f0f6fc]">Interface Theme & Appearance</h2>
+        <p className="mt-0.5 text-xs text-[#77716b] dark:text-[#8b949e]">
+          Choose your preferred interface theme across Med Global Network.
+        </p>
+
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Light Theme Button */}
+          <button
+            type="button"
+            onClick={() => setTheme("light")}
+            className={`flex items-center justify-between p-3.5 rounded-2xl border transition text-left cursor-pointer ${
+              theme === "light"
+                ? "border-[#0f4c81] dark:border-[#388bfd] bg-[#f0f6fc] dark:bg-[#1c2433] ring-2 ring-[#0f4c81]/20 dark:ring-[#388bfd]/20"
+                : "border-[#ded8d1] dark:border-[#30363d] hover:bg-[#faf9f8] dark:hover:bg-[#21262d]"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="size-8 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                <Sun className="size-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#171717] dark:text-[#f0f6fc]">Light Mode</p>
+                <p className="text-[10px] text-[#77716b] dark:text-[#8b949e]">Clean crisp layout</p>
+              </div>
+            </div>
+            {theme === "light" && <Check className="size-4 text-[#0f4c81] dark:text-[#388bfd]" />}
+          </button>
+
+          {/* Dark Theme Button */}
+          <button
+            type="button"
+            onClick={() => setTheme("dark")}
+            className={`flex items-center justify-between p-3.5 rounded-2xl border transition text-left cursor-pointer ${
+              theme === "dark"
+                ? "border-[#0f4c81] dark:border-[#388bfd] bg-[#f0f6fc] dark:bg-[#1c2433] ring-2 ring-[#0f4c81]/20 dark:ring-[#388bfd]/20"
+                : "border-[#ded8d1] dark:border-[#30363d] hover:bg-[#faf9f8] dark:hover:bg-[#21262d]"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="size-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center">
+                <Moon className="size-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#171717] dark:text-[#f0f6fc]">Dark Mode</p>
+                <p className="text-[10px] text-[#77716b] dark:text-[#8b949e]">Easy on the eyes</p>
+              </div>
+            </div>
+            {theme === "dark" && <Check className="size-4 text-[#0f4c81] dark:text-[#388bfd]" />}
+          </button>
+
+          {/* System Auto Button */}
+          <button
+            type="button"
+            onClick={() => setTheme("system")}
+            className={`flex items-center justify-between p-3.5 rounded-2xl border transition text-left cursor-pointer ${
+              theme === "system"
+                ? "border-[#0f4c81] dark:border-[#388bfd] bg-[#f0f6fc] dark:bg-[#1c2433] ring-2 ring-[#0f4c81]/20 dark:ring-[#388bfd]/20"
+                : "border-[#ded8d1] dark:border-[#30363d] hover:bg-[#faf9f8] dark:hover:bg-[#21262d]"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="size-8 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                <Laptop className="size-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#171717] dark:text-[#f0f6fc]">System Auto</p>
+                <p className="text-[10px] text-[#77716b] dark:text-[#8b949e]">Sync with OS</p>
+              </div>
+            </div>
+            {theme === "system" && <Check className="size-4 text-[#0f4c81] dark:text-[#388bfd]" />}
+          </button>
+        </div>
+      </div>
 
       {/* Session & Log Out section */}
       <div className="rounded-2xl border border-[#ded8d1] bg-white p-5 sm:p-6 mb-6 shadow-xs">

@@ -13,6 +13,7 @@ import {
   exchangeBridgeToken,
 } from "@/lib/native-mobile";
 import { ShieldCheck, Eye, EyeOff, Loader2, ArrowLeft, CheckCircle2, Lock, Sparkles } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 48 48" className="h-5 w-5 shrink-0" aria-hidden="true">
@@ -309,13 +310,16 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           </span>
         </Link>
 
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#5d5854] hover:text-[#0f4c81] transition rounded-xl px-3 py-1.5 hover:bg-[#f0efee]"
-        >
-          <ArrowLeft className="size-4" />
-          <span>Back to Home</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <ThemeToggle collapsed={true} />
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#5d5854] dark:text-[#8b949e] hover:text-[#0f4c81] dark:hover:text-[#388bfd] transition rounded-xl px-3 py-1.5 hover:bg-[#f0efee] dark:hover:bg-[#21262d]"
+          >
+            <ArrowLeft className="size-4" />
+            <span>Back to Home</span>
+          </Link>
+        </div>
       </header>
 
       {/* Main Centered Content Card */}

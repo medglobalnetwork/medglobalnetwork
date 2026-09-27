@@ -73,6 +73,163 @@ body {
   box-sizing: border-box;
 }
 
+/* ============================================================ */
+/* Global Automatic Dark Mode Surface & Text Enhancements       */
+/* ============================================================ */
+.dark body {
+  background-color: #0d1117;
+  color: #f0f6fc;
+}
+
+.dark input,
+.dark textarea,
+.dark select {
+  color-scheme: dark;
+}
+
+/* Surfaces -> Dark mode */
+.dark .bg-white {
+  background-color: #161b22;
+}
+
+.dark .bg-\[\#ffffff\] {
+  background-color: #161b22;
+}
+
+.dark .bg-\[\#faf9f8\],
+.dark .bg-\[\#f8f7f6\],
+.dark .bg-\[\#f5f5f4\],
+.dark .bg-\[\#f5f4f3\],
+.dark .bg-\[\#fcfbf9\],
+.dark .bg-\[\#f5f3f1\],
+.dark .bg-\[\#fafafa\],
+.dark .bg-\[\#f9fafb\],
+.dark .bg-slate-50,
+.dark .bg-gray-50,
+.dark .bg-stone-50,
+.dark .bg-zinc-50,
+.dark .bg-neutral-50 {
+  background-color: #0d1117;
+}
+
+.dark .bg-\[\#f8fafd\],
+.dark .bg-\[\#f7f9fd\],
+.dark .bg-\[\#f4f8fe\],
+.dark .bg-\[\#eef5fc\],
+.dark .bg-blue-50,
+.dark .bg-sky-50 {
+  background-color: #1c2433;
+}
+
+.dark .bg-\[\#f0efee\],
+.dark .bg-\[\#efefef\],
+.dark .bg-\[\#e8e6e3\],
+.dark .bg-\[\#e5e7eb\],
+.dark .bg-slate-100,
+.dark .bg-gray-100,
+.dark .bg-stone-100,
+.dark .bg-zinc-100,
+.dark .bg-neutral-100 {
+  background-color: #21262d;
+}
+
+/* Borders & Dividers */
+.dark .border-\[\#ded8d1\],
+.dark .border-\[\#e8e6e3\],
+.dark .border-\[\#f0efee\],
+.dark .border-\[\#ebebeb\],
+.dark .border-\[\#cbc6bf\],
+.dark .border-slate-200,
+.dark .border-gray-200,
+.dark .border-stone-200,
+.dark .border-zinc-200,
+.dark .border-neutral-200,
+.dark .border-slate-100,
+.dark .border-gray-100 {
+  border-color: #30363d;
+}
+
+.dark .divide-\[\#ded8d1\] > :not([hidden]) ~ :not([hidden]),
+.dark .divide-\[\#e8e6e3\] > :not([hidden]) ~ :not([hidden]),
+.dark .divide-\[\#f0efee\] > :not([hidden]) ~ :not([hidden]),
+.dark .divide-\[\#f5f4f3\] > :not([hidden]) ~ :not([hidden]),
+.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #21262d;
+}
+
+/* Text Colors */
+.dark .text-\[\#171717\],
+.dark .text-slate-900,
+.dark .text-gray-900,
+.dark .text-stone-900,
+.dark .text-zinc-900,
+.dark .text-neutral-900 {
+  color: #f0f6fc;
+}
+
+.dark .text-\[\#3f3f3c\],
+.dark .text-\[\#44403c\],
+.dark .text-\[\#4f4b48\],
+.dark .text-\[\#5d5854\],
+.dark .text-slate-700,
+.dark .text-gray-700,
+.dark .text-stone-700,
+.dark .text-zinc-700 {
+  color: #c9d1d9;
+}
+
+.dark .text-\[\#77716b\],
+.dark .text-\[\#8a8784\],
+.dark .text-\[\#9c958f\],
+.dark .text-\[\#a09890\],
+.dark .text-slate-500,
+.dark .text-gray-500,
+.dark .text-stone-500,
+.dark .text-zinc-500 {
+  color: #8b949e;
+}
+
+.dark .text-\[\#0f4c81\] {
+  color: #58a6ff;
+}
+
+/* Hover States */
+.dark .hover\:bg-white:hover {
+  background-color: #1c2128;
+}
+
+.dark .hover\:bg-\[\#f8f7f6\]:hover,
+.dark .hover\:bg-\[\#f5f4f2\]:hover,
+.dark .hover\:bg-\[\#f0efee\]:hover,
+.dark .hover\:bg-\[\#faf9f8\]:hover,
+.dark .hover\:bg-\[\#fcfbf9\]:hover,
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-gray-50:hover,
+.dark .hover\:bg-stone-50:hover,
+.dark .hover\:bg-slate-100:hover,
+.dark .hover\:bg-gray-100:hover {
+  background-color: #21262d;
+}
+
+.dark .hover\:text-\[\#171717\]:hover,
+.dark .hover\:text-slate-900:hover,
+.dark .hover\:text-gray-900:hover {
+  color: #f0f6fc;
+}
+
+.dark .hover\:text-\[\#0f4c81\]:hover {
+  color: #58a6ff;
+}
+
+.dark .group:hover .group-hover\:text-\[\#171717\] {
+  color: #f0f6fc;
+}
+
+.dark .group:hover .group-hover\:text-\[\#0f4c81\] {
+  color: #58a6ff;
+}
+
 /* Custom subtle scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
