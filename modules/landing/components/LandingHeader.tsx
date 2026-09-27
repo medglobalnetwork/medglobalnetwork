@@ -76,9 +76,6 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
         <div className="hidden sm:flex items-center gap-3">
           {isLoggedIn ? (
             <div className="flex items-center gap-2.5">
-              {/* User Menu (Avatar + Name + Dropdown: Subscriptions, Membership, Profile, Logout) */}
-              <UserMenu />
-
               {/* Go to Dashboard CTA */}
               <Link
                 href="/home"
@@ -88,6 +85,9 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
                 <span>Dashboard</span>
                 <ArrowRight className="size-3.5" />
               </Link>
+
+              {/* User Menu (Avatar + Name + Dropdown: Subscriptions, Membership, Profile, Logout) */}
+              <UserMenu />
             </div>
           ) : (
             <>
