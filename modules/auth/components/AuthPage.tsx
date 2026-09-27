@@ -26,6 +26,7 @@ import {
   RefreshCw,
   Smartphone,
 } from "lucide-react";
+import CodeSlots from "@/components/ui/CodeSlots";
 
 // Password strength calculation utility
 interface PasswordStrength {
@@ -161,6 +162,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   const [phoneAuthMode, setPhoneAuthMode] = React.useState<"otp" | "password">("otp");
   const [otpSent, setOtpSent] = React.useState(false);
   const [otpCode, setOtpCode] = React.useState("");
+  const [otpStatus, setOtpStatus] = React.useState<"idle" | "error" | "success">("idle");
   const [devOtp, setDevOtp] = React.useState<string | undefined>(undefined);
   const [otpCountdown, setOtpCountdown] = React.useState(0);
   const [isSendingOtp, setIsSendingOtp] = React.useState(false);
@@ -414,21 +416,23 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   }
 
   // Verify OTP handler
-  async function handleVerifyPhoneOtp(e: React.FormEvent) {
-    e.preventDefault();
+  async function verifyOtpWithCode(codeToVerify: string) {
     const rawNum = identifier.trim();
     if (!rawNum) {
       setErrors({ identifier: "Phone number is required." });
+      setOtpStatus("error");
       return;
     }
-    if (!otpCode.trim() || otpCode.trim().length < 4) {
+    if (!codeToVerify.trim() || codeToVerify.trim().length < 4) {
       setErrors({ otp: "Please enter the 6-digit OTP code." });
+      setOtpStatus("error");
       return;
     }
 
     setIsVerifyingOtp(true);
     setErrors({});
     setSuccessMessage("");
+    setOtpStatus("idle");
 
     try {
       const res = await fetch("/api/auth/phone/verify-otp", {
@@ -436,14 +440,16 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           phone: rawNum,
-          otp: otpCode.trim(),
+          otp: codeToVerify.trim(),
         }),
       });
       const data = await res.json();
 
       if (!res.ok || !data.success) {
         setErrors({ general: data.error || "Invalid verification code. Please try again." });
+        setOtpStatus("error");
       } else {
+        setOtpStatus("success");
         setSuccessMessage("Login successful! Redirecting...");
         setTimeout(() => {
           if (data.user?.isNewUser) {
@@ -451,13 +457,19 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           } else {
             router.push("/home");
           }
-        }, 500);
+        }, 600);
       }
     } catch {
       setErrors({ general: "Verification failed. Please check your connection." });
+      setOtpStatus("error");
     } finally {
       setIsVerifyingOtp(false);
     }
+  }
+
+  async function handleVerifyPhoneOtp(e: React.FormEvent) {
+    e.preventDefault();
+    await verifyOtpWithCode(otpCode);
   }
 
   const validateForm = (): boolean => {
@@ -1077,18 +1089,28 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                       </button>
                     </div>
 
-                    <div className="relative">
-                      <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={6}
+                    <div className="flex justify-center my-3 py-2">
+                      <CodeSlots
+                        length={6}
                         value={otpCode}
-                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                        placeholder="• • • • • •"
-                        autoFocus
-                        required
-                        className="h-12 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-center text-lg tracking-[0.5em] font-mono font-bold text-[#171717] dark:text-white placeholder:text-slate-300 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                        status={otpStatus}
+                        onChange={(code) => {
+                          setOtpCode(code);
+                          if (otpStatus !== "idle") setOtpStatus("idle");
+                          if (errors.otp || errors.general) setErrors({});
+                        }}
+                        onComplete={(code) => {
+                          verifyOtpWithCode(code);
+                        }}
+                        accentColor="#0f4c81"
+                        inkColor="#0f4c81"
+                        slotColor="#f0efee"
+                        digitColor="#171717"
+                        dangerColor="#e11d48"
+                        slotSize={46}
+                        gap={8}
+                        radius={10}
+                        autoFocus={true}
                       />
                     </div>
 
@@ -1100,10 +1122,13 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                         </span>
                         <button
                           type="button"
-                          onClick={() => setOtpCode(devOtp)}
+                          onClick={() => {
+                            setOtpCode(devOtp);
+                            verifyOtpWithCode(devOtp);
+                          }}
                           className="text-[11px] underline font-bold cursor-pointer"
                         >
-                          Auto-fill
+                          Auto-fill & Verify
                         </button>
                       </div>
                     )}
