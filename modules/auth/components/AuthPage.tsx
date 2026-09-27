@@ -84,9 +84,9 @@ const PasswordStrengthIndicator: React.FC<{ password: string }> = ({ password })
   return (
     <div className="mt-2 space-y-1.5 animate-in fade-in-50 slide-in-from-bottom-1">
       <div className="flex items-center gap-2">
-        <div className="flex-1 bg-[#ded8d1]/60 dark:bg-[#30363d] rounded-full h-1.5 overflow-hidden">
+        <div className="flex-1 bg-[#ded8d1]/60 dark:bg-[#30363d] rounded-none h-1.5 overflow-hidden">
           <div
-            className={`h-full ${getStrengthColor(strength.score)} rounded-full transition-all duration-300`}
+            className={`h-full ${getStrengthColor(strength.score)} rounded-none transition-all duration-300`}
             style={{ width: `${(strength.score / 5) * 100}%` }}
           />
         </div>
@@ -539,684 +539,694 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   }
 
   return (
-    <div className="min-h-dvh w-full bg-[#f0f6fd] dark:bg-[#0b0f17] flex flex-col justify-between selection:bg-[#0f4c81]/20 font-sans relative overflow-x-hidden">
+    <div className="min-h-dvh w-full flex flex-col lg:flex-row bg-white dark:bg-[#0b0f17] font-sans selection:bg-[#0f4c81]/20">
       
-      {/* Background Subtle Medical Crosses */}
-      <div className="absolute top-6 right-10 pointer-events-none opacity-25 dark:opacity-10 hidden sm:block">
-        <div className="relative">
-          <span className="text-4xl text-[#0f4c81] font-thin leading-none select-none">+</span>
-          <span className="text-6xl text-[#0f4c81] font-thin leading-none select-none ml-6 -mt-2 inline-block">+</span>
-          <span className="text-2xl text-[#0f4c81] font-thin leading-none select-none block ml-14 -mt-2">+</span>
+      {/* ═══════════════════════════════════════════════
+          LEFT 50% COLUMN: FULL SCREEN EDGE-TO-EDGE
+          ═══════════════════════════════════════════════ */}
+      <div className="w-full lg:w-1/2 min-h-dvh bg-[#eaf3fc] dark:bg-[#0c1829] flex flex-col justify-between p-6 sm:p-10 lg:p-14 xl:p-16 relative overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-200/80 dark:border-slate-800">
+        
+        {/* Background Subtle Medical Crosses in Top Right */}
+        <div className="absolute top-6 right-8 pointer-events-none opacity-20 dark:opacity-10 hidden sm:block">
+          <div className="relative">
+            <span className="text-4xl text-[#0f4c81] font-thin leading-none select-none">+</span>
+            <span className="text-6xl text-[#0f4c81] font-thin leading-none select-none ml-6 -mt-2 inline-block">+</span>
+            <span className="text-2xl text-[#0f4c81] font-thin leading-none select-none block ml-14 -mt-2">+</span>
+          </div>
+        </div>
+
+        {/* Top: Logo */}
+        <div className="flex items-center justify-between z-10">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <img
+              src="/logo.png"
+              alt="MGN Logo"
+              className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-105"
+            />
+            <span className="text-2xl sm:text-3xl font-black tracking-tight text-[#0c2b4e] dark:text-[#58a6ff]">
+              MGN
+            </span>
+          </Link>
+          <div className="lg:hidden">
+            <ThemeToggle collapsed={true} />
+          </div>
+        </div>
+
+        {/* Middle: Headline, Subtitle & 4 Pillars */}
+        <div className="space-y-5 my-auto pt-6 pb-2 z-10 max-w-xl text-left">
+          <h1 className="text-3xl sm:text-5xl lg:text-[46px] xl:text-[52px] font-black tracking-tight text-[#0c2b4e] dark:text-[#f0f6fc] leading-[1.14]">
+            One Network. <br />
+            <span className="text-[#16804d] dark:text-[#2ea043]">
+              Endless Opportunities.
+            </span>
+          </h1>
+
+          <p className="text-xs sm:text-sm lg:text-base text-[#4b5563] dark:text-[#9ca3af] leading-relaxed font-normal">
+            MGN connects healthcare professionals, students, organizations and businesses on a single platform to learn, grow, collaborate and thrive.
+          </p>
+
+          {/* 4 Value Pillars Row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-3 pt-2 text-left">
+            {/* Connect */}
+            <div className="space-y-1.5">
+              <div className="size-9 rounded-none bg-blue-100/70 dark:bg-blue-950/50 text-[#0f4c81] dark:text-[#58a6ff] flex items-center justify-center">
+                <Users className="size-5" />
+              </div>
+              <div className="text-xs font-bold text-[#0c2b4e] dark:text-white">Connect</div>
+              <div className="text-[11px] text-[#6b7280] dark:text-[#8b949e] leading-snug">
+                Build meaningful professional connections
+              </div>
+            </div>
+
+            {/* Learn */}
+            <div className="space-y-1.5">
+              <div className="size-9 rounded-none bg-emerald-100/70 dark:bg-emerald-950/50 text-[#16804d] dark:text-[#34d399] flex items-center justify-center">
+                <BookOpen className="size-5" />
+              </div>
+              <div className="text-xs font-bold text-[#0c2b4e] dark:text-white">Learn</div>
+              <div className="text-[11px] text-[#6b7280] dark:text-[#8b949e] leading-snug">
+                Access quality courses and resources
+              </div>
+            </div>
+
+            {/* Grow */}
+            <div className="space-y-1.5">
+              <div className="size-9 rounded-none bg-teal-100/70 dark:bg-teal-950/50 text-[#0d9488] dark:text-[#2dd4bf] flex items-center justify-center">
+                <TrendingUp className="size-5" />
+              </div>
+              <div className="text-xs font-bold text-[#0c2b4e] dark:text-white">Grow</div>
+              <div className="text-[11px] text-[#6b7280] dark:text-[#8b949e] leading-snug">
+                Discover opportunities and advance career
+              </div>
+            </div>
+
+            {/* Thrive */}
+            <div className="space-y-1.5">
+              <div className="size-9 rounded-none bg-sky-100/70 dark:bg-sky-950/50 text-[#0284c7] dark:text-[#38bdf8] flex items-center justify-center">
+                <ShieldCheck className="size-5" />
+              </div>
+              <div className="text-xs font-bold text-[#0c2b4e] dark:text-white">Thrive</div>
+              <div className="text-[11px] text-[#6b7280] dark:text-[#8b949e] leading-snug">
+                Be part of a trusted and verified network
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom: Team Artwork Edge-to-Edge */}
+        <div className="relative w-full mt-auto pt-4 flex justify-center z-10">
+          <img
+            src="/login-team.png"
+            alt="MGN Healthcare Team"
+            className="w-full max-h-[340px] sm:max-h-[390px] lg:max-h-[440px] object-contain object-bottom select-none pointer-events-none drop-shadow-md"
+          />
         </div>
       </div>
 
-      {/* Main Split Grid Container */}
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 flex-1 flex flex-col justify-center">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+      {/* ═══════════════════════════════════════════════
+          RIGHT 50% COLUMN: AUTH FORM (ROUNDED-NONE)
+          ═══════════════════════════════════════════════ */}
+      <div className="w-full lg:w-1/2 min-h-dvh flex flex-col justify-between bg-white dark:bg-[#0d1117] p-6 sm:p-10 lg:p-14 xl:p-16 z-10 rounded-none">
+        
+        {/* Top Right Header */}
+        <div className="flex items-center justify-between w-full pb-4">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#5d5854] dark:text-[#8b949e] hover:text-[#0f4c81] dark:hover:text-[#58a6ff] transition"
+          >
+            ← Back to Home
+          </Link>
+          <div className="hidden lg:block">
+            <ThemeToggle collapsed={true} />
+          </div>
+        </div>
+
+        {/* Center Main Form Area (Rounded-None) */}
+        <div className="w-full max-w-[440px] mx-auto my-auto py-6 rounded-none animate-in fade-in duration-200">
           
-          {/* ═══════════════════════════════════════════════
-              LEFT COLUMN: BRANDING, VALUE PILLARS & TEAM IMAGE
-              ═══════════════════════════════════════════════ */}
-          <div className="lg:col-span-7 flex flex-col justify-between h-full pt-2 sm:pt-4">
-            {/* Top Brand Logo */}
-            <div className="flex items-center justify-between pb-6 sm:pb-8">
-              <Link href="/" className="flex items-center gap-2 group">
-                <img
-                  src="/logo.png"
-                  alt="MGN Logo"
-                  className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-105"
-                />
-                <span className="text-2xl sm:text-3xl font-black tracking-tight text-[#0c2b4e] dark:text-[#58a6ff]">
-                  MGN
-                </span>
-              </Link>
-              <div className="lg:hidden">
-                <ThemeToggle collapsed={true} />
-              </div>
-            </div>
-
-            {/* Headline & Subtitle */}
-            <div className="space-y-4 text-left">
-              <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-black tracking-tight text-[#0c2b4e] dark:text-[#f0f6fc] leading-[1.15]">
-                One Network. <br />
-                <span className="text-[#16804d] dark:text-[#2ea043]">
-                  Endless Opportunities.
-                </span>
-              </h1>
-
-              <p className="text-xs sm:text-sm lg:text-base text-[#4b5563] dark:text-[#9ca3af] leading-relaxed max-w-xl font-normal text-pretty">
-                MGN connects healthcare professionals, students, organizations and businesses on a single platform to learn, grow, collaborate and thrive.
-              </p>
-            </div>
-
-            {/* 4 Value Pillars Row */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-3 py-6 sm:py-8 text-left">
-              {/* Connect */}
-              <div className="space-y-1.5">
-                <div className="size-9 rounded-xl bg-blue-100/70 dark:bg-blue-950/50 text-[#0f4c81] dark:text-[#58a6ff] flex items-center justify-center">
-                  <Users className="size-5" />
-                </div>
-                <div className="text-xs font-bold text-[#0c2b4e] dark:text-white">Connect</div>
-                <div className="text-[11px] text-[#6b7280] dark:text-[#8b949e] leading-snug">
-                  Build meaningful professional connections
-                </div>
-              </div>
-
-              {/* Learn */}
-              <div className="space-y-1.5">
-                <div className="size-9 rounded-xl bg-emerald-100/70 dark:bg-emerald-950/50 text-[#16804d] dark:text-[#34d399] flex items-center justify-center">
-                  <BookOpen className="size-5" />
-                </div>
-                <div className="text-xs font-bold text-[#0c2b4e] dark:text-white">Learn</div>
-                <div className="text-[11px] text-[#6b7280] dark:text-[#8b949e] leading-snug">
-                  Access quality courses and resources
-                </div>
-              </div>
-
-              {/* Grow */}
-              <div className="space-y-1.5">
-                <div className="size-9 rounded-xl bg-teal-100/70 dark:bg-teal-950/50 text-[#0d9488] dark:text-[#2dd4bf] flex items-center justify-center">
-                  <TrendingUp className="size-5" />
-                </div>
-                <div className="text-xs font-bold text-[#0c2b4e] dark:text-white">Grow</div>
-                <div className="text-[11px] text-[#6b7280] dark:text-[#8b949e] leading-snug">
-                  Discover opportunities and advance career
-                </div>
-              </div>
-
-              {/* Thrive */}
-              <div className="space-y-1.5">
-                <div className="size-9 rounded-xl bg-sky-100/70 dark:bg-sky-950/50 text-[#0284c7] dark:text-[#38bdf8] flex items-center justify-center">
-                  <ShieldCheck className="size-5" />
-                </div>
-                <div className="text-xs font-bold text-[#0c2b4e] dark:text-white">Thrive</div>
-                <div className="text-[11px] text-[#6b7280] dark:text-[#8b949e] leading-snug">
-                  Be part of a trusted and verified network
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Team Image Artwork */}
-            <div className="relative w-full max-w-lg mx-auto lg:mx-0 mt-2 sm:mt-4 flex justify-center">
-              <img
-                src="/login-team.png"
-                alt="MGN Healthcare Team"
-                className="w-full max-h-[320px] sm:max-h-[380px] object-contain object-bottom select-none pointer-events-none drop-shadow-md"
-              />
-            </div>
+          {/* Header inside Form Area */}
+          <div className="text-center mb-6">
+            <h2 className="text-2xl sm:text-[28px] font-extrabold text-[#0c2b4e] dark:text-[#f0f6fc] tracking-tight">
+              {isForgotPassword
+                ? "Reset Password"
+                : mode === "signup"
+                ? "Create Account"
+                : "Welcome Back!"}
+            </h2>
+            <p className="mt-1 text-xs sm:text-sm text-[#6b7280] dark:text-[#8b949e]">
+              {isForgotPassword
+                ? "Enter your email or phone to reset your password"
+                : mode === "signup"
+                ? "Join the verified healthcare network"
+                : "Login to continue to your account"}
+            </p>
           </div>
 
-          {/* ═══════════════════════════════════════════════
-              RIGHT COLUMN: AUTH CARD (EXACT MATCH)
-              ═══════════════════════════════════════════════ */}
-          <div className="lg:col-span-5 flex justify-center">
-            <div className="w-full max-w-[460px] rounded-3xl bg-white dark:bg-[#161b22] p-6 sm:p-9 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in fade-in duration-200">
-              
-              {/* Header inside Card */}
-              <div className="text-center mb-6">
-                <h2 className="text-2xl sm:text-[26px] font-extrabold text-[#0c2b4e] dark:text-[#f0f6fc] tracking-tight">
-                  {isForgotPassword
-                    ? "Reset Password"
-                    : mode === "signup"
-                    ? "Create Account"
-                    : "Welcome Back!"}
-                </h2>
-                <p className="mt-1 text-xs sm:text-sm text-[#6b7280] dark:text-[#8b949e]">
-                  {isForgotPassword
-                    ? "Enter your email or phone to reset your password"
-                    : mode === "signup"
-                    ? "Join the verified healthcare network"
-                    : "Login to continue to your account"}
-                </p>
+          {/* Segmented Email vs Phone Tabs (Sign In Mode) */}
+          {!isForgotPassword && mode === "signin" && (
+            <div className="grid grid-cols-2 gap-2 p-1 rounded-none bg-[#f0f4f8] dark:bg-[#161b22] mb-5 border border-slate-200/80 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginMethod("email");
+                  setErrors({});
+                }}
+                className={`flex items-center justify-center gap-2 py-2.5 text-xs font-semibold rounded-none transition cursor-pointer ${
+                  loginMethod === "email"
+                    ? "bg-white dark:bg-[#21262d] text-[#0f4c81] dark:text-[#58a6ff] shadow-xs border border-[#0f4c81]/30 dark:border-[#58a6ff]/30"
+                    : "text-[#6b7280] dark:text-[#8b949e] hover:text-[#0c2b4e] dark:hover:text-white"
+                }`}
+              >
+                <Mail className="size-4" />
+                <span>Email</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginMethod("phone");
+                  setErrors({});
+                }}
+                className={`flex items-center justify-center gap-2 py-2.5 text-xs font-semibold rounded-none transition cursor-pointer ${
+                  loginMethod === "phone"
+                    ? "bg-white dark:bg-[#21262d] text-[#0f4c81] dark:text-[#58a6ff] shadow-xs border border-[#0f4c81]/30 dark:border-[#58a6ff]/30"
+                    : "text-[#6b7280] dark:text-[#8b949e] hover:text-[#0c2b4e] dark:hover:text-white"
+                }`}
+              >
+                <Phone className="size-4" />
+                <span>Phone</span>
+              </button>
+            </div>
+          )}
+
+          {/* Account Type Selector (Sign Up Mode) */}
+          {mode === "signup" && !isForgotPassword && (
+            <div className="mb-5 space-y-2 text-left">
+              <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-[#8b949e]">
+                Account Type
+              </label>
+              <div className="grid grid-cols-2 gap-2.5">
+                {/* Individual Option */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAccountType("INDIVIDUAL");
+                    setErrors({});
+                  }}
+                  className={`p-3 rounded-none border text-left transition cursor-pointer flex flex-col justify-between ${
+                    accountType === "INDIVIDUAL"
+                      ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-1 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
+                      : "border-slate-200 dark:border-[#30363d] bg-white dark:bg-[#0d1117] text-[#171717] dark:text-[#f0f6fc] hover:border-slate-300"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div
+                      className={`p-1.5 rounded-none ${
+                        accountType === "INDIVIDUAL"
+                          ? "bg-[#0f4c81] text-white"
+                          : "bg-[#f0efee] dark:bg-[#21262d] text-[#5d5854] dark:text-[#8b949e]"
+                      }`}
+                    >
+                      <User className="size-4" />
+                    </div>
+                    {accountType === "INDIVIDUAL" && (
+                      <span className="size-2 rounded-none bg-[#0f4c81] dark:bg-[#58a6ff]" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold">Individual</div>
+                    <div className="text-[10px] text-[#6b7280] dark:text-[#8b949e] font-normal leading-tight mt-0.5">
+                      Clinician, Nurse, Student
+                    </div>
+                  </div>
+                </button>
+
+                {/* Organisation Option */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAccountType("ORGANISATION");
+                    setErrors({});
+                  }}
+                  className={`p-3 rounded-none border text-left transition cursor-pointer flex flex-col justify-between ${
+                    accountType === "ORGANISATION"
+                      ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-1 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
+                      : "border-slate-200 dark:border-[#30363d] bg-white dark:bg-[#0d1117] text-[#171717] dark:text-[#f0f6fc] hover:border-slate-300"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div
+                      className={`p-1.5 rounded-none ${
+                        accountType === "ORGANISATION"
+                          ? "bg-[#0f4c81] text-white"
+                          : "bg-[#f0efee] dark:bg-[#21262d] text-[#5d5854] dark:text-[#8b949e]"
+                      }`}
+                    >
+                      <Building2 className="size-4" />
+                    </div>
+                    {accountType === "ORGANISATION" && (
+                      <span className="size-2 rounded-none bg-[#0f4c81] dark:bg-[#58a6ff]" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold">Organisation</div>
+                    <div className="text-[10px] text-[#6b7280] dark:text-[#8b949e] font-normal leading-tight mt-0.5">
+                      Hospital, Clinic, College
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Global Alerts */}
+          {successMessage && (
+            <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-none flex items-center gap-2 text-xs font-medium text-emerald-700 dark:text-emerald-400 animate-in fade-in text-left">
+              <CheckCircle2 className="size-4 shrink-0" />
+              <span>{successMessage}</span>
+            </div>
+          )}
+
+          {errors.general && (
+            <div className="mb-4 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-none flex items-center gap-2 text-xs font-medium text-rose-700 dark:text-rose-400 animate-in fade-in text-left">
+              <AlertTriangle className="size-4 shrink-0" />
+              <span>{errors.general}</span>
+            </div>
+          )}
+
+          {/* Form Content */}
+          {isForgotPassword ? (
+            <form onSubmit={handleForgotPassword} className="space-y-4 text-left">
+              <div>
+                <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-[#8b949e] mb-1.5">
+                  Email Address or Username
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    placeholder="Enter your email or username"
+                    required
+                    className="h-11 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                  />
+                </div>
               </div>
 
-              {/* Segmented Email vs Phone Tabs (Sign In Mode) */}
-              {!isForgotPassword && mode === "signin" && (
-                <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-[#f0f4f8] dark:bg-[#0d1117] mb-5 border border-slate-200/60 dark:border-slate-800">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLoginMethod("email");
-                      setErrors({});
-                    }}
-                    className={`flex items-center justify-center gap-2 py-2.5 text-xs font-semibold rounded-xl transition cursor-pointer ${
-                      loginMethod === "email"
-                        ? "bg-white dark:bg-[#21262d] text-[#0f4c81] dark:text-[#58a6ff] shadow-sm border border-[#0f4c81]/30 dark:border-[#58a6ff]/30"
-                        : "text-[#6b7280] dark:text-[#8b949e] hover:text-[#0c2b4e] dark:hover:text-white"
-                    }`}
-                  >
-                    <Mail className="size-4" />
-                    <span>Email</span>
-                  </button>
+              <button
+                type="submit"
+                disabled={isSubmitting || !identifier}
+                className="w-full rounded-none bg-[#0f4c81] dark:bg-[#14559b] py-3 text-xs sm:text-sm font-bold text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition disabled:opacity-50 cursor-pointer"
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="size-4 animate-spin" />
+                    Sending recovery link...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    <KeyRound className="size-4" />
+                    Send Password Reset Link
+                  </span>
+                )}
+              </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLoginMethod("phone");
-                      setErrors({});
-                    }}
-                    className={`flex items-center justify-center gap-2 py-2.5 text-xs font-semibold rounded-xl transition cursor-pointer ${
-                      loginMethod === "phone"
-                        ? "bg-white dark:bg-[#21262d] text-[#0f4c81] dark:text-[#58a6ff] shadow-sm border border-[#0f4c81]/30 dark:border-[#58a6ff]/30"
-                        : "text-[#6b7280] dark:text-[#8b949e] hover:text-[#0c2b4e] dark:hover:text-white"
-                    }`}
-                  >
-                    <Phone className="size-4" />
-                    <span>Phone</span>
-                  </button>
-                </div>
-              )}
-
-              {/* Account Type Selector (Sign Up Mode) */}
-              {mode === "signup" && !isForgotPassword && (
-                <div className="mb-5 space-y-2 text-left">
-                  <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-[#8b949e]">
-                    Account Type
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotPassword(false);
+                    setErrors({});
+                    setSuccessMessage("");
+                  }}
+                  className="text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
+                >
+                  ← Back to Login
+                </button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4 text-left">
+              {/* Sign In Mode: Email vs Phone */}
+              {mode === "signin" && (
+                <div>
+                  <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
+                    {loginMethod === "email" ? "Email Address" : "Phone Number"}
                   </label>
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {/* Individual Option */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAccountType("INDIVIDUAL");
-                        setErrors({});
-                      }}
-                      className={`p-3 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between ${
-                        accountType === "INDIVIDUAL"
-                          ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-1.5 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
-                          : "border-slate-200 dark:border-[#30363d] bg-white dark:bg-[#0d1117] text-[#171717] dark:text-[#f0f6fc] hover:border-slate-300"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div
-                          className={`p-1.5 rounded-lg ${
-                            accountType === "INDIVIDUAL"
-                              ? "bg-[#0f4c81] text-white"
-                              : "bg-[#f0efee] dark:bg-[#21262d] text-[#5d5854] dark:text-[#8b949e]"
-                          }`}
-                        >
-                          <User className="size-4" />
-                        </div>
-                        {accountType === "INDIVIDUAL" && (
-                          <span className="size-2 rounded-full bg-[#0f4c81] dark:bg-[#58a6ff]" />
-                        )}
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold">Individual</div>
-                        <div className="text-[10px] text-[#6b7280] dark:text-[#8b949e] font-normal leading-tight mt-0.5">
-                          Clinician, Nurse, Student
-                        </div>
-                      </div>
-                    </button>
-
-                    {/* Organisation Option */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAccountType("ORGANISATION");
-                        setErrors({});
-                      }}
-                      className={`p-3 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between ${
-                        accountType === "ORGANISATION"
-                          ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-1.5 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
-                          : "border-slate-200 dark:border-[#30363d] bg-white dark:bg-[#0d1117] text-[#171717] dark:text-[#f0f6fc] hover:border-slate-300"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div
-                          className={`p-1.5 rounded-lg ${
-                            accountType === "ORGANISATION"
-                              ? "bg-[#0f4c81] text-white"
-                              : "bg-[#f0efee] dark:bg-[#21262d] text-[#5d5854] dark:text-[#8b949e]"
-                          }`}
-                        >
-                          <Building2 className="size-4" />
-                        </div>
-                        {accountType === "ORGANISATION" && (
-                          <span className="size-2 rounded-full bg-[#0f4c81] dark:bg-[#58a6ff]" />
-                        )}
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold">Organisation</div>
-                        <div className="text-[10px] text-[#6b7280] dark:text-[#8b949e] font-normal leading-tight mt-0.5">
-                          Hospital, Clinic, College
-                        </div>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Global Alerts */}
-              {successMessage && (
-                <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl flex items-center gap-2 text-xs font-medium text-emerald-700 dark:text-emerald-400 animate-in fade-in text-left">
-                  <CheckCircle2 className="size-4 shrink-0" />
-                  <span>{successMessage}</span>
-                </div>
-              )}
-
-              {errors.general && (
-                <div className="mb-4 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl flex items-center gap-2 text-xs font-medium text-rose-700 dark:text-rose-400 animate-in fade-in text-left">
-                  <AlertTriangle className="size-4 shrink-0" />
-                  <span>{errors.general}</span>
-                </div>
-              )}
-
-              {/* Form Content */}
-              {isForgotPassword ? (
-                <form onSubmit={handleForgotPassword} className="space-y-4 text-left">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-[#8b949e] mb-1.5">
-                      Email Address or Username
-                    </label>
-                    <div className="relative">
+                  <div className="relative">
+                    {loginMethod === "email" ? (
                       <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                      <input
-                        type="text"
-                        value={identifier}
-                        onChange={(e) => setIdentifier(e.target.value)}
-                        placeholder="Enter your email or username"
-                        required
-                        className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || !identifier}
-                    className="w-full rounded-xl bg-[#0f4c81] dark:bg-[#14559b] py-3 text-xs sm:text-sm font-bold text-white shadow-md hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition disabled:opacity-50 cursor-pointer"
-                  >
-                    {isSubmitting ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <Loader2 className="size-4 animate-spin" />
-                        Sending recovery link...
-                      </span>
                     ) : (
-                      <span className="flex items-center justify-center gap-2">
-                        <KeyRound className="size-4" />
-                        Send Password Reset Link
-                      </span>
+                      <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
                     )}
-                  </button>
-
-                  <div className="text-center pt-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsForgotPassword(false);
-                        setErrors({});
-                        setSuccessMessage("");
-                      }}
-                      className="text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
-                    >
-                      ← Back to Login
-                    </button>
+                    <input
+                      type={loginMethod === "email" ? "text" : "tel"}
+                      value={identifier}
+                      onChange={(e) => handleInputChange("identifier", e.target.value)}
+                      onBlur={() => handleFieldBlur("identifier", identifier)}
+                      placeholder={
+                        loginMethod === "email"
+                          ? "Enter your email address"
+                          : "+91 Enter mobile number"
+                      }
+                      required
+                      className="h-11 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                    />
                   </div>
-                </form>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-4 text-left">
-                  {/* Sign In Mode: Email vs Phone */}
-                  {mode === "signin" && (
-                    <div>
-                      <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                        {loginMethod === "email" ? "Email Address" : "Phone Number"}
-                      </label>
-                      <div className="relative">
-                        {loginMethod === "email" ? (
-                          <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                        ) : (
-                          <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                        )}
-                        <input
-                          type={loginMethod === "email" ? "text" : "tel"}
-                          value={identifier}
-                          onChange={(e) => handleInputChange("identifier", e.target.value)}
-                          onBlur={() => handleFieldBlur("identifier", identifier)}
-                          placeholder={
-                            loginMethod === "email"
-                              ? "Enter your email address"
-                              : "+91 Enter mobile number"
-                          }
-                          required
-                          className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
-                        />
-                      </div>
-                      {errors.identifier && (
-                        <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
-                          <AlertTriangle className="size-3 shrink-0" />
-                          {errors.identifier}
-                        </p>
-                      )}
-                    </div>
+                  {errors.identifier && (
+                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
+                      <AlertTriangle className="size-3 shrink-0" />
+                      {errors.identifier}
+                    </p>
                   )}
+                </div>
+              )}
 
-                  {/* Individual Sign Up: Full Name */}
-                  {mode === "signup" && accountType === "INDIVIDUAL" && (
-                    <div>
-                      <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                        Full Name
-                      </label>
-                      <div className="relative">
-                        <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                        <input
-                          type="text"
-                          value={fullName}
-                          onChange={(e) => handleInputChange("name", e.target.value)}
-                          onBlur={() => handleFieldBlur("name", fullName)}
-                          placeholder="Dr. Rajesh Sharma"
-                          required
-                          className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
-                        />
-                      </div>
-                      {errors.name && (
-                        <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
-                          <AlertTriangle className="size-3 shrink-0" />
-                          {errors.name}
-                        </p>
-                      )}
-                    </div>
+              {/* Individual Sign Up: Full Name */}
+              {mode === "signup" && accountType === "INDIVIDUAL" && (
+                <div>
+                  <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
+                    Full Name
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => handleInputChange("name", e.target.value)}
+                      onBlur={() => handleFieldBlur("name", fullName)}
+                      placeholder="Dr. Rajesh Sharma"
+                      required
+                      className="h-11 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                    />
+                  </div>
+                  {errors.name && (
+                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
+                      <AlertTriangle className="size-3 shrink-0" />
+                      {errors.name}
+                    </p>
                   )}
+                </div>
+              )}
 
-                  {/* Organisation Sign Up: Org Name, Type, Rep Name */}
-                  {mode === "signup" && accountType === "ORGANISATION" && (
-                    <>
-                      <div>
-                        <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                          Hospital / Organization Name
-                        </label>
-                        <div className="relative">
-                          <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                          <input
-                            type="text"
-                            value={orgName}
-                            onChange={(e) => handleInputChange("orgName", e.target.value)}
-                            onBlur={() => handleFieldBlur("orgName", orgName)}
-                            placeholder="e.g. Apex Hospital"
-                            required
-                            className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
-                          />
-                        </div>
-                        {errors.orgName && (
-                          <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
-                            <AlertTriangle className="size-3 shrink-0" />
-                            {errors.orgName}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                          Organization Type
-                        </label>
-                        <div className="relative">
-                          <Hospital className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                          <select
-                            value={orgType}
-                            onChange={(e) => handleInputChange("orgType", e.target.value)}
-                            className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81] cursor-pointer"
-                          >
-                            {ORGANISATION_TYPES_LIST.map((t) => (
-                              <option key={t.id} value={t.id} className="bg-white dark:bg-[#161b22] text-[#171717] dark:text-white">
-                                {t.label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                          Authorized Representative Name
-                        </label>
-                        <div className="relative">
-                          <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                          <input
-                            type="text"
-                            value={repName}
-                            onChange={(e) => handleInputChange("repName", e.target.value)}
-                            onBlur={() => handleFieldBlur("repName", repName)}
-                            placeholder="e.g. Dr. Ananya Roy (Medical Director)"
-                            required
-                            className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
-                          />
-                        </div>
-                        {errors.repName && (
-                          <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
-                            <AlertTriangle className="size-3 shrink-0" />
-                            {errors.repName}
-                          </p>
-                        )}
-                      </div>
-                    </>
-                  )}
-
-                  {/* Sign Up Mode: Email Address */}
-                  {mode === "signup" && (
-                    <div>
-                      <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                        {accountType === "ORGANISATION" ? "Work Email Address" : "Email Address"}
-                      </label>
-                      <div className="relative">
-                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                        <input
-                          type="email"
-                          value={email}
-                          onChange={(e) => handleInputChange("email", e.target.value)}
-                          onBlur={() => handleFieldBlur("email", email)}
-                          placeholder="doctor@hospital.org"
-                          required
-                          className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
-                        />
-                      </div>
-                      {errors.email && (
-                        <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
-                          <AlertTriangle className="size-3 shrink-0" />
-                          {errors.email}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Sign Up Mode: Username */}
-                  {mode === "signup" && (
-                    <div>
-                      <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                        Preferred Username
-                      </label>
-                      <div className="relative">
-                        <AtSign className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                        <input
-                          type="text"
-                          value={username}
-                          onChange={(e) => handleInputChange("username", e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ""))}
-                          onBlur={() => handleFieldBlur("username", username)}
-                          placeholder="dr_rajesh"
-                          className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
-                        />
-                      </div>
-                      {errors.username && (
-                        <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
-                          <AlertTriangle className="size-3 shrink-0" />
-                          {errors.username}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Password Field */}
+              {/* Organisation Sign Up: Org Name, Type, Rep Name */}
+              {mode === "signup" && accountType === "ORGANISATION" && (
+                <>
                   <div>
                     <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                      Password
+                      Hospital / Organization Name
                     </label>
                     <div className="relative">
-                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                      <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
                       <input
-                        type={showPassword ? "text" : "password"}
-                        value={password}
-                        onChange={(e) => handleInputChange("password", e.target.value)}
-                        onBlur={() => handleFieldBlur("password", password)}
-                        placeholder="Enter your password"
+                        type="text"
+                        value={orgName}
+                        onChange={(e) => handleInputChange("orgName", e.target.value)}
+                        onBlur={() => handleFieldBlur("orgName", orgName)}
+                        placeholder="e.g. Apex Hospital"
                         required
-                        className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-10 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                        className="h-11 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-                        aria-label="Toggle password visibility"
-                      >
-                        {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                      </button>
                     </div>
-                    {mode === "signup" && <PasswordStrengthIndicator password={password} />}
-                    {errors.password && (
+                    {errors.orgName && (
                       <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
                         <AlertTriangle className="size-3 shrink-0" />
-                        {errors.password}
+                        {errors.orgName}
                       </p>
                     )}
                   </div>
 
-                  {/* Confirm Password (Sign Up Mode) */}
-                  {mode === "signup" && (
-                    <div>
-                      <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                        Confirm Password
-                      </label>
-                      <div className="relative">
-                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                        <input
-                          type={showConfirmPassword ? "text" : "password"}
-                          value={confirmPassword}
-                          onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                          onBlur={() => handleFieldBlur("confirmPassword", confirmPassword)}
-                          placeholder="Re-enter your password"
-                          required
-                          className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-10 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-                          aria-label="Toggle confirm password visibility"
-                        >
-                          {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                        </button>
-                      </div>
-                      {errors.confirmPassword && (
-                        <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
-                          <AlertTriangle className="size-3 shrink-0" />
-                          {errors.confirmPassword}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Forgot Password Link (Sign In Mode) */}
-                  {mode === "signin" && (
-                    <div className="flex items-center justify-end">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsForgotPassword(true);
-                          setErrors({});
-                          setSuccessMessage("");
-                        }}
-                        className="text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
+                  <div>
+                    <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
+                      Organization Type
+                    </label>
+                    <div className="relative">
+                      <Hospital className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                      <select
+                        value={orgType}
+                        onChange={(e) => handleInputChange("orgType", e.target.value)}
+                        className="h-11 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81] cursor-pointer"
                       >
-                        Forgot Password?
-                      </button>
+                        {ORGANISATION_TYPES_LIST.map((t) => (
+                          <option key={t.id} value={t.id} className="bg-white dark:bg-[#161b22] text-[#171717] dark:text-white">
+                            {t.label}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                  )}
+                  </div>
 
-                  {/* Terms Checkbox (Sign Up Mode) */}
-                  {mode === "signup" && (
-                    <div>
-                      <label className="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-300 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={agreedToTerms}
-                          onChange={(e) => handleInputChange("agreeToTerms", e.target.checked)}
-                          className="mt-0.5 size-4 rounded border-slate-300 text-[#0f4c81] focus:ring-[#0f4c81]"
-                        />
-                        <span>
-                          I agree to the{" "}
-                          <a href="/terms" className="font-semibold text-[#0f4c81] dark:text-[#58a6ff] underline">
-                            Terms of Service
-                          </a>{" "}
-                          and{" "}
-                          <a href="/privacy" className="font-semibold text-[#0f4c81] dark:text-[#58a6ff] underline">
-                            Privacy Policy
-                          </a>
-                          .
-                        </span>
-                      </label>
-                      {errors.agreeToTerms && (
-                        <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
-                          <AlertTriangle className="size-3 shrink-0" />
-                          {errors.agreeToTerms}
-                        </p>
-                      )}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
+                      Authorized Representative Name
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                      <input
+                        type="text"
+                        value={repName}
+                        onChange={(e) => handleInputChange("repName", e.target.value)}
+                        onBlur={() => handleFieldBlur("repName", repName)}
+                        placeholder="e.g. Dr. Ananya Roy (Medical Director)"
+                        required
+                        className="h-11 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                      />
                     </div>
-                  )}
-
-                  {/* Submit CTA Button */}
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#0f4c81] dark:bg-[#14559b] py-3 text-sm font-bold text-white shadow-md hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition disabled:opacity-50 cursor-pointer mt-2 active:scale-98"
-                  >
-                    {isSubmitting ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <Loader2 className="size-4 animate-spin" />
-                        {mode === "signin" ? "Logging in..." : "Creating account..."}
-                      </span>
-                    ) : (
-                      <>
-                        <span>{mode === "signin" ? "Login" : "Create Account"}</span>
-                        <ArrowRight className="size-4" />
-                      </>
+                    {errors.repName && (
+                      <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
+                        <AlertTriangle className="size-3 shrink-0" />
+                        {errors.repName}
+                      </p>
                     )}
-                  </button>
-                </form>
+                  </div>
+                </>
               )}
 
-              {/* Bottom Switcher: Don't have an account? Sign Up */}
-              {!isForgotPassword && (
-                <div className="text-center mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                    {mode === "signin" ? "Don't have an account? " : "Already have an account? "}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMode(mode === "signin" ? "signup" : "signin");
-                        setErrors({});
-                        setSuccessMessage("");
-                      }}
-                      className="font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer ml-1"
-                    >
-                      {mode === "signin" ? "Sign Up" : "Login"}
-                    </button>
-                  </p>
+              {/* Sign Up Mode: Email Address */}
+              {mode === "signup" && (
+                <div>
+                  <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
+                    {accountType === "ORGANISATION" ? "Work Email Address" : "Email Address"}
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => handleInputChange("email", e.target.value)}
+                      onBlur={() => handleFieldBlur("email", email)}
+                      placeholder="doctor@hospital.org"
+                      required
+                      className="h-11 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                    />
+                  </div>
+                  {errors.email && (
+                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
+                      <AlertTriangle className="size-3 shrink-0" />
+                      {errors.email}
+                    </p>
+                  )}
                 </div>
               )}
 
-              {/* Data Safety Assurance Footer */}
-              <div className="mt-6 flex items-center justify-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 text-center">
-                <ShieldCheck className="size-3.5 text-slate-400 shrink-0" />
-                <span>Your data is safe with us. We never share your information.</span>
-              </div>
-            </div>
-          </div>
+              {/* Sign Up Mode: Username */}
+              {mode === "signup" && (
+                <div>
+                  <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
+                    Preferred Username
+                  </label>
+                  <div className="relative">
+                    <AtSign className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => handleInputChange("username", e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ""))}
+                      onBlur={() => handleFieldBlur("username", username)}
+                      placeholder="dr_rajesh"
+                      className="h-11 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                    />
+                  </div>
+                  {errors.username && (
+                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
+                      <AlertTriangle className="size-3 shrink-0" />
+                      {errors.username}
+                    </p>
+                  )}
+                </div>
+              )}
 
+              {/* Password Field */}
+              <div>
+                <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => handleInputChange("password", e.target.value)}
+                    onBlur={() => handleFieldBlur("password", password)}
+                    placeholder="Enter your password"
+                    required
+                    className="h-11 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-10 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                    aria-label="Toggle password visibility"
+                  >
+                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
+                {mode === "signup" && <PasswordStrengthIndicator password={password} />}
+                {errors.password && (
+                  <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
+                    <AlertTriangle className="size-3 shrink-0" />
+                    {errors.password}
+                  </p>
+                )}
+              </div>
+
+              {/* Confirm Password (Sign Up Mode) */}
+              {mode === "signup" && (
+                <div>
+                  <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                      onBlur={() => handleFieldBlur("confirmPassword", confirmPassword)}
+                      placeholder="Re-enter your password"
+                      required
+                      className="h-11 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-10 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                      aria-label="Toggle confirm password visibility"
+                    >
+                      {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
+                  {errors.confirmPassword && (
+                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
+                      <AlertTriangle className="size-3 shrink-0" />
+                      {errors.confirmPassword}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Forgot Password Link (Sign In Mode) */}
+              {mode === "signin" && (
+                <div className="flex items-center justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsForgotPassword(true);
+                      setErrors({});
+                      setSuccessMessage("");
+                    }}
+                    className="text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+              )}
+
+              {/* Terms Checkbox (Sign Up Mode) */}
+              {mode === "signup" && (
+                <div>
+                  <label className="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-300 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={agreedToTerms}
+                      onChange={(e) => handleInputChange("agreeToTerms", e.target.checked)}
+                      className="mt-0.5 size-4 rounded-none border-slate-300 text-[#0f4c81] focus:ring-[#0f4c81]"
+                    />
+                    <span>
+                      I agree to the{" "}
+                      <a href="/terms" className="font-semibold text-[#0f4c81] dark:text-[#58a6ff] underline">
+                        Terms of Service
+                      </a>{" "}
+                      and{" "}
+                      <a href="/privacy" className="font-semibold text-[#0f4c81] dark:text-[#58a6ff] underline">
+                        Privacy Policy
+                      </a>
+                      .
+                    </span>
+                  </label>
+                  {errors.agreeToTerms && (
+                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
+                      <AlertTriangle className="size-3 shrink-0" />
+                      {errors.agreeToTerms}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Submit CTA Button */}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-none bg-[#0f4c81] dark:bg-[#14559b] py-3 text-sm font-bold text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition disabled:opacity-50 cursor-pointer mt-2 active:scale-98"
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="size-4 animate-spin" />
+                    {mode === "signin" ? "Logging in..." : "Creating account..."}
+                  </span>
+                ) : (
+                  <>
+                    <span>{mode === "signin" ? "Login" : "Create Account"}</span>
+                    <ArrowRight className="size-4" />
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* Bottom Switcher: Don't have an account? Sign Up */}
+          {!isForgotPassword && (
+            <div className="text-center mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                {mode === "signin" ? "Don't have an account? " : "Already have an account? "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode(mode === "signin" ? "signup" : "signin");
+                    setErrors({});
+                    setSuccessMessage("");
+                  }}
+                  className="font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer ml-1"
+                >
+                  {mode === "signin" ? "Sign Up" : "Login"}
+                </button>
+              </p>
+            </div>
+          )}
+
+          {/* Data Safety Assurance Footer */}
+          <div className="mt-6 flex items-center justify-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 text-center">
+            <ShieldCheck className="size-3.5 text-slate-400 shrink-0" />
+            <span>Your data is safe with us. We never share your information.</span>
+          </div>
         </div>
+
+        {/* Minimal Footer */}
+        <footer className="w-full text-center text-xs text-slate-400 dark:text-slate-500 pt-4">
+          © {new Date().getFullYear()} Med Global Network (MGN). All rights reserved.
+        </footer>
       </div>
 
-      {/* Minimal Footer */}
-      <footer className="w-full text-center text-xs text-slate-400 dark:text-slate-500 py-4 border-t border-slate-200/50 dark:border-slate-800/50">
-        © {new Date().getFullYear()} Med Global Network (MGN). All rights reserved.
-      </footer>
     </div>
   );
 }
