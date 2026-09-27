@@ -3,9 +3,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ShieldCheck, Menu, X, LayoutDashboard, User } from "lucide-react";
+import { ArrowRight, Menu, X, LayoutDashboard } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl, getInitials } from "@/lib/avatar";
+import { getInitials } from "@/lib/avatar";
+import UserMenu from "@/components/UserMenu";
 
 interface LandingHeaderProps {
   onOpenAuth: (mode?: "signin" | "signup") => void;
@@ -15,15 +16,6 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-
-  // Dynamic Avatar sync
-  const [avatarUrl, setAvatarUrl] = React.useState<string>(DEFAULT_BLANK_AVATAR);
-
-  React.useEffect(() => {
-    if (session?.user?.id) {
-      setAvatarUrl(getUserAvatarUrl(session.user.id, session.user.image));
-    }
-  }, [session?.user?.id, session?.user?.image]);
 
   const scrollToSection = (id: string) => {
     setMobileMenuOpen(false);
@@ -84,35 +76,16 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
         <div className="hidden sm:flex items-center gap-3">
           {isLoggedIn ? (
             <div className="flex items-center gap-2.5">
-              {/* User Avatar + Name chip */}
-              <Link
-                href="/home"
-                className="flex items-center gap-2 p-1 pr-3 rounded-full border border-[#ded8d1] bg-[#faf9f8] hover:bg-white hover:border-[#0f4c81]/40 transition group"
-                title="View Profile / Dashboard"
-              >
-                <div className="size-8 rounded-full overflow-hidden bg-[#eef5fc] border border-[#ded8d1] flex items-center justify-center text-xs font-bold text-[#0f4c81]">
-                  {session?.user?.image || (avatarUrl && avatarUrl !== DEFAULT_BLANK_AVATAR) ? (
-                    <img
-                      src={avatarUrl}
-                      alt={session?.user?.name || "User"}
-                      className="size-full rounded-full object-cover"
-                    />
-                  ) : (
-                    userInitials
-                  )}
-                </div>
-                <span className="text-xs font-bold text-[#171717] group-hover:text-[#0f4c81] transition truncate max-w-[130px]">
-                  {session?.user?.name || "My Account"}
-                </span>
-              </Link>
+              {/* User Menu (Avatar + Name + Dropdown: Subscriptions, Membership, Profile, Logout) */}
+              <UserMenu />
 
               {/* Go to Dashboard CTA */}
               <Link
                 href="/home"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] px-4.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0c3c66] transition active:scale-95"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0c3c66] transition active:scale-95"
               >
                 <LayoutDashboard className="size-3.5" />
-                <span>Go to Dashboard</span>
+                <span>Dashboard</span>
                 <ArrowRight className="size-3.5" />
               </Link>
             </div>
@@ -140,15 +113,9 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
         {/* Mobile Menu Toggle */}
         <div className="flex sm:hidden items-center gap-2">
           {isLoggedIn ? (
-            <Link
-              href="/home"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0f4c81] text-white text-xs font-bold shadow-xs"
-            >
-              <div className="size-5 rounded-full overflow-hidden bg-white/20 flex items-center justify-center text-[10px]">
-                {userInitials}
-              </div>
-              <span>Dashboard</span>
-            </Link>
+            <div className="flex items-center gap-1.5">
+              <UserMenu />
+            </div>
           ) : (
             <button
               type="button"
@@ -168,6 +135,7 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
           </button>
         </div>
       </div>
+
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (

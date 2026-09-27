@@ -2,10 +2,12 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { ChevronDown } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl } from "@/lib/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { MemberBadge } from "@/modules/network/components/MemberBadge";
+
 function Icons8MenuIcon({
   iconId,
   colorHex = "77716B",
@@ -102,26 +104,36 @@ export default function UserMenu() {
 
   return (
     <div ref={ref} className="relative">
-      {/* Collapsed — profile avatar fetched from custom or blank */}
+      {/* Collapsed — profile avatar & user name */}
       <button
         type="button"
         aria-label="Open user menu"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="flex h-9 w-9 lg:h-11 lg:w-11 items-center justify-center overflow-hidden rounded-full border border-[#ded8d1] ring-2 ring-transparent transition hover:ring-[#1769c2]/30 focus:outline-none focus:ring-[#1769c2]/50"
+        className="flex items-center gap-2 p-1 sm:pr-2.5 rounded-full border border-[#ded8d1] bg-[#faf9f8] hover:bg-white hover:border-[#0f4c81]/40 transition shadow-xs group cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0f4c81]/30"
       >
-        <UserAvatar
-          src={avatarUrl}
-          name={session?.user?.name}
-          email={session?.user?.email}
-          userId={session?.user?.id}
-          className="h-full w-full"
+        <div className="size-8 sm:size-9 shrink-0 overflow-hidden rounded-full border border-[#ded8d1]">
+          <UserAvatar
+            src={avatarUrl}
+            name={session?.user?.name}
+            email={session?.user?.email}
+            userId={session?.user?.id}
+            className="h-full w-full object-cover"
+          />
+        </div>
+        <span className="hidden sm:block text-xs font-bold text-[#171717] group-hover:text-[#0f4c81] transition truncate max-w-[110px] lg:max-w-[140px] text-left">
+          {session?.user?.name || "My Account"}
+        </span>
+        <ChevronDown
+          className={`hidden sm:block size-3.5 text-[#8a8784] transition-transform duration-200 ${
+            open ? "rotate-180 text-[#0f4c81]" : "group-hover:text-[#171717]"
+          }`}
         />
       </button>
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-11 lg:top-14 z-50 w-[280px] lg:w-[310px] overflow-hidden rounded-2xl border border-[#ebebeb] bg-white shadow-[0_8px_40px_rgba(0,0,0,0.12)]">
+        <div className="absolute right-0 top-12 sm:top-13 z-50 w-[280px] sm:w-[310px] overflow-hidden rounded-2xl border border-[#ebebeb] bg-white shadow-[0_12px_44px_rgba(0,0,0,0.14)] animate-in fade-in zoom-in-95 duration-150">
           {/* User info */}
           <div
             onClick={() => session?.user?.id && navTo(`/profile/${session.user.id}`)}
@@ -140,10 +152,10 @@ export default function UserMenu() {
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-bold text-[#171717]">
-                {session?.user.name || "User"}
+                {session?.user?.name || "User"}
               </p>
               <p className="truncate text-[11px] text-[#8a8784] mb-1">
-                {session?.user.email}
+                {session?.user?.email}
               </p>
               <MemberBadge
                 memberId={memberId}
@@ -157,12 +169,26 @@ export default function UserMenu() {
           <div className="mx-4 h-px bg-[#f0efee]" />
 
           {/* Menu items */}
-          <ul className="px-2 py-2">
+          <ul className="px-2 py-2 space-y-0.5">
+            <li>
+              <button
+                type="button"
+                onClick={() => navTo("/home")}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group cursor-pointer"
+              >
+                <Icons8MenuIcon
+                  iconId="v9L1K1EeV6Y7"
+                  colorHex="0F4C81"
+                  className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
+                />
+                Dashboard
+              </button>
+            </li>
             <li>
               <button
                 type="button"
                 onClick={() => session?.user?.id && navTo(`/profile/${session.user.id}`)}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group"
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group cursor-pointer"
               >
                 <Icons8MenuIcon
                   iconId="zxB19VPoVLjK"
@@ -175,8 +201,41 @@ export default function UserMenu() {
             <li>
               <button
                 type="button"
+                onClick={() => session?.user?.id ? navTo(`/profile/${session.user.id}`) : navTo("/pricing")}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group cursor-pointer"
+              >
+                <Icons8MenuIcon
+                  iconId="20520"
+                  colorHex="16804D"
+                  className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
+                />
+                <span className="flex-1 text-left">Membership</span>
+                {isFoundingMember && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                    Founder
+                  </span>
+                )}
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => navTo("/pricing")}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group cursor-pointer"
+              >
+                <Icons8MenuIcon
+                  iconId="JYQrEM0EyitQ"
+                  colorHex="D97706"
+                  className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
+                />
+                My Subscriptions
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
                 onClick={() => navTo("/network/connections")}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group"
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group cursor-pointer"
               >
                 <Icons8MenuIcon
                   iconId="gf7HkPc5t1hF"
@@ -186,50 +245,22 @@ export default function UserMenu() {
                 My Network
               </button>
             </li>
-            <li>
-              <button
-                type="button"
-                onClick={() => navTo("/network/feed")}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group"
-              >
-                <Icons8MenuIcon
-                  iconId="0XwEi0yisdO8"
-                  colorHex="77716B"
-                  className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
-                />
-                Professional Feed
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                onClick={() => navTo("/network/communities")}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group"
-              >
-                <Icons8MenuIcon
-                  iconId="4C2pzaBlIDEO"
-                  colorHex="77716B"
-                  className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
-                />
-                Communities
-              </button>
-            </li>
           </ul>
 
           <div className="mx-4 h-px bg-[#f0efee]" />
 
           {/* Admin Console shortcut for admin */}
-          {session?.user.email?.toLowerCase() === "patreshubham141@gmail.com" && (
+          {session?.user?.email?.toLowerCase() === "patreshubham141@gmail.com" && (
             <>
               <div className="px-2 py-1.5">
                 <button
                   type="button"
                   onClick={() => navTo("/admin")}
-                  className="flex w-full items-center gap-3 rounded-xl bg-[#eef5fc] px-3 py-2 text-[13px] font-semibold text-[#1769c2] transition hover:bg-[#dbeafe] group"
+                  className="flex w-full items-center gap-3 rounded-xl bg-[#eef5fc] px-3 py-2 text-[13px] font-semibold text-[#0f4c81] transition hover:bg-[#dbeafe] group cursor-pointer"
                 >
                   <Icons8MenuIcon
                     iconId="vy6OvJYHSJ8I"
-                    colorHex="1769C2"
+                    colorHex="0F4C81"
                     className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
                   />
                   Admin Console
@@ -239,28 +270,12 @@ export default function UserMenu() {
             </>
           )}
 
-          {/* Plans & Pricing */}
-          <div className="px-2 py-1.5">
-            <button
-              type="button"
-              onClick={() => navTo("/pricing")}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group"
-            >
-              <Icons8MenuIcon
-                iconId="JYQrEM0EyitQ"
-                colorHex="D97706"
-                className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
-              />
-              Plans & Pricing
-            </button>
-          </div>
-
           {/* Settings */}
           <div className="px-2 py-1.5">
             <button
               type="button"
               onClick={() => navTo("/settings")}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium text-[#4f4b48] transition hover:bg-[#f7f6f5] hover:text-[#171717] group cursor-pointer"
             >
               <Icons8MenuIcon
                 iconId="4511GGVppfIx"
@@ -278,7 +293,7 @@ export default function UserMenu() {
             <button
               type="button"
               onClick={handleSignOut}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-semibold text-red-500 transition hover:bg-red-50 group"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-semibold text-red-500 transition hover:bg-red-50 group cursor-pointer"
             >
               <Icons8MenuIcon
                 iconId="Q1xkcFuVON39"
@@ -293,3 +308,4 @@ export default function UserMenu() {
     </div>
   );
 }
+
