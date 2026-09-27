@@ -3,7 +3,17 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Menu, X, LayoutDashboard } from "lucide-react";
+import {
+  ArrowRight,
+  Menu,
+  X,
+  LayoutDashboard,
+  Home,
+  Layers,
+  Users,
+  ShieldCheck,
+  Stethoscope,
+} from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { getInitials } from "@/lib/avatar";
 import UserMenu from "@/components/UserMenu";
@@ -16,24 +26,60 @@ interface LandingHeaderProps {
 export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<string>("home");
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState<boolean>(false);
 
-  const scrollToSection = (id: string) => {
+  // Scroll listener to update active tab based on visible section
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY + 120;
+      const sections = ["specialties", "verification-trust", "network-showcase", "ecosystem"];
+
+      for (const sectionId of sections) {
+        const el = document.getElementById(sectionId);
+        if (el && el.offsetTop <= scrollPosition) {
+          setActiveTab(sectionId);
+          return;
+        }
+      }
+      if (window.scrollY < 200) {
+        setActiveTab("home");
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleNavClick = (id: string) => {
+    setActiveTab(id);
     setMobileMenuOpen(false);
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+    if (id === "home") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
     }
   };
+
+  const navItems = [
+    { id: "home", label: "Home", icon: Home },
+    { id: "ecosystem", label: "Ecosystem", icon: Layers },
+    { id: "network-showcase", label: "Network", icon: Users },
+    { id: "verification-trust", label: "Verification", icon: ShieldCheck },
+    { id: "specialties", label: "Specialties", icon: Stethoscope },
+  ];
 
   const userInitials = getInitials(session?.user?.name, session?.user?.email);
   const isLoggedIn = !isPending && Boolean(session?.user);
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/80 dark:bg-[#161b22]/80 backdrop-blur-md transition-all">
+    <header className="sticky top-0 z-40 w-full bg-white/85 dark:bg-[#161b22]/85 backdrop-blur-md transition-all">
       <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center group">
+        <Link href="/" onClick={() => handleNavClick("home")} className="flex items-center group">
           <img
             src="/logo.png"
             alt="MGN Logo"
@@ -41,36 +87,40 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
           />
         </Link>
 
-        {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center gap-7 text-xs font-bold text-[#5d5854] dark:text-[#8b949e]">
-          <button
-            type="button"
-            onClick={() => scrollToSection("ecosystem")}
-            className="hover:text-[#0f4c81] dark:hover:text-[#388bfd] transition cursor-pointer"
-          >
-            Ecosystem
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollToSection("network-showcase")}
-            className="hover:text-[#0f4c81] dark:hover:text-[#388bfd] transition cursor-pointer"
-          >
-            Verified Network
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollToSection("verification-trust")}
-            className="hover:text-[#0f4c81] dark:hover:text-[#388bfd] transition cursor-pointer"
-          >
-            Verification & Trust
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollToSection("specialties")}
-            className="hover:text-[#0f4c81] dark:hover:text-[#388bfd] transition cursor-pointer"
-          >
-            Specialties
-          </button>
+        {/* Desktop Navigation Links with Icon + Underline Effect */}
+        <nav className="hidden md:flex items-center gap-7 sm:gap-8 h-full">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => handleNavClick(item.id)}
+                className={`group relative flex items-center gap-2 py-5 text-sm transition-colors duration-200 cursor-pointer ${
+                  isActive
+                    ? "font-semibold text-[#171717] dark:text-[#f0f6fc]"
+                    : "font-medium text-[#6b7280] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
+                }`}
+              >
+                <Icon
+                  className={`size-4.5 transition-colors duration-200 ${
+                    isActive
+                      ? "text-[#171717] dark:text-[#f0f6fc] stroke-[2.2]"
+                      : "text-[#6b7280] dark:text-[#8b949e] group-hover:text-[#171717] dark:group-hover:text-[#f0f6fc] stroke-[1.8]"
+                  }`}
+                />
+                <span>{item.label}</span>
+
+                {/* Bottom Active / Hover Underline Effect */}
+                {isActive ? (
+                  <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#171717] dark:bg-[#f0f6fc] rounded-full transition-all duration-300" />
+                ) : (
+                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#171717]/30 dark:bg-white/30 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-center" />
+                )}
+              </button>
+            );
+          })}
         </nav>
 
         {/* Right CTA Actions */}
@@ -142,35 +192,26 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden border-b border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-4 py-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150 shadow-md">
-          <div className="flex flex-col space-y-2 text-sm font-semibold text-[#171717] dark:text-[#f0f6fc]">
-            <button
-              type="button"
-              onClick={() => scrollToSection("ecosystem")}
-              className="text-left py-2 px-2 rounded-lg hover:bg-[#faf9f8] dark:hover:bg-[#21262d]"
-            >
-              Ecosystem
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection("network-showcase")}
-              className="text-left py-2 px-2 rounded-lg hover:bg-[#faf9f8] dark:hover:bg-[#21262d]"
-            >
-              Verified Network
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection("verification-trust")}
-              className="text-left py-2 px-2 rounded-lg hover:bg-[#faf9f8] dark:hover:bg-[#21262d]"
-            >
-              Verification & Trust
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection("specialties")}
-              className="text-left py-2 px-2 rounded-lg hover:bg-[#faf9f8] dark:hover:bg-[#21262d]"
-            >
-              Specialties
-            </button>
+          <div className="flex flex-col space-y-1 text-sm font-medium text-[#171717] dark:text-[#f0f6fc]">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => handleNavClick(item.id)}
+                  className={`flex items-center gap-3 text-left py-2.5 px-3 rounded-xl transition ${
+                    isActive
+                      ? "bg-[#0f4c81]/10 text-[#0f4c81] dark:text-[#58a6ff] font-semibold"
+                      : "text-[#5d5854] dark:text-[#8b949e] hover:bg-[#faf9f8] dark:hover:bg-[#21262d]"
+                  }`}
+                >
+                  <Icon className="size-4.5" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
           </div>
 
           <div className="pt-2 border-t border-[#ded8d1] dark:border-[#30363d] flex flex-col gap-2">
