@@ -23,6 +23,8 @@ import {
   Users,
   BookOpen,
   TrendingUp,
+  RefreshCw,
+  Smartphone,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -138,6 +140,7 @@ interface FormErrors {
   password?: string;
   confirmPassword?: string;
   phone?: string;
+  otp?: string;
   agreeToTerms?: string;
   general?: string;
 }
@@ -154,6 +157,15 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
   // Login Input Method: Email vs Phone
   const [loginMethod, setLoginMethod] = React.useState<"email" | "phone">("email");
+
+  // Phone Auth Mode: OTP vs Password
+  const [phoneAuthMode, setPhoneAuthMode] = React.useState<"otp" | "password">("otp");
+  const [otpSent, setOtpSent] = React.useState(false);
+  const [otpCode, setOtpCode] = React.useState("");
+  const [devOtp, setDevOtp] = React.useState<string | undefined>(undefined);
+  const [otpCountdown, setOtpCountdown] = React.useState(0);
+  const [isSendingOtp, setIsSendingOtp] = React.useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = React.useState(false);
 
   // Account Type Selection: INDIVIDUAL vs ORGANISATION (For Signup)
   const [accountType, setAccountType] = React.useState<"INDIVIDUAL" | "ORGANISATION">("INDIVIDUAL");
@@ -183,6 +195,16 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   const [isForgotPassword, setIsForgotPassword] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+
+  // OTP Countdown Timer
+  React.useEffect(() => {
+    if (otpCountdown > 0) {
+      const timer = setInterval(() => {
+        setOtpCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [otpCountdown]);
 
   // Load saved email/username on mount
   React.useEffect(() => {
@@ -253,6 +275,11 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           if (mode === "signin") {
             if (!value || (typeof value === "string" && !value.trim())) {
               error = loginMethod === "phone" ? "Phone number is required" : "Email address is required";
+            } else if (loginMethod === "phone" && typeof value === "string") {
+              const digits = value.replace(/\D/g, "");
+              if (digits.length < 10) {
+                error = "Please enter a valid 10-digit mobile number";
+              }
             }
           }
           break;
@@ -350,6 +377,89 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
       setErrors((prev) => ({ ...prev, [field]: err || undefined }));
     }
   };
+
+  // Send OTP handler
+  async function handleSendPhoneOtp() {
+    const rawNum = identifier.trim();
+    const digits = rawNum.replace(/\D/g, "");
+    if (!digits || digits.length < 10) {
+      setErrors({ identifier: "Please enter a valid 10-digit mobile number." });
+      return;
+    }
+
+    setIsSendingOtp(true);
+    setErrors({});
+    setSuccessMessage("");
+
+    try {
+      const res = await fetch("/api/auth/phone/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: rawNum }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setErrors({ general: data.error || "Failed to send verification code. Please try again." });
+      } else {
+        setOtpSent(true);
+        setDevOtp(data.devOtp);
+        setOtpCountdown(data.expiresInSeconds ? 30 : 30);
+        setSuccessMessage(`Verification code sent to ${data.phone}`);
+      }
+    } catch {
+      setErrors({ general: "Failed to connect to authentication server. Please try again." });
+    } finally {
+      setIsSendingOtp(false);
+    }
+  }
+
+  // Verify OTP handler
+  async function handleVerifyPhoneOtp(e: React.FormEvent) {
+    e.preventDefault();
+    const rawNum = identifier.trim();
+    if (!rawNum) {
+      setErrors({ identifier: "Phone number is required." });
+      return;
+    }
+    if (!otpCode.trim() || otpCode.trim().length < 4) {
+      setErrors({ otp: "Please enter the 6-digit OTP code." });
+      return;
+    }
+
+    setIsVerifyingOtp(true);
+    setErrors({});
+    setSuccessMessage("");
+
+    try {
+      const res = await fetch("/api/auth/phone/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: rawNum,
+          otp: otpCode.trim(),
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setErrors({ general: data.error || "Invalid verification code. Please try again." });
+      } else {
+        setSuccessMessage("Login successful! Redirecting...");
+        setTimeout(() => {
+          if (data.user?.isNewUser) {
+            router.push("/onboarding");
+          } else {
+            router.push("/home");
+          }
+        }, 500);
+      }
+    } catch {
+      setErrors({ general: "Verification failed. Please check your connection." });
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  }
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -682,6 +792,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                 onClick={() => {
                   setLoginMethod("email");
                   setErrors({});
+                  setSuccessMessage("");
                 }}
                 className={`flex items-center justify-center gap-2 py-2.5 text-xs font-semibold rounded-none transition cursor-pointer ${
                   loginMethod === "email"
@@ -698,6 +809,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                 onClick={() => {
                   setLoginMethod("phone");
                   setErrors({});
+                  setSuccessMessage("");
                 }}
                 className={`flex items-center justify-center gap-2 py-2.5 text-xs font-semibold rounded-none transition cursor-pointer ${
                   loginMethod === "phone"
@@ -806,7 +918,9 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
             </div>
           )}
 
-          {/* Form Content */}
+          {/* ═══════════════════════════════════════════
+              CASE A: FORGOT PASSWORD
+              ═══════════════════════════════════════════ */}
           {isForgotPassword ? (
             <form onSubmit={handleForgotPassword} className="space-y-4 text-left">
               <div>
@@ -858,14 +972,212 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                 </button>
               </div>
             </form>
+          ) : mode === "signin" && loginMethod === "phone" && phoneAuthMode === "otp" ? (
+            /* ═══════════════════════════════════════════
+               CASE B: SIGN IN VIA PHONE OTP (REAL OTP)
+               ═══════════════════════════════════════════ */
+            <div className="space-y-4 text-left">
+              {!otpSent ? (
+                /* Step 1: Enter Phone Number & Send OTP */
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendPhoneOtp();
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
+                      Mobile Number
+                    </label>
+                    <div className="flex items-center">
+                      <div className="h-11 px-3 bg-slate-100 dark:bg-[#1c2128] border border-r-0 border-slate-200 dark:border-slate-700 flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 select-none">
+                        <Smartphone className="size-3.5 text-slate-500" />
+                        <span>+91</span>
+                      </div>
+                      <input
+                        type="tel"
+                        value={identifier.replace(/^\+91\s*/, "")}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                          setIdentifier(val ? `+91${val}` : "");
+                        }}
+                        placeholder="98765 43210"
+                        autoFocus
+                        required
+                        className="h-11 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] px-3 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81] tracking-wider"
+                      />
+                    </div>
+                    {errors.identifier && (
+                      <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
+                        <AlertTriangle className="size-3 shrink-0" />
+                        {errors.identifier}
+                      </p>
+                    )}
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">
+                      We'll send a 6-digit verification code to this number.
+                    </p>
+                  </div>
+
+                  {/* Send OTP CTA */}
+                  <button
+                    type="submit"
+                    disabled={isSendingOtp || !identifier || identifier.replace(/\D/g, "").length < 10}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-none bg-[#0f4c81] dark:bg-[#14559b] py-3 text-sm font-bold text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition disabled:opacity-50 cursor-pointer active:scale-98"
+                  >
+                    {isSendingOtp ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="size-4 animate-spin" />
+                        Sending code...
+                      </span>
+                    ) : (
+                      <>
+                        <span>Get Verification Code</span>
+                        <ArrowRight className="size-4" />
+                      </>
+                    )}
+                  </button>
+
+                  {/* Alternative: Switch to Password Login */}
+                  <div className="text-center pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPhoneAuthMode("password");
+                        setErrors({});
+                      }}
+                      className="text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
+                    >
+                      Login with password instead
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                /* Step 2: Enter 6-Digit OTP & Verify */
+                <form onSubmit={handleVerifyPhoneOtp} className="space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200">
+                        Enter 6-Digit Verification Code
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOtpSent(false);
+                          setOtpCode("");
+                          setErrors({});
+                          setSuccessMessage("");
+                        }}
+                        className="text-[11px] font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
+                      >
+                        Change Number
+                      </button>
+                    </div>
+
+                    <div className="relative">
+                      <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        placeholder="• • • • • •"
+                        autoFocus
+                        required
+                        className="h-12 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-center text-lg tracking-[0.5em] font-mono font-bold text-[#171717] dark:text-white placeholder:text-slate-300 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                      />
+                    </div>
+
+                    {/* Non-prod dev OTP helper */}
+                    {devOtp && (
+                      <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-xs text-blue-700 dark:text-blue-300 flex items-center justify-between">
+                        <span>
+                          Test OTP: <strong className="font-mono">{devOtp}</strong>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setOtpCode(devOtp)}
+                          className="text-[11px] underline font-bold cursor-pointer"
+                        >
+                          Auto-fill
+                        </button>
+                      </div>
+                    )}
+
+                    {errors.otp && (
+                      <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
+                        <AlertTriangle className="size-3 shrink-0" />
+                        {errors.otp}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Verify & Login CTA */}
+                  <button
+                    type="submit"
+                    disabled={isVerifyingOtp || otpCode.length < 4}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-none bg-[#0f4c81] dark:bg-[#14559b] py-3 text-sm font-bold text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition disabled:opacity-50 cursor-pointer active:scale-98"
+                  >
+                    {isVerifyingOtp ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="size-4 animate-spin" />
+                        Verifying code...
+                      </span>
+                    ) : (
+                      <>
+                        <span>Verify & Login</span>
+                        <ArrowRight className="size-4" />
+                      </>
+                    )}
+                  </button>
+
+                  {/* Resend OTP */}
+                  <div className="flex items-center justify-between pt-1 text-xs">
+                    <span className="text-slate-500 dark:text-slate-400">Didn't receive the code?</span>
+                    {otpCountdown > 0 ? (
+                      <span className="text-slate-400 font-medium">Resend in {otpCountdown}s</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleSendPhoneOtp}
+                        disabled={isSendingOtp}
+                        className="font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer inline-flex items-center gap-1"
+                      >
+                        <RefreshCw className="size-3" />
+                        Resend Code
+                      </button>
+                    )}
+                  </div>
+                </form>
+              )}
+            </div>
           ) : (
+            /* ═══════════════════════════════════════════
+               CASE C: STANDARD PASSWORD LOGIN / SIGN UP
+               ═══════════════════════════════════════════ */
             <form onSubmit={handleSubmit} className="space-y-4 text-left">
-              {/* Sign In Mode: Email vs Phone */}
+              {/* Sign In Mode: Email vs Phone (Password mode) */}
               {mode === "signin" && (
                 <div>
-                  <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                    {loginMethod === "email" ? "Email Address" : "Phone Number"}
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200">
+                      {loginMethod === "email" ? "Email Address or Username" : "Mobile Number"}
+                    </label>
+                    {loginMethod === "phone" && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPhoneAuthMode("otp");
+                          setOtpSent(false);
+                          setErrors({});
+                        }}
+                        className="text-[11px] font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
+                      >
+                        Login with OTP instead
+                      </button>
+                    )}
+                  </div>
                   <div className="relative">
                     {loginMethod === "email" ? (
                       <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
@@ -879,7 +1191,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                       onBlur={() => handleFieldBlur("identifier", identifier)}
                       placeholder={
                         loginMethod === "email"
-                          ? "Enter your email address"
+                          ? "doctor@hospital.org or @username"
                           : "+91 Enter mobile number"
                       }
                       required
@@ -1019,6 +1331,25 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                       {errors.email}
                     </p>
                   )}
+                </div>
+              )}
+
+              {/* Sign Up Mode: Phone Number (Optional) */}
+              {mode === "signup" && (
+                <div>
+                  <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
+                    Mobile Number <span className="text-[11px] font-normal text-slate-400">(Optional)</span>
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => handleInputChange("phone", e.target.value)}
+                      placeholder="+91 98765 43210"
+                      className="h-11 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                    />
+                  </div>
                 </div>
               )}
 
@@ -1197,6 +1528,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                     setMode(mode === "signin" ? "signup" : "signin");
                     setErrors({});
                     setSuccessMessage("");
+                    setOtpSent(false);
+                    setOtpCode("");
                   }}
                   className="font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer ml-1"
                 >
