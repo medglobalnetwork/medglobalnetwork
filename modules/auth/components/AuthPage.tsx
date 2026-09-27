@@ -10,7 +10,6 @@ import {
   User,
   Eye,
   EyeOff,
-  ShieldCheck,
   AlertTriangle,
   KeyRound,
   Phone,
@@ -87,7 +86,7 @@ const PasswordStrengthIndicator: React.FC<{ password: string }> = ({ password })
             style={{ width: `${(strength.score / 5) * 100}%` }}
           />
         </div>
-        <span className="text-[11px] font-bold text-[#77716b] dark:text-[#8b949e] min-w-[55px] text-right">
+        <span className="text-[11px] font-medium text-[#77716b] dark:text-[#8b949e] min-w-[55px] text-right">
           {getStrengthText(strength.score)}
         </span>
       </div>
@@ -96,7 +95,7 @@ const PasswordStrengthIndicator: React.FC<{ password: string }> = ({ password })
           {strength.feedback.map((item, index) => (
             <div
               key={index}
-              className="flex items-center gap-1 text-[10px] font-medium text-amber-600 dark:text-amber-400"
+              className="flex items-center gap-1 text-[10px] font-normal text-amber-600 dark:text-amber-400"
             >
               <AlertTriangle className="size-2.5 shrink-0" />
               <span className="truncate">{item}</span>
@@ -153,9 +152,9 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   const [accountType, setAccountType] = React.useState<"INDIVIDUAL" | "ORGANISATION">("INDIVIDUAL");
 
   // Common Fields
-  const [identifier, setIdentifier] = React.useState(""); // For login (email or username)
-  const [email, setEmail] = React.useState(""); // For signup
-  const [username, setUsername] = React.useState(""); // For signup
+  const [identifier, setIdentifier] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const [phone, setPhone] = React.useState("");
@@ -407,7 +406,6 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
             ? fullName.trim()
             : `${orgName.trim()} (${repName.trim()})`;
 
-        // Pre-save onboarding draft
         if (typeof window !== "undefined") {
           const draftPayload: Record<string, any> = {
             accountType,
@@ -442,7 +440,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           setErrors({ general: error.message || "Failed to create account. Please try again." });
           setIsSubmitting(false);
         } else {
-          setSuccessMessage("Account created successfully! Redirecting to verification onboarding...");
+          setSuccessMessage("Account created successfully! Redirecting...");
           setTimeout(() => router.push("/onboarding"), 600);
         }
       } catch {
@@ -451,7 +449,6 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
       }
     } else {
       try {
-        // Resolve email if user entered a username, member ID, or direct email
         let resolvedEmail = identifier.trim();
 
         const resolveRes = await fetch("/api/auth/resolve-identifier", {
@@ -540,9 +537,9 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           <img
             src="/logo.png"
             alt="Med Global Network"
-            className="h-9 sm:h-10 w-auto object-contain transition-transform group-hover:scale-105"
+            className="h-8 sm:h-9 w-auto object-contain transition-transform group-hover:scale-105"
           />
-          <span className="text-base sm:text-lg font-black tracking-tight text-[#171717] dark:text-[#f0f6fc] group-hover:text-[#0f4c81] dark:group-hover:text-[#58a6ff] transition-colors">
+          <span className="text-base sm:text-lg font-semibold tracking-tight text-[#171717] dark:text-[#f0f6fc] group-hover:text-[#0f4c81] dark:group-hover:text-[#58a6ff] transition-colors">
             Med Global Network
           </span>
         </Link>
@@ -551,7 +548,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           <ThemeToggle collapsed={true} />
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#5d5854] dark:text-[#8b949e] hover:text-[#0f4c81] dark:hover:text-[#58a6ff] transition rounded-xl px-3 py-1.5 hover:bg-[#f0efee] dark:hover:bg-[#21262d]"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-[#5d5854] dark:text-[#8b949e] hover:text-[#0f4c81] dark:hover:text-[#58a6ff] transition rounded-xl px-3 py-1.5 hover:bg-[#f0efee] dark:hover:bg-[#21262d]"
           >
             <ArrowLeft className="size-4" />
             <span>Back to Home</span>
@@ -561,26 +558,26 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
       {/* Main Open / Frameless Auth Layout */}
       <main className="flex-1 flex flex-col items-center justify-center py-8 sm:py-12 px-4 sm:px-6">
-        <div className="w-full max-w-[440px] mx-auto animate-in fade-in duration-200">
+        <div className="w-full max-w-[420px] mx-auto animate-in fade-in duration-200">
           {/* Page Header */}
           <div className="flex flex-col items-center text-center mb-6">
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#171717] dark:text-[#f0f6fc]">
+            <h1 className="text-2xl sm:text-[26px] font-semibold tracking-tight text-[#171717] dark:text-[#f0f6fc]">
               {isForgotPassword
-                ? "Reset Your Password"
+                ? "Reset password"
                 : mode === "signup"
                 ? accountType === "ORGANISATION"
-                  ? "Register Organisation"
-                  : "Join Verified Network"
-                : "Welcome Back"}
+                  ? "Register organisation"
+                  : "Join verified network"
+                : "Welcome back"}
             </h1>
 
-            <p className="mt-1.5 text-xs sm:text-sm text-[#77716b] dark:text-[#8b949e] font-medium leading-relaxed">
+            <p className="mt-1 text-xs sm:text-sm text-[#77716b] dark:text-[#8b949e] font-normal leading-relaxed">
               {isForgotPassword
-                ? "Enter your email or username to receive password recovery instructions"
+                ? "Enter your email or username to receive recovery instructions"
                 : mode === "signup"
                 ? accountType === "ORGANISATION"
-                  ? "For Hospitals, Clinics, Colleges, Diagnostic Labs & Healthcare Companies"
-                  : "For Doctors, Nurses, Therapists, Students & Healthcare Professionals"
+                  ? "For hospitals, clinics, colleges & health enterprises"
+                  : "For clinicians, doctors, nurses, therapists & students"
                 : "Sign in with your email, username, or MGN ID"}
             </p>
           </div>
@@ -595,7 +592,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                   setErrors({});
                   setSuccessMessage("");
                 }}
-                className={`py-2 text-xs font-bold rounded-xl transition cursor-pointer ${
+                className={`py-2 text-xs font-medium rounded-xl transition cursor-pointer ${
                   mode === "signin"
                     ? "bg-white dark:bg-[#161b22] text-[#0f4c81] dark:text-[#58a6ff] shadow-xs"
                     : "text-[#77716b] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
@@ -610,7 +607,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                   setErrors({});
                   setSuccessMessage("");
                 }}
-                className={`py-2 text-xs font-bold rounded-xl transition cursor-pointer ${
+                className={`py-2 text-xs font-medium rounded-xl transition cursor-pointer ${
                   mode === "signup"
                     ? "bg-white dark:bg-[#161b22] text-[#0f4c81] dark:text-[#58a6ff] shadow-xs"
                     : "text-[#77716b] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
@@ -624,8 +621,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           {/* Account Type Selection (Only for Sign Up) */}
           {mode === "signup" && !isForgotPassword && (
             <div className="mb-5 space-y-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e]">
-                Select Account Type
+              <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e]">
+                Account type
               </label>
               <div className="grid grid-cols-2 gap-2.5">
                 {/* Individual Option */}
@@ -637,7 +634,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                   }}
                   className={`p-3 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between ${
                     accountType === "INDIVIDUAL"
-                      ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-2 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
+                      ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-1.5 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
                       : "border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#0d1117] text-[#171717] dark:text-[#f0f6fc] hover:border-[#8a8784]"
                   }`}
                 >
@@ -656,8 +653,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                     )}
                   </div>
                   <div>
-                    <div className="text-xs font-black">Individual</div>
-                    <div className="text-[10px] text-[#77716b] dark:text-[#8b949e] font-medium leading-tight mt-0.5">
+                    <div className="text-xs font-semibold">Individual</div>
+                    <div className="text-[10px] text-[#77716b] dark:text-[#8b949e] font-normal leading-tight mt-0.5">
                       Doctor, Nurse, Student & Clinician
                     </div>
                   </div>
@@ -672,7 +669,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                   }}
                   className={`p-3 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between ${
                     accountType === "ORGANISATION"
-                      ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-2 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
+                      ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-1.5 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
                       : "border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#0d1117] text-[#171717] dark:text-[#f0f6fc] hover:border-[#8a8784]"
                   }`}
                 >
@@ -691,8 +688,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                     )}
                   </div>
                   <div>
-                    <div className="text-xs font-black">Organisation</div>
-                    <div className="text-[10px] text-[#77716b] dark:text-[#8b949e] font-medium leading-tight mt-0.5">
+                    <div className="text-xs font-semibold">Organisation</div>
+                    <div className="text-[10px] text-[#77716b] dark:text-[#8b949e] font-normal leading-tight mt-0.5">
                       Hospital, Clinic, College & Lab
                     </div>
                   </div>
@@ -703,14 +700,14 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
           {/* Global Messages */}
           {successMessage && (
-            <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-400 animate-in fade-in">
+            <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl flex items-center gap-2 text-xs font-medium text-emerald-700 dark:text-emerald-400 animate-in fade-in">
               <CheckCircle2 className="size-4 shrink-0" />
               <span>{successMessage}</span>
             </div>
           )}
 
           {errors.general && (
-            <div className="mb-4 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl flex items-center gap-2 text-xs font-bold text-rose-700 dark:text-rose-400 animate-in fade-in">
+            <div className="mb-4 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl flex items-center gap-2 text-xs font-medium text-rose-700 dark:text-rose-400 animate-in fade-in">
               <AlertTriangle className="size-4 shrink-0" />
               <span>{errors.general}</span>
             </div>
@@ -720,8 +717,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           {isForgotPassword ? (
             <form onSubmit={handleForgotPassword} className="space-y-4 text-left">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                  Email Address or Username
+                <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                  Email address or username
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#8a8784]" />
@@ -739,17 +736,17 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               <button
                 type="submit"
                 disabled={isSubmitting || !identifier}
-                className="w-full rounded-xl bg-[#0f4c81] dark:bg-[#14559b] py-3 text-xs sm:text-sm font-bold text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition disabled:opacity-50 cursor-pointer"
+                className="w-full rounded-xl bg-[#0f4c81] dark:bg-[#14559b] py-3 text-xs sm:text-sm font-medium text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition disabled:opacity-50 cursor-pointer"
               >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
                     <Loader2 className="size-4 animate-spin" />
-                    Sending Recovery Link...
+                    Sending recovery link...
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">
                     <KeyRound className="size-4" />
-                    Send Password Reset Link
+                    Send password reset link
                   </span>
                 )}
               </button>
@@ -762,9 +759,9 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                     setErrors({});
                     setSuccessMessage("");
                   }}
-                  className="text-xs font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
+                  className="text-xs font-medium text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
                 >
-                  ← Back to Sign In
+                  ← Back to sign in
                 </button>
               </div>
             </form>
@@ -773,8 +770,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               {/* Sign In Mode: Email or Username */}
               {mode === "signin" && (
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                    Email or Username
+                  <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                    Email or username
                   </label>
                   <div className="relative">
                     <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#8a8784]" />
@@ -789,7 +786,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                     />
                   </div>
                   {errors.identifier && (
-                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
                       <AlertTriangle className="size-3" />
                       {errors.identifier}
                     </p>
@@ -797,11 +794,11 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                 </div>
               )}
 
-              {/* Sign Up Fields for Individual */}
+              {/* Individual Sign Up: Full Name */}
               {mode === "signup" && accountType === "INDIVIDUAL" && (
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                    Full Name (with Professional Title)
+                  <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                    Full name (with clinical title)
                   </label>
                   <div className="relative">
                     <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#8a8784]" />
@@ -816,7 +813,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                     />
                   </div>
                   {errors.name && (
-                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
                       <AlertTriangle className="size-3" />
                       {errors.name}
                     </p>
@@ -824,12 +821,12 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                 </div>
               )}
 
-              {/* Sign Up Fields for Organisation */}
+              {/* Organisation Sign Up: Org Name, Type, Rep Name */}
               {mode === "signup" && accountType === "ORGANISATION" && (
                 <>
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                      Organisation / Hospital / Clinic Name
+                    <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                      Organisation / Hospital name
                     </label>
                     <div className="relative">
                       <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#8a8784]" />
@@ -844,7 +841,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                       />
                     </div>
                     {errors.orgName && (
-                      <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                      <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
                         <AlertTriangle className="size-3" />
                         {errors.orgName}
                       </p>
@@ -852,15 +849,15 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                      Organisation Type
+                    <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                      Organisation type
                     </label>
                     <div className="relative">
                       <Hospital className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#8a8784]" />
                       <select
                         value={orgType}
                         onChange={(e) => handleInputChange("orgType", e.target.value)}
-                        className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-[#faf9f8] dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81] cursor-pointer"
+                        className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-[#faf9f8] dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81] cursor-pointer font-normal"
                       >
                         {ORGANISATION_TYPES_LIST.map((t) => (
                           <option key={t.id} value={t.id} className="bg-white dark:bg-[#161b22] text-[#171717] dark:text-white">
@@ -872,8 +869,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                      Authorized Representative / Admin Name
+                    <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                      Authorized representative name
                     </label>
                     <div className="relative">
                       <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#8a8784]" />
@@ -888,7 +885,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                       />
                     </div>
                     {errors.repName && (
-                      <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                      <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
                         <AlertTriangle className="size-3" />
                         {errors.repName}
                       </p>
@@ -900,10 +897,10 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               {/* Sign Up Mode: Email Address */}
               {mode === "signup" && (
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                  <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
                     {accountType === "ORGANISATION"
-                      ? "Official / Work Email Address"
-                      : "Email Address"}
+                      ? "Work email address"
+                      : "Email address"}
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#8a8784]" />
@@ -922,7 +919,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                     />
                   </div>
                   {errors.email && (
-                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
                       <AlertTriangle className="size-3" />
                       {errors.email}
                     </p>
@@ -933,8 +930,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               {/* Sign Up Mode: Custom Username */}
               {mode === "signup" && (
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                    Preferred Username
+                  <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                    Preferred username
                   </label>
                   <div className="relative">
                     <AtSign className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#8a8784]" />
@@ -948,7 +945,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                     />
                   </div>
                   {errors.username && (
-                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
                       <AlertTriangle className="size-3" />
                       {errors.username}
                     </p>
@@ -959,7 +956,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               {/* Password */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e]">
+                  <label className="text-xs font-medium text-[#5d5854] dark:text-[#8b949e]">
                     Password
                   </label>
                   {mode === "signin" && (
@@ -970,7 +967,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                         setErrors({});
                         setSuccessMessage("");
                       }}
-                      className="text-xs font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
+                      className="text-xs font-medium text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
                     >
                       Forgot password?
                     </button>
@@ -997,7 +994,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                 </div>
                 {mode === "signup" && <PasswordStrengthIndicator password={password} />}
                 {errors.password && (
-                  <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                  <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
                     <AlertTriangle className="size-3" />
                     {errors.password}
                   </p>
@@ -1007,8 +1004,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               {/* Confirm Password */}
               {mode === "signup" && (
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                    Confirm Password
+                  <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                    Confirm password
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#8a8784]" />
@@ -1030,7 +1027,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                     </button>
                   </div>
                   {errors.confirmPassword && (
-                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
                       <AlertTriangle className="size-3" />
                       {errors.confirmPassword}
                     </p>
@@ -1041,8 +1038,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               {/* Phone (Optional) */}
               {mode === "signup" && (
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                    {accountType === "ORGANISATION" ? "Official Phone / Desk Number" : "Mobile Phone (Optional)"}
+                  <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                    {accountType === "ORGANISATION" ? "Official phone / desk number" : "Mobile phone (optional)"}
                   </label>
                   <div className="relative">
                     <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#8a8784]" />
@@ -1067,7 +1064,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                       onChange={(e) => handleInputChange("rememberMe", e.target.checked)}
                       className="size-4 rounded border-[#ded8d1] dark:border-[#30363d] text-[#0f4c81] focus:ring-[#0f4c81]"
                     />
-                    <span className="text-xs text-[#5d5854] dark:text-[#8b949e] font-medium">
+                    <span className="text-xs text-[#5d5854] dark:text-[#8b949e] font-normal">
                       Remember this device
                     </span>
                   </label>
@@ -1080,20 +1077,20 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                         onChange={(e) => handleInputChange("agreeToTerms", e.target.checked)}
                         className="mt-0.5 size-4 rounded border-[#ded8d1] dark:border-[#30363d] text-[#0f4c81] focus:ring-[#0f4c81]"
                       />
-                      <span>
+                      <span className="font-normal">
                         I agree to the{" "}
-                        <a href="#" className="font-bold text-[#0f4c81] dark:text-[#58a6ff] underline">
+                        <a href="#" className="font-medium text-[#0f4c81] dark:text-[#58a6ff] underline">
                           Terms of Service
                         </a>{" "}
                         and{" "}
-                        <a href="#" className="font-bold text-[#0f4c81] dark:text-[#58a6ff] underline">
+                        <a href="#" className="font-medium text-[#0f4c81] dark:text-[#58a6ff] underline">
                           Privacy Policy
                         </a>
                         .
                       </span>
                     </label>
                     {errors.agreeToTerms && (
-                      <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                      <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
                         <AlertTriangle className="size-3" />
                         {errors.agreeToTerms}
                       </p>
@@ -1106,7 +1103,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full rounded-xl bg-[#0f4c81] dark:bg-[#14559b] py-3 text-xs sm:text-sm font-bold text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition disabled:opacity-50 cursor-pointer mt-2 active:scale-98"
+                className="w-full rounded-xl bg-[#0f4c81] dark:bg-[#14559b] py-3 text-xs sm:text-sm font-medium text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition disabled:opacity-50 cursor-pointer mt-2 active:scale-98"
               >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
@@ -1114,11 +1111,11 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                     {mode === "signin" ? "Signing In..." : "Creating Account..."}
                   </span>
                 ) : mode === "signin" ? (
-                  "Sign In to Network"
+                  "Sign in"
                 ) : accountType === "ORGANISATION" ? (
-                  "Create Organisation Account"
+                  "Create organisation account"
                 ) : (
-                  "Create Individual Account"
+                  "Create individual account"
                 )}
               </button>
             </form>
@@ -1127,7 +1124,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           {/* Bottom Switcher */}
           {!isForgotPassword && (
             <div className="text-center mt-6 pt-4 border-t border-[#f0efee] dark:border-[#30363d]">
-              <p className="text-xs text-[#77716b] dark:text-[#8b949e]">
+              <p className="text-xs text-[#77716b] dark:text-[#8b949e] font-normal">
                 {mode === "signin" ? "Don't have an account? " : "Already have an account? "}
                 <button
                   type="button"
@@ -1136,7 +1133,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                     setErrors({});
                     setSuccessMessage("");
                   }}
-                  className="font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer ml-1"
+                  className="font-medium text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer ml-1"
                 >
                   {mode === "signin" ? "Sign up" : "Sign in"}
                 </button>
@@ -1147,7 +1144,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
       </main>
 
       {/* Footer */}
-      <footer className="py-4 text-center text-xs text-[#8a8784] dark:text-[#8b949e] border-t border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22]">
+      <footer className="py-4 text-center text-xs text-[#8a8784] dark:text-[#8b949e] border-t border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] font-normal">
         © {new Date().getFullYear()} Med Global Network. Verified Healthcare Network.
       </footer>
     </div>

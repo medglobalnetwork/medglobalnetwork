@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import {
   X,
-  ShieldCheck,
   Eye,
   EyeOff,
   Loader2,
@@ -91,7 +90,7 @@ const PasswordStrengthIndicator: React.FC<{ password: string }> = ({ password })
             style={{ width: `${(strength.score / 5) * 100}%` }}
           />
         </div>
-        <span className="text-[11px] font-bold text-[#77716b] dark:text-[#8b949e] min-w-[55px] text-right">
+        <span className="text-[11px] font-medium text-[#77716b] dark:text-[#8b949e] min-w-[55px] text-right">
           {getStrengthText(strength.score)}
         </span>
       </div>
@@ -100,7 +99,7 @@ const PasswordStrengthIndicator: React.FC<{ password: string }> = ({ password })
           {strength.feedback.map((item, index) => (
             <div
               key={index}
-              className="flex items-center gap-1 text-[10px] font-medium text-amber-600 dark:text-amber-400"
+              className="flex items-center gap-1 text-[10px] font-normal text-amber-600 dark:text-amber-400"
             >
               <AlertTriangle className="size-2.5 shrink-0" />
               <span className="truncate">{item}</span>
@@ -369,7 +368,6 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
 
     if (!validateForm()) return;
 
-    // Handle Remember Me persistence
     if (typeof window !== "undefined") {
       if (rememberMe) {
         localStorage.setItem("userIdentifier", (mode === "signin" ? identifier : email).trim());
@@ -389,7 +387,6 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
             ? fullName.trim()
             : `${orgName.trim()} (${repName.trim()})`;
 
-        // Pre-save onboarding draft
         if (typeof window !== "undefined") {
           const draftPayload: Record<string, any> = {
             accountType,
@@ -536,26 +533,26 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
           <img
             src="/logo.png"
             alt="MedGlobalNetwork"
-            className="h-10 w-auto object-contain mb-3"
+            className="h-9 w-auto object-contain mb-3"
           />
 
-          <h3 className="text-xl sm:text-2xl font-black text-[#171717] dark:text-white tracking-tight">
+          <h3 className="text-xl sm:text-2xl font-semibold text-[#171717] dark:text-white tracking-tight">
             {isForgotPassword
-              ? "Reset Password"
+              ? "Reset password"
               : mode === "signup"
               ? accountType === "ORGANISATION"
-                ? "Register Organisation"
-                : "Join Verified Network"
-              : "Welcome Back"}
+                ? "Register organisation"
+                : "Join verified network"
+              : "Welcome back"}
           </h3>
 
-          <p className="mt-1 text-xs sm:text-sm text-[#77716b] dark:text-[#8b949e] font-medium">
+          <p className="mt-1 text-xs sm:text-sm text-[#77716b] dark:text-[#8b949e] font-normal">
             {isForgotPassword
-              ? "Enter your email or username to receive a secure recovery link"
+              ? "Enter your email or username to receive a recovery link"
               : mode === "signup"
               ? accountType === "ORGANISATION"
-                ? "For hospitals, clinics, colleges, diagnostic centers & health enterprises"
-                : "For doctors, clinicians, students & healthcare professionals"
+                ? "For hospitals, clinics, colleges & health enterprises"
+                : "For clinicians, doctors, nurses, therapists & students"
               : "Sign in with your email, username, or MGN ID"}
           </p>
         </div>
@@ -570,7 +567,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                 setErrors({});
                 setSuccessMessage("");
               }}
-              className={`py-2 text-xs font-bold rounded-xl transition cursor-pointer ${
+              className={`py-2 text-xs font-medium rounded-xl transition cursor-pointer ${
                 mode === "signin"
                   ? "bg-white dark:bg-[#161b22] text-[#0f4c81] dark:text-[#58a6ff] shadow-xs"
                   : "text-[#77716b] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
@@ -585,7 +582,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                 setErrors({});
                 setSuccessMessage("");
               }}
-              className={`py-2 text-xs font-bold rounded-xl transition cursor-pointer ${
+              className={`py-2 text-xs font-medium rounded-xl transition cursor-pointer ${
                 mode === "signup"
                   ? "bg-white dark:bg-[#161b22] text-[#0f4c81] dark:text-[#58a6ff] shadow-xs"
                   : "text-[#77716b] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
@@ -599,8 +596,8 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
         {/* Account Type Selection (Only for Sign Up) */}
         {mode === "signup" && !isForgotPassword && (
           <div className="mb-4 space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e]">
-              Select Account Type
+            <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e]">
+              Account type
             </label>
             <div className="grid grid-cols-2 gap-2.5">
               {/* Individual Option */}
@@ -612,7 +609,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                 }}
                 className={`p-3 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between ${
                   accountType === "INDIVIDUAL"
-                    ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-2 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
+                    ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-1.5 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
                     : "border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#0d1117] text-[#171717] dark:text-[#f0f6fc] hover:border-[#8a8784]"
                 }`}
               >
@@ -631,8 +628,8 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                   )}
                 </div>
                 <div>
-                  <div className="text-xs font-black">Individual</div>
-                  <div className="text-[10px] text-[#77716b] dark:text-[#8b949e] font-medium leading-tight mt-0.5">
+                  <div className="text-xs font-semibold">Individual</div>
+                  <div className="text-[10px] text-[#77716b] dark:text-[#8b949e] font-normal leading-tight mt-0.5">
                     Doctor, Nurse, Student & Clinician
                   </div>
                 </div>
@@ -647,7 +644,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                 }}
                 className={`p-3 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between ${
                   accountType === "ORGANISATION"
-                    ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-2 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
+                    ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-1.5 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
                     : "border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#0d1117] text-[#171717] dark:text-[#f0f6fc] hover:border-[#8a8784]"
                 }`}
               >
@@ -666,8 +663,8 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                   )}
                 </div>
                 <div>
-                  <div className="text-xs font-black">Organisation</div>
-                  <div className="text-[10px] text-[#77716b] dark:text-[#8b949e] font-medium leading-tight mt-0.5">
+                  <div className="text-xs font-semibold">Organisation</div>
+                  <div className="text-[10px] text-[#77716b] dark:text-[#8b949e] font-normal leading-tight mt-0.5">
                     Hospital, Clinic, College & Lab
                   </div>
                 </div>
@@ -680,8 +677,8 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
         {isForgotPassword ? (
           <form onSubmit={handleForgotPassword} className="mt-4 space-y-4 text-left">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                Email Address or Username
+              <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                Email address or username
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
@@ -693,20 +690,20 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="doctor@hospital.org or @username"
                   required
-                  className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:ring-[#0f4c81]/15"
+                  className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:ring-[#0f4c81]/15 font-normal"
                 />
               </div>
             </div>
 
             {errors.general && (
-              <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-xs font-semibold text-rose-700 dark:text-rose-300 flex items-center gap-2">
+              <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-xs font-normal text-rose-700 dark:text-rose-300 flex items-center gap-2">
                 <AlertTriangle className="size-4 shrink-0 text-rose-500" />
                 <span>{errors.general}</span>
               </div>
             )}
 
             {successMessage && (
-              <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-xs font-semibold text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+              <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-xs font-normal text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
                 <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />
                 <span>{successMessage}</span>
               </div>
@@ -715,7 +712,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-xl bg-[#0f4c81] dark:bg-[#1f6feb] py-3 text-xs sm:text-sm font-bold text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#388bfd] transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+              className="w-full rounded-xl bg-[#0f4c81] dark:bg-[#1f6feb] py-3 text-xs sm:text-sm font-medium text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#388bfd] transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
@@ -725,7 +722,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
               ) : (
                 <>
                   <KeyRound className="size-4" />
-                  Send Reset Link
+                  Send reset link
                 </>
               )}
             </button>
@@ -738,16 +735,16 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                   setErrors({});
                   setSuccessMessage("");
                 }}
-                className="text-xs font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
+                className="text-xs font-medium text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
               >
-                ← Back to Sign in
+                ← Back to sign in
               </button>
             </div>
           </form>
         ) : (
           <form onSubmit={handleSubmit} className="mt-3 space-y-3 text-left">
             {errors.general && (
-              <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-xs font-semibold text-rose-700 dark:text-rose-300 flex items-center gap-2">
+              <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-xs font-normal text-rose-700 dark:text-rose-300 flex items-center gap-2">
                 <AlertTriangle className="size-4 shrink-0 text-rose-500" />
                 <span>{errors.general}</span>
               </div>
@@ -756,8 +753,8 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
             {/* Sign In Mode: Email or Username */}
             {mode === "signin" && (
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                  Email or Username
+                <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                  Email or username
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
@@ -773,7 +770,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                     onBlur={() => handleBlur("identifier")}
                     placeholder="doctor@hospital.org or @username"
                     required
-                    className={`h-11 w-full rounded-xl border pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 ${
+                    className={`h-11 w-full rounded-xl border pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 font-normal ${
                       fieldTouched.identifier && errors.identifier
                         ? "border-rose-500 focus:ring-rose-500/20"
                         : "border-[#ded8d1] dark:border-[#30363d] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:ring-[#0f4c81]/15"
@@ -781,7 +778,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                   />
                 </div>
                 {fieldTouched.identifier && errors.identifier && (
-                  <p className="mt-1 text-xs font-semibold text-rose-500 flex items-center gap-1">
+                  <p className="mt-1 text-xs font-normal text-rose-500 flex items-center gap-1">
                     <AlertTriangle className="size-3 shrink-0" />
                     {errors.identifier}
                   </p>
@@ -792,8 +789,8 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
             {/* Individual Sign Up: Full Name */}
             {mode === "signup" && accountType === "INDIVIDUAL" && (
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                  Full Name (with Professional Title)
+                <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                  Full name (with professional title)
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
@@ -809,7 +806,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                     onBlur={() => handleBlur("name")}
                     placeholder="Dr. Rajesh Sharma"
                     required
-                    className={`h-11 w-full rounded-xl border pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 ${
+                    className={`h-11 w-full rounded-xl border pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 font-normal ${
                       fieldTouched.name && errors.name
                         ? "border-rose-500 focus:ring-rose-500/20"
                         : "border-[#ded8d1] dark:border-[#30363d] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:ring-[#0f4c81]/15"
@@ -817,7 +814,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                   />
                 </div>
                 {fieldTouched.name && errors.name && (
-                  <p className="mt-1 text-xs font-semibold text-rose-500 flex items-center gap-1">
+                  <p className="mt-1 text-xs font-normal text-rose-500 flex items-center gap-1">
                     <AlertTriangle className="size-3 shrink-0" />
                     {errors.name}
                   </p>
@@ -829,8 +826,8 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
             {mode === "signup" && accountType === "ORGANISATION" && (
               <>
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                    Organisation / Hospital Name
+                  <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                    Organisation / Hospital name
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
@@ -846,7 +843,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                       onBlur={() => handleBlur("orgName")}
                       placeholder="e.g. Apex Multispeciality Hospital"
                       required
-                      className={`h-11 w-full rounded-xl border pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 ${
+                      className={`h-11 w-full rounded-xl border pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 font-normal ${
                         fieldTouched.orgName && errors.orgName
                           ? "border-rose-500 focus:ring-rose-500/20"
                           : "border-[#ded8d1] dark:border-[#30363d] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:ring-[#0f4c81]/15"
@@ -854,7 +851,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                     />
                   </div>
                   {fieldTouched.orgName && errors.orgName && (
-                    <p className="mt-1 text-xs font-semibold text-rose-500 flex items-center gap-1">
+                    <p className="mt-1 text-xs font-normal text-rose-500 flex items-center gap-1">
                       <AlertTriangle className="size-3 shrink-0" />
                       {errors.orgName}
                     </p>
@@ -862,8 +859,8 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                    Organisation Type
+                  <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                    Organisation type
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
@@ -872,7 +869,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                     <select
                       value={orgType}
                       onChange={(e) => setOrgType(e.target.value)}
-                      className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81] cursor-pointer"
+                      className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81] cursor-pointer font-normal"
                     >
                       {MODAL_ORGANISATION_TYPES.map((t) => (
                         <option key={t.id} value={t.id} className="bg-white dark:bg-[#161b22] text-[#171717] dark:text-white">
@@ -884,8 +881,8 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                    Authorized Representative / Admin Name
+                  <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                    Authorized representative name
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
@@ -901,7 +898,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                       onBlur={() => handleBlur("repName")}
                       placeholder="e.g. Dr. Ananya Roy (Medical Director)"
                       required
-                      className={`h-11 w-full rounded-xl border pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 ${
+                      className={`h-11 w-full rounded-xl border pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 font-normal ${
                         fieldTouched.repName && errors.repName
                           ? "border-rose-500 focus:ring-rose-500/20"
                           : "border-[#ded8d1] dark:border-[#30363d] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:ring-[#0f4c81]/15"
@@ -909,7 +906,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                     />
                   </div>
                   {fieldTouched.repName && errors.repName && (
-                    <p className="mt-1 text-xs font-semibold text-rose-500 flex items-center gap-1">
+                    <p className="mt-1 text-xs font-normal text-rose-500 flex items-center gap-1">
                       <AlertTriangle className="size-3 shrink-0" />
                       {errors.repName}
                     </p>
@@ -921,9 +918,9 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
             {/* Sign Up Mode: Email Address */}
             {mode === "signup" && (
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
                   {accountType === "ORGANISATION"
-                    ? "Official / Work Email Address"
+                    ? "Work email address"
                     : "Email address"}
                 </label>
                 <div className="relative">
@@ -944,7 +941,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                         : "doctor@hospital.org"
                     }
                     required
-                    className={`h-11 w-full rounded-xl border pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 ${
+                    className={`h-11 w-full rounded-xl border pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 font-normal ${
                       fieldTouched.email && errors.email
                         ? "border-rose-500 focus:ring-rose-500/20"
                         : "border-[#ded8d1] dark:border-[#30363d] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:ring-[#0f4c81]/15"
@@ -952,7 +949,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                   />
                 </div>
                 {fieldTouched.email && errors.email && (
-                  <p className="mt-1 text-xs font-semibold text-rose-500 flex items-center gap-1">
+                  <p className="mt-1 text-xs font-normal text-rose-500 flex items-center gap-1">
                     <AlertTriangle className="size-3 shrink-0" />
                     {errors.email}
                   </p>
@@ -963,7 +960,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
             {/* Password */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e]">
+                <label className="text-xs font-medium text-[#5d5854] dark:text-[#8b949e]">
                   Password
                 </label>
                 {mode === "signin" && (
@@ -974,7 +971,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                       setErrors({});
                       setSuccessMessage("");
                     }}
-                    className="text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
+                    className="text-xs font-medium text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
                   >
                     Forgot password?
                   </button>
@@ -994,7 +991,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                   onBlur={() => handleBlur("password")}
                   placeholder="••••••••"
                   required
-                  className={`h-11 w-full rounded-xl border pl-10 pr-10 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 ${
+                  className={`h-11 w-full rounded-xl border pl-10 pr-10 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 font-normal ${
                     fieldTouched.password && errors.password
                       ? "border-rose-500 focus:ring-rose-500/20"
                       : "border-[#ded8d1] dark:border-[#30363d] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:ring-[#0f4c81]/15"
@@ -1014,7 +1011,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
               )}
 
               {fieldTouched.password && errors.password && (
-                <p className="mt-1 text-xs font-semibold text-rose-500 flex items-center gap-1">
+                <p className="mt-1 text-xs font-normal text-rose-500 flex items-center gap-1">
                   <AlertTriangle className="size-3 shrink-0" />
                   {errors.password}
                 </p>
@@ -1024,8 +1021,8 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
             {/* Confirm Password */}
             {mode === "signup" && (
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                  Confirm Password
+                <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                  Confirm password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
@@ -1041,7 +1038,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                     onBlur={() => handleBlur("confirmPassword")}
                     placeholder="••••••••"
                     required
-                    className={`h-11 w-full rounded-xl border pl-10 pr-10 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 ${
+                    className={`h-11 w-full rounded-xl border pl-10 pr-10 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 font-normal ${
                       fieldTouched.confirmPassword && errors.confirmPassword
                         ? "border-rose-500 focus:ring-rose-500/20"
                         : "border-[#ded8d1] dark:border-[#30363d] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:ring-[#0f4c81]/15"
@@ -1056,7 +1053,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                   </button>
                 </div>
                 {fieldTouched.confirmPassword && errors.confirmPassword && (
-                  <p className="mt-1 text-xs font-semibold text-rose-500 flex items-center gap-1">
+                  <p className="mt-1 text-xs font-normal text-rose-500 flex items-center gap-1">
                     <AlertTriangle className="size-3 shrink-0" />
                     {errors.confirmPassword}
                   </p>
@@ -1067,8 +1064,8 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
             {/* Phone (Optional for Signup) */}
             {mode === "signup" && (
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                  {accountType === "ORGANISATION" ? "Official Phone / Desk Number" : "Mobile Phone (Optional)"}
+                <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                  {accountType === "ORGANISATION" ? "Official phone / desk number" : "Mobile phone (optional)"}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
@@ -1079,7 +1076,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+91 98765 43210"
-                    className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                    className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81] font-normal"
                   />
                 </div>
               </div>
@@ -1095,7 +1092,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                     onChange={(e) => setRememberMe(e.target.checked)}
                     className="size-4 rounded border-[#ded8d1] dark:border-[#30363d] text-[#0f4c81] dark:text-[#1f6feb] focus:ring-[#0f4c81]"
                   />
-                  <span>Remember this device</span>
+                  <span className="font-normal">Remember this device</span>
                 </label>
               ) : (
                 <div>
@@ -1110,20 +1107,20 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                       required
                       className="mt-0.5 size-4 rounded border-[#ded8d1] dark:border-[#30363d] text-[#0f4c81] dark:text-[#1f6feb] focus:ring-[#0f4c81]"
                     />
-                    <span>
+                    <span className="font-normal">
                       I agree to the{" "}
-                      <a href="#" className="font-bold text-[#0f4c81] dark:text-[#58a6ff] underline">
+                      <a href="#" className="font-medium text-[#0f4c81] dark:text-[#58a6ff] underline">
                         Terms of Service
                       </a>{" "}
                       &{" "}
-                      <a href="#" className="font-bold text-[#0f4c81] dark:text-[#58a6ff] underline">
+                      <a href="#" className="font-medium text-[#0f4c81] dark:text-[#58a6ff] underline">
                         Privacy Policy
                       </a>
                       .
                     </span>
                   </label>
                   {fieldTouched.agreeToTerms && errors.agreeToTerms && (
-                    <p className="mt-1 text-xs font-semibold text-rose-500 flex items-center gap-1">
+                    <p className="mt-1 text-xs font-normal text-rose-500 flex items-center gap-1">
                       <AlertTriangle className="size-3 shrink-0" />
                       {errors.agreeToTerms}
                     </p>
@@ -1135,7 +1132,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-xl bg-[#0f4c81] dark:bg-[#1f6feb] py-3 text-xs sm:text-sm font-bold text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#388bfd] transition disabled:opacity-50 cursor-pointer mt-2 flex items-center justify-center gap-2"
+              className="w-full rounded-xl bg-[#0f4c81] dark:bg-[#1f6feb] py-3 text-xs sm:text-sm font-medium text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#388bfd] transition disabled:opacity-50 cursor-pointer mt-2 flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
@@ -1147,18 +1144,18 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
               ) : accountType === "ORGANISATION" ? (
                 <>
                   <Building2 className="size-4" />
-                  Create Organisation Account
+                  Create organisation account
                 </>
               ) : (
                 <>
-                  <ShieldCheck className="size-4" />
-                  Create Individual Account
+                  <User className="size-4" />
+                  Create individual account
                 </>
               )}
             </button>
 
             {/* Toggle Signin / Signup */}
-            <div className="pt-3 text-center text-xs text-[#77716b] dark:text-[#8b949e]">
+            <div className="pt-3 text-center text-xs text-[#77716b] dark:text-[#8b949e] font-normal">
               {mode === "signin" ? (
                 <p>
                   Don&apos;t have an account?{" "}
@@ -1169,7 +1166,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                       setErrors({});
                       setSuccessMessage("");
                     }}
-                    className="font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
+                    className="font-medium text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
                   >
                     Join Network Free
                   </button>
@@ -1184,7 +1181,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                       setErrors({});
                       setSuccessMessage("");
                     }}
-                    className="font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
+                    className="font-medium text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
                   >
                     Sign in here
                   </button>
