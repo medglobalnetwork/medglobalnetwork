@@ -652,9 +652,9 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     <div className="min-h-dvh w-full flex flex-col lg:flex-row bg-white dark:bg-[#0b0f17] font-sans selection:bg-[#0f4c81]/20">
       
       {/* ═══════════════════════════════════════════════
-          LEFT 50% COLUMN: FULL SCREEN EDGE-TO-EDGE IMAGE
+          LEFT 50% COLUMN: FULL SCREEN EDGE-TO-EDGE IMAGE (DESKTOP ONLY)
           ═══════════════════════════════════════════════ */}
-      <div className="w-full lg:w-1/2 min-h-dvh bg-[#eaf3fc] dark:bg-[#0c1829] flex flex-col justify-between p-6 sm:p-10 lg:p-14 xl:p-16 relative overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-200/80 dark:border-slate-800">
+      <div className="hidden lg:flex lg:w-1/2 min-h-dvh bg-[#eaf3fc] dark:bg-[#0c1829] flex-col justify-between p-6 sm:p-10 lg:p-14 xl:p-16 relative overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-200/80 dark:border-slate-800">
         
         {/* Full-Screen Edge-to-Edge Illustration Background */}
         <img
@@ -675,9 +675,6 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               MGN
             </span>
           </Link>
-          <div className="lg:hidden">
-            <ThemeToggle collapsed={true} />
-          </div>
         </div>
 
         {/* Middle: Headline, Subtitle & 4 Pillars (Overlaid over the image top half) */}
@@ -748,19 +745,27 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
       {/* ═══════════════════════════════════════════════
           RIGHT 50% COLUMN: AUTH FORM (ROUNDED-NONE)
           ═══════════════════════════════════════════════ */}
-      <div className="w-full lg:w-1/2 min-h-dvh flex flex-col justify-between bg-white dark:bg-[#0d1117] p-6 sm:p-10 lg:p-14 xl:p-16 z-10 rounded-none">
+      <div className="w-full lg:w-1/2 min-h-dvh flex flex-col justify-between bg-white dark:bg-[#0d1117] p-5 sm:p-8 lg:p-14 xl:p-16 z-10 rounded-none">
         
-        {/* Top Right Header */}
+        {/* Top Header */}
         <div className="flex items-center justify-between w-full pb-4">
+          <Link href="/" className="lg:hidden flex items-center gap-2 group">
+            <img
+              src="/logo.png"
+              alt="MGN Logo"
+              className="h-8 w-auto object-contain transition-transform group-hover:scale-105"
+            />
+            <span className="text-xl font-black tracking-tight text-[#0c2b4e] dark:text-[#58a6ff]">
+              MGN
+            </span>
+          </Link>
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#5d5854] dark:text-[#8b949e] hover:text-[#0f4c81] dark:hover:text-[#58a6ff] transition"
+            className="hidden lg:inline-flex items-center gap-1.5 text-xs font-semibold text-[#5d5854] dark:text-[#8b949e] hover:text-[#0f4c81] dark:hover:text-[#58a6ff] transition"
           >
             ← Back to Home
           </Link>
-          <div className="hidden lg:block">
-            <ThemeToggle collapsed={true} />
-          </div>
+          <ThemeToggle collapsed={true} />
         </div>
 
         {/* Center Main Form Area (Rounded-None) */}
