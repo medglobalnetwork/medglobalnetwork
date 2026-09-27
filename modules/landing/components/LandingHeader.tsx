@@ -24,17 +24,11 @@ export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#0f4c81] to-[#16804d] text-white shadow-xs group-hover:scale-105 transition-transform duration-200">
-            <span className="text-base font-black tracking-tighter">MGN</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-base font-extrabold tracking-tight text-[#171717]">
-              MGN<span className="text-[#16804d]">.life</span>
-            </span>
-            <span className="text-[9px] font-bold uppercase tracking-widest text-[#77716b]">
-              MedGlobalNetwork
-            </span>
-          </div>
+          <img
+            src="/logo.png"
+            alt="MedGlobalNetwork"
+            className="h-9 sm:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+          />
         </Link>
 
         {/* Desktop Navigation Links */}

@@ -309,9 +309,11 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
 
         {/* Modal Brand Header */}
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0f4c81] to-[#16804d] text-white shadow-xs mb-3">
-            <span className="text-lg font-black tracking-tight">MGN</span>
-          </div>
+          <img
+            src="/logo.png"
+            alt="MedGlobalNetwork"
+            className="h-10 w-auto object-contain mb-3"
+          />
 
           <h3 className="text-xl sm:text-2xl font-black text-[#171717]">
             {isForgotPassword

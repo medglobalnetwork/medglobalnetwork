@@ -16,17 +16,11 @@ export function LandingFooter({ onOpenAuth }: LandingFooterProps) {
           {/* Brand Col */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#0f4c81] to-[#16804d] text-white shadow-xs">
-                <span className="text-base font-black">MGN</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-base font-extrabold tracking-tight text-white">
-                  MGN<span className="text-[#16804d]">.life</span>
-                </span>
-                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
-                  MedGlobalNetwork
-                </span>
-              </div>
+              <img
+                src="/logo.png"
+                alt="MedGlobalNetwork"
+                className="h-9 sm:h-10 w-auto object-contain brightness-0 invert"
+              />
             </div>
 
             <p className="text-xs sm:text-sm text-slate-400 max-w-sm leading-relaxed">
