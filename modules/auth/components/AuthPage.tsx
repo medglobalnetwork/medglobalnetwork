@@ -19,7 +19,6 @@ import {
   Building2,
   Hospital,
   AtSign,
-  Sparkles,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -1161,56 +1160,13 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         </footer>
       </div>
 
-      {/* Right 50% Column: Full Screen Edge-to-Edge Image (No Rounded Corners) */}
+      {/* Right 50% Column: Full Screen Edge-to-Edge Clean Image (No Overlays, No Rounded Corners) */}
       <div className="hidden lg:block lg:w-1/2 min-h-dvh sticky top-0 h-dvh relative bg-[#eef5fc] dark:bg-[#161b22] overflow-hidden rounded-none">
         <img
           src="/auth-hero-3d.jpg"
           alt="Med Global Network Healthcare Innovation"
-          className="w-full h-full object-cover object-center rounded-none"
+          className="w-full h-full object-cover object-center rounded-none select-none pointer-events-none"
         />
-        
-        {/* Soft Ambient Depth Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/25 pointer-events-none rounded-none" />
-
-        {/* Top Floating Badge */}
-        <div className="absolute top-8 left-8 z-10 flex items-center gap-2 bg-white/90 dark:bg-[#161b22]/90 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 shadow-md">
-          <span className="size-2 rounded-full bg-[#16804d] animate-pulse" />
-          <span className="text-xs font-semibold text-[#171717] dark:text-[#f0f6fc]">
-            Verified Medical Ecosystem
-          </span>
-        </div>
-
-        {/* Bottom Glassmorphic Feature Overlay */}
-        <div className="absolute bottom-8 left-8 right-8 z-10 p-6 rounded-2xl bg-white/90 dark:bg-[#161b22]/90 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-lg text-left">
-          <div className="flex items-center gap-2.5 mb-1.5">
-            <div className="size-7 rounded-lg bg-[#0f4c81]/10 dark:bg-[#58a6ff]/10 flex items-center justify-center text-[#0f4c81] dark:text-[#58a6ff]">
-              <Sparkles className="size-4" />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-[#171717] dark:text-[#f0f6fc]">
-                Connect, Collaborate & Grow
-              </h3>
-            </div>
-          </div>
-          <p className="text-xs text-[#5d5854] dark:text-[#8b949e] leading-relaxed">
-            Join verified clinicians, healthcare institutions, and medical researchers across India and globally.
-          </p>
-          
-          <div className="grid grid-cols-3 gap-3 mt-4 pt-3 border-t border-[#ded8d1]/60 dark:border-[#30363d]/60 text-center">
-            <div>
-              <div className="text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff]">100%</div>
-              <div className="text-[10px] text-[#77716b] dark:text-[#8b949e]">Verified IDs</div>
-            </div>
-            <div className="border-x border-[#ded8d1]/60 dark:border-[#30363d]/60">
-              <div className="text-xs font-semibold text-[#16804d] dark:text-[#3fb950]">24/7</div>
-              <div className="text-[10px] text-[#77716b] dark:text-[#8b949e]">Clinical Network</div>
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-[#171717] dark:text-[#f0f6fc]">Encrypted</div>
-              <div className="text-[10px] text-[#77716b] dark:text-[#8b949e]">Data & Privacy</div>
-            </div>
-          </div>
-        </div>
       </div>
 
     </div>
