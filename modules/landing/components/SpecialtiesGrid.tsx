@@ -24,18 +24,18 @@ interface SpecialtiesGridProps {
 
 export function SpecialtiesGrid({ onOpenAuth }: SpecialtiesGridProps) {
   const specialties = [
-    { name: "Physiotherapy & Rehab", icon: Activity, count: "12,400+ Clinicians" },
-    { name: "Orthopedic Surgery", icon: Bone, count: "6,800+ Surgeons" },
-    { name: "Cardiology", icon: Heart, count: "5,200+ Specialists" },
-    { name: "Neurology & Neurosurgery", icon: Brain, count: "4,100+ Specialists" },
-    { name: "Nursing & Critical Care", icon: Syringe, count: "11,500+ Nurses" },
-    { name: "Clinical Research & Trials", icon: Microscope, count: "3,800+ Researchers" },
-    { name: "Pediatrics & Neonatology", icon: Baby, count: "4,900+ Doctors" },
-    { name: "Radiology & Imaging", icon: Crosshair, count: "3,400+ Radiologists" },
-    { name: "General Medicine", icon: Stethoscope, count: "8,900+ Physicians" },
-    { name: "Oncology & Radiotherapy", icon: Flame, count: "2,700+ Oncologists" },
-    { name: "Ophthalmology", icon: Eye, count: "2,300+ Eye Surgeons" },
-    { name: "Pharmacy & Pharmacology", icon: Pill, count: "4,500+ Pharmacists" },
+    { name: "General Medicine", icon: Stethoscope, count: "18,900+ Physicians" },
+    { name: "Cardiology", icon: Heart, count: "8,200+ Specialists" },
+    { name: "Orthopedic Surgery", icon: Bone, count: "7,800+ Surgeons" },
+    { name: "Nursing & Critical Care", icon: Syringe, count: "16,500+ Nurses" },
+    { name: "Neurology & Neurosurgery", icon: Brain, count: "5,100+ Specialists" },
+    { name: "Clinical Research & Trials", icon: Microscope, count: "4,800+ Researchers" },
+    { name: "Pediatrics & Neonatology", icon: Baby, count: "6,900+ Doctors" },
+    { name: "Radiology & Imaging", icon: Crosshair, count: "4,400+ Radiologists" },
+    { name: "Oncology & Radiotherapy", icon: Flame, count: "3,700+ Oncologists" },
+    { name: "Physiotherapy & Rehab", icon: Activity, count: "9,400+ Clinicians" },
+    { name: "Ophthalmology", icon: Eye, count: "3,300+ Eye Surgeons" },
+    { name: "Pharmacy & Pharmacology", icon: Pill, count: "6,500+ Pharmacists" },
   ];
 
   return (

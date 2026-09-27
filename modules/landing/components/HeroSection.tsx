@@ -169,11 +169,11 @@ export function HeroSection({ onOpenAuth }: HeroSectionProps) {
                       <div className="p-1.5 sm:p-2 rounded-lg bg-[#faf9f8] dark:bg-[#161b22] border border-[#e5e7eb] dark:border-slate-800 flex items-center justify-between text-[8px] sm:text-[9px]">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <div className="size-4 sm:size-5 rounded-full bg-[#0f4c81] text-white flex items-center justify-center font-bold text-[7px] sm:text-[8px] shrink-0">
-                            P
+                            C
                           </div>
                           <div className="min-w-0">
-                            <div className="font-semibold text-[#171717] dark:text-white truncate">Physiotherapist (Sports Rehab)</div>
-                            <div className="text-slate-400 text-[7px] sm:text-[8px] truncate">Apollo Hospital • Full Time</div>
+                            <div className="font-semibold text-[#171717] dark:text-white truncate">Cardiologist (Interventional)</div>
+                            <div className="text-slate-400 text-[7px] sm:text-[8px] truncate">Apollo Multi-Specialty Hospital • Full Time</div>
                           </div>
                         </div>
                         <span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[7px] sm:text-[8px] font-semibold shrink-0 ml-1">
@@ -198,10 +198,10 @@ export function HeroSection({ onOpenAuth }: HeroSectionProps) {
                     </div>
                     <div className="font-bold text-[#171717] dark:text-white truncate">Top Learning Picks</div>
                     <div className="p-1 rounded bg-[#eef5fc] dark:bg-[#1e293b] text-[#0f4c81] font-semibold truncate">
-                      Accredited CME: ICU Critical Care
+                      Accredited CME: Emergency Medicine
                     </div>
                     <div className="p-1 rounded bg-[#ecfdf5] dark:bg-[#064e3b]/30 text-[#16804d] font-semibold truncate">
-                      Clinical Case: Sports Knee Injury
+                      Clinical Case: Multi-Disciplinary Oncology
                     </div>
                   </div>
                 </div>
