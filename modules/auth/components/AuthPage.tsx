@@ -441,7 +441,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   }
 
   return (
-    <div className="min-h-dvh bg-[#faf9f8] dark:bg-[#0d1117] flex flex-col justify-between selection:bg-[#0f4c81]/20 transition-colors">
+    <div className="min-h-dvh bg-white dark:bg-[#0d1117] flex flex-col justify-between selection:bg-[#0f4c81]/20 transition-colors">
       {/* Top Navbar */}
       <header className="w-full border-b border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-4 sm:px-8 py-3.5 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5 group">
@@ -467,12 +467,12 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         </div>
       </header>
 
-      {/* Main Centered Content Card */}
-      <main className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-        <div className="w-full max-w-[500px] rounded-3xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 sm:p-8 shadow-xl animate-in fade-in zoom-in-95 duration-200">
-          {/* Brand & Title */}
+      {/* Main Open / Frameless Auth Layout */}
+      <main className="flex-1 flex flex-col items-center justify-center py-8 sm:py-12 px-4 sm:px-6">
+        <div className="w-full max-w-[440px] mx-auto animate-in fade-in duration-200">
+          {/* Brand Icon & Page Header */}
           <div className="flex flex-col items-center text-center mb-6">
-            <div className="flex items-center justify-center size-12 rounded-2xl bg-[#eef5fc] dark:bg-[#1f2937] text-[#0f4c81] dark:text-[#58a6ff] border border-[#d3e5f8] dark:border-[#374151] mb-3">
+            <div className="flex items-center justify-center size-12 rounded-2xl bg-[#eef5fc] dark:bg-[#1f2937] text-[#0f4c81] dark:text-[#58a6ff] mb-3">
               {mode === "signup" && accountType === "ORGANISATION" ? (
                 <Building2 className="size-6" />
               ) : (
@@ -480,30 +480,30 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               )}
             </div>
 
-            <h1 className="text-xl sm:text-2xl font-black text-[#171717] dark:text-[#f0f6fc]">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#171717] dark:text-[#f0f6fc]">
               {isForgotPassword
                 ? "Reset Your Password"
                 : mode === "signup"
                 ? accountType === "ORGANISATION"
-                  ? "Register Organisation Account"
+                  ? "Register Organisation"
                   : "Join Verified Network"
                 : "Welcome Back"}
             </h1>
 
-            <p className="mt-1 text-xs sm:text-sm text-[#77716b] dark:text-[#8b949e] font-medium">
+            <p className="mt-1.5 text-xs sm:text-sm text-[#77716b] dark:text-[#8b949e] font-medium leading-relaxed">
               {isForgotPassword
                 ? "Enter your email to receive password recovery instructions"
                 : mode === "signup"
                 ? accountType === "ORGANISATION"
                   ? "For Hospitals, Clinics, Colleges, Diagnostic Labs & Healthcare Companies"
                   : "For Doctors, Nurses, Therapists, Students & Healthcare Professionals"
-                : "Sign in to access your clinical dashboard"}
+                : "Sign in to access your verified clinical dashboard"}
             </p>
           </div>
 
           {/* Mode Tabs (Sign In / Create Account) */}
           {!isForgotPassword && (
-            <div className="grid grid-cols-2 p-1 rounded-2xl bg-[#f0efee] dark:bg-[#21262d] border border-[#ded8d1] dark:border-[#30363d] mb-5">
+            <div className="grid grid-cols-2 p-1 rounded-2xl bg-[#f0efee] dark:bg-[#21262d] mb-5">
               <button
                 type="button"
                 onClick={() => {
