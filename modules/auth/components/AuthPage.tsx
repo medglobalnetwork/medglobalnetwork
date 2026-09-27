@@ -654,7 +654,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
       {/* ═══════════════════════════════════════════════
           LEFT 50% COLUMN: FULL SCREEN EDGE-TO-EDGE IMAGE (DESKTOP ONLY)
           ═══════════════════════════════════════════════ */}
-      <div className="hidden lg:flex lg:w-1/2 min-h-dvh bg-[#eaf3fc] dark:bg-[#0c1829] flex-col justify-between p-6 sm:p-10 lg:p-14 xl:p-16 relative overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-200/80 dark:border-slate-800">
+      <div className="hidden lg:flex lg:w-1/2 min-h-dvh bg-[#eaf3fc] dark:bg-[#0c1829] flex-col justify-between p-8 lg:p-12 xl:p-16 relative overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-200/80 dark:border-slate-800">
         
         {/* Full-Screen Edge-to-Edge Illustration Background */}
         <img
@@ -678,20 +678,20 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         </div>
 
         {/* Middle: Headline, Subtitle & 4 Pillars (Overlaid over the image top half) */}
-        <div className="space-y-4 my-auto pt-6 pb-2 z-10 max-w-xl text-left">
-          <h1 className="text-3xl sm:text-5xl lg:text-[44px] xl:text-[50px] font-black tracking-tight text-[#0c2b4e] dark:text-[#f0f6fc] leading-[1.14]">
+        <div className="space-y-4 my-auto pt-6 pb-2 z-10 max-w-lg text-left">
+          <h1 className="text-3xl lg:text-4xl xl:text-5xl font-black tracking-tight text-[#0c2b4e] dark:text-[#f0f6fc] leading-[1.14] text-balance">
             One Network. <br />
             <span className="text-[#16804d] dark:text-[#2ea043]">
               Endless Opportunities.
             </span>
           </h1>
 
-          <p className="text-xs sm:text-sm lg:text-base text-[#4b5563] dark:text-[#9ca3af] leading-relaxed font-normal">
+          <p className="text-xs sm:text-sm lg:text-base text-[#4b5563] dark:text-[#9ca3af] leading-relaxed font-normal text-pretty">
             MGN connects healthcare professionals, students, organizations and businesses on a single platform to learn, grow, collaborate and thrive.
           </p>
 
           {/* 4 Value Pillars Row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-3 pt-2 text-left">
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 pt-2 text-left">
             {/* Connect */}
             <div className="space-y-1">
               <div className="size-8.5 rounded-none bg-blue-100/80 dark:bg-blue-950/70 text-[#0f4c81] dark:text-[#58a6ff] flex items-center justify-center shadow-2xs">
@@ -739,16 +739,16 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         </div>
 
         {/* Transparent bottom spacer to let the doctors in the background image shine through */}
-        <div className="h-44 sm:h-56 lg:h-64 z-10 pointer-events-none" />
+        <div className="h-40 lg:h-52 xl:h-60 z-10 pointer-events-none" />
       </div>
 
       {/* ═══════════════════════════════════════════════
           RIGHT 50% COLUMN: AUTH FORM (ROUNDED-NONE)
           ═══════════════════════════════════════════════ */}
-      <div className="w-full lg:w-1/2 min-h-dvh flex flex-col justify-between bg-white dark:bg-[#0d1117] p-5 sm:p-8 lg:p-14 xl:p-16 z-10 rounded-none">
+      <div className="w-full lg:w-1/2 min-h-dvh flex flex-col justify-between bg-white dark:bg-[#0d1117] p-5 sm:p-8 lg:p-12 xl:p-16 z-10 rounded-none overflow-y-auto">
         
         {/* Top Header */}
-        <div className="flex items-center justify-between w-full pb-4">
+        <div className="flex items-center justify-between w-full max-w-[420px] mx-auto pb-4">
           <Link href="/" className="lg:hidden flex items-center gap-2 group">
             <img
               src="/logo.png"
@@ -769,7 +769,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         </div>
 
         {/* Center Main Form Area (Rounded-None) */}
-        <div className="w-full max-w-[440px] mx-auto my-auto py-6 rounded-none animate-in fade-in duration-200">
+        <div className="w-full max-w-[420px] mx-auto my-auto py-4 sm:py-6 rounded-none animate-in fade-in duration-200">
           
           {/* Header inside Form Area */}
           <div className="text-center mb-6">
@@ -1552,7 +1552,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         </div>
 
         {/* Minimal Footer */}
-        <footer className="w-full text-center text-xs text-slate-400 dark:text-slate-500 pt-4">
+        <footer className="w-full max-w-[420px] mx-auto text-center text-xs text-slate-400 dark:text-slate-500 pt-4">
           © {new Date().getFullYear()} Med Global Network (MGN). All rights reserved.
         </footer>
       </div>
