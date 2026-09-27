@@ -203,7 +203,7 @@ export function QuickLinksBar() {
             </div>
 
             {/* Clean Title */}
-            <span className={`text-[11px] sm:text-xs font-semibold text-[#171717] ${item.hoverClass} transition-colors mt-1.5 truncate w-full`}>
+            <span className={`text-[11px] sm:text-xs font-semibold text-[#171717] dark:text-[#f0f6fc] ${item.hoverClass} transition-colors mt-1.5 truncate w-full`}>
               {item.title}
             </span>
           </button>

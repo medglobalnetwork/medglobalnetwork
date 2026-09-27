@@ -1,12 +1,14 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
+  --background: #faf9f8;
   --foreground: #171717;
   --card: #ffffff;
   --card-foreground: #171717;
   --border: #ded8d1;
-  --muted: #faf9f8;
+  --muted: #f0efee;
   --muted-foreground: #77716b;
   --brand-blue: #0f4c81;
   --brand-blue-hover: #0c3c66;
@@ -14,6 +16,20 @@
   --brand-green-hover: #126b40;
   --font-sans: var(--font-plus-jakarta-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
+}
+
+.dark {
+  --background: #0d1117;
+  --foreground: #f0f6fc;
+  --card: #161b22;
+  --card-foreground: #f0f6fc;
+  --border: #30363d;
+  --muted: #21262d;
+  --muted-foreground: #8b949e;
+  --brand-blue: #388bfd;
+  --brand-blue-hover: #58a6ff;
+  --brand-green: #2ea043;
+  --brand-green-hover: #3fb950;
 }
 
 @theme inline {
@@ -41,11 +57,16 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html.dark {
+  color-scheme: dark;
+}
+
 body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 * {
@@ -67,8 +88,16 @@ body {
   border-radius: 9999px;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: #30363d;
+}
+
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a29e;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
 }
 
 /* Utility to hide scrollbars while preserving scroll functionality */
@@ -95,4 +124,3 @@ body {
 .animate-indeterminate {
   animation: indeterminate 1.4s ease-in-out infinite;
 }
-

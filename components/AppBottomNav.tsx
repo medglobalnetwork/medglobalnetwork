@@ -109,7 +109,6 @@ function Icons8BottomNavIcon({
     return <FallbackComponent active={active} />;
   }
 
-  // Icons8 fluent-systems-regular pack CDN with active/inactive colors
   const colorHex = active ? "0F4C81" : "77716B";
   const url = `https://img.icons8.com/?id=${iconId}&format=png&size=48&color=${colorHex}`;
 
@@ -119,7 +118,7 @@ function Icons8BottomNavIcon({
       alt=""
       className={`${className} object-contain transition-transform duration-200 ${
         active ? "scale-105" : ""
-      } select-none`}
+      } select-none dark:brightness-125`}
       onError={() => setImgError(true)}
       loading="eager"
     />
@@ -137,7 +136,7 @@ export default function AppBottomNav() {
   return (
     <nav
       aria-label="Primary navigation"
-      className={`fixed bottom-0 left-0 right-0 z-50 flex md:hidden w-full items-center justify-around border-t border-[#e8e6e3] bg-white/95 backdrop-blur-md px-1 pt-1.5 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] transition-transform duration-300 ease-in-out ${
+      className={`fixed bottom-0 left-0 right-0 z-50 flex md:hidden w-full items-center justify-around border-t border-[#e8e6e3] dark:border-[#30363d] bg-white/95 dark:bg-[#161b22]/95 backdrop-blur-md px-1 pt-1.5 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_-2px_12px_rgba(0,0,0,0.4)] transition-transform duration-300 ease-in-out ${
         hidden ? "translate-y-full pointer-events-none" : "translate-y-0"
       }`}
       style={{
@@ -155,10 +154,10 @@ export default function AppBottomNav() {
               aria-label={item.label}
               aria-current={isActive ? "page" : undefined}
               onClick={() => router.push(`/${item.id}`)}
-              className={`flex flex-1 flex-col items-center justify-center py-1 transition-colors relative ${
+              className={`flex flex-1 flex-col items-center justify-center py-1 transition-colors relative cursor-pointer ${
                 isActive
-                  ? "text-[#0f4c81]"
-                  : "text-[#77716b] hover:text-[#171717] active:scale-95"
+                  ? "text-[#0f4c81] dark:text-[#58a6ff]"
+                  : "text-[#77716b] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc] active:scale-95"
               }`}
             >
               <div className="relative flex items-center justify-center">
@@ -169,12 +168,12 @@ export default function AppBottomNav() {
                   className="size-6"
                 />
                 {isActive && (
-                  <span className="absolute -bottom-1 size-1 rounded-full bg-[#16804d]" />
+                  <span className="absolute -bottom-1 size-1 rounded-full bg-[#16804d] dark:bg-[#2ea043]" />
                 )}
               </div>
               <span
                 className={`mt-1 text-[10px] font-semibold leading-tight ${
-                  isActive ? "text-[#0f4c81]" : "text-[#77716b]"
+                  isActive ? "text-[#0f4c81] dark:text-[#58a6ff]" : "text-[#77716b] dark:text-[#8b949e]"
                 }`}
               >
                 {item.label}

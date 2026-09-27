@@ -98,144 +98,132 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
   const isImagePost =
     (post.post_type === "image" || (!isVideoPost && !isDocumentPost)) && mediaUrls.length > 0;
 
-  // Autoplay video when scrolled into viewport; pause when out of view
-  React.useEffect(() => {
-    if (!isVideoPost || !videoRef.current) return;
+  // Text truncation logic (Instagram / LinkedIn style: first 180 chars, then "...see more")
+  const isLongContent = (post.content?.length ?? 0) > 220;
+  const displayContent =
+    isLongContent && !isExpandedText
+      ? `${post.content.slice(0, 200)}...`
+      : post.content;
 
-    const el = videoRef.current;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.4) {
-            if (!hasEnded) {
-              el.play()
-                .then(() => setIsPlaying(true))
-                .catch(() => {
-                  // Browser policy fallback
-                  setIsPlaying(false);
-                });
-            }
-          } else {
-            el.pause();
-            setIsPlaying(false);
-          }
-        });
-      },
-      { threshold: [0, 0.4, 0.8] }
-    );
-
-    observer.observe(el);
-    return () => {
-      observer.disconnect();
-    };
-  }, [isVideoPost, hasEnded]);
-
-  const handleVideoEnded = () => {
-    if (videoRef.current) {
-      videoRef.current.pause();
+  // Video Play / Pause / Replay toggle
+  const handleTogglePlay = () => {
+    if (!videoRef.current) return;
+    if (hasEnded) {
+      handleReplayVideo();
+      return;
     }
-    setIsPlaying(false);
-    setHasEnded(true);
-  };
-
-  const handleReplayVideo = () => {
-    if (videoRef.current) {
-      videoRef.current.currentTime = 0;
-      videoRef.current
-        .play()
-        .then(() => {
-          setHasEnded(false);
-          setIsPlaying(true);
-        })
-        .catch(() => {});
+    if (videoRef.current.paused) {
+      videoRef.current.play().catch(() => {});
+      setIsPlaying(true);
+    } else {
+      videoRef.current.pause();
+      setIsPlaying(false);
     }
   };
 
   const handleToggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!videoRef.current) return;
-    const nextMuted = !isMuted;
-    videoRef.current.muted = nextMuted;
-    if (!nextMuted) {
-      videoRef.current.volume = 1.0;
-    }
-    setIsMuted(nextMuted);
+    videoRef.current.muted = !videoRef.current.muted;
+    setIsMuted(videoRef.current.muted);
   };
 
-  // Truncation check
-  const isLongContent = (post.content || "").length > 280;
-  const displayContent = isLongContent && !isExpandedText
-    ? post.content.slice(0, 280).trim() + "..."
-    : post.content;
+  const handleVideoEnded = () => {
+    setIsPlaying(false);
+    setHasEnded(true);
+  };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleReact = async (..._args: unknown[]) => {
-    const wasReacted = reacted;
-    const previousCount = reactionCount;
+  const handleReplayVideo = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (!videoRef.current) return;
+    videoRef.current.currentTime = 0;
+    videoRef.current.play().catch(() => {});
+    setIsPlaying(true);
+    setHasEnded(false);
+  };
 
-    setReacted(!wasReacted);
-    setReactionCount((c) => (wasReacted ? Math.max(0, c - 1) : c + 1));
+  // Autoplay video when card scrolls into view (Muted, Instagram style)
+  React.useEffect(() => {
+    const el = videoRef.current;
+    if (!el || !isVideoPost) return;
 
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+            el.play().then(() => setIsPlaying(true)).catch(() => {});
+          } else {
+            el.pause();
+            setIsPlaying(false);
+          }
+        });
+      },
+      { threshold: [0, 0.6, 1.0] }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isVideoPost]);
+
+  const handleReact = async (nextLiked: boolean) => {
+    if (likeLoading) return;
     setLikeLoading(true);
+    setReacted(nextLiked);
+    setReactionCount((c) => (nextLiked ? c + 1 : Math.max(0, c - 1)));
+
     try {
-      if (wasReacted) {
-        const res = await fetch(`/api/network/posts/${post.id}/reactions`, {
-          method: "DELETE",
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed to remove like");
-      } else {
-        const res = await fetch(`/api/network/posts/${post.id}/reactions`, {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reactionType: "like" }),
-        });
-        if (!res.ok) throw new Error("Failed to add like");
+      const res = await fetch(`/api/network/posts/${post.id}/react`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ type: "like" }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setReacted(data.user_reacted);
+        setReactionCount(data.reaction_count);
       }
     } catch (err) {
-      console.error("Reaction failed:", err);
-      setReacted(wasReacted);
-      setReactionCount(previousCount);
+      console.error("React failed:", err);
     } finally {
       setLikeLoading(false);
     }
   };
 
   const loadComments = async () => {
-    setShowComments((s) => !s);
-    if (!commentsLoaded) {
+    if (!showComments && !commentsLoaded) {
       try {
         const res = await fetch(`/api/network/posts/${post.id}/comments`, {
           credentials: "include",
         });
         if (res.ok) {
           const data = await res.json();
-          setComments(data.data ?? []);
+          setComments(data.comments ?? []);
           setCommentsLoaded(true);
         }
       } catch (err) {
-        console.error("Failed to load comments:", err);
+        console.error(err);
       }
     }
+    setShowComments((prev) => !prev);
   };
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!commentText.trim()) return;
-
+    if (!commentText.trim() || commentLoading) return;
     setCommentLoading(true);
+
     try {
       const res = await fetch(`/api/network/posts/${post.id}/comments`, {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ content: commentText.trim() }),
       });
-
       if (res.ok) {
-        const newC: PostComment = {
-          id: String(Date.now()),
+        const data = await res.json();
+        const newC: PostComment = data.comment ?? {
+          id: `tmp-${Date.now()}`,
           post_id: post.id,
           author_id: currentUserId ?? "",
           content: commentText.trim(),
@@ -285,7 +273,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
   return (
     <article
       id={`post-${post.id}`}
-      className="rounded-none sm:rounded-3xl border-y sm:border border-[#ded8d1] bg-white p-3.5 sm:p-5 shadow-none sm:shadow-2xs transition hover:border-[#cbc6bf] relative overflow-hidden"
+      className="rounded-none sm:rounded-3xl border-y sm:border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-3.5 sm:p-5 shadow-none sm:shadow-2xs transition hover:border-[#cbc6bf] dark:hover:border-[#484f58] relative overflow-hidden"
     >
       {/* 1. Header: Author info, Timestamp */}
       <div className="flex items-start justify-between gap-3">
@@ -294,10 +282,10 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
           <button
             type="button"
             onClick={() => router.push(`/profile/${author?.user_id ?? post.author_id}`)}
-            className="shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded-full"
+            className="shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] rounded-full cursor-pointer"
           >
             <div
-              className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full text-xs sm:text-sm font-bold text-[#3f3f3c] overflow-hidden border border-[#ded8d1] shadow-2xs"
+              className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full text-xs sm:text-sm font-bold text-[#3f3f3c] overflow-hidden border border-[#ded8d1] dark:border-[#30363d] shadow-2xs"
               style={{ background: avatarColor }}
             >
               {author?.image ? (
@@ -318,14 +306,14 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
               <button
                 type="button"
                 onClick={() => router.push(`/profile/${author?.user_id ?? post.author_id}`)}
-                className="text-xs sm:text-sm md:text-base font-bold text-[#171717] hover:text-[#0f4c81] transition truncate text-left"
+                className="text-xs sm:text-sm md:text-base font-bold text-[#171717] dark:text-[#f0f6fc] hover:text-[#0f4c81] dark:hover:text-[#388bfd] transition truncate text-left cursor-pointer"
               >
                 {author?.name ?? "Healthcare Professional"}
               </button>
               {isVerified && <VerificationBadge size="sm" />}
             </div>
 
-            <p className="text-[11px] sm:text-xs text-[#77716b] truncate font-medium mt-0.5">
+            <p className="text-[11px] sm:text-xs text-[#77716b] dark:text-[#8b949e] truncate font-medium mt-0.5">
               {author?.profession || "Healthcare Professional"}
               {author?.specialization ? ` · ${author.specialization}` : ""}
               {author?.organization ? ` · ${author.organization}` : ""}
@@ -334,7 +322,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
             <time
               dateTime={new Date(post.created_at).toISOString()}
               title={formatExactDateTime(post.created_at)}
-              className="text-[10px] sm:text-[11px] text-[#8a8784] font-medium block mt-0.5 hover:text-[#171717] transition cursor-default"
+              className="text-[10px] sm:text-[11px] text-[#8a8784] dark:text-[#8b949e] font-medium block mt-0.5 hover:text-[#171717] dark:hover:text-[#f0f6fc] transition cursor-default"
             >
               {formatContentTimestamp(post.created_at)}
             </time>
@@ -348,10 +336,10 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
             onClick={handleReport}
             title={reported ? "Reported" : "Report post"}
             disabled={reported}
-            className="p-1.5 rounded-lg text-[#a09890] hover:bg-[#f8f7f6] hover:text-rose-600 transition"
+            className="p-1.5 rounded-lg text-[#a09890] dark:text-[#8b949e] hover:bg-[#f8f7f6] dark:hover:bg-[#21262d] hover:text-rose-600 transition cursor-pointer"
           >
             {reported ? (
-              <span className="text-[10px] sm:text-xs font-bold text-rose-600">Reported</span>
+              <span className="text-[10px] sm:text-xs font-bold text-rose-600 dark:text-rose-400">Reported</span>
             ) : (
               <span className="text-xs sm:text-sm">🚩</span>
             )}
@@ -362,14 +350,14 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
       {/* 2. Text Content (Above Media, LinkedIn/Instagram Style) */}
       {post.content && post.content.trim() && (
         <div className="mt-3">
-          <p className="whitespace-pre-line text-xs sm:text-sm md:text-[15px] leading-relaxed text-[#171717]">
+          <p className="whitespace-pre-line text-xs sm:text-sm md:text-[15px] leading-relaxed text-[#171717] dark:text-[#f0f6fc]">
             {displayContent}
           </p>
           {isLongContent && (
             <button
               type="button"
               onClick={() => setIsExpandedText((prev) => !prev)}
-              className="mt-1 text-xs font-bold text-[#0f4c81] hover:underline"
+              className="mt-1 text-xs font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
             >
               {isExpandedText ? "Show less" : "See more"}
             </button>
@@ -379,7 +367,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
 
       {/* 3. Rich Media Container (Instagram / LinkedIn Feed Experience) */}
       {mediaUrls.length > 0 && (
-        <div className="mt-3 rounded-xl sm:rounded-2xl overflow-hidden border border-[#ded8d1] bg-[#0c0d0e] shadow-2xs">
+        <div className="mt-3 rounded-xl sm:rounded-2xl overflow-hidden border border-[#ded8d1] dark:border-[#30363d] bg-[#0c0d0e] shadow-2xs">
           {/* A. Video Post */}
           {isVideoPost ? (
             <div className="relative w-full bg-black flex items-center justify-center overflow-hidden group">
@@ -442,61 +430,45 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
             </div>
           ) : isDocumentPost ? (
             /* B. Document Post */
-            <div className="p-4 bg-[#f8fafd] flex items-center justify-between gap-3">
+            <div className="p-4 sm:p-5 flex items-center justify-between gap-4 bg-[#f8f7f6] dark:bg-[#1c2128]">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#eef5fc] text-[#0f4c81] border border-[#d6e7f7]">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 shadow-2xs">
                   <FileText className="h-6 w-6 stroke-[2]" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-bold text-[#171717] truncate">
-                    Clinical Document / Paper
+                  <p className="text-xs sm:text-sm font-bold text-[#171717] dark:text-[#f0f6fc] truncate">
+                    Clinical Document Attachment
                   </p>
-                  <p className="text-[11px] text-[#77716b] truncate">
-                    {mediaUrls[0].split("/").pop() || "Document.pdf"}
+                  <p className="text-[11px] text-[#77716b] dark:text-[#8b949e] truncate">
+                    PDF / Healthcare Document
                   </p>
                 </div>
               </div>
               <a
                 href={mediaUrls[0]}
                 target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] px-3.5 py-2 text-xs font-bold text-white shadow-2xs hover:bg-[#0c3c66] transition shrink-0"
+                rel="noreferrer"
+                className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] dark:bg-[#388bfd] px-3.5 py-2 text-xs font-bold text-white shadow-2xs hover:bg-[#0c3c66] dark:hover:bg-[#58a6ff] transition"
               >
-                <span>View File</span>
+                <span>View</span>
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
             </div>
           ) : isImagePost ? (
-            /* C. Image / Photo Gallery (Single or Multi-Grid) */
+            /* C. Photo/Image Gallery */
             mediaUrls.length === 1 ? (
               <div
                 onClick={() => setSelectedImage(mediaUrls[0])}
-                className="relative w-full max-h-[540px] bg-slate-900 cursor-pointer group flex items-center justify-center overflow-hidden"
+                className="relative max-h-[520px] w-full cursor-pointer overflow-hidden bg-black flex items-center justify-center group"
               >
                 <img
                   src={mediaUrls[0]}
-                  alt="Post media"
-                  className="w-full max-h-[540px] object-contain transition duration-200 group-hover:scale-[1.01]"
+                  alt="Post attachment"
+                  className="max-h-[520px] w-full object-contain group-hover:scale-101 transition duration-200"
                 />
-                <div className="absolute top-3 right-3 rounded-full bg-black/50 p-1.5 text-white opacity-0 group-hover:opacity-100 transition backdrop-blur-xs">
+                <div className="absolute top-3 right-3 rounded-full bg-black/60 p-1.5 text-white opacity-0 group-hover:opacity-100 transition shadow">
                   <Maximize2 className="h-4 w-4" />
                 </div>
-              </div>
-            ) : mediaUrls.length === 2 ? (
-              <div className="grid grid-cols-2 gap-1 bg-black">
-                {mediaUrls.slice(0, 2).map((url, i) => (
-                  <div
-                    key={i}
-                    onClick={() => setSelectedImage(url)}
-                    className="relative aspect-square cursor-pointer overflow-hidden group"
-                  >
-                    <img
-                      src={url}
-                      alt={`Post attachment ${i + 1}`}
-                      className="h-full w-full object-cover group-hover:scale-105 transition duration-200"
-                    />
-                  </div>
-                ))}
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-1 bg-black">
@@ -528,7 +500,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
       )}
 
       {/* 4. Action Bar (Instagram / LinkedIn Style: Like, Comment, Share, Save) */}
-      <div className="mt-4 flex items-center justify-between border-t border-[#ded8d1] pt-3 text-xs sm:text-sm">
+      <div className="mt-4 flex items-center justify-between border-t border-[#ded8d1] dark:border-[#30363d] pt-3 text-xs sm:text-sm">
         <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Like — PulseHeart */}
           <PulseHeart
@@ -557,10 +529,10 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
           <button
             type="button"
             onClick={loadComments}
-            className={`flex items-center gap-1.5 rounded-xl px-2.5 sm:px-3 py-1.5 font-bold transition active:scale-95 text-xs sm:text-sm ${
+            className={`flex items-center gap-1.5 rounded-xl px-2.5 sm:px-3 py-1.5 font-bold transition active:scale-95 text-xs sm:text-sm cursor-pointer ${
               showComments
-                ? "bg-[#eef5fc] text-[#0f4c81]"
-                : "text-[#5d5854] hover:bg-[#f5f4f2] hover:text-[#171717]"
+                ? "bg-[#eef5fc] dark:bg-[#1f2d42] text-[#0f4c81] dark:text-[#58a6ff]"
+                : "text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f5f4f2] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
             }`}
           >
             <MessageSquare className="h-4 w-4" />
@@ -575,12 +547,12 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
           <button
             type="button"
             onClick={handleShare}
-            className="flex items-center gap-1.5 rounded-xl px-2.5 sm:px-3 py-1.5 font-bold text-[#5d5854] hover:bg-[#f5f4f2] hover:text-[#171717] transition active:scale-95 text-xs sm:text-sm"
+            className="flex items-center gap-1.5 rounded-xl px-2.5 sm:px-3 py-1.5 font-bold text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f5f4f2] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] transition active:scale-95 text-xs sm:text-sm cursor-pointer"
           >
             {copiedLink ? (
               <>
-                <Check className="h-4 w-4 text-[#16804d]" />
-                <span className="text-[#16804d]">Copied!</span>
+                <Check className="h-4 w-4 text-[#16804d] dark:text-[#2ea043]" />
+                <span className="text-[#16804d] dark:text-[#2ea043]">Copied!</span>
               </>
             ) : (
               <>
@@ -596,14 +568,14 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
           type="button"
           onClick={handleToggleSave}
           title={saved ? "Saved to your bookmarks" : "Save post"}
-          className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 font-bold transition active:scale-95 text-xs sm:text-sm ${
+          className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 font-bold transition active:scale-95 text-xs sm:text-sm cursor-pointer ${
             saved
-              ? "text-[#0f4c81] bg-[#eef5fc]"
-              : "text-[#5d5854] hover:bg-[#f5f4f2] hover:text-[#171717]"
+              ? "text-[#0f4c81] dark:text-[#58a6ff] bg-[#eef5fc] dark:bg-[#1f2d42]"
+              : "text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f5f4f2] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
           }`}
         >
           {saved ? (
-            <BookmarkCheck className="h-4 w-4 fill-[#0f4c81]" />
+            <BookmarkCheck className="h-4 w-4 fill-[#0f4c81] dark:fill-[#58a6ff]" />
           ) : (
             <Bookmark className="h-4 w-4" />
           )}
@@ -613,7 +585,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
 
       {/* 5. Expandable Comments Section */}
       {showComments && (
-        <div className="mt-3.5 space-y-3 border-t border-[#ded8d1] pt-3.5 animate-in fade-in duration-200">
+        <div className="mt-3.5 space-y-3 border-t border-[#ded8d1] dark:border-[#30363d] pt-3.5 animate-in fade-in duration-200">
           {/* Add Comment Input */}
           <form onSubmit={handleAddComment} className="flex gap-2">
             <input
@@ -621,12 +593,12 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Add a clinical comment or insight..."
-              className="h-9 flex-1 rounded-xl border border-[#ded8d1] px-3 text-xs sm:text-sm text-[#171717] placeholder:text-[#8a8784] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+              className="h-9 flex-1 rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] placeholder:text-[#8a8784] dark:placeholder:text-[#8b949e] focus:border-[#0f4c81] dark:focus:border-[#388bfd] focus:outline-none focus:ring-1 focus:ring-[#0f4c81] dark:focus:ring-[#388bfd]"
             />
             <button
               type="submit"
               disabled={commentLoading || !commentText.trim()}
-              className="rounded-xl bg-[#0f4c81] px-4 py-1.5 text-xs sm:text-sm font-bold text-white transition hover:bg-[#0c3c66] disabled:opacity-50 shadow-2xs"
+              className="rounded-xl bg-[#0f4c81] dark:bg-[#388bfd] px-4 py-1.5 text-xs sm:text-sm font-bold text-white transition hover:bg-[#0c3c66] dark:hover:bg-[#58a6ff] disabled:opacity-50 shadow-2xs cursor-pointer"
             >
               {commentLoading ? "…" : "Post"}
             </button>
@@ -638,30 +610,30 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
               {comments.map((c) => (
                 <li
                   key={c.id}
-                  className="rounded-2xl bg-[#faf9f8] p-3 text-xs sm:text-[13px] border border-[#ded8d1]"
+                  className="rounded-2xl bg-[#faf9f8] dark:bg-[#1c2128] p-3 text-xs sm:text-[13px] border border-[#ded8d1] dark:border-[#30363d]"
                 >
                   <div className="flex items-center justify-between">
                     <button
                       type="button"
                       onClick={() => router.push(`/profile/${c.author?.user_id || c.author_id}`)}
-                      className="font-bold text-[#171717] hover:text-[#0f4c81] hover:underline text-left"
+                      className="font-bold text-[#171717] dark:text-[#f0f6fc] hover:text-[#0f4c81] dark:hover:text-[#388bfd] hover:underline text-left cursor-pointer"
                     >
                       {c.author?.name || "Healthcare Professional"}
                     </button>
                     <time
                       dateTime={new Date(c.created_at).toISOString()}
                       title={formatExactDateTime(c.created_at)}
-                      className="text-[10px] text-[#8a8784] font-medium"
+                      className="text-[10px] text-[#8a8784] dark:text-[#8b949e] font-medium"
                     >
                       {formatContentTimestamp(c.created_at)}
                     </time>
                   </div>
-                  <p className="mt-1 text-[#44403c] leading-relaxed">{c.content}</p>
+                  <p className="mt-1 text-[#44403c] dark:text-[#c9d1d9] leading-relaxed">{c.content}</p>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-center text-xs text-[#8a8784] py-2">
+            <p className="text-center text-xs text-[#8a8784] dark:text-[#8b949e] py-2">
               No comments yet. Be the first to share your thoughts!
             </p>
           )}
@@ -678,7 +650,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
             <button
               type="button"
               onClick={() => setSelectedImage(null)}
-              className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black transition"
+              className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black transition cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>

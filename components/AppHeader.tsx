@@ -92,26 +92,26 @@ function NotifPopup({
   return (
     <div
       ref={ref}
-      className="absolute right-0 top-12 z-50 w-[320px] sm:w-[340px] overflow-hidden rounded-2xl border border-[#ded8d1] bg-white shadow-xl animate-in fade-in zoom-in-95 duration-150"
+      className="absolute right-0 top-12 z-50 w-[320px] sm:w-[340px] overflow-hidden rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] shadow-xl animate-in fade-in zoom-in-95 duration-150"
     >
-      <div className="flex items-center justify-between border-b border-[#f0efee] px-4 py-3">
-        <span className="text-xs font-bold text-[#171717]">Notifications</span>
+      <div className="flex items-center justify-between border-b border-[#f0efee] dark:border-[#21262d] px-4 py-3">
+        <span className="text-xs font-bold text-[#171717] dark:text-[#f0f6fc]">Notifications</span>
         {notifs.some((n) => !n.is_read) && (
           <button
             type="button"
             onClick={handleMarkAllRead}
-            className="text-[11px] font-medium text-[#0f4c81] hover:underline"
+            className="text-[11px] font-medium text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
           >
             Mark all read
           </button>
         )}
       </div>
 
-      <ul className="max-h-[320px] divide-y divide-[#f5f4f3] overflow-y-auto">
+      <ul className="max-h-[320px] divide-y divide-[#f5f4f3] dark:divide-[#21262d] overflow-y-auto">
         {loading ? (
-          <li className="p-4 text-center text-xs text-[#8a8784]">Loading notifications...</li>
+          <li className="p-4 text-center text-xs text-[#8a8784] dark:text-[#8b949e]">Loading notifications...</li>
         ) : notifs.length === 0 ? (
-          <li className="p-6 text-center text-xs text-[#8a8784]">
+          <li className="p-6 text-center text-xs text-[#8a8784] dark:text-[#8b949e]">
             <p className="mb-1 text-lg">🔔</p>
             No notifications yet
           </li>
@@ -120,23 +120,23 @@ function NotifPopup({
             <li
               key={n.id}
               onClick={() => handleNotifClick(n)}
-              className={`flex cursor-pointer items-start gap-3 px-4 py-3 transition hover:bg-[#f8f7f6] ${
-                n.is_read ? "" : "bg-[#f7f9fd]"
+              className={`flex cursor-pointer items-start gap-3 px-4 py-3 transition hover:bg-[#f8f7f6] dark:hover:bg-[#21262d] ${
+                n.is_read ? "" : "bg-[#f7f9fd] dark:bg-[#1c2433]"
               }`}
             >
               <span
                 className={`mt-1.5 size-2 shrink-0 rounded-full ${
-                  n.is_read ? "bg-transparent" : "bg-[#16804d]"
+                  n.is_read ? "bg-transparent" : "bg-[#16804d] dark:bg-[#2ea043]"
                 }`}
               />
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium leading-snug text-[#171717]">
+                <p className="text-xs font-medium leading-snug text-[#171717] dark:text-[#f0f6fc]">
                   {n.message || "New activity in your healthcare network"}
                 </p>
                 <time
                   dateTime={new Date(n.created_at).toISOString()}
                   title={formatExactDateTime(n.created_at)}
-                  className="mt-0.5 text-[10px] text-[#8a8784] font-medium block"
+                  className="mt-0.5 text-[10px] text-[#8a8784] dark:text-[#8b949e] font-medium block"
                 >
                   {formatContentTimestamp(n.created_at)}
                 </time>
@@ -146,11 +146,11 @@ function NotifPopup({
         )}
       </ul>
 
-      <div className="border-t border-[#f0efee] px-4 py-2.5">
+      <div className="border-t border-[#f0efee] dark:border-[#21262d] px-4 py-2.5">
         <button
           type="button"
           onClick={onViewAll}
-          className="w-full text-center text-xs font-semibold text-[#0f4c81] hover:underline"
+          className="w-full text-center text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
         >
           View all notifications →
         </button>
@@ -178,7 +178,7 @@ function HeaderMessageIcon({ className = "size-6" }: { className?: string }) {
     <img
       src={`https://img.icons8.com/?id=d7iUgF8ZrDaO&format=png&size=64&color=${colorHex}`}
       alt="Messages"
-      className={`${className} object-contain transition-transform duration-200 select-none`}
+      className={`${className} object-contain transition-transform duration-200 select-none dark:brightness-125`}
       onError={() => setImgError(true)}
       loading="eager"
     />
@@ -249,7 +249,7 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
   return (
     <>
       <header
-        className={`sticky top-0 z-30 border-b border-[#e8e6e3] bg-white transition-transform duration-300 ease-in-out ${
+        className={`sticky top-0 z-30 border-b border-[#e8e6e3] dark:border-[#30363d] bg-white dark:bg-[#161b22] transition-transform duration-300 ease-in-out ${
           hidden ? "-translate-y-full" : "translate-y-0"
         }`}
         style={{
@@ -270,7 +270,7 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
               <button
                 type="button"
                 onClick={() => setMobileSearchOpen(false)}
-                className="shrink-0 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-3 py-2 text-xs font-semibold text-[#5d5854] hover:bg-white hover:text-[#171717]"
+                className="shrink-0 rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-[#f8f7f6] dark:bg-[#21262d] px-3 py-2 text-xs font-semibold text-[#5d5854] dark:text-[#8b949e] hover:bg-white dark:hover:bg-[#262b35] hover:text-[#171717] dark:hover:text-[#f0f6fc] cursor-pointer"
               >
                 Cancel
               </button>
@@ -286,7 +286,7 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                     type="button"
                     aria-label="Open Navigation Menu"
                     onClick={onOpenMobileDrawer}
-                    className="flex size-10 items-center justify-center rounded-xl text-[#5d5854] hover:bg-[#f0efee] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] transition active:scale-95"
+                    className="flex size-10 items-center justify-center rounded-xl text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] transition active:scale-95 cursor-pointer"
                   >
                     <Menu className="size-6 stroke-[2]" />
                   </button>
@@ -295,14 +295,14 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                   type="button"
                   onClick={() => router.back()}
                   aria-label="Go back"
-                  className="flex size-10 items-center justify-center rounded-xl text-[#5d5854] hover:bg-[#f0efee] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] transition active:scale-95"
+                  className="flex size-10 items-center justify-center rounded-xl text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] transition active:scale-95 cursor-pointer"
                 >
                   <ArrowLeft className="size-[22px] stroke-[2.2]" />
                 </button>
               </div>
 
               {/* Center: Website Logo */}
-              <Link href="/home" className="flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded" aria-label="MGN Home">
+              <Link href="/home" className="flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] rounded" aria-label="MGN Home">
                 <img
                   src="/logo.png"
                   alt="MGN - Med Global Network"
@@ -316,7 +316,7 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                   type="button"
                   aria-label="Open search"
                   onClick={() => setMobileSearchOpen(true)}
-                  className="flex size-10 items-center justify-center rounded-full text-[#5d5854] hover:bg-[#f0efee] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] transition"
+                  className="flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] transition cursor-pointer"
                 >
                   <Search className="size-[22px] stroke-[2]" />
                 </button>
@@ -327,11 +327,11 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                     aria-label="Notifications"
                     aria-expanded={notifOpen}
                     onClick={handleToggleNotifications}
-                    className="relative flex size-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81]"
+                    className="relative flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
                   >
                     <Bell className="size-6 stroke-[1.9]" />
                     {unreadCount > 0 && (
-                      <span className="absolute right-1.5 top-1.5 flex size-3.5 min-w-3.5 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] font-bold text-white ring-2 ring-white">
+                      <span className="absolute right-1.5 top-1.5 flex size-3.5 min-w-3.5 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-[#161b22]">
                         {unreadCount}
                       </span>
                     )}
@@ -352,7 +352,7 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                   type="button"
                   aria-label="Messages"
                   onClick={() => router.push("/messages")}
-                  className="flex size-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81]"
+                  className="flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
                 >
                   <HeaderMessageIcon className="size-6" />
                 </button>
@@ -381,11 +381,11 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                     aria-label="Notifications"
                     aria-expanded={notifOpen}
                     onClick={handleToggleNotifications}
-                    className="relative flex size-10 sm:size-11 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81]"
+                    className="relative flex size-10 sm:size-11 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
                   >
                     <Bell className="size-[22px] sm:size-6 stroke-[1.9]" />
                     {unreadCount > 0 && (
-                      <span className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 flex size-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-2 ring-white">
+                      <span className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 flex size-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-[#161b22]">
                         {unreadCount}
                       </span>
                     )}
@@ -407,7 +407,7 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                   type="button"
                   aria-label="Messages"
                   onClick={() => router.push("/messages")}
-                  className="flex size-10 sm:size-11 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81]"
+                  className="flex size-10 sm:size-11 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
                 >
                   <HeaderMessageIcon className="size-6 sm:size-[26px]" />
                 </button>
@@ -429,12 +429,12 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                     type="button"
                     aria-label="Open Navigation Menu"
                     onClick={onOpenMobileDrawer}
-                    className="flex size-10 items-center justify-center rounded-xl text-[#5d5854] hover:bg-[#f0efee] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] transition active:scale-95"
+                    className="flex size-10 items-center justify-center rounded-xl text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] transition active:scale-95 cursor-pointer"
                   >
                     <Menu className="size-6 stroke-[2]" />
                   </button>
                 )}
-                <Link href="/home" className="flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded" aria-label="MGN Home">
+                <Link href="/home" className="flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] rounded" aria-label="MGN Home">
                   <img
                     src="/logo.png"
                     alt="MGN - Med Global Network"
@@ -449,7 +449,7 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                   type="button"
                   aria-label="Open search"
                   onClick={() => setMobileSearchOpen(true)}
-                  className="flex size-10 items-center justify-center rounded-full text-[#5d5854] hover:bg-[#f0efee] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] transition"
+                  className="flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] transition cursor-pointer"
                 >
                   <Search className="size-[22px] stroke-[2]" />
                 </button>
@@ -461,11 +461,11 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                     aria-label="Notifications"
                     aria-expanded={notifOpen}
                     onClick={handleToggleNotifications}
-                    className="relative flex size-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81]"
+                    className="relative flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
                   >
                     <Bell className="size-6 stroke-[1.9]" />
                     {unreadCount > 0 && (
-                      <span className="absolute right-1.5 top-1.5 flex size-3.5 min-w-3.5 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] font-bold text-white ring-2 ring-white">
+                      <span className="absolute right-1.5 top-1.5 flex size-3.5 min-w-3.5 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-[#161b22]">
                         {unreadCount}
                       </span>
                     )}
@@ -487,7 +487,7 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                   type="button"
                   aria-label="Messages"
                   onClick={() => router.push("/messages")}
-                  className="flex size-10 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81]"
+                  className="flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
                 >
                   <HeaderMessageIcon className="size-6" />
                 </button>
@@ -516,11 +516,11 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                     aria-label="Notifications"
                     aria-expanded={notifOpen}
                     onClick={handleToggleNotifications}
-                    className="relative flex size-10 sm:size-11 items-center justify-center rounded-full text-[#5d5854] transition hover:bg-[#f0efee] hover:text-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81]"
+                    className="relative flex size-10 sm:size-11 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
                   >
                     <Bell className="size-[22px] sm:size-6 stroke-[1.9]" />
                     {unreadCount > 0 && (
-                      <span className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 flex size-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-2 ring-white">
+                      <span className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 flex size-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-[#161b22]">
                         {unreadCount}
                       </span>
                     )}
@@ -551,7 +551,7 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
         <div
           onClick={() => setMobileSearchOpen(false)}
           onTouchStart={() => setMobileSearchOpen(false)}
-          className="fixed inset-0 top-[calc(3.5rem+env(safe-area-inset-top,0px))] z-20 bg-black/20 backdrop-blur-2xs animate-in fade-in duration-150"
+          className="fixed inset-0 top-[calc(3.5rem+env(safe-area-inset-top,0px))] z-20 bg-black/40 backdrop-blur-2xs animate-in fade-in duration-150"
           aria-hidden="true"
         />
       )}
