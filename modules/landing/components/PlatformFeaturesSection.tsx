@@ -45,25 +45,26 @@ export function PlatformFeaturesSection() {
   ];
 
   return (
-    <section id="features" className="py-16 sm:py-20 bg-white dark:bg-[#0b0f17]">
+    <section id="features" className="py-12 sm:py-16 lg:py-20 bg-white dark:bg-[#0b0f17]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Heading */}
-        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#171717] dark:text-[#f0f6fc]">
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#171717] dark:text-[#f0f6fc] text-balance">
             Everything You Need. All in One Platform.
           </h2>
         </div>
 
-        {/* 4 Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* 4 Cards Grid: 1 col on mobile, 2 col on tablet, 4 col on desktop */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
           {features.map((item) => {
             const Icon = item.icon;
             return (
-              <div
+              <Link
                 key={item.id}
-                className="rounded-2xl border border-[#ded8d1]/70 dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 sm:p-7 flex flex-col justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 group text-left"
+                href={item.href}
+                className="rounded-2xl border border-[#ded8d1]/70 dark:border-[#30363d] bg-white dark:bg-[#161b22] p-5 sm:p-6 lg:p-7 flex flex-col justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 group text-left"
               >
-                <div className="space-y-4">
+                <div className="space-y-3.5">
                   <div className={`size-11 rounded-xl flex items-center justify-center ${item.iconColor}`}>
                     <Icon className="size-5.5 stroke-[2]" />
                   </div>
@@ -72,21 +73,18 @@ export function PlatformFeaturesSection() {
                     {item.title}
                   </h3>
 
-                  <p className="text-xs sm:text-[13px] text-[#555] dark:text-[#8b949e] leading-relaxed">
+                  <p className="text-xs sm:text-[13px] text-[#555] dark:text-[#8b949e] leading-relaxed text-pretty">
                     {item.description}
                   </p>
                 </div>
 
-                <div className="pt-6">
-                  <Link
-                    href={item.href}
-                    className="inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-bold text-[#0f4c81] dark:text-[#58a6ff] group-hover:gap-2.5 transition-all"
-                  >
+                <div className="pt-5">
+                  <span className="inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-bold text-[#0f4c81] dark:text-[#58a6ff] group-hover:gap-2.5 transition-all">
                     <span>{item.linkText}</span>
                     <ArrowRight className="size-3.5" />
-                  </Link>
+                  </span>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
