@@ -12,9 +12,12 @@ import {
   Mail,
   Lock,
   User,
+  Building2,
+  Hospital,
   AlertTriangle,
   KeyRound,
   CheckCircle2,
+  Phone,
 } from "lucide-react";
 
 interface AuthModalProps {
@@ -108,11 +111,26 @@ const PasswordStrengthIndicator: React.FC<{ password: string }> = ({ password })
   );
 };
 
+const MODAL_ORGANISATION_TYPES = [
+  { id: "hospital", label: "Hospital / Healthcare Facility" },
+  { id: "clinic", label: "Clinic / Specialized Practice" },
+  { id: "diagnostic_center", label: "Diagnostic Lab / Imaging Center" },
+  { id: "medical_college", label: "Medical / Health Science College" },
+  { id: "research_institute", label: "Research Institute / Biotech Lab" },
+  { id: "pharma_device", label: "Pharma / Medical Device Enterprise" },
+  { id: "ngo_healthcare", label: "Healthcare NGO / Trust / Foundation" },
+  { id: "healthtech_startup", label: "HealthTech / Digital Health Company" },
+  { id: "other_org", label: "Other Healthcare Organization" },
+];
+
 interface FormErrors {
   name?: string;
+  orgName?: string;
+  repName?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;
+  phone?: string;
   agreeToTerms?: string;
   general?: string;
 }
@@ -122,12 +140,22 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
   const searchParams = useSearchParams();
 
   const [mode, setMode] = React.useState<"signin" | "signup">(initialMode);
+  const [accountType, setAccountType] = React.useState<"INDIVIDUAL" | "ORGANISATION">("INDIVIDUAL");
+
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
-  const [fullName, setFullName] = React.useState("");
+  const [phone, setPhone] = React.useState("");
   const [agreedToTerms, setAgreedToTerms] = React.useState(false);
   const [rememberMe, setRememberMe] = React.useState(false);
+
+  // Individual
+  const [fullName, setFullName] = React.useState("");
+
+  // Organisation
+  const [orgName, setOrgName] = React.useState("");
+  const [orgType, setOrgType] = React.useState("hospital");
+  const [repName, setRepName] = React.useState("");
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errors, setErrors] = React.useState<FormErrors>({});
@@ -168,11 +196,31 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
 
     switch (name) {
       case "name":
-        if (mode === "signup") {
+        if (mode === "signup" && accountType === "INDIVIDUAL") {
           if (!value || (typeof value === "string" && value.trim().length < 2)) {
             newErrors.name = "Full name must be at least 2 characters";
           } else {
             delete newErrors.name;
+          }
+        }
+        break;
+
+      case "orgName":
+        if (mode === "signup" && accountType === "ORGANISATION") {
+          if (!value || (typeof value === "string" && value.trim().length < 2)) {
+            newErrors.orgName = "Organisation name is required";
+          } else {
+            delete newErrors.orgName;
+          }
+        }
+        break;
+
+      case "repName":
+        if (mode === "signup" && accountType === "ORGANISATION") {
+          if (!value || (typeof value === "string" && value.trim().length < 2)) {
+            newErrors.repName = "Representative name is required";
+          } else {
+            delete newErrors.repName;
           }
         }
         break;
@@ -195,7 +243,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
           newErrors.password = "Password is required";
         } else if (mode === "signup" && typeof value === "string") {
           const strength = calculatePasswordStrength(value);
-          if (strength.score < 3) {
+          if (strength.score < 2) {
             newErrors.password = "Please choose a stronger password";
           } else {
             delete newErrors.password;
@@ -233,6 +281,8 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
     if (fieldName === "password") validateField("password", password);
     if (fieldName === "confirmPassword") validateField("confirmPassword", confirmPassword);
     if (fieldName === "name") validateField("name", fullName);
+    if (fieldName === "orgName") validateField("orgName", orgName);
+    if (fieldName === "repName") validateField("repName", repName);
   };
 
   if (!isOpen) return null;
@@ -251,8 +301,17 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
     }
 
     if (mode === "signup") {
-      if (!fullName.trim() || fullName.trim().length < 2) {
-        newErrors.name = "Full name is required (at least 2 characters)";
+      if (accountType === "INDIVIDUAL") {
+        if (!fullName.trim() || fullName.trim().length < 2) {
+          newErrors.name = "Full name is required (at least 2 characters)";
+        }
+      } else {
+        if (!orgName.trim() || orgName.trim().length < 2) {
+          newErrors.orgName = "Organisation name is required";
+        }
+        if (!repName.trim() || repName.trim().length < 2) {
+          newErrors.repName = "Representative name is required";
+        }
       }
 
       if (password !== confirmPassword) {
@@ -278,6 +337,8 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
     setSuccessMessage("");
     setFieldTouched({
       name: true,
+      orgName: true,
+      repName: true,
       email: true,
       password: true,
       confirmPassword: true,
@@ -301,10 +362,39 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
 
     if (mode === "signup") {
       try {
+        const registeredName =
+          accountType === "INDIVIDUAL"
+            ? fullName.trim()
+            : `${orgName.trim()} (${repName.trim()})`;
+
+        // Pre-save onboarding draft so onboarding starts with the chosen account type
+        if (typeof window !== "undefined") {
+          const draftPayload: Record<string, any> = {
+            accountType,
+            phone: phone.trim(),
+            step: 1,
+          };
+
+          if (accountType === "INDIVIDUAL") {
+            draftPayload.category = "healthcare_professional";
+            draftPayload.professionOrType = "doctor";
+            draftPayload.legalFirstName = fullName.trim();
+          } else {
+            draftPayload.category = orgType;
+            draftPayload.professionOrType = orgType;
+            draftPayload.legalFirstName = orgName.trim();
+            draftPayload.dynamicValues = {
+              auth_rep_name: repName.trim(),
+            };
+          }
+
+          localStorage.setItem("mgn_onboarding_form_draft", JSON.stringify(draftPayload));
+        }
+
         const { error } = await authClient.signUp.email({
           email: email.trim(),
           password,
-          name: fullName.trim(),
+          name: registeredName,
         });
 
         if (error) {
@@ -374,7 +464,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md rounded-3xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-lg rounded-3xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto"
       >
         {/* Close Button */}
         <button
@@ -386,7 +476,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
         </button>
 
         {/* Modal Brand Header */}
-        <div className="flex flex-col items-center text-center mb-6">
+        <div className="flex flex-col items-center text-center mb-5">
           <img
             src="/logo.png"
             alt="MedGlobalNetwork"
@@ -397,7 +487,9 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
             {isForgotPassword
               ? "Reset Password"
               : mode === "signup"
-              ? "Join Verified Network"
+              ? accountType === "ORGANISATION"
+                ? "Register Organisation"
+                : "Join Verified Network"
               : "Welcome Back"}
           </h3>
 
@@ -405,10 +497,128 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
             {isForgotPassword
               ? "Enter your email to receive a secure recovery link"
               : mode === "signup"
-              ? "Create your authenticated clinician profile"
+              ? accountType === "ORGANISATION"
+                ? "For hospitals, clinics, colleges, diagnostic centers & health enterprises"
+                : "For doctors, clinicians, students & healthcare professionals"
               : "Sign in to access your clinical dashboard"}
           </p>
         </div>
+
+        {/* Mode Switcher */}
+        {!isForgotPassword && (
+          <div className="grid grid-cols-2 p-1 rounded-2xl bg-[#f0efee] dark:bg-[#21262d] border border-[#ded8d1] dark:border-[#30363d] mb-4">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("signin");
+                setErrors({});
+                setSuccessMessage("");
+              }}
+              className={`py-2 text-xs font-bold rounded-xl transition cursor-pointer ${
+                mode === "signin"
+                  ? "bg-white dark:bg-[#161b22] text-[#0f4c81] dark:text-[#58a6ff] shadow-xs"
+                  : "text-[#77716b] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("signup");
+                setErrors({});
+                setSuccessMessage("");
+              }}
+              className={`py-2 text-xs font-bold rounded-xl transition cursor-pointer ${
+                mode === "signup"
+                  ? "bg-white dark:bg-[#161b22] text-[#0f4c81] dark:text-[#58a6ff] shadow-xs"
+                  : "text-[#77716b] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
+              }`}
+            >
+              Create Account
+            </button>
+          </div>
+        )}
+
+        {/* Account Type Selection (Only for Sign Up) */}
+        {mode === "signup" && !isForgotPassword && (
+          <div className="mb-4 space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e]">
+              Select Account Type
+            </label>
+            <div className="grid grid-cols-2 gap-2.5">
+              {/* Individual Option */}
+              <button
+                type="button"
+                onClick={() => {
+                  setAccountType("INDIVIDUAL");
+                  setErrors({});
+                }}
+                className={`p-3 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between ${
+                  accountType === "INDIVIDUAL"
+                    ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-2 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
+                    : "border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#0d1117] text-[#171717] dark:text-[#f0f6fc] hover:border-[#8a8784]"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <div
+                    className={`p-1.5 rounded-xl ${
+                      accountType === "INDIVIDUAL"
+                        ? "bg-[#0f4c81] text-white"
+                        : "bg-[#f0efee] dark:bg-[#21262d] text-[#5d5854] dark:text-[#8b949e]"
+                    }`}
+                  >
+                    <User className="size-4" />
+                  </div>
+                  {accountType === "INDIVIDUAL" && (
+                    <span className="size-2 rounded-full bg-[#0f4c81] dark:bg-[#58a6ff]" />
+                  )}
+                </div>
+                <div>
+                  <div className="text-xs font-black">Individual</div>
+                  <div className="text-[10px] text-[#77716b] dark:text-[#8b949e] font-medium leading-tight mt-0.5">
+                    Doctor, Nurse, Student & Clinician
+                  </div>
+                </div>
+              </button>
+
+              {/* Organisation Option */}
+              <button
+                type="button"
+                onClick={() => {
+                  setAccountType("ORGANISATION");
+                  setErrors({});
+                }}
+                className={`p-3 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between ${
+                  accountType === "ORGANISATION"
+                    ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-2 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
+                    : "border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#0d1117] text-[#171717] dark:text-[#f0f6fc] hover:border-[#8a8784]"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <div
+                    className={`p-1.5 rounded-xl ${
+                      accountType === "ORGANISATION"
+                        ? "bg-[#0f4c81] text-white"
+                        : "bg-[#f0efee] dark:bg-[#21262d] text-[#5d5854] dark:text-[#8b949e]"
+                    }`}
+                  >
+                    <Building2 className="size-4" />
+                  </div>
+                  {accountType === "ORGANISATION" && (
+                    <span className="size-2 rounded-full bg-[#0f4c81] dark:bg-[#58a6ff]" />
+                  )}
+                </div>
+                <div>
+                  <div className="text-xs font-black">Organisation</div>
+                  <div className="text-[10px] text-[#77716b] dark:text-[#8b949e] font-medium leading-tight mt-0.5">
+                    Hospital, Clinic, College & Lab
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Form Content */}
         {isForgotPassword ? (
@@ -493,7 +703,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
             </div>
           </form>
         ) : (
-          <form onSubmit={handleSubmit} className="mt-4 space-y-3.5 text-left">
+          <form onSubmit={handleSubmit} className="mt-3 space-y-3 text-left">
             {errors.general && (
               <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-xs font-semibold text-rose-700 dark:text-rose-300 flex items-center gap-2">
                 <AlertTriangle className="size-4 shrink-0 text-rose-500" />
@@ -501,10 +711,11 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
               </div>
             )}
 
-            {mode === "signup" && (
+            {/* Individual Sign Up: Full Name */}
+            {mode === "signup" && accountType === "INDIVIDUAL" && (
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                  Full Name (with Title)
+                  Full Name (with Professional Title)
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
@@ -536,9 +747,105 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
               </div>
             )}
 
+            {/* Organisation Sign Up: Org Name, Type, Rep Name */}
+            {mode === "signup" && accountType === "ORGANISATION" && (
+              <>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                    Organisation / Hospital Name
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
+                      <Building2 className="size-4" />
+                    </div>
+                    <input
+                      type="text"
+                      value={orgName}
+                      onChange={(e) => {
+                        setOrgName(e.target.value);
+                        if (errors.orgName) validateField("orgName", e.target.value);
+                      }}
+                      onBlur={() => handleBlur("orgName")}
+                      placeholder="e.g. Apex Multispeciality Hospital"
+                      required
+                      className={`h-11 w-full rounded-xl border pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 ${
+                        fieldTouched.orgName && errors.orgName
+                          ? "border-rose-500 focus:ring-rose-500/20"
+                          : "border-[#ded8d1] dark:border-[#30363d] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:ring-[#0f4c81]/15"
+                      }`}
+                    />
+                  </div>
+                  {fieldTouched.orgName && errors.orgName && (
+                    <p className="mt-1 text-xs font-semibold text-rose-500 flex items-center gap-1">
+                      <AlertTriangle className="size-3 shrink-0" />
+                      {errors.orgName}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                    Organisation Type
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
+                      <Hospital className="size-4" />
+                    </div>
+                    <select
+                      value={orgType}
+                      onChange={(e) => setOrgType(e.target.value)}
+                      className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81] cursor-pointer"
+                    >
+                      {MODAL_ORGANISATION_TYPES.map((t) => (
+                        <option key={t.id} value={t.id} className="bg-white dark:bg-[#161b22] text-[#171717] dark:text-white">
+                          {t.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                    Authorized Representative / Admin Name
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
+                      <User className="size-4" />
+                    </div>
+                    <input
+                      type="text"
+                      value={repName}
+                      onChange={(e) => {
+                        setRepName(e.target.value);
+                        if (errors.repName) validateField("repName", e.target.value);
+                      }}
+                      onBlur={() => handleBlur("repName")}
+                      placeholder="e.g. Dr. Ananya Roy (Medical Director)"
+                      required
+                      className={`h-11 w-full rounded-xl border pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 ${
+                        fieldTouched.repName && errors.repName
+                          ? "border-rose-500 focus:ring-rose-500/20"
+                          : "border-[#ded8d1] dark:border-[#30363d] focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:ring-[#0f4c81]/15"
+                      }`}
+                    />
+                  </div>
+                  {fieldTouched.repName && errors.repName && (
+                    <p className="mt-1 text-xs font-semibold text-rose-500 flex items-center gap-1">
+                      <AlertTriangle className="size-3 shrink-0" />
+                      {errors.repName}
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* Email Address */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                Email address
+                {mode === "signup" && accountType === "ORGANISATION"
+                  ? "Official / Work Email Address"
+                  : "Email address"}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
@@ -552,7 +859,11 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                     if (errors.email) validateField("email", e.target.value);
                   }}
                   onBlur={() => handleBlur("email")}
-                  placeholder="doctor@hospital.org"
+                  placeholder={
+                    mode === "signup" && accountType === "ORGANISATION"
+                      ? "contact@hospital.org"
+                      : "doctor@hospital.org"
+                  }
                   required
                   className={`h-11 w-full rounded-xl border pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white bg-white dark:bg-[#0d1117] transition-all focus:outline-none focus:ring-2 ${
                     fieldTouched.email && errors.email
@@ -569,6 +880,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
               )}
             </div>
 
+            {/* Password */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e]">
@@ -629,6 +941,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
               )}
             </div>
 
+            {/* Confirm Password */}
             {mode === "signup" && (
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
@@ -668,6 +981,27 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                     {errors.confirmPassword}
                   </p>
                 )}
+              </div>
+            )}
+
+            {/* Phone (Optional for Signup) */}
+            {mode === "signup" && (
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                  {accountType === "ORGANISATION" ? "Official Phone / Desk Number" : "Mobile Phone (Optional)"}
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#8a8784] dark:text-[#8b949e]">
+                    <Phone className="size-4" />
+                  </div>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+91 98765 43210"
+                    className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                  />
+                </div>
               </div>
             )}
 
@@ -730,10 +1064,15 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
                 </>
               ) : mode === "signin" ? (
                 "Sign in"
+              ) : accountType === "ORGANISATION" ? (
+                <>
+                  <Building2 className="size-4" />
+                  Create Organisation Account
+                </>
               ) : (
                 <>
                   <ShieldCheck className="size-4" />
-                  Create Free Account
+                  Create Individual Account
                 </>
               )}
             </button>
