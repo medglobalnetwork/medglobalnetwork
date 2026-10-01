@@ -8,7 +8,7 @@ export type CourseStatus = "draft" | "review" | "published" | "archived";
 export type LessonType = "video" | "article" | "pdf" | "resource" | "quiz";
 export type EnrollmentStatus = "active" | "completed" | "cancelled";
 export type CertificateStatus = "valid" | "revoked";
-export type QuestionType = "single" | "multiple";
+export type QuestionType = "single" | "multiple" | "case_study" | "subjective";
 export type LiveSessionStatus =
   | "draft"
   | "scheduled"
@@ -54,9 +54,13 @@ export interface Course {
   language: string;
   duration_minutes: number;
   price: number;
+  discount_price?: number | null;
   currency: string;
   is_free: boolean;
   certificate_enabled: boolean;
+  accreditation?: string | null;
+  subscription_tier?: "standard" | "premium" | "all_access" | null;
+  bundle_access?: boolean;
   status: CourseStatus;
   enrollment_count: number;
   rating_avg: number;
@@ -145,7 +149,7 @@ export interface QuizOption {
   id: string;
   question_id: string;
   option_text: string;
-  is_correct?: boolean; // Stripped on client side
+  is_correct?: boolean; // Stripped on client side when taking quiz
   order_index: number;
 }
 
@@ -154,8 +158,10 @@ export interface QuizQuestion {
   quiz_id: string;
   question: string;
   question_type: QuestionType;
+  case_vignette?: string | null;
   explanation?: string | null;
   order_index: number;
+  points?: number;
   options: QuizOption[];
 }
 
@@ -165,6 +171,7 @@ export interface Quiz {
   course_id: string;
   title: string;
   description?: string | null;
+  test_type?: "quiz" | "exam" | "clinical_case_study";
   passing_score: number;
   time_limit_minutes: number;
   max_attempts: number;
@@ -187,7 +194,12 @@ export interface QuizAttempt {
   correct_answers: number;
   incorrect_answers: number;
   attempt_number: number;
+  time_taken_seconds?: number | null;
   submitted_at: string;
+  evaluated_at?: string | null;
+  evaluated_by?: string | null;
+  instructor_feedback?: string | null;
+  status?: "evaluated" | "pending_manual_evaluation";
 }
 
 export interface CertificateMetadata {
@@ -341,8 +353,13 @@ export interface CreateCourseInput {
   level?: CourseLevel;
   language?: string;
   price?: number;
+  discount_price?: number;
   is_free?: boolean;
   certificate_enabled?: boolean;
+  accreditation?: string;
+  subscription_tier?: "standard" | "premium" | "all_access";
+  bundle_access?: boolean;
+  status?: CourseStatus;
 }
 
 export interface SubmitQuizAnswerInput {
@@ -748,5 +765,131 @@ export interface ResourceAnalyticsSummary {
   avg_reading_depth_page: number;
   views_by_day: { date: string; count: number }[];
   downloads_by_day: { date: string; count: number }[];
+}
+
+// ─────────────────────────────────────────────
+// BATCHES & LIVE CLASS TIMINGS
+// ─────────────────────────────────────────────
+
+export interface BatchStudent {
+  id: string;
+  batch_id: string;
+  user_id: string;
+  user_name?: string;
+  user_email?: string;
+  user_image?: string | null;
+  enrolled_at: string;
+  status: "active" | "completed" | "dropped";
+  progress_percentage?: number;
+  notes?: string | null;
+}
+
+export interface BatchAnnouncement {
+  id: string;
+  batch_id: string;
+  instructor_id: string;
+  title: string;
+  content: string;
+  priority: "normal" | "high" | "urgent";
+  created_at: string;
+}
+
+export interface Batch {
+  id: string;
+  course_id: string;
+  course_title?: string;
+  instructor_id: string;
+  name: string;
+  code: string;
+  description?: string | null;
+  max_capacity: number;
+  enrolled_count: number;
+  start_date?: string | null;
+  end_date?: string | null;
+  schedule_info?: string | null;
+  meeting_url?: string | null;
+  status: "upcoming" | "active" | "completed" | "archived";
+  created_at: string;
+  updated_at: string;
+  students?: BatchStudent[];
+  announcements?: BatchAnnouncement[];
+}
+
+// ─────────────────────────────────────────────
+// INSTRUCTOR PROFILE & PAYOUT SETTINGS
+// ─────────────────────────────────────────────
+
+export interface InstructorProfileSettings {
+  id: string;
+  user_id: string;
+  name?: string;
+  email?: string;
+  image?: string | null;
+  designation?: string | null;
+  affiliation?: string | null;
+  registration_number?: string | null;
+  bio?: string | null;
+  office_hours?: string | null;
+  qualifications?: string[] | string | null;
+  credentials_doc_url?: string | null;
+  notify_email: boolean;
+  notify_batch_activity: boolean;
+  notify_test_submissions: boolean;
+  payout_upi_id?: string | null;
+  payout_bank_name?: string | null;
+  payout_account_holder?: string | null;
+  payout_account_number?: string | null;
+  payout_ifsc_code?: string | null;
+  payout_currency: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ─────────────────────────────────────────────
+// TEST PAPER SUBMISSIONS & MANUAL EVALUATION
+// ─────────────────────────────────────────────
+
+export interface TestSubmissionAnswerDetail {
+  id: string;
+  attempt_id: string;
+  question_id: string;
+  question_text: string;
+  question_type: QuestionType;
+  case_vignette?: string | null;
+  selected_option_ids?: string[];
+  text_answer?: string | null;
+  correct_option_ids?: string[];
+  options?: { id: string; option_text: string; is_correct: boolean }[];
+  is_correct?: boolean | null;
+  points_awarded?: number | null;
+  max_points?: number;
+  feedback?: string | null;
+  explanation?: string | null;
+}
+
+export interface TestPaperSubmission {
+  id: string;
+  quiz_id: string;
+  quiz_title: string;
+  course_id: string;
+  course_title: string;
+  user_id: string;
+  student_name: string;
+  student_email: string;
+  student_image?: string | null;
+  score: number;
+  percentage: number;
+  passed: boolean;
+  total_questions: number;
+  correct_answers: number;
+  incorrect_answers: number;
+  attempt_number: number;
+  time_taken_seconds?: number | null;
+  submitted_at: string;
+  evaluated_at?: string | null;
+  evaluated_by?: string | null;
+  instructor_feedback?: string | null;
+  status: "evaluated" | "pending_manual_evaluation";
+  answers?: TestSubmissionAnswerDetail[];
 }
 

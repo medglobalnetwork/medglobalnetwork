@@ -8,22 +8,39 @@ import {
   CheckCircle2,
   Clock,
   ExternalLink,
+  FileQuestion,
   GraduationCap,
   Layers,
   Plus,
   RefreshCw,
   Search,
+  Settings,
   ShieldCheck,
   TrendingUp,
   UserCheck,
   Users,
+  Video,
+  Folder,
 } from "lucide-react";
 import { InstructorCourseOverviewItem } from "../lib/learn-db";
 import { InstructorCourseRosterModal } from "./InstructorCourseRosterModal";
-import { InstructorBuilder } from "./InstructorBuilder";
+import { InstructorCourseSetupManager } from "./instructor/InstructorCourseSetupManager";
+import { InstructorBatchesManager } from "./instructor/InstructorBatchesManager";
+import { InstructorTestManager } from "./instructor/InstructorTestManager";
+import { InstructorSettingsManager } from "./instructor/InstructorSettingsManager";
+import { TeacherResourceManager } from "./resources/TeacherResourceManager";
+
+export type InstructorStudioTab =
+  | "courses"
+  | "setup"
+  | "batches"
+  | "tests"
+  | "resources"
+  | "settings";
 
 export function InstructorStudioDashboard() {
-  const [activeTab, setActiveTab] = React.useState<"courses" | "create">("courses");
+  const [activeTab, setActiveTab] = React.useState<InstructorStudioTab>("courses");
+  const [editingCourseId, setEditingCourseId] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [summary, setSummary] = React.useState<{
@@ -93,33 +110,19 @@ export function InstructorStudioDashboard() {
             MGN Instructor Studio
           </h1>
           <p className="mt-1 text-xs text-[#77716b] sm:text-sm dark:text-[#8b949e]">
-            Manage courses, track student completions, and monitor issued verified certificates.
+            Manage courses, cohort batches, folder curriculums, exams, and verified certificates.
           </p>
         </div>
 
-        {/* Tab Buttons */}
+        {/* Quick Action */}
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setActiveTab("courses")}
-            className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold transition cursor-pointer ${
-              activeTab === "courses"
-                ? "bg-[#0f4c81] text-white shadow-xs"
-                : "border border-[#ded8d1] bg-white text-[#171717] hover:bg-[#f0efee] dark:border-[#30363d] dark:bg-[#161b22] dark:text-[#f0f6fc] dark:hover:bg-[#21262d]"
-            }`}
-          >
-            <BookOpen className="size-4" />
-            <span>My Courses & Learners ({summary.totalCourses})</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("create")}
-            className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold transition cursor-pointer ${
-              activeTab === "create"
-                ? "bg-[#16804d] text-white shadow-xs"
-                : "border border-[#ded8d1] bg-white text-[#171717] hover:bg-[#f0efee] dark:border-[#30363d] dark:bg-[#161b22] dark:text-[#f0f6fc] dark:hover:bg-[#21262d]"
-            }`}
+            onClick={() => {
+              setEditingCourseId(null);
+              setActiveTab("setup");
+            }}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#0c3c66] transition cursor-pointer"
           >
             <Plus className="size-4" />
             <span>Create New Course</span>
@@ -183,14 +186,97 @@ export function InstructorStudioDashboard() {
         </div>
       </div>
 
-      {/* TAB 1: COURSES & STUDENT TRACKER */}
+      {/* MASTER STUDIO NAVIGATION TABS */}
+      <div className="flex items-center gap-2 overflow-x-auto border-b border-[#ded8d1] pb-3 dark:border-[#30363d] no-scrollbar">
+        <button
+          type="button"
+          onClick={() => setActiveTab("courses")}
+          className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap transition cursor-pointer ${
+            activeTab === "courses"
+              ? "bg-[#0f4c81] text-white shadow-xs"
+              : "border border-[#ded8d1] bg-white text-[#5d5854] hover:bg-[#f0efee] dark:border-[#30363d] dark:bg-[#161b22] dark:text-[#8b949e] dark:hover:bg-[#21262d]"
+          }`}
+        >
+          <BookOpen className="size-3.5" />
+          <span>My Courses & Learners ({summary.totalCourses})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setEditingCourseId(null);
+            setActiveTab("setup");
+          }}
+          className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap transition cursor-pointer ${
+            activeTab === "setup"
+              ? "bg-[#0f4c81] text-white shadow-xs"
+              : "border border-[#ded8d1] bg-white text-[#5d5854] hover:bg-[#f0efee] dark:border-[#30363d] dark:bg-[#161b22] dark:text-[#8b949e] dark:hover:bg-[#21262d]"
+          }`}
+        >
+          <Folder className="size-3.5" />
+          <span>Course Setup & Folders</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("batches")}
+          className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap transition cursor-pointer ${
+            activeTab === "batches"
+              ? "bg-[#0f4c81] text-white shadow-xs"
+              : "border border-[#ded8d1] bg-white text-[#5d5854] hover:bg-[#f0efee] dark:border-[#30363d] dark:bg-[#161b22] dark:text-[#8b949e] dark:hover:bg-[#21262d]"
+          }`}
+        >
+          <Layers className="size-3.5" />
+          <span>Cohort Batches & Live Classes</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("tests")}
+          className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap transition cursor-pointer ${
+            activeTab === "tests"
+              ? "bg-[#0f4c81] text-white shadow-xs"
+              : "border border-[#ded8d1] bg-white text-[#5d5854] hover:bg-[#f0efee] dark:border-[#30363d] dark:bg-[#161b22] dark:text-[#8b949e] dark:hover:bg-[#21262d]"
+          }`}
+        >
+          <FileQuestion className="size-3.5" />
+          <span>Tests, MCQs & Submissions</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("resources")}
+          className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap transition cursor-pointer ${
+            activeTab === "resources"
+              ? "bg-[#0f4c81] text-white shadow-xs"
+              : "border border-[#ded8d1] bg-white text-[#5d5854] hover:bg-[#f0efee] dark:border-[#30363d] dark:bg-[#161b22] dark:text-[#8b949e] dark:hover:bg-[#21262d]"
+          }`}
+        >
+          <Folder className="size-3.5" />
+          <span>Resource & Media Library (R2)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("settings")}
+          className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold whitespace-nowrap transition cursor-pointer ${
+            activeTab === "settings"
+              ? "bg-[#0f4c81] text-white shadow-xs"
+              : "border border-[#ded8d1] bg-white text-[#5d5854] hover:bg-[#f0efee] dark:border-[#30363d] dark:bg-[#161b22] dark:text-[#8b949e] dark:hover:bg-[#21262d]"
+          }`}
+        >
+          <Settings className="size-3.5" />
+          <span>Faculty Profile & Payout</span>
+        </button>
+      </div>
+
+      {/* TAB 1: COURSES & STUDENT PERFORMANCE */}
       {activeTab === "courses" && (
         <div className="space-y-4">
-          {/* Header & Search */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">
-                Authored Courses & Student Performance
+                Authored Courses & Performance
               </h2>
               <button
                 type="button"
@@ -239,7 +325,10 @@ export function InstructorStudioDashboard() {
               {!searchQuery && (
                 <button
                   type="button"
-                  onClick={() => setActiveTab("create")}
+                  onClick={() => {
+                    setEditingCourseId(null);
+                    setActiveTab("setup");
+                  }}
                   className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#0f4c81] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#0c3c66] transition shadow-xs cursor-pointer"
                 >
                   <Plus className="size-4" />
@@ -279,7 +368,7 @@ export function InstructorStudioDashboard() {
                       {course.title}
                     </h3>
 
-                    {/* Completion & Student Stats Pill Row */}
+                    {/* Completion & Student Stats */}
                     <div className="flex items-center gap-4 text-xs font-semibold text-[#5d5854] dark:text-[#8b949e] flex-wrap">
                       <div className="flex items-center gap-1.5">
                         <Users className="size-3.5 text-[#0f4c81] dark:text-[#58a6ff]" />
@@ -317,7 +406,7 @@ export function InstructorStudioDashboard() {
                           <strong className="text-amber-600 dark:text-amber-400">
                             {course.certificates_issued_count}
                           </strong>{" "}
-                          Certificates Issued
+                          Certificates
                         </span>
                       </div>
                     </div>
@@ -325,6 +414,19 @@ export function InstructorStudioDashboard() {
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-2 shrink-0 border-t border-[#f0efee] pt-3 sm:border-0 sm:pt-0 dark:border-[#21262d] flex-wrap sm:flex-nowrap">
+                    {/* Edit Curriculum & Setup */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingCourseId(course.id);
+                        setActiveTab("setup");
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-white px-3 py-2 text-xs font-bold text-[#171717] hover:bg-[#f0efee] transition dark:border-[#30363d] dark:bg-[#161b22] dark:text-[#f0f6fc] cursor-pointer"
+                    >
+                      <Folder className="size-3.5" />
+                      <span>Edit Curriculum</span>
+                    </button>
+
                     {/* View Students & Certificates Button */}
                     <button
                       type="button"
@@ -332,7 +434,7 @@ export function InstructorStudioDashboard() {
                       className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] px-4 py-2 text-xs font-bold text-white hover:bg-[#0c3c66] transition shadow-2xs cursor-pointer"
                     >
                       <Users className="size-3.5" />
-                      <span>View Students & Certificates</span>
+                      <span>Learners & Certificates</span>
                     </button>
 
                     {/* View Course Link */}
@@ -352,8 +454,8 @@ export function InstructorStudioDashboard() {
         </div>
       )}
 
-      {/* TAB 2: COURSE CREATOR / BUILDER */}
-      {activeTab === "create" && (
+      {/* TAB 2: COURSE SETUP & HIERARCHICAL FOLDERS */}
+      {activeTab === "setup" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <button
@@ -368,9 +470,31 @@ export function InstructorStudioDashboard() {
             </button>
           </div>
 
-          <InstructorBuilder />
+          <InstructorCourseSetupManager
+            initialCourseId={editingCourseId}
+            onFinished={() => {
+              setActiveTab("courses");
+              fetchInstructorData();
+            }}
+          />
         </div>
       )}
+
+      {/* TAB 3: BATCHES & LIVE CLASS TIMINGS */}
+      {activeTab === "batches" && <InstructorBatchesManager />}
+
+      {/* TAB 4: TESTS, MCQS & SUBMISSIONS */}
+      {activeTab === "tests" && <InstructorTestManager />}
+
+      {/* TAB 5: MULTI-FORMAT RESOURCE LIBRARY (R2) */}
+      {activeTab === "resources" && (
+        <div className="space-y-4">
+          <TeacherResourceManager isInstructor={true} />
+        </div>
+      )}
+
+      {/* TAB 6: INSTRUCTOR PROFILE & PAYOUT SETTINGS */}
+      {activeTab === "settings" && <InstructorSettingsManager />}
 
       {/* Roster & Certificates Modal */}
       <InstructorCourseRosterModal
