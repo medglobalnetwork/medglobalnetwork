@@ -339,20 +339,20 @@ export function ProfessionalCard({
   }
 
   // ─────────────────────────────────────────────────────────
-  // Grid Variant: Borderless Card with Circular Avatar
+  // Grid Variant: Balanced, Compact Healthcare Card
   // ─────────────────────────────────────────────────────────
   return (
-    <div className="group relative flex flex-col justify-between items-center text-center rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-5 shadow-none sm:shadow-2xs transition hover:bg-[#faf9f8] hover:shadow-xs">
+    <div className="group relative flex flex-col justify-between items-center text-center rounded-2xl border border-[#ded8d1] bg-white p-3.5 sm:p-4 shadow-2xs hover:shadow-xs hover:border-[#0f4c81]/30 transition-all duration-150">
       {/* Top-Right Three Dots Menu */}
-      <div className="absolute right-2.5 top-2.5 sm:right-3.5 sm:top-3.5 z-20" ref={menuRef}>
+      <div className="absolute right-2 top-2 sm:right-2.5 sm:top-2.5 z-20" ref={menuRef}>
         <button
           type="button"
           onClick={() => setShowMenu(!showMenu)}
-          className="flex size-7 sm:size-8 items-center justify-center rounded-full text-[#8a8784] hover:bg-[#f0efee] hover:text-[#171717] transition cursor-pointer"
+          className="flex size-7 items-center justify-center rounded-full text-[#8a8784] hover:bg-[#f0efee] hover:text-[#171717] transition cursor-pointer"
           title="More options"
           aria-label="More options"
         >
-          <MoreVertical className="size-4" />
+          <MoreVertical className="size-3.5" />
         </button>
 
         {showMenu && (
@@ -426,7 +426,7 @@ export function ProfessionalCard({
       </div>
 
       {/* Main Profile Info Column */}
-      <div className="flex flex-col items-center text-center w-full pt-1">
+      <div className="flex flex-col items-center text-center w-full pt-0.5">
         {/* Circular Avatar */}
         <button
           type="button"
@@ -434,7 +434,7 @@ export function ProfessionalCard({
           className="relative group/avatar focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded-full"
         >
           <div
-            className="size-20 sm:size-24 rounded-full overflow-hidden flex items-center justify-center text-xl sm:text-2xl font-bold text-[#3f3f3c] border-2 border-white shadow-xs ring-2 ring-[#0f4c81]/15 transition duration-200 group-hover/avatar:scale-105"
+            className="size-14 sm:size-16 rounded-full overflow-hidden flex items-center justify-center text-base sm:text-lg font-bold text-[#3f3f3c] border-2 border-white shadow-2xs ring-1 ring-[#0f4c81]/15 transition duration-200 group-hover/avatar:scale-105"
             style={{ background: avatarColor }}
           >
             {customImageSrc ? (
@@ -450,7 +450,7 @@ export function ProfessionalCard({
 
           {profile.is_founding_member && (
             <span
-              className="absolute -bottom-1 -right-1 flex size-6 items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-950 shadow-xs ring-2 ring-white text-xs"
+              className="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-950 shadow-xs ring-1 ring-white text-[10px]"
               title="Founding Member"
             >
               👑
@@ -459,11 +459,11 @@ export function ProfessionalCard({
         </button>
 
         {/* Name with Verification Badge */}
-        <div className="mt-3 flex items-center justify-center gap-1.5 flex-wrap max-w-full px-1">
+        <div className="mt-2.5 flex items-center justify-center gap-1 flex-wrap max-w-full px-1">
           <button
             type="button"
             onClick={() => router.push(`/profile/${destinationSlug}`)}
-            className="truncate text-sm sm:text-base font-bold text-[#171717] hover:text-[#0f4c81] transition text-center"
+            className="truncate text-xs sm:text-sm font-bold text-[#171717] hover:text-[#0f4c81] transition text-center"
           >
             {profile.name}
           </button>
@@ -471,34 +471,34 @@ export function ProfessionalCard({
         </div>
 
         {/* Profession */}
-        <p className="mt-0.5 truncate text-xs font-semibold text-[#0f4c81] max-w-full px-2">
+        <p className="mt-0.5 truncate text-[11px] sm:text-xs font-semibold text-[#0f4c81] max-w-full px-1">
           {profile.designation || profile.profession || "Healthcare Professional"}
         </p>
 
         {/* Specialization */}
         {profile.specialization && (
-          <p className="mt-0.5 truncate text-[11px] sm:text-xs text-[#77716b] font-medium max-w-full px-2">
+          <p className="mt-0.5 truncate text-[10px] sm:text-[11px] text-[#77716b] font-medium max-w-full px-1">
             {profile.specialization}
           </p>
         )}
 
         {/* Organization / City */}
         {(profile.organization || profile.city) && (
-          <p className="mt-0.5 truncate text-[10px] sm:text-[11px] text-[#8a8784] font-medium max-w-full px-2">
+          <p className="mt-0.5 truncate text-[10px] text-[#8a8784] font-medium max-w-full px-1">
             {[profile.organization, profile.city].filter(Boolean).join(" · ")}
           </p>
         )}
       </div>
 
       {/* Connect Button at Bottom */}
-      <div className="mt-4 w-full pt-1">
+      <div className="mt-3 w-full pt-1">
         <ConnectionButton
           targetUserId={profile.user_id}
           initialStatus={connectionStatus}
           onStatusChange={handleStatusChange}
           onConnectClick={() => setShowModal(true)}
           size="sm"
-          className="w-full justify-center !rounded-xl"
+          className="w-full justify-center !rounded-xl !py-1.5 !text-xs"
         />
       </div>
 

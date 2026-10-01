@@ -3,14 +3,14 @@ import * as React from "react";
 
 export function ProfessionalCardSkeleton() {
   return (
-    <div className="animate-pulse flex flex-col items-center justify-between rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-5">
+    <div className="animate-pulse flex flex-col items-center justify-between rounded-2xl border border-[#ded8d1] bg-white p-3.5 sm:p-4">
       <div className="flex flex-col items-center w-full">
-        <div className="size-20 sm:size-24 rounded-full bg-[#f0efee]" />
-        <div className="mt-3 h-4 w-28 rounded bg-[#f0efee]" />
-        <div className="mt-1.5 h-3 w-36 rounded bg-[#f0efee]" />
-        <div className="mt-1 h-3 w-20 rounded bg-[#f0efee]" />
+        <div className="size-14 sm:size-16 rounded-full bg-[#f0efee]" />
+        <div className="mt-2.5 h-3.5 w-24 rounded bg-[#f0efee]" />
+        <div className="mt-1 h-3 w-32 rounded bg-[#f0efee]" />
+        <div className="mt-1 h-2.5 w-20 rounded bg-[#f0efee]" />
       </div>
-      <div className="mt-4 h-8 w-full rounded-xl bg-[#f0efee]" />
+      <div className="mt-3 h-7 w-full rounded-xl bg-[#f0efee]" />
     </div>
   );
 }

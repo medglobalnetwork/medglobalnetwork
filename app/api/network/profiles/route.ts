@@ -31,11 +31,23 @@ export async function GET(request: Request) {
       .leftJoin("professional_profiles as pp", "pp.user_id", "u.id")
       .leftJoin("mgn_identities as mi", "mi.user_id", "u.id")
       .where("u.id", "<>", session.user.id)
+      .where("u.email", "not in", ["admin@mgn.life", "support@mgn.life"])
+      .where("u.name", "not ilike", "%Administrator%")
       .where((eb) =>
         eb.or([
           eb("pp.profile_visibility", "is", null),
           eb("pp.profile_visibility", "<>", "private"),
         ])
+      )
+      .where((eb) =>
+        eb.not(
+          eb.exists(
+            networkDb
+              .selectFrom("admin_user_roles as aur" as any)
+              .select("aur.id" as any)
+              .whereRef("aur.user_id" as any, "=", "u.id")
+          )
+        )
       );
 
     if (profession) base = base.where("pp.profession", "=", profession);

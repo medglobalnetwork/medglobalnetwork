@@ -39,6 +39,7 @@ export async function getIneligibleUserIds(
       blocksOut,
       blocksIn,
       negativeFeedback,
+      adminUsers,
     ] = await Promise.all([
       // 1. Existing Connections
       networkDb
@@ -95,6 +96,26 @@ export async function getIneligibleUserIds(
         .where("feedback_type", "in", ["not_interested", "dont_suggest", "block", "report"])
         .execute()
         .catch(() => []),
+
+      // 7. System Admin Accounts & System Roles (Never recommend internal admin accounts)
+      networkDb
+        .selectFrom("user as u")
+        .select("u.id")
+        .where((eb) =>
+          eb.or([
+            eb("u.email", "in", ["admin@mgn.life", "support@mgn.life"]),
+            eb("u.name", "ilike", "%Administrator%"),
+            eb("u.name", "ilike", "%Admin%"),
+            eb.exists(
+              networkDb
+                .selectFrom("admin_user_roles as aur" as any)
+                .select("aur.id" as any)
+                .whereRef("aur.user_id" as any, "=", "u.id")
+            ),
+          ])
+        )
+        .execute()
+        .catch(() => []),
     ]);
 
     // Process connections
@@ -130,6 +151,11 @@ export async function getIneligibleUserIds(
     for (const fb of negativeFeedback) {
       dismissed.add(fb.candidate_id);
       excluded.add(fb.candidate_id);
+    }
+
+    // Process admin exclusions
+    for (const adm of adminUsers || []) {
+      if (adm?.id) excluded.add(adm.id);
     }
   } catch (err) {
     console.error("Error building ineligible user set:", err);
