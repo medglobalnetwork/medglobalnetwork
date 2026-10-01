@@ -226,9 +226,33 @@ export async function DELETE(
     }
 
     if (type === "module") {
-      await learnDb.deleteFrom("course_resources").where("course_id", "=", courseId).execute();
+      const lessonsInModule = await learnDb
+        .selectFrom("course_lessons")
+        .select(["id"])
+        .where("module_id", "=", id)
+        .execute();
+
+      const lessonIds = lessonsInModule.map((l) => l.id);
+      if (lessonIds.length > 0) {
+        await learnDb.deleteFrom("course_resources").where("lesson_id", "in", lessonIds).execute();
+      }
       await learnDb.deleteFrom("course_lessons").where("module_id", "=", id).execute();
       await learnDb.deleteFrom("course_modules").where("id", "=", id).where("course_id", "=", courseId).execute();
+
+      // Recalculate course duration
+      const totalSecondsRes = await learnDb
+        .selectFrom("course_lessons")
+        .select((eb) => eb.fn.sum<number>("duration_seconds").as("total"))
+        .where("course_id", "=", courseId)
+        .executeTakeFirst();
+
+      const totalMinutes = Math.round(Number(totalSecondsRes?.total || 0) / 60);
+      await learnDb
+        .updateTable("courses")
+        .set({ duration_minutes: totalMinutes, updated_at: new Date() })
+        .where("id", "=", courseId)
+        .execute();
+
       return Response.json({ success: true });
     }
 

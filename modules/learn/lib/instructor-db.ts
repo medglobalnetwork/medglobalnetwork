@@ -541,6 +541,15 @@ export async function updateBatch(
 export async function deleteBatch(batchId: string, instructorId: string): Promise<void> {
   await ensureInstructorTables();
 
+  const batch = await db
+    .selectFrom("learn_batches")
+    .select(["id"])
+    .where("id", "=", batchId)
+    .where("instructor_id", "=", instructorId)
+    .executeTakeFirst();
+
+  if (!batch) throw new Error("Batch not found or unauthorized");
+
   await db
     .deleteFrom("learn_batch_students")
     .where("batch_id", "=", batchId)
@@ -574,6 +583,11 @@ export async function addStudentToBatch(
     .executeTakeFirst();
 
   if (!batch) throw new Error("Batch not found or unauthorized");
+
+  // Check capacity limit
+  if (batch.max_capacity && Number(batch.enrolled_count) >= Number(batch.max_capacity)) {
+    throw new Error(`Batch seat capacity limit (${batch.max_capacity}) has been reached.`);
+  }
 
   // Find user by ID or Email
   const user = await db
@@ -1441,19 +1455,27 @@ export async function evaluateSubjectiveSubmission(
     }
   }
 
-  const totalQuestions = Number(submission.total_questions) || 1;
-  const percentage = Number(((correctCount / totalQuestions) * 100).toFixed(2));
+  const allQuestions = await db
+    .selectFrom("quiz_questions")
+    .select(["id", "points"])
+    .where("quiz_id", "=", submission.quiz_id)
+    .execute();
+
+  const totalQuestions = Number(submission.total_questions) || allQuestions.length || 1;
+  const totalPossiblePoints = allQuestions.reduce((acc, q) => acc + (Number(q.points) || 1), 0) || totalQuestions;
+  const finalScore = Number(totalScore.toFixed(2));
+  const percentage = Number(Math.min(100, Math.max(0, (finalScore / totalPossiblePoints) * 100)).toFixed(2));
   const passingScore = Number(submission.passing_score) || 70;
   const passed = data.passedOverride !== undefined ? data.passedOverride : percentage >= passingScore;
 
   await db
     .updateTable("quiz_attempts")
     .set({
-      score: totalScore > 0 ? totalScore : correctCount,
+      score: finalScore,
       percentage,
       passed,
       correct_answers: correctCount,
-      incorrect_answers: totalQuestions - correctCount,
+      incorrect_answers: Math.max(0, totalQuestions - correctCount),
       evaluated_at: now,
       evaluated_by: instructorId,
       instructor_feedback: data.instructorFeedback?.trim() || null,

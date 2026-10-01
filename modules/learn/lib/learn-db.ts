@@ -49,9 +49,13 @@ export interface CourseTable {
   language: string | null;
   duration_minutes: number;
   price: number;
+  discount_price?: number | null;
   currency: string;
   is_free: boolean;
   certificate_enabled: boolean;
+  accreditation?: string | null;
+  subscription_tier?: string | null;
+  bundle_access?: boolean;
   status: string;
   enrollment_count: number;
   rating_avg: number;
@@ -826,9 +830,13 @@ export async function searchCourses(
       "c.language",
       "c.duration_minutes",
       "c.price",
+      "c.discount_price",
       "c.currency",
       "c.is_free",
       "c.certificate_enabled",
+      "c.accreditation",
+      "c.subscription_tier",
+      "c.bundle_access",
       "c.status",
       "c.enrollment_count",
       "c.rating_avg",
@@ -899,9 +907,13 @@ export async function searchCourses(
     language: r.language || "English",
     duration_minutes: Number(r.duration_minutes) || 0,
     price: Number(r.price) || 0,
+    discount_price: r.discount_price !== undefined && r.discount_price !== null ? Number(r.discount_price) : null,
     currency: r.currency || "INR",
     is_free: r.is_free,
     certificate_enabled: r.certificate_enabled,
+    accreditation: r.accreditation || null,
+    subscription_tier: (r.subscription_tier as any) || null,
+    bundle_access: Boolean(r.bundle_access),
     status: (r.status as any) || "published",
     enrollment_count: Number(r.enrollment_count) || 0,
     rating_avg: Number(r.rating_avg) || 0,
@@ -971,9 +983,13 @@ export async function getCourseDetails(
       "c.language",
       "c.duration_minutes",
       "c.price",
+      "c.discount_price",
       "c.currency",
       "c.is_free",
       "c.certificate_enabled",
+      "c.accreditation",
+      "c.subscription_tier",
+      "c.bundle_access",
       "c.status",
       "c.enrollment_count",
       "c.rating_avg",
@@ -1056,9 +1072,13 @@ export async function getCourseDetails(
     language: raw.language || "English",
     duration_minutes: Number(raw.duration_minutes) || 0,
     price: Number(raw.price) || 0,
+    discount_price: raw.discount_price !== undefined && raw.discount_price !== null ? Number(raw.discount_price) : null,
     currency: raw.currency || "INR",
     is_free: raw.is_free,
     certificate_enabled: raw.certificate_enabled,
+    accreditation: raw.accreditation || null,
+    subscription_tier: (raw.subscription_tier as any) || null,
+    bundle_access: Boolean(raw.bundle_access),
     status: (raw.status as any) || "published",
     enrollment_count: Number(raw.enrollment_count) || 0,
     rating_avg: Number(raw.rating_avg) || 0,
@@ -2537,11 +2557,15 @@ export async function createCourse(
       level: input.level || "all_levels",
       language: input.language || "English",
       duration_minutes: 0,
-      price: input.price || 0,
+      price: input.is_free ? 0 : (input.price || 0),
+      discount_price: input.is_free ? null : (input.discount_price || null),
       currency: "INR",
       is_free: input.is_free !== false,
       certificate_enabled: input.certificate_enabled !== false,
-      status: "published",
+      accreditation: input.accreditation || null,
+      subscription_tier: input.subscription_tier || null,
+      bundle_access: input.bundle_access ?? true,
+      status: input.status || "published",
       enrollment_count: 0,
       rating_avg: 0,
       rating_count: 0,
