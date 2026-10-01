@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Lock, ShieldAlert, ArrowLeft, GraduationCap, CheckCircle2 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { InstructorBuilder } from "@/modules/learn/components/InstructorBuilder";
+import { InstructorStudioDashboard } from "@/modules/learn/components/InstructorStudioDashboard";
 
 export default function InstructorPage() {
   const router = useRouter();
@@ -141,7 +141,7 @@ export default function InstructorPage() {
           </button>
         </div>
 
-        <InstructorBuilder />
+        <InstructorStudioDashboard />
       </div>
     </main>
   );

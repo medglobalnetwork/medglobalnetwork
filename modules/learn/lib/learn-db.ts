@@ -429,6 +429,8 @@ export interface LearnDatabase {
     identity_verified: boolean;
     education_verified: boolean;
     registration_verified: boolean;
+    member_id?: string | null;
+    is_founding_member?: boolean;
   };
 }
 
@@ -2553,9 +2555,332 @@ export async function createCourse(
 }
 
 // ─────────────────────────────────────────────
+// INSTRUCTOR DASHBOARD: COURSES, COMPLETIONS & CERTIFICATES
+// ─────────────────────────────────────────────
+
+export interface InstructorCourseOverviewItem {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  profession: string | null;
+  specialization: string | null;
+  level: string | null;
+  is_free: boolean;
+  price: number;
+  currency: string;
+  certificate_enabled: boolean;
+  status: string;
+  thumbnail: string | null;
+  duration_minutes: number;
+  created_at: string;
+  total_enrolled: number;
+  completed_count: number;
+  in_progress_count: number;
+  certificates_issued_count: number;
+  completion_rate: number;
+}
+
+export interface InstructorLearnerRecord {
+  enrollment_id: string;
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  user_image: string | null;
+  member_id: string | null;
+  is_founding_member: boolean;
+  profession: string | null;
+  specialization: string | null;
+  organization: string | null;
+  enrolled_at: string;
+  completed_at: string | null;
+  status: string;
+  progress_percentage: number;
+  last_accessed_at: string;
+  has_certificate: boolean;
+  certificate_id: string | null;
+  certificate_number: string | null;
+  verification_code: string | null;
+  certificate_issued_at: string | null;
+  certificate_status: string | null;
+  certificate_state: "ISSUED" | "PENDING" | "DISABLED";
+}
+
+export async function getInstructorCoursesOverview(instructorId: string): Promise<{
+  summary: {
+    totalCourses: number;
+    totalEnrolled: number;
+    totalCompleted: number;
+    totalCertificatesIssued: number;
+    overallCompletionRate: number;
+  };
+  courses: InstructorCourseOverviewItem[];
+}> {
+  await ensureLearnExtensions();
+
+  const coursesRaw = await learnDb
+    .selectFrom("courses")
+    .selectAll()
+    .where("instructor_id", "=", instructorId)
+    .orderBy("created_at", "desc")
+    .execute();
+
+  if (coursesRaw.length === 0) {
+    return {
+      summary: {
+        totalCourses: 0,
+        totalEnrolled: 0,
+        totalCompleted: 0,
+        totalCertificatesIssued: 0,
+        overallCompletionRate: 0,
+      },
+      courses: [],
+    };
+  }
+
+  const courseIds = coursesRaw.map((c) => c.id);
+
+  // 1. Fetch enrollments aggregated per course
+  const enrollmentsRes = await learnDb
+    .selectFrom("course_enrollments")
+    .select([
+      "course_id",
+      sql<string>`count(*)`.as("total_count"),
+      sql<string>`count(case when status = 'completed' or progress_percentage >= 100 then 1 end)`.as("completed_count"),
+      sql<string>`count(case when status != 'completed' and progress_percentage < 100 then 1 end)`.as("in_progress_count"),
+    ])
+    .where("course_id", "in", courseIds)
+    .groupBy("course_id")
+    .execute();
+
+  const enrollmentMap = new Map<
+    string,
+    { total: number; completed: number; inProgress: number }
+  >();
+  for (const row of enrollmentsRes) {
+    enrollmentMap.set(row.course_id, {
+      total: parseInt((row as any).total_count || "0", 10),
+      completed: parseInt((row as any).completed_count || "0", 10),
+      inProgress: parseInt((row as any).in_progress_count || "0", 10),
+    });
+  }
+
+  // 2. Fetch certificates count per course
+  const certsRes = await learnDb
+    .selectFrom("certificates")
+    .select([
+      "course_id",
+      sql<string>`count(*)`.as("cert_count"),
+    ])
+    .where("course_id", "in", courseIds)
+    .groupBy("course_id")
+    .execute();
+
+  const certMap = new Map<string, number>();
+  for (const row of certsRes) {
+    certMap.set(row.course_id, parseInt((row as any).cert_count || "0", 10));
+  }
+
+  let totalEnrolledAll = 0;
+  let totalCompletedAll = 0;
+  let totalCertificatesAll = 0;
+
+  const courses: InstructorCourseOverviewItem[] = coursesRaw.map((c) => {
+    const enr = enrollmentMap.get(c.id) || { total: 0, completed: 0, inProgress: 0 };
+    const certCount = certMap.get(c.id) || 0;
+    const completionRate = enr.total > 0 ? Math.round((enr.completed / enr.total) * 100) : 0;
+
+    totalEnrolledAll += enr.total;
+    totalCompletedAll += enr.completed;
+    totalCertificatesAll += certCount;
+
+    return {
+      id: c.id,
+      title: c.title,
+      slug: c.slug,
+      category: c.category,
+      profession: c.profession,
+      specialization: c.specialization,
+      level: c.level,
+      is_free: c.is_free,
+      price: Number(c.price) || 0,
+      currency: c.currency || "INR",
+      certificate_enabled: Boolean(c.certificate_enabled),
+      status: c.status,
+      thumbnail: c.thumbnail,
+      duration_minutes: Number(c.duration_minutes) || 0,
+      created_at: c.created_at ? new Date(c.created_at).toISOString() : new Date().toISOString(),
+      total_enrolled: enr.total,
+      completed_count: enr.completed,
+      in_progress_count: enr.inProgress,
+      certificates_issued_count: certCount,
+      completion_rate: completionRate,
+    };
+  });
+
+  const overallCompletionRate =
+    totalEnrolledAll > 0 ? Math.round((totalCompletedAll / totalEnrolledAll) * 100) : 0;
+
+  return {
+    summary: {
+      totalCourses: courses.length,
+      totalEnrolled: totalEnrolledAll,
+      totalCompleted: totalCompletedAll,
+      totalCertificatesIssued: totalCertificatesAll,
+      overallCompletionRate,
+    },
+    courses,
+  };
+}
+
+export async function getCourseStudentsAndCertificates(
+  courseId: string,
+  instructorId?: string
+): Promise<{
+  course: {
+    id: string;
+    title: string;
+    category: string;
+    certificate_enabled: boolean;
+  };
+  stats: {
+    totalEnrolled: number;
+    completedCount: number;
+    inProgressCount: number;
+    certificatesIssuedCount: number;
+    completionRate: number;
+  };
+  learners: InstructorLearnerRecord[];
+}> {
+  await ensureLearnExtensions();
+
+  let courseQuery = (learnDb as any)
+    .selectFrom("courses")
+    .select(["id", "title", "category", "certificate_enabled", "instructor_id"])
+    .where("id", "=", courseId);
+
+  if (instructorId) {
+    courseQuery = courseQuery.where("instructor_id", "=", instructorId);
+  }
+
+  const course = await courseQuery.executeTakeFirst();
+  if (!course) {
+    throw new Error("Course not found or unauthorized access");
+  }
+
+  const learnersRaw: any[] = await (learnDb as any)
+    .selectFrom("course_enrollments as ce")
+    .innerJoin("user as u", "u.id", "ce.user_id")
+    .leftJoin("professional_profiles as pp", "pp.user_id", "u.id")
+    .leftJoin("certificates as cert", (join: any) =>
+      join.onRef("cert.user_id", "=", "ce.user_id").onRef("cert.course_id", "=", "ce.course_id")
+    )
+    .select([
+      "ce.id as enrollment_id",
+      "ce.user_id as user_id",
+      "ce.enrolled_at",
+      "ce.completed_at",
+      "ce.status as enrollment_status",
+      "ce.progress_percentage",
+      "ce.last_accessed_at",
+      "u.name as user_name",
+      "u.email as user_email",
+      "u.image as user_image",
+      "pp.member_id",
+      "pp.is_founding_member",
+      "pp.profession",
+      "pp.specialization",
+      "pp.organization",
+      "cert.id as certificate_id",
+      "cert.certificate_number",
+      "cert.verification_code",
+      "cert.issued_at as certificate_issued_at",
+      "cert.status as certificate_status",
+    ])
+    .where("ce.course_id", "=", courseId)
+    .orderBy("ce.enrolled_at", "desc")
+    .execute();
+
+  let completedCount = 0;
+  let inProgressCount = 0;
+  let certIssuedCount = 0;
+
+  const learners: InstructorLearnerRecord[] = learnersRaw.map((row) => {
+    const isCompleted =
+      row.enrollment_status === "completed" || Number(row.progress_percentage || 0) >= 100;
+    const hasCert = Boolean(row.certificate_id && row.verification_code);
+
+    if (isCompleted) completedCount++;
+    else inProgressCount++;
+
+    if (hasCert) certIssuedCount++;
+
+    let certState: "ISSUED" | "PENDING" | "DISABLED" = "PENDING";
+    if (!course.certificate_enabled) {
+      certState = "DISABLED";
+    } else if (hasCert) {
+      certState = "ISSUED";
+    } else {
+      certState = "PENDING";
+    }
+
+    return {
+      enrollment_id: String(row.enrollment_id || ""),
+      user_id: String(row.user_id || ""),
+      user_name: String(row.user_name || "Healthcare Learner"),
+      user_email: String(row.user_email || ""),
+      user_image: row.user_image || null,
+      member_id: row.member_id || null,
+      is_founding_member: Boolean(row.is_founding_member),
+      profession: row.profession || null,
+      specialization: row.specialization || null,
+      organization: row.organization || null,
+      enrolled_at: row.enrolled_at ? new Date(row.enrolled_at).toISOString() : new Date().toISOString(),
+      completed_at: row.completed_at ? new Date(row.completed_at).toISOString() : null,
+      status: isCompleted ? "completed" : "in_progress",
+      progress_percentage: Number(row.progress_percentage) || 0,
+      last_accessed_at: row.last_accessed_at
+        ? new Date(row.last_accessed_at).toISOString()
+        : new Date().toISOString(),
+      has_certificate: hasCert,
+      certificate_id: row.certificate_id || null,
+      certificate_number: row.certificate_number || null,
+      verification_code: row.verification_code || null,
+      certificate_issued_at: row.certificate_issued_at
+        ? new Date(row.certificate_issued_at).toISOString()
+        : null,
+      certificate_status: row.certificate_status || (hasCert ? "valid" : null),
+      certificate_state: certState,
+    };
+  });
+
+  const totalEnrolled = learners.length;
+  const completionRate =
+    totalEnrolled > 0 ? Math.round((completedCount / totalEnrolled) * 100) : 0;
+
+  return {
+    course: {
+      id: course.id,
+      title: course.title,
+      category: course.category,
+      certificate_enabled: Boolean(course.certificate_enabled),
+    },
+    stats: {
+      totalEnrolled,
+      completedCount,
+      inProgressCount,
+      certificatesIssuedCount: certIssuedCount,
+      completionRate,
+    },
+    learners,
+  };
+}
+
+// ─────────────────────────────────────────────
 // LIVE CLASSROOM EXPORTS
 // ─────────────────────────────────────────────
 export {
   LiveClassroomRepository,
   ensureLiveClassroomTables,
 } from "./live-classroom-db";
+
