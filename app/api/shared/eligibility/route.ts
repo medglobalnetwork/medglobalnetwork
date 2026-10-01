@@ -25,6 +25,8 @@ export async function GET(request: Request) {
       result = await OrganizerEligibilityService.canCreateCamp(session.user.id, orgId);
     } else if (type === "research") {
       result = await OrganizerEligibilityService.canCreateResearchProject(session.user.id, orgId);
+    } else if (type === "instructor" || type === "teacher" || type === "course") {
+      result = await OrganizerEligibilityService.canAccessInstructorStudio(session.user.id, orgId);
     } else {
       result = await OrganizerEligibilityService.canCreateEvent(session.user.id, orgId);
     }

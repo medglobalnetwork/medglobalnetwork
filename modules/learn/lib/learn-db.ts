@@ -2307,53 +2307,7 @@ export async function getVerifiedInstructors(limit: number = 6): Promise<Instruc
     // fallback
   }
 
-  return [
-    {
-      id: "inst-1",
-      name: "Dr. Vikram Sethi, MD, DM",
-      email: "vikram@mgn.life",
-      image: null,
-      profession: "Doctor",
-      specialization: "Cardiology",
-      designation: "Senior Interventional Cardiologist",
-      organization: "AIIMS New Delhi",
-      identity_verified: true,
-      education_verified: true,
-      registration_verified: true,
-      courses_count: 3,
-      students_count: 850,
-    },
-    {
-      id: "inst-2",
-      name: "Dr. Ananya Sharma, MPT, Ph.D.",
-      email: "ananya@mgn.life",
-      image: null,
-      profession: "Physiotherapist",
-      specialization: "Sports Rehabilitation",
-      designation: "Head of Physical Therapy",
-      organization: "Max Healthcare",
-      identity_verified: true,
-      education_verified: true,
-      registration_verified: true,
-      courses_count: 4,
-      students_count: 620,
-    },
-    {
-      id: "inst-3",
-      name: "Dr. Rajeshwar Kulkarni, MS, M.Ch",
-      email: "rajeshwar@mgn.life",
-      image: null,
-      profession: "Doctor",
-      specialization: "Orthopedic Surgery",
-      designation: "Professor of Arthroscopy",
-      organization: "Apollo Hospitals",
-      identity_verified: true,
-      education_verified: true,
-      registration_verified: true,
-      courses_count: 2,
-      students_count: 490,
-    },
-  ];
+  return [];
 }
 
 // ─────────────────────────────────────────────

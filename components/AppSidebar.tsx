@@ -127,7 +127,25 @@ export function AppSidebar({
   const { data: session } = authClient.useSession();
 
   const [isHovered, setIsHovered] = React.useState(false);
+  const [isInstructor, setIsInstructor] = React.useState(false);
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  React.useEffect(() => {
+    if (!session?.user?.id) {
+      setIsInstructor(false);
+      return;
+    }
+    fetch("/api/shared/eligibility?type=instructor", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : { eligible: false }))
+      .then((d) => setIsInstructor(Boolean(d?.eligible)))
+      .catch(() => setIsInstructor(false));
+  }, [session?.user?.id]);
+
+  const visibleLearnItems = React.useMemo(() => {
+    return LEARN_WORKSPACE_NAV_ITEMS.filter(
+      (item) => item.id !== "learn-instructor" || isInstructor
+    );
+  }, [isInstructor]);
 
   const handleMouseEnter = () => {
     if (hoverTimeoutRef.current) {
@@ -256,7 +274,7 @@ export function AppSidebar({
                 </div>
               )}
               <nav className="space-y-1">
-                {LEARN_WORKSPACE_NAV_ITEMS.map((item) => {
+                {visibleLearnItems.map((item) => {
                   const active =
                     item.href === "/learn"
                       ? pathname === "/learn" || pathname === "/learn/"
@@ -557,7 +575,7 @@ export function AppSidebar({
                     </Link>
                   </div>
                   <nav className="space-y-1">
-                    {LEARN_WORKSPACE_NAV_ITEMS.map((item) => {
+                    {visibleLearnItems.map((item) => {
                       const active =
                         item.href === "/learn"
                           ? pathname === "/learn" || pathname === "/learn/"

@@ -63,6 +63,13 @@ export class OrganizerEligibilityService {
   }
 
   /**
+   * Evaluates whether a user is eligible to access the Instructor Studio and create courses.
+   */
+  static async canAccessInstructorStudio(userId: string, organizationId?: string | null): Promise<OrganizerEligibilityResult> {
+    return this.evaluateEligibility(userId, organizationId, "instructor");
+  }
+
+  /**
    * Evaluates whether a user is eligible to create a research project.
    */
   static async canCreateResearchProject(userId: string, organizationId?: string | null): Promise<OrganizerEligibilityResult> {
@@ -201,11 +208,74 @@ export class OrganizerEligibilityService {
     if (!isIndividualVerified) {
       return {
         eligible: false,
-        reason: "Only verified healthcare professionals with an approved MGN identity can organize events, camps, or research.",
+        reason: "Only verified healthcare professionals with an approved MGN identity can access creation features.",
         isIndividualVerified: false,
         isOrganizationVerified: false,
         canPublishImmediately: false,
       };
+    }
+
+    // 5. Special check for Instructor Studio: Must be a verified educator, teacher, professor or existing course author
+    if (moduleContext === "instructor") {
+      try {
+        // Check if user has authored any course
+        const existingCourse = await db
+          .selectFrom("courses")
+          .select(["id"])
+          .where("instructor_id", "=", userId)
+          .limit(1)
+          .executeTakeFirst();
+
+        if (existingCourse) {
+          return {
+            eligible: true,
+            isIndividualVerified: true,
+            isOrganizationVerified: false,
+            canPublishImmediately: true,
+          };
+        }
+
+        // Check professional profile for teaching/academic credentials
+        const profile = await db
+          .selectFrom("professional_profiles")
+          .select(["profession", "designation", "workplace_type", "education_verified"])
+          .where("user_id", "=", userId)
+          .executeTakeFirst() as { profession?: string; designation?: string; workplace_type?: string; education_verified?: boolean } | undefined;
+
+        const isEducator =
+          /professor|instructor|teacher|faculty|lecturer|educator|trainer|dean|tutor|hod|principal|consultant/i.test(
+            profile?.designation || ""
+          ) ||
+          /academic|teaching|university|college|institute|school|hospital/i.test(
+            profile?.workplace_type || ""
+          );
+
+        if (isEducator) {
+          return {
+            eligible: true,
+            isIndividualVerified: true,
+            isOrganizationVerified: false,
+            canPublishImmediately: true,
+          };
+        }
+
+        return {
+          eligible: false,
+          reason: "Instructor Studio is accessible only to verified medical educators, professors, faculty, and authorized course instructors.",
+          isIndividualVerified: true,
+          isOrganizationVerified: false,
+          canPublishImmediately: false,
+        };
+      } catch {
+        // Fallback for instructor
+        return {
+          eligible: false,
+          reason: "Instructor verification required.",
+          isIndividualVerified: true,
+          isOrganizationVerified: false,
+          canPublishImmediately: false,
+        };
+      }
     }
 
     return {
