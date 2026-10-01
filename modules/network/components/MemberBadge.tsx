@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Sparkles, Crown, Copy, Check, ShieldCheck } from "lucide-react";
+import { Sparkles, Crown, Copy, Check, Eye, EyeOff } from "lucide-react";
 import { isFoundingMemberId } from "../lib/member-id";
 
 interface MemberBadgeProps {
@@ -10,6 +10,8 @@ interface MemberBadgeProps {
   membershipTier?: string | null;
   size?: "xs" | "sm" | "md" | "lg";
   showCopy?: boolean;
+  allowToggle?: boolean;
+  defaultRevealed?: boolean;
   variant?: "pill" | "tag" | "full" | "subtle";
   className?: string;
 }
@@ -20,9 +22,12 @@ export function MemberBadge({
   membershipTier,
   size = "sm",
   showCopy = true,
+  allowToggle = true,
+  defaultRevealed = false,
   variant = "pill",
   className = "",
 }: MemberBadgeProps) {
+  const [isRevealed, setIsRevealed] = React.useState(defaultRevealed);
   const [copied, setCopied] = React.useState(false);
 
   const displayId = memberId || "MGN-MEMBER";
@@ -63,26 +68,47 @@ export function MemberBadge({
     },
   }[size];
 
+  const maskedText = "••••••••";
+
   if (isFounder) {
+    const shownId = isRevealed ? displayId : maskedText;
     return (
       <div
         className={`inline-flex items-center gap-1.5 rounded-full font-mono font-bold shadow-xs select-none transition-all ${sizeStyles.text} ${sizeStyles.padding} bg-amber-50 text-amber-900 border border-amber-200 ${className}`}
-        title={`Founding Member ID: ${displayId}`}
+        title={isRevealed ? `Founding Member ID: ${displayId}` : "Click eye icon to reveal ID"}
       >
         <span className="flex items-center gap-1 text-amber-600">
           <Crown className={`${sizeStyles.icon} fill-amber-500 text-amber-600`} />
         </span>
-        <span className="font-extrabold">{displayId}</span>
+        <span className="font-extrabold tracking-wide">{shownId}</span>
         {variant === "full" && (
           <span className="rounded-full bg-amber-900/10 px-1.5 py-0.2 text-[9px] font-sans font-bold uppercase text-amber-900">
             Founder
           </span>
         )}
+        {allowToggle && memberId && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsRevealed(!isRevealed);
+            }}
+            className="text-amber-800 hover:text-amber-950 transition p-0.5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-700 rounded cursor-pointer"
+            title={isRevealed ? "Hide ID" : "Show ID"}
+            aria-label={isRevealed ? "Hide ID" : "Show ID"}
+          >
+            {isRevealed ? (
+              <EyeOff className={sizeStyles.icon} />
+            ) : (
+              <Eye className={sizeStyles.icon} />
+            )}
+          </button>
+        )}
         {showCopy && memberId && (
           <button
             type="button"
             onClick={handleCopy}
-            className="text-amber-800 hover:text-amber-950 transition p-0.5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-700 rounded"
+            className="text-amber-800 hover:text-amber-950 transition p-0.5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-700 rounded cursor-pointer"
             title={copied ? "Copied Member ID" : "Copy Member ID"}
           >
             {copied ? (
@@ -97,6 +123,8 @@ export function MemberBadge({
   }
 
   // Standard Member Badge
+  const shownStandardId = isRevealed ? displayId : maskedText;
+
   return (
     <div
       className={`inline-flex items-center gap-1.5 rounded-full font-mono font-semibold shadow-2xs select-none transition-all ${sizeStyles.text} ${sizeStyles.padding} ${
@@ -104,15 +132,33 @@ export function MemberBadge({
           ? "bg-[#f8f7f6] text-[#5d5854] border border-[#e8e6e3]"
           : "bg-[#f0efee] text-[#0f4c81] border border-[#ded8d1]"
       } ${className}`}
-      title={`MGN Member ID: ${displayId}`}
+      title={isRevealed ? `MGN Member ID: ${displayId}` : "Click eye icon to reveal ID"}
     >
       <span className="text-[#0f4c81] font-mono font-bold">ID:</span>
-      <span className="font-bold">{displayId}</span>
+      <span className="font-bold tracking-wide">{shownStandardId}</span>
+      {allowToggle && memberId && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsRevealed(!isRevealed);
+          }}
+          className="text-[#5d5854] hover:text-[#0f4c81] transition p-0.5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0f4c81] rounded cursor-pointer"
+          title={isRevealed ? "Hide ID" : "Show ID"}
+          aria-label={isRevealed ? "Hide ID" : "Show ID"}
+        >
+          {isRevealed ? (
+            <EyeOff className={sizeStyles.icon} />
+          ) : (
+            <Eye className={sizeStyles.icon} />
+          )}
+        </button>
+      )}
       {showCopy && memberId && (
         <button
           type="button"
           onClick={handleCopy}
-          className="text-[#5d5854] hover:text-[#171717] transition p-0.5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0f4c81] rounded"
+          className="text-[#5d5854] hover:text-[#171717] transition p-0.5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0f4c81] rounded cursor-pointer"
           title={copied ? "Copied Member ID" : "Copy Member ID"}
         >
           {copied ? (
