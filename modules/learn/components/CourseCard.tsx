@@ -155,10 +155,16 @@ export function CourseCard({ course, compact = false }: CourseCardProps) {
                 <span className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-[11px] font-medium">
                   <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-[#a8a29e]" /> {formatDuration(course.duration_minutes)}
                 </span>
-                <span className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-[11px] font-bold text-[#b45309]">
-                  <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 fill-amber-400 text-amber-400" />
-                  {course.rating_avg ? course.rating_avg.toFixed(1) : "4.9"}
-                </span>
+                {course.rating_count > 0 && course.rating_avg > 0 ? (
+                  <span className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-[11px] font-bold text-[#b45309]">
+                    <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 fill-amber-400 text-amber-400" />
+                    {course.rating_avg.toFixed(1)}
+                  </span>
+                ) : (
+                  <span className="text-[10px] sm:text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
+                    New
+                  </span>
+                )}
               </div>
 
               <span

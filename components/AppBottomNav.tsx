@@ -3,6 +3,7 @@
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useScrollDirection } from "@/lib/useScrollDirection";
+import { Sparkles } from "lucide-react";
 
 type NavTab = "home" | "network" | "learn" | "opportunities" | "marketplace";
 
@@ -18,6 +19,21 @@ const navItems: NavItemConfig[] = [
   { id: "learn",         label: "Learn",         icon8Id: "AvANlXOxUB6Z" },
   { id: "opportunities", label: "Jobs",          icon8Id: "IOkzpfWnUztj" },
   { id: "marketplace",   label: "Market",        icon8Id: "VksxHreSn4ck" },
+];
+
+/* ── Dedicated 4-Tab Learn Navigation ── */
+interface LearnNavItem {
+  id: "dashboard" | "explore" | "mybox" | "askai";
+  label: string;
+  href?: string;
+  icon8Id?: string;
+}
+
+const learnNavItems: LearnNavItem[] = [
+  { id: "dashboard", label: "Dashboard", href: "/learn",         icon8Id: "i6fZC6wuprSu" },
+  { id: "explore",   label: "Explore",   href: "/learn/explore", icon8Id: "AvANlXOxUB6Z" },
+  { id: "mybox",     label: "My Box",    href: "/learn/my-box",  icon8Id: "IOkzpfWnUztj" },
+  { id: "askai",     label: "Ask AI" },
 ];
 
 /* ── Fallback Icons (filled = active, outline = inactive) ── */
@@ -98,14 +114,14 @@ function Icons8BottomNavIcon({
   fallback: FallbackComponent,
   className = "size-6",
 }: {
-  iconId: string;
+  iconId?: string;
   active: boolean;
   fallback: React.ComponentType<{ active: boolean }>;
   className?: string;
 }) {
   const [imgError, setImgError] = React.useState(false);
 
-  if (imgError) {
+  if (!iconId || imgError) {
     return <FallbackComponent active={active} />;
   }
 
@@ -125,11 +141,105 @@ function Icons8BottomNavIcon({
   );
 }
 
-export default function AppBottomNav() {
+export default function AppBottomNav({ onOpenAskAI }: { onOpenAskAI?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const hidden = useScrollDirection();
 
+  const isLearnWorkspace = pathname?.startsWith("/learn");
+  const isStudyMode = pathname?.startsWith("/learn/lesson/");
+
+  // Hide bottom nav in distraction-free study mode
+  if (isStudyMode) return null;
+
+  const handleOpenAi = () => {
+    if (onOpenAskAI) {
+      onOpenAskAI();
+    } else if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("open-mgn-ask-ai"));
+    }
+  };
+
+  if (isLearnWorkspace) {
+    // 4-tab Learn Navigation
+    return (
+      <nav
+        aria-label="Learn Navigation"
+        className={`fixed bottom-0 left-0 right-0 z-50 flex md:hidden w-full items-center justify-around border-t border-[#e8e6e3] dark:border-[#30363d] bg-white/95 dark:bg-[#161b22]/95 backdrop-blur-md px-1 pt-1.5 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_-2px_12px_rgba(0,0,0,0.4)] transition-transform duration-300 ease-in-out ${
+          hidden ? "translate-y-full pointer-events-none" : "translate-y-0"
+        }`}
+        style={{
+          paddingBottom: "max(0.4rem, env(safe-area-inset-bottom, 0px))",
+        }}
+      >
+        <div className="flex w-full items-center justify-around max-w-lg mx-auto">
+          {learnNavItems.map((item) => {
+            const isDashboard = item.id === "dashboard" && (pathname === "/learn" || pathname === "/learn/");
+            const isExplore = item.id === "explore" && (pathname === "/learn/explore" || pathname.startsWith("/learn/courses"));
+            const isMyBox = item.id === "mybox" && (pathname.startsWith("/learn/my-box") || pathname.startsWith("/learn/my-learning"));
+            const isActive = isDashboard || isExplore || isMyBox;
+
+            if (item.id === "askai") {
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-label="Ask Medical AI"
+                  onClick={handleOpenAi}
+                  className="flex flex-1 flex-col items-center justify-center py-1 transition-colors relative cursor-pointer text-[#0f4c81] dark:text-[#58a6ff] active:scale-95 group"
+                >
+                  <div className="relative flex items-center justify-center size-6 rounded-lg bg-gradient-to-tr from-[#0f4c81] to-[#1769c2] text-white shadow-xs">
+                    <Sparkles className="size-3.5 text-amber-300" />
+                  </div>
+                  <span className="mt-1 text-[10px] font-bold leading-tight text-[#0f4c81] dark:text-[#58a6ff]">
+                    Ask AI
+                  </span>
+                </button>
+              );
+            }
+
+            const Fallback = item.id === "dashboard" ? HomeFallback : item.id === "explore" ? LearnFallback : OpportunitiesFallback;
+
+            return (
+              <button
+                key={item.id}
+                type="button"
+                aria-label={item.label}
+                aria-current={isActive ? "page" : undefined}
+                onClick={() => item.href && router.push(item.href)}
+                className={`flex flex-1 flex-col items-center justify-center py-1 transition-colors relative cursor-pointer ${
+                  isActive
+                    ? "text-[#0f4c81] dark:text-[#58a6ff]"
+                    : "text-[#77716b] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc] active:scale-95"
+                }`}
+              >
+                <div className="relative flex items-center justify-center">
+                  <Icons8BottomNavIcon
+                    iconId={item.icon8Id}
+                    active={isActive}
+                    fallback={Fallback}
+                    className="size-6"
+                  />
+                  {isActive && (
+                    <span className="absolute -bottom-1 size-1 rounded-full bg-[#16804d] dark:bg-[#2ea043]" />
+                  )}
+                </div>
+                <span
+                  className={`mt-1 text-[10px] font-semibold leading-tight ${
+                    isActive ? "text-[#0f4c81] dark:text-[#58a6ff]" : "text-[#77716b] dark:text-[#8b949e]"
+                  }`}
+                >
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+    );
+  }
+
+  // Standard 5-tab Ecosystem Navigation
   const activeTab: NavTab =
     navItems.find((n) => pathname.startsWith(`/${n.id}`))?.id ?? "home";
 

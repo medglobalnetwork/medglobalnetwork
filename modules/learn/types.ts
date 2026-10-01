@@ -9,6 +9,7 @@ export type LessonType = "video" | "article" | "pdf" | "resource" | "quiz";
 export type EnrollmentStatus = "active" | "completed" | "cancelled";
 export type CertificateStatus = "valid" | "revoked";
 export type QuestionType = "single" | "multiple";
+export type LiveSessionStatus = "upcoming" | "live" | "completed" | "cancelled";
 
 export interface InstructorProfile {
   id: string;
@@ -22,6 +23,8 @@ export interface InstructorProfile {
   identity_verified?: boolean;
   education_verified?: boolean;
   registration_verified?: boolean;
+  courses_count?: number;
+  students_count?: number;
 }
 
 export interface Course {
@@ -56,6 +59,8 @@ export interface Course {
   lesson_count?: number;
   user_enrolled?: boolean;
   user_progress?: number;
+  user_bookmarked?: boolean;
+  skills?: string[];
 }
 
 export interface CourseModule {
@@ -185,6 +190,7 @@ export interface CertificateMetadata {
   instructor_organization?: string;
   duration_minutes: number;
   completion_date: string;
+  skills_acquired?: string[];
 }
 
 export interface Certificate {
@@ -197,6 +203,7 @@ export interface Certificate {
   verification_code: string;
   metadata?: CertificateMetadata | null;
   status: CertificateStatus;
+  is_public_profile?: boolean;
   course?: Course;
   user?: {
     id: string;
@@ -205,14 +212,108 @@ export interface Certificate {
   };
 }
 
+// ─────────────────────────────────────────────
+// NEW ECOSYSTEM MODELS: LEARNING PATHS, LIVE SESSIONS, NOTES, COLLECTIONS
+// ─────────────────────────────────────────────
+
+export interface LearningPath {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  category: string;
+  profession?: string | null;
+  level: CourseLevel;
+  duration_hours: number;
+  course_count: number;
+  enrolled_count: number;
+  thumbnail?: string | null;
+  badge_title?: string | null;
+  courses?: Course[];
+  user_enrolled?: boolean;
+  user_progress?: number;
+  created_at: string;
+}
+
+export interface LiveSession {
+  id: string;
+  instructor_id: string;
+  title: string;
+  description?: string | null;
+  category: string;
+  specialty?: string | null;
+  scheduled_at: string;
+  duration_minutes: number;
+  meeting_url?: string | null;
+  thumbnail?: string | null;
+  max_participants?: number | null;
+  registered_count: number;
+  status: LiveSessionStatus;
+  instructor?: InstructorProfile;
+  user_registered?: boolean;
+  created_at: string;
+}
+
+export interface LearnNote {
+  id: string;
+  user_id: string;
+  course_id: string;
+  lesson_id: string;
+  note_text: string;
+  timestamp_seconds?: number | null;
+  tags?: string[];
+  created_at: string;
+  updated_at: string;
+  course_title?: string;
+  lesson_title?: string;
+}
+
+export interface LearnCollection {
+  id: string;
+  user_id: string;
+  title: string;
+  description?: string | null;
+  color?: string;
+  item_count: number;
+  created_at: string;
+  updated_at: string;
+  courses?: Course[];
+}
+
+export interface LearnBookmark {
+  id: string;
+  user_id: string;
+  course_id: string;
+  lesson_id?: string | null;
+  created_at: string;
+  course?: Course;
+}
+
+export interface MatchedJobRole {
+  id: string;
+  title: string;
+  organization: string;
+  location: string;
+  role_type: string;
+  matched_skills: string[];
+  salary_range?: string;
+}
+
+// ─────────────────────────────────────────────
+// FILTER & INPUT INTERFACES
+// ─────────────────────────────────────────────
+
 export interface CourseFilterParams {
   query?: string;
   category?: string;
   profession?: string;
   specialization?: string;
   level?: string;
+  format?: string; // 'all' | 'video' | 'article' | 'quiz'
+  duration?: string; // 'all' | 'under_1h' | '1h_3h' | '3h_6h' | 'over_6h'
   is_free?: boolean;
   certificate_enabled?: boolean;
+  language?: string;
   sort?: "popular" | "newest" | "rating" | "duration";
   page?: number;
   pageSize?: number;
@@ -237,4 +338,31 @@ export interface CreateCourseInput {
 export interface SubmitQuizAnswerInput {
   question_id: string;
   selected_option_ids: string[];
+}
+
+// ─────────────────────────────────────────────
+// ASK AI CHAT ENGINE TYPES
+// ─────────────────────────────────────────────
+
+export interface AskAIContext {
+  courseId?: string;
+  courseTitle?: string;
+  lessonId?: string;
+  lessonTitle?: string;
+  lessonContent?: string;
+  specialty?: string;
+}
+
+export interface AskAIMessage {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  timestamp: string;
+  action_type?: "explanation" | "notes" | "quiz" | "case_reasoning" | "general";
+  quiz_payload?: {
+    question: string;
+    options: string[];
+    correctIndex: number;
+    explanation: string;
+  };
 }

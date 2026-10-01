@@ -40,6 +40,18 @@ interface KnowMoreDrawerProps {
 
 export function KnowMoreDrawer({ isOpen, onClose, profile }: KnowMoreDrawerProps) {
   const [activeSection, setActiveSection] = React.useState<string>("overview");
+  const [userCerts, setUserCerts] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    if (isOpen && profile.user_id) {
+      fetch(`/api/shared/certificates?userId=${profile.user_id}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (Array.isArray(d.certificates)) setUserCerts(d.certificates);
+        })
+        .catch(() => {});
+    }
+  }, [isOpen, profile.user_id]);
 
   if (!isOpen) return null;
 
@@ -333,18 +345,54 @@ export function KnowMoreDrawer({ isOpen, onClose, profile }: KnowMoreDrawerProps
             </p>
           </section>
 
-          {/* 9. Courses from MGN Learn */}
+          {/* 9. Courses & Verified Certificates from MGN Learn */}
           <section id="section-courses" className="rounded-2xl border border-[#e8e6e3] bg-white p-5 shadow-xs">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 text-sm font-bold text-[#171717]">
                 <BookOpen className="h-4 w-4 text-[#1769c2]" />
-                <span>MGN Learn & CME</span>
+                <span>MGN Learn & CME Credentials</span>
               </div>
+              {userCerts.length > 0 && (
+                <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 border border-emerald-200">
+                  {userCerts.length} Verified
+                </span>
+              )}
             </div>
 
-            <p className="text-xs text-[#8a8784] italic p-3 bg-[#f8f7f6] rounded-xl">
-              No CME courses completed yet on MGN Learn.
-            </p>
+            {userCerts.length > 0 ? (
+              <div className="space-y-3">
+                {userCerts.map((cert) => (
+                  <div
+                    key={cert.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40"
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#171717]">
+                        <Award className="size-4 text-emerald-700 shrink-0" />
+                        <span>{cert.title}</span>
+                      </div>
+                      <p className="text-[10px] text-[#77716b] mt-0.5 font-mono">
+                        Code: {cert.verification_code} · {new Date(cert.issued_at).toLocaleDateString()}
+                      </p>
+                    </div>
+
+                    <a
+                      href={`/verify/certificate/${cert.verification_code}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 self-start sm:self-center rounded-lg bg-white px-2.5 py-1 text-[11px] font-bold text-[#0f4c81] shadow-2xs hover:bg-[#f8f7f6]"
+                    >
+                      <span>Verify</span>
+                      <ExternalLink className="size-3" />
+                    </a>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-[#8a8784] italic p-3 bg-[#f8f7f6] rounded-xl">
+                No CME courses or verified certificates earned yet on MGN Learn.
+              </p>
+            )}
           </section>
 
           {/* 10. Achievements & Awards */}

@@ -61,6 +61,13 @@ export const WORKSPACE_NAV_ITEMS: NavItem[] = [
   { id: "communities", label: "Communities", href: "/network/communities", icon: Compass, icon8Id: "aBDIThwGtLKb" },
 ];
 
+export const LEARN_WORKSPACE_NAV_ITEMS: NavItem[] = [
+  { id: "learn-dashboard", label: "Dashboard", href: "/learn", icon: Home, icon8Id: "i6fZC6wuprSu" },
+  { id: "learn-explore", label: "Explore", href: "/learn/explore", icon: Compass, icon8Id: "AvANlXOxUB6Z" },
+  { id: "learn-mybox", label: "My Box", href: "/learn/my-box", icon: GraduationCap, icon8Id: "IOkzpfWnUztj" },
+  { id: "learn-instructor", label: "Instructor Studio", href: "/learn/instructor", icon: Plus, icon8Id: "SpuYztywr0Vl" },
+];
+
 function Icons8NavIcon({
   iconId,
   active,
@@ -230,6 +237,81 @@ export function AppSidebar({
 
         {/* Navigation List */}
         <div className="flex-1 overflow-y-auto no-scrollbar px-3 py-4 space-y-6">
+          {/* Learn Workspace Active Mode */}
+          {pathname?.startsWith("/learn") && (
+            <div>
+              {isExpanded && (
+                <div className="flex items-center justify-between px-3 mb-2 animate-in fade-in duration-200">
+                  <p className="text-[10px] font-extrabold uppercase text-[#0f4c81] dark:text-[#58a6ff]">
+                    MGN Learn
+                  </p>
+                  <Link
+                    href="/home"
+                    onClick={handleNavClick}
+                    className="text-[10px] font-semibold text-[#77716b] dark:text-[#8b949e] hover:text-[#0f4c81] dark:hover:text-[#58a6ff] flex items-center gap-0.5"
+                  >
+                    <ChevronLeft className="size-3" /> Back
+                  </Link>
+                </div>
+              )}
+              <nav className="space-y-1">
+                {LEARN_WORKSPACE_NAV_ITEMS.map((item) => {
+                  const active =
+                    item.href === "/learn"
+                      ? pathname === "/learn" || pathname === "/learn/"
+                      : pathname.startsWith(item.href);
+
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      onClick={handleNavClick}
+                      className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold transition group relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] ${
+                        active
+                          ? "bg-[#0f4c81]/10 dark:bg-[#1f293d] text-[#0f4c81] dark:text-[#58a6ff]"
+                          : "text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f8f7f6] dark:hover:bg-[#1c202a] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
+                      } ${!isExpanded ? "justify-center px-2" : ""}`}
+                      title={!isExpanded ? item.label : undefined}
+                    >
+                      <Icons8NavIcon
+                        iconId={item.icon8Id}
+                        active={active}
+                        fallback={item.icon}
+                        className="size-6 sm:size-[26px]"
+                      />
+                      {isExpanded && (
+                        <span className="truncate animate-in fade-in duration-200">{item.label}</span>
+                      )}
+                      {active && isExpanded && (
+                        <span className="ml-auto size-1.5 rounded-full bg-[#16804d] dark:bg-[#2ea043]" />
+                      )}
+                    </Link>
+                  );
+                })}
+
+                {/* Ask AI Trigger */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleNavClick();
+                    if (typeof window !== "undefined") {
+                      window.dispatchEvent(new CustomEvent("open-mgn-ask-ai"));
+                    }
+                  }}
+                  className={`w-full flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:bg-[#eef5fc] dark:hover:bg-[#1c2433] transition cursor-pointer ${
+                    !isExpanded ? "justify-center px-2" : ""
+                  }`}
+                  title={!isExpanded ? "Ask Medical AI" : undefined}
+                >
+                  <div className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-gradient-to-tr from-[#0f4c81] to-[#1769c2] text-white shadow-2xs">
+                    <Sparkles className="size-3.5 text-amber-300" />
+                  </div>
+                  {isExpanded && <span className="truncate">Ask Medical AI</span>}
+                </button>
+              </nav>
+            </div>
+          )}
+
           {/* Main Ecosystem Navigation */}
           <div>
             {isExpanded && (
@@ -458,6 +540,72 @@ export function AppSidebar({
 
             {/* Scrollable Nav Items */}
             <div className="flex-1 overflow-y-auto no-scrollbar p-3 space-y-5">
+              {/* Learn Workspace Active Mode in Mobile Drawer */}
+              {pathname?.startsWith("/learn") && (
+                <div>
+                  <div className="flex items-center justify-between px-3 mb-2">
+                    <p className="text-[10px] font-extrabold uppercase text-[#0f4c81] dark:text-[#58a6ff]">
+                      MGN Learn
+                    </p>
+                    <Link
+                      href="/home"
+                      onClick={onCloseMobileDrawer}
+                      className="text-[10px] font-semibold text-[#77716b] dark:text-[#8b949e] hover:text-[#0f4c81] dark:hover:text-[#58a6ff] flex items-center gap-0.5"
+                    >
+                      <ChevronLeft className="size-3" /> Back to Main
+                    </Link>
+                  </div>
+                  <nav className="space-y-1">
+                    {LEARN_WORKSPACE_NAV_ITEMS.map((item) => {
+                      const active =
+                        item.href === "/learn"
+                          ? pathname === "/learn" || pathname === "/learn/"
+                          : pathname.startsWith(item.href);
+
+                      return (
+                        <Link
+                          key={item.id}
+                          href={item.href}
+                          onClick={onCloseMobileDrawer}
+                          className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] ${
+                            active
+                              ? "bg-[#0f4c81]/10 dark:bg-[#1f293d] text-[#0f4c81] dark:text-[#58a6ff]"
+                              : "text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f8f7f6] dark:hover:bg-[#1c202a] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
+                          }`}
+                        >
+                          <Icons8NavIcon
+                            iconId={item.icon8Id}
+                            active={active}
+                            fallback={item.icon}
+                            className="size-6"
+                          />
+                          <span className="truncate">{item.label}</span>
+                          {active && (
+                            <span className="ml-auto size-1.5 rounded-full bg-[#16804d] dark:bg-[#2ea043]" />
+                          )}
+                        </Link>
+                      );
+                    })}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onCloseMobileDrawer();
+                        if (typeof window !== "undefined") {
+                          window.dispatchEvent(new CustomEvent("open-mgn-ask-ai"));
+                        }
+                      }}
+                      className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:bg-[#eef5fc] dark:hover:bg-[#1c2433] transition cursor-pointer"
+                    >
+                      <div className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-gradient-to-tr from-[#0f4c81] to-[#1769c2] text-white shadow-2xs">
+                        <Sparkles className="size-3.5 text-amber-300" />
+                      </div>
+                      <span className="truncate">Ask Medical AI</span>
+                    </button>
+                  </nav>
+                </div>
+              )}
+
               {/* Additional Ecosystem Modules (Events, Camps, Research, Marketplace, etc.) */}
               <div>
                 <p className="px-3 mb-2 text-[10px] font-bold uppercase text-[#9c958f] dark:text-[#8b949e]">

@@ -245,6 +245,16 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
   }, [pathname]);
 
   const isProfilePage = pathname?.startsWith("/profile");
+  const isLearnWorkspace = pathname?.startsWith("/learn");
+
+  const handleBackToMgn = () => {
+    // Preserve origin or fallback cleanly to /home
+    if (typeof window !== "undefined" && window.history.length > 2) {
+      router.back();
+    } else {
+      router.push("/home");
+    }
+  };
 
   return (
     <>
@@ -417,132 +427,291 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
               </div>
             </div>
           </>
-        ) : (
-          /* STANDARD HEADER FOR ALL OTHER PAGES */
-          <>
-            {/* 1. MOBILE HEADER (< md) */}
-            <div className="flex md:hidden w-full items-center justify-between">
-              {/* Left: Hamburger Menu & Logo */}
-              <div className="flex items-center gap-2">
-                {onOpenMobileDrawer && (
-                  <button
-                    type="button"
-                    aria-label="Open Navigation Menu"
-                    onClick={onOpenMobileDrawer}
-                    className="flex size-10 items-center justify-center rounded-xl text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] transition active:scale-95 cursor-pointer"
-                  >
-                    <Menu className="size-6 stroke-[2]" />
-                  </button>
-                )}
-                <Link href="/home" className="flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] rounded" aria-label="MGN Home">
-                  <img
-                    src="/logo.png"
-                    alt="MGN - Med Global Network"
-                    className="h-9 w-auto object-contain"
-                  />
-                </Link>
-              </div>
-
-              {/* Right: Search, Notifications & Messages */}
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  aria-label="Open search"
-                  onClick={() => setMobileSearchOpen(true)}
-                  className="flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] transition cursor-pointer"
-                >
-                  <Search className="size-[22px] stroke-[2]" />
-                </button>
-
-                {/* Notifications */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    aria-label="Notifications"
-                    aria-expanded={notifOpen}
-                    onClick={handleToggleNotifications}
-                    className="relative flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
-                  >
-                    <Bell className="size-6 stroke-[1.9]" />
-                    {unreadCount > 0 && (
-                      <span className="absolute right-1.5 top-1.5 flex size-3.5 min-w-3.5 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-[#161b22]">
-                        {unreadCount}
-                      </span>
-                    )}
-                  </button>
-                  {notifOpen && (
-                    <NotifPopup
-                      onClose={() => setNotifOpen(false)}
-                      onMarkAllRead={() => setUnreadCount(0)}
-                      onViewAll={() => {
-                        setNotifOpen(false);
-                        router.push("/network/connections");
-                      }}
-                    />
+          ) : isLearnWorkspace ? (
+            /* ============================================================ */
+            /* LEARN WORKSPACE HEADER                                       */
+            /* ============================================================ */
+            <>
+              {/* 1. MOBILE LEARN HEADER (< md) */}
+              <div className="flex md:hidden w-full items-center justify-between">
+                {/* Left: Hamburger & Back to MGN */}
+                <div className="flex items-center gap-1.5 min-w-0">
+                  {onOpenMobileDrawer && (
+                    <button
+                      type="button"
+                      aria-label="Open Navigation Menu"
+                      onClick={onOpenMobileDrawer}
+                      className="flex size-10 items-center justify-center rounded-xl text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] transition active:scale-95 cursor-pointer shrink-0"
+                    >
+                      <Menu className="size-6 stroke-[2]" />
+                    </button>
                   )}
+                  <button
+                    type="button"
+                    onClick={handleBackToMgn}
+                    className="flex items-center gap-1 px-2 py-1.5 rounded-xl bg-[#f0efee] dark:bg-[#21262d] text-[#0f4c81] dark:text-[#58a6ff] text-xs font-bold hover:bg-[#e4e2df] transition active:scale-95 shrink-0"
+                    aria-label="Back to MGN main"
+                  >
+                    <ArrowLeft className="size-3.5" />
+                    <span className="truncate">MGN</span>
+                  </button>
+                  <span className="font-extrabold text-xs text-[#171717] dark:text-[#f0f6fc] tracking-tight truncate">
+                    Learn
+                  </span>
                 </div>
 
-                {/* Messages */}
-                <button
-                  type="button"
-                  aria-label="Messages"
-                  onClick={() => router.push("/messages")}
-                  className="flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
-                >
-                  <HeaderMessageIcon className="size-6" />
-                </button>
-
-                {/* Profile Avatar & Logout Dropdown */}
-                <UserMenu />
-              </div>
-            </div>
-
-            {/* 2. DESKTOP HEADER (>= md) */}
-            <div className="hidden md:flex w-full items-center justify-between gap-4">
-              {/* Left spacer matching right actions width to center search bar */}
-              <div className="w-40 lg:w-52 shrink-0" aria-hidden="true" />
-
-              {/* Center: Global Search Bar */}
-              <div className="flex-1 max-w-xl mx-auto">
-                <GlobalSearchBar />
-              </div>
-
-              {/* Right: Notifications, Messages, User Menu */}
-              <div className="flex items-center justify-end gap-1.5 sm:gap-2.5 w-40 lg:w-52 shrink-0">
-                {/* Notifications */}
-                <div className="relative">
+                {/* Right: Search, Notifications & Messages */}
+                <div className="flex items-center gap-1 shrink-0">
                   <button
                     type="button"
-                    aria-label="Notifications"
-                    aria-expanded={notifOpen}
-                    onClick={handleToggleNotifications}
-                    className="relative flex size-10 sm:size-11 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
+                    aria-label="Open search"
+                    onClick={() => setMobileSearchOpen(true)}
+                    className="flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] transition cursor-pointer"
                   >
-                    <Bell className="size-[22px] sm:size-6 stroke-[1.9]" />
-                    {unreadCount > 0 && (
-                      <span className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 flex size-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-[#161b22]">
-                        {unreadCount}
-                      </span>
-                    )}
+                    <Search className="size-[22px] stroke-[2]" />
                   </button>
-                  {notifOpen && (
-                    <NotifPopup
-                      onClose={() => setNotifOpen(false)}
-                      onMarkAllRead={() => setUnreadCount(0)}
-                      onViewAll={() => {
-                        setNotifOpen(false);
-                        router.push("/network/connections");
-                      }}
-                    />
-                  )}
+
+                  <div className="relative">
+                    <button
+                      type="button"
+                      aria-label="Notifications"
+                      aria-expanded={notifOpen}
+                      onClick={handleToggleNotifications}
+                      className="relative flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
+                    >
+                      <Bell className="size-6 stroke-[1.9]" />
+                      {unreadCount > 0 && (
+                        <span className="absolute right-1.5 top-1.5 flex size-3.5 min-w-3.5 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-[#161b22]">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </button>
+                    {notifOpen && (
+                      <NotifPopup
+                        onClose={() => setNotifOpen(false)}
+                        onMarkAllRead={() => setUnreadCount(0)}
+                        onViewAll={() => {
+                          setNotifOpen(false);
+                          router.push("/network/connections");
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    aria-label="Messages"
+                    onClick={() => router.push("/messages")}
+                    className="flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
+                  >
+                    <HeaderMessageIcon className="size-6" />
+                  </button>
+
+                  <UserMenu />
+                </div>
+              </div>
+
+              {/* 2. DESKTOP LEARN HEADER (>= md) */}
+              <div className="hidden md:flex w-full items-center justify-between gap-4">
+                {/* Left: Back to MGN & Learn Workspace Badge */}
+                <div className="flex items-center gap-2.5 w-48 lg:w-56 shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleBackToMgn}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-[#f8f7f6] dark:bg-[#21262d] px-3 py-1.5 text-xs font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:bg-[#eef5fc] dark:hover:bg-[#1f293d] transition cursor-pointer"
+                    title="Return to Main MGN Workspace"
+                  >
+                    <ArrowLeft className="size-3.5" />
+                    <span>Back to MGN</span>
+                  </button>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#0f4c81]/10 text-[#0f4c81] dark:text-[#58a6ff] text-[11px] font-extrabold tracking-wide">
+                    <span>LEARN</span>
+                  </div>
                 </div>
 
-                {/* User Menu Avatar */}
-                <UserMenu />
+                {/* Center: Global Search */}
+                <div className="flex-1 max-w-xl mx-auto">
+                  <GlobalSearchBar placeholder="Search masterclasses, CME paths, clinical faculty..." />
+                </div>
+
+                {/* Right: Notifications, Messages, User Menu */}
+                <div className="flex items-center justify-end gap-1.5 sm:gap-2.5 w-48 lg:w-56 shrink-0">
+                  <div className="relative">
+                    <button
+                      type="button"
+                      aria-label="Notifications"
+                      aria-expanded={notifOpen}
+                      onClick={handleToggleNotifications}
+                      className="relative flex size-10 sm:size-11 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
+                    >
+                      <Bell className="size-[22px] sm:size-6 stroke-[1.9]" />
+                      {unreadCount > 0 && (
+                        <span className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 flex size-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-[#161b22]">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </button>
+                    {notifOpen && (
+                      <NotifPopup
+                        onClose={() => setNotifOpen(false)}
+                        onMarkAllRead={() => setUnreadCount(0)}
+                        onViewAll={() => {
+                          setNotifOpen(false);
+                          router.push("/network/connections");
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    aria-label="Messages"
+                    onClick={() => router.push("/messages")}
+                    className="flex size-10 sm:size-11 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
+                  >
+                    <HeaderMessageIcon className="size-6 sm:size-[26px]" />
+                  </button>
+
+                  <UserMenu />
+                </div>
               </div>
-            </div>
-          </>
-        )}
+            </>
+          ) : (
+            /* STANDARD HEADER FOR ALL OTHER PAGES */
+            <>
+              {/* 1. MOBILE HEADER (< md) */}
+              <div className="flex md:hidden w-full items-center justify-between">
+                {/* Left: Hamburger Menu & Logo */}
+                <div className="flex items-center gap-2">
+                  {onOpenMobileDrawer && (
+                    <button
+                      type="button"
+                      aria-label="Open Navigation Menu"
+                      onClick={onOpenMobileDrawer}
+                      className="flex size-10 items-center justify-center rounded-xl text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] transition active:scale-95 cursor-pointer"
+                    >
+                      <Menu className="size-6 stroke-[2]" />
+                    </button>
+                  )}
+                  <Link href="/home" className="flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] rounded" aria-label="MGN Home">
+                    <img
+                      src="/logo.png"
+                      alt="MGN - Med Global Network"
+                      className="h-9 w-auto object-contain"
+                    />
+                  </Link>
+                </div>
+
+                {/* Right: Search, Notifications & Messages */}
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    aria-label="Open search"
+                    onClick={() => setMobileSearchOpen(true)}
+                    className="flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] transition cursor-pointer"
+                  >
+                    <Search className="size-[22px] stroke-[2]" />
+                  </button>
+
+                  {/* Notifications */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      aria-label="Notifications"
+                      aria-expanded={notifOpen}
+                      onClick={handleToggleNotifications}
+                      className="relative flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
+                    >
+                      <Bell className="size-6 stroke-[1.9]" />
+                      {unreadCount > 0 && (
+                        <span className="absolute right-1.5 top-1.5 flex size-3.5 min-w-3.5 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-[#161b22]">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </button>
+                    {notifOpen && (
+                      <NotifPopup
+                        onClose={() => setNotifOpen(false)}
+                        onMarkAllRead={() => setUnreadCount(0)}
+                        onViewAll={() => {
+                          setNotifOpen(false);
+                          router.push("/network/connections");
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  {/* Messages */}
+                  <button
+                    type="button"
+                    aria-label="Messages"
+                    onClick={() => router.push("/messages")}
+                    className="flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
+                  >
+                    <HeaderMessageIcon className="size-6" />
+                  </button>
+
+                  {/* Profile Avatar & Logout Dropdown */}
+                  <UserMenu />
+                </div>
+              </div>
+
+              {/* 2. DESKTOP HEADER (>= md) */}
+              <div className="hidden md:flex w-full items-center justify-between gap-4">
+                {/* Left spacer matching right actions width to center search bar */}
+                <div className="w-40 lg:w-52 shrink-0" aria-hidden="true" />
+
+                {/* Center: Global Search Bar */}
+                <div className="flex-1 max-w-xl mx-auto">
+                  <GlobalSearchBar />
+                </div>
+
+                {/* Right: Notifications, Messages, User Menu */}
+                <div className="flex items-center justify-end gap-1.5 sm:gap-2.5 w-40 lg:w-52 shrink-0">
+                  {/* Notifications */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      aria-label="Notifications"
+                      aria-expanded={notifOpen}
+                      onClick={handleToggleNotifications}
+                      className="relative flex size-10 sm:size-11 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
+                    >
+                      <Bell className="size-[22px] sm:size-6 stroke-[1.9]" />
+                      {unreadCount > 0 && (
+                        <span className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 flex size-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-[#161b22]">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </button>
+                    {notifOpen && (
+                      <NotifPopup
+                        onClose={() => setNotifOpen(false)}
+                        onMarkAllRead={() => setUnreadCount(0)}
+                        onViewAll={() => {
+                          setNotifOpen(false);
+                          router.push("/network/connections");
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  {/* Messages */}
+                  <button
+                    type="button"
+                    aria-label="Messages"
+                    onClick={() => router.push("/messages")}
+                    className="flex size-10 sm:size-11 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
+                  >
+                    <HeaderMessageIcon className="size-6 sm:size-[26px]" />
+                  </button>
+
+                  {/* User Menu Avatar */}
+                  <UserMenu />
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </header>
 

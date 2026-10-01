@@ -8,6 +8,8 @@ import AppBottomNav from "@/components/AppBottomNav";
 import AppSplashScreen from "@/components/AppSplashScreen";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { initNativeApp } from "@/lib/native-mobile";
+import { AskAIModal } from "@/modules/learn/components/AskAIModal";
+import { AskAIContext } from "@/modules/learn/types";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -17,9 +19,28 @@ export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const isMessagesPage = pathname?.startsWith("/messages");
+  const isStudyMode = pathname?.startsWith("/learn/lesson/");
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   // Default to auto-hide (collapsed at rest, expands on hover)
   const [isCollapsed, setIsCollapsed] = useState(true);
+
+  // Global Ask AI Assistant State
+  const [isAskAIOpen, setIsAskAIOpen] = useState(false);
+  const [askAIContext, setAskAIContext] = useState<AskAIContext | undefined>(undefined);
+
+  // Listen for global custom event to open Ask AI modal
+  useEffect(() => {
+    const handleOpenAskAI = (e: Event) => {
+      const customEvent = e as CustomEvent<AskAIContext>;
+      if (customEvent.detail) {
+        setAskAIContext(customEvent.detail);
+      }
+      setIsAskAIOpen(true);
+    };
+
+    window.addEventListener("open-mgn-ask-ai", handleOpenAskAI);
+    return () => window.removeEventListener("open-mgn-ask-ai", handleOpenAskAI);
+  }, []);
 
   // Initialize native mobile features (Status bar color, hardware back button, native splash)
   useEffect(() => {
@@ -125,13 +146,28 @@ export function AppShell({ children }: AppShellProps) {
         <AppHeader onOpenMobileDrawer={handleOpenMobileDrawer} />
 
         {/* Page Content with Native-like Pull to Refresh on Mobile */}
-        <main className={`flex-1 ${isMessagesPage ? "pb-0 overflow-hidden" : "pb-20 md:pb-6"}`}>
-          {isMessagesPage ? children : <PullToRefresh>{children}</PullToRefresh>}
+        <main
+          className={`flex-1 ${
+            isMessagesPage || isStudyMode
+              ? "pb-0 overflow-hidden"
+              : "pb-20 md:pb-6"
+          }`}
+        >
+          {isMessagesPage || isStudyMode ? children : <PullToRefresh>{children}</PullToRefresh>}
         </main>
 
-        {/* Bottom Nav (Mobile only, exactly 4 core tabs: Home, Network, Learn, Opportunities) */}
-        {!isMessagesPage && <AppBottomNav />}
+        {/* Bottom Nav (Mobile only, hidden in study mode and messages) */}
+        {!isMessagesPage && !isStudyMode && (
+          <AppBottomNav onOpenAskAI={() => setIsAskAIOpen(true)} />
+        )}
       </div>
+
+      {/* Global Medical AI Assistant Modal */}
+      <AskAIModal
+        isOpen={isAskAIOpen}
+        onClose={() => setIsAskAIOpen(false)}
+        context={askAIContext}
+      />
     </div>
   );
 }
