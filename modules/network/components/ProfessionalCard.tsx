@@ -178,15 +178,15 @@ export function ProfessionalCard({
   // ─────────────────────────────────────────────────────────
   if (variant === "list") {
     return (
-      <div className="group relative flex items-center justify-between gap-3 sm:gap-4 rounded-2xl bg-white p-3.5 sm:p-4 shadow-none sm:shadow-2xs transition hover:bg-[#faf9f8] hover:shadow-xs">
+      <div className="group relative flex items-center justify-between gap-3 sm:gap-4 rounded-2xl bg-white p-3.5 sm:p-4 border border-[#f0efee] hover:border-[#ded8d1] shadow-none sm:shadow-2xs transition hover:bg-[#faf9f8] hover:shadow-xs">
         {/* Left: Circular Avatar */}
         <button
           type="button"
           onClick={() => router.push(`/profile/${destinationSlug}`)}
-          className="shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded-full"
+          className="shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded-full cursor-pointer"
         >
           <div
-            className="flex size-12 sm:size-14 items-center justify-center rounded-full text-sm sm:text-base font-bold text-[#3f3f3c] overflow-hidden border border-[#ded8d1] shadow-2xs"
+            className="flex size-14 sm:size-16 items-center justify-center rounded-full text-base sm:text-lg font-bold text-[#3f3f3c] overflow-hidden border-2 border-white shadow-2xs ring-1 ring-[#ded8d1]"
             style={{ background: avatarColor }}
           >
             {customImageSrc ? (
@@ -207,7 +207,7 @@ export function ProfessionalCard({
             <button
               type="button"
               onClick={() => router.push(`/profile/${destinationSlug}`)}
-              className="truncate text-xs sm:text-sm font-bold text-[#171717] hover:text-[#0f4c81] transition text-left"
+              className="truncate text-xs sm:text-sm font-bold text-[#171717] hover:text-[#0f4c81] transition text-left cursor-pointer"
             >
               {profile.name}
             </button>
@@ -241,13 +241,14 @@ export function ProfessionalCard({
             size="sm"
           />
 
-          {/* Three-dot dropdown */}
+          {/* Three-dot dropdown (borderless round button) */}
           <div className="relative" ref={menuRef}>
             <button
               type="button"
               onClick={() => setShowMenu(!showMenu)}
-              className="flex size-8 items-center justify-center rounded-xl text-[#77716b] hover:bg-[#f0efee] hover:text-[#171717] transition"
+              className="flex size-8 items-center justify-center rounded-full text-[#77716b] hover:bg-[#f0efee] hover:text-[#171717] transition cursor-pointer"
               title="Options"
+              aria-label="Options"
             >
               <MoreVertical className="size-4" />
             </button>
@@ -342,7 +343,7 @@ export function ProfessionalCard({
   // Grid Variant: Clean Minimalist Healthcare Profile Card
   // ─────────────────────────────────────────────────────────
   return (
-    <div className="group relative flex flex-col items-center text-center p-3 sm:p-3.5 rounded-2xl bg-white hover:bg-[#faf9f8] transition-all duration-150">
+    <div className="group relative flex flex-col items-center text-center p-3.5 sm:p-4 rounded-2xl bg-white border border-[#f0efee] hover:border-[#ded8d1] hover:shadow-xs transition-all duration-150">
       {/* 1. Circular Profile Picture */}
       <button
         type="button"
@@ -350,7 +351,7 @@ export function ProfessionalCard({
         className="relative group/avatar focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded-full cursor-pointer"
       >
         <div
-          className="size-16 sm:size-18 rounded-full overflow-hidden flex items-center justify-center text-base sm:text-lg font-bold text-[#3f3f3c] border-2 border-white shadow-2xs ring-1 ring-[#ded8d1] transition duration-200 group-hover/avatar:scale-105"
+          className="size-20 sm:size-24 rounded-full overflow-hidden flex items-center justify-center text-xl sm:text-2xl font-bold text-[#3f3f3c] border-2 border-white shadow-2xs ring-1 ring-[#ded8d1] transition duration-200 group-hover/avatar:scale-105"
           style={{ background: avatarColor }}
         >
           {customImageSrc ? (
@@ -366,7 +367,7 @@ export function ProfessionalCard({
 
         {profile.is_founding_member && (
           <span
-            className="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-950 shadow-xs ring-1 ring-white text-[10px]"
+            className="absolute -bottom-0.5 -right-0.5 flex size-5 sm:size-6 items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-950 shadow-xs ring-1 ring-white text-[10px] sm:text-xs"
             title="Founding Member"
           >
             👑
@@ -406,26 +407,26 @@ export function ProfessionalCard({
       </div>
 
       {/* 4. Connect Button + Three-dot Menu side-by-side */}
-      <div className="mt-3 flex items-center justify-center gap-1.5 w-full max-w-[200px]">
+      <div className="mt-3 flex items-center justify-center gap-1.5 w-full max-w-[210px]">
         <ConnectionButton
           targetUserId={profile.user_id}
           initialStatus={connectionStatus}
           onStatusChange={handleStatusChange}
           onConnectClick={() => setShowModal(true)}
           size="sm"
-          className="flex-1 justify-center rounded-xl !py-1.5 !text-xs"
+          className="flex-1 justify-center rounded-xl !py-2 !text-xs font-bold"
         />
 
-        {/* 3-dots Menu Button next to Connect */}
+        {/* 3-dots Menu Button next to Connect - Borderless round button */}
         <div className="relative shrink-0" ref={menuRef}>
           <button
             type="button"
             onClick={() => setShowMenu(!showMenu)}
-            className="flex size-7.5 items-center justify-center rounded-xl border border-[#ded8d1] bg-white text-[#77716b] hover:bg-[#f0efee] hover:text-[#171717] transition cursor-pointer"
+            className="flex size-8 items-center justify-center rounded-full text-[#77716b] hover:bg-[#f0efee] hover:text-[#171717] transition cursor-pointer"
             title="More options"
             aria-label="More options"
           >
-            <MoreVertical className="size-3.5" />
+            <MoreVertical className="size-4" />
           </button>
 
           {showMenu && (

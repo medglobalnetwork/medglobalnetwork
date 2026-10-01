@@ -107,10 +107,9 @@ export function ConnectionButton({
         type="button"
         onClick={() => handleAction("connect")}
         disabled={loading}
-        className={
-          className ??
-          `w-full text-center justify-center rounded-xl bg-[#1769c2] font-semibold text-white transition hover:bg-[#12569f] disabled:opacity-50 ${baseSize}`
-        }
+        className={`inline-flex items-center justify-center rounded-xl bg-[#0f4c81] font-bold text-white shadow-2xs hover:bg-[#0c3c66] transition active:scale-98 disabled:opacity-50 cursor-pointer ${baseSize} ${
+          className ?? "w-full"
+        }`}
       >
         {loading ? "…" : "+ Connect"}
       </button>
@@ -124,10 +123,9 @@ export function ConnectionButton({
         onClick={() => handleAction("withdraw")}
         disabled={loading}
         title="Click to withdraw request"
-        className={
-          className ??
-          `w-full text-center justify-center rounded-xl border border-[#ded8d1] bg-[#f8f7f6] font-medium text-[#5d5854] transition hover:border-red-300 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 ${baseSize}`
-        }
+        className={`inline-flex items-center justify-center rounded-xl border border-[#ded8d1] bg-[#f8f7f6] font-semibold text-[#5d5854] transition hover:border-red-300 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 cursor-pointer ${baseSize} ${
+          className ?? "w-full"
+        }`}
       >
         {loading ? "…" : "Pending"}
       </button>
