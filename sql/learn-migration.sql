@@ -197,3 +197,156 @@ CREATE TABLE IF NOT EXISTS certificates (
 CREATE INDEX IF NOT EXISTS idx_certificates_user_id ON certificates(user_id);
 CREATE INDEX IF NOT EXISTS idx_certificates_course_id ON certificates(course_id);
 CREATE INDEX IF NOT EXISTS idx_certificates_verification_code ON certificates(verification_code);
+
+-- 12. Learning Resources Table
+CREATE TABLE IF NOT EXISTS learning_resources (
+  id VARCHAR(64) PRIMARY KEY,
+  instructor_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+  course_id VARCHAR(64) REFERENCES courses(id) ON DELETE CASCADE,
+  module_id VARCHAR(64) REFERENCES course_modules(id) ON DELETE CASCADE,
+  lesson_id VARCHAR(64) REFERENCES course_lessons(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  resource_type VARCHAR(32) NOT NULL DEFAULT 'pdf', -- 'pdf' | 'image' | 'notes' | 'presentation' | 'document' | 'case_study' | 'infographic' | 'audio' | 'link'
+  category VARCHAR(64) NOT NULL DEFAULT 'Medical',
+  tags TEXT,
+  status VARCHAR(32) NOT NULL DEFAULT 'DRAFT', -- 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | 'QUARANTINED'
+  current_version INTEGER NOT NULL DEFAULT 1,
+  file_url TEXT,
+  storage_key TEXT,
+  file_size_bytes BIGINT,
+  mime_type VARCHAR(128),
+  original_filename VARCHAR(255),
+  page_count INTEGER,
+  duration_seconds INTEGER,
+  dimensions_json TEXT,
+  thumbnail_url TEXT,
+  is_pinned BOOLEAN NOT NULL DEFAULT false,
+  is_public BOOLEAN NOT NULL DEFAULT false,
+  copyright_declared BOOLEAN NOT NULL DEFAULT true,
+  native_content TEXT,
+  available_from TIMESTAMPTZ,
+  available_until TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_learning_resources_course ON learning_resources(course_id);
+CREATE INDEX IF NOT EXISTS idx_learning_resources_lesson ON learning_resources(lesson_id);
+CREATE INDEX IF NOT EXISTS idx_learning_resources_instructor ON learning_resources(instructor_id);
+
+-- 13. Resource Versions Table
+CREATE TABLE IF NOT EXISTS resource_versions (
+  id VARCHAR(64) PRIMARY KEY,
+  resource_id VARCHAR(64) NOT NULL REFERENCES learning_resources(id) ON DELETE CASCADE,
+  version_number INTEGER NOT NULL,
+  storage_key TEXT,
+  file_url TEXT,
+  file_size_bytes BIGINT,
+  mime_type VARCHAR(128),
+  change_note TEXT,
+  native_content TEXT,
+  created_by TEXT NOT NULL REFERENCES "user"(id),
+  status VARCHAR(32) NOT NULL DEFAULT 'published',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_resource_versions_res ON resource_versions(resource_id);
+
+-- 14. Resource Permissions Table
+CREATE TABLE IF NOT EXISTS resource_permissions (
+  id VARCHAR(64) PRIMARY KEY,
+  resource_id VARCHAR(64) REFERENCES learning_resources(id) ON DELETE CASCADE,
+  course_id VARCHAR(64) REFERENCES courses(id) ON DELETE CASCADE,
+  module_id VARCHAR(64) REFERENCES course_modules(id) ON DELETE CASCADE,
+  lesson_id VARCHAR(64) REFERENCES course_lessons(id) ON DELETE CASCADE,
+  allow_view BOOLEAN NOT NULL DEFAULT true,
+  allow_download BOOLEAN NOT NULL DEFAULT false,
+  allow_print BOOLEAN NOT NULL DEFAULT false,
+  allow_copy BOOLEAN NOT NULL DEFAULT false,
+  allow_offline BOOLEAN NOT NULL DEFAULT false,
+  access_duration_type VARCHAR(32) NOT NULL DEFAULT 'while_enrolled',
+  access_valid_until TIMESTAMPTZ,
+  access_days INTEGER,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_resource_perm_res ON resource_permissions(resource_id);
+
+-- 15. Resource Access Sessions Table
+CREATE TABLE IF NOT EXISTS resource_access_sessions (
+  id VARCHAR(64) PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+  resource_id VARCHAR(64) NOT NULL REFERENCES learning_resources(id) ON DELETE CASCADE,
+  lesson_id VARCHAR(64) REFERENCES course_lessons(id) ON DELETE CASCADE,
+  course_id VARCHAR(64) REFERENCES courses(id) ON DELETE CASCADE,
+  session_token_hash VARCHAR(128) NOT NULL,
+  access_type VARCHAR(32) NOT NULL DEFAULT 'VIEW',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  revoked_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_resource_sessions_token ON resource_access_sessions(session_token_hash);
+
+-- 16. Resource Views & Downloads Table
+CREATE TABLE IF NOT EXISTS resource_views (
+  id VARCHAR(64) PRIMARY KEY,
+  resource_id VARCHAR(64) NOT NULL REFERENCES learning_resources(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+  lesson_id VARCHAR(64) REFERENCES course_lessons(id) ON DELETE CASCADE,
+  course_id VARCHAR(64) REFERENCES courses(id) ON DELETE CASCADE,
+  view_duration_seconds INTEGER NOT NULL DEFAULT 0,
+  page_reached INTEGER NOT NULL DEFAULT 1,
+  completed BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS resource_downloads (
+  id VARCHAR(64) PRIMARY KEY,
+  resource_id VARCHAR(64) NOT NULL REFERENCES learning_resources(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+  lesson_id VARCHAR(64) REFERENCES course_lessons(id) ON DELETE CASCADE,
+  course_id VARCHAR(64) REFERENCES courses(id) ON DELETE CASCADE,
+  ip_address VARCHAR(64),
+  user_agent TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 17. Resource Bookmarks Table
+CREATE TABLE IF NOT EXISTS resource_bookmarks (
+  id VARCHAR(64) PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+  resource_id VARCHAR(64) NOT NULL REFERENCES learning_resources(id) ON DELETE CASCADE,
+  collection_id VARCHAR(64),
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_resource_bookmarks_user ON resource_bookmarks(user_id);
+
+-- 18. Resource Reports Table
+CREATE TABLE IF NOT EXISTS resource_reports (
+  id VARCHAR(64) PRIMARY KEY,
+  resource_id VARCHAR(64) NOT NULL REFERENCES learning_resources(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+  reason VARCHAR(64) NOT NULL,
+  details TEXT,
+  status VARCHAR(32) NOT NULL DEFAULT 'pending',
+  resolution_action VARCHAR(64),
+  resolved_by TEXT REFERENCES "user"(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  resolved_at TIMESTAMPTZ
+);
+
+-- 19. Resource Audit Logs Table
+CREATE TABLE IF NOT EXISTS resource_audit_logs (
+  id VARCHAR(64) PRIMARY KEY,
+  resource_id VARCHAR(64) NOT NULL,
+  user_id TEXT NOT NULL,
+  action VARCHAR(64) NOT NULL,
+  details_json TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+

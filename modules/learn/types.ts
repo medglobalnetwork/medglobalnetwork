@@ -583,3 +583,170 @@ export type {
   LiveWhiteboardRecord,
   LiveRecordingRecord,
 } from "./lib/live-classroom-db";
+
+// ─────────────────────────────────────────────
+// MGN LEARNING CONTENT & RESOURCE PLATFORM TYPES
+// ─────────────────────────────────────────────
+
+export type ResourceType =
+  | "pdf"
+  | "image"
+  | "notes"
+  | "presentation"
+  | "document"
+  | "case_study"
+  | "infographic"
+  | "audio"
+  | "link";
+
+export type ResourceLifecycleStatus =
+  | "UPLOAD"
+  | "VALIDATING"
+  | "SCANNING"
+  | "PROCESSING"
+  | "READY"
+  | "DRAFT"
+  | "PUBLISHED"
+  | "ACTIVE"
+  | "UPDATED"
+  | "ARCHIVED"
+  | "PROCESSING_FAILED"
+  | "SCAN_FAILED"
+  | "REJECTED"
+  | "QUARANTINED";
+
+export type ResourceAccessDurationType =
+  | "lifetime"
+  | "while_enrolled"
+  | "until_date"
+  | "custom_days";
+
+export interface ResourcePermission {
+  id?: string;
+  resource_id?: string | null;
+  course_id?: string | null;
+  module_id?: string | null;
+  lesson_id?: string | null;
+  allow_view: boolean;
+  allow_download: boolean;
+  allow_print: boolean;
+  allow_copy: boolean;
+  allow_offline: boolean;
+  access_duration_type: ResourceAccessDurationType;
+  access_valid_until?: string | null;
+  access_days?: number | null;
+}
+
+export interface ResourceVersion {
+  id: string;
+  resource_id: string;
+  version_number: number;
+  storage_key?: string | null;
+  file_url?: string | null;
+  file_size_bytes?: number | null;
+  mime_type?: string | null;
+  change_note?: string | null;
+  native_content?: string | null;
+  created_by: string;
+  status: "draft" | "published" | "archived";
+  created_at: string;
+}
+
+export interface ResourceNativeNoteSection {
+  id: string;
+  type:
+    | "heading"
+    | "paragraph"
+    | "clinical_callout"
+    | "warning"
+    | "protocol_table"
+    | "reference"
+    | "key_takeaway"
+    | "diagram";
+  title?: string;
+  content: string;
+  meta?: any;
+}
+
+export interface ResourceNativeNotePayload {
+  title: string;
+  subtitle?: string;
+  author?: string;
+  lastEdited?: string;
+  sections: ResourceNativeNoteSection[];
+}
+
+export interface LearningResource {
+  id: string;
+  instructor_id: string;
+  course_id?: string | null;
+  module_id?: string | null;
+  lesson_id?: string | null;
+  title: string;
+  description?: string | null;
+  resource_type: ResourceType;
+  category: string;
+  tags?: string[];
+  status: ResourceLifecycleStatus;
+  current_version: number;
+  file_url?: string | null;
+  storage_key?: string | null;
+  file_size_bytes?: number | null;
+  mime_type?: string | null;
+  original_filename?: string | null;
+  page_count?: number | null;
+  duration_seconds?: number | null;
+  dimensions?: { width: number; height: number } | null;
+  thumbnail_url?: string | null;
+  is_pinned: boolean;
+  is_public: boolean;
+  copyright_declared: boolean;
+  native_content?: ResourceNativeNotePayload | null;
+  available_from?: string | null;
+  available_until?: string | null;
+  created_at: string;
+  updated_at: string;
+  instructor?: InstructorProfile;
+  permissions?: ResourcePermission;
+  effective_policy?: {
+    canView: boolean;
+    canDownload: boolean;
+    canPrint: boolean;
+    canCopy: boolean;
+    canOffline: boolean;
+    reason?: string;
+  };
+  is_bookmarked?: boolean;
+}
+
+export interface ResourceAccessSession {
+  id: string;
+  sessionToken: string;
+  resourceId: string;
+  accessType: "VIEW" | "DOWNLOAD" | "OFFLINE";
+  expiresAt: string;
+  signedUrl?: string | null;
+  permissions: {
+    allowView: boolean;
+    allowDownload: boolean;
+    allowPrint: boolean;
+    allowCopy: boolean;
+    allowOffline: boolean;
+  };
+}
+
+export interface ResourceAnalyticsSummary {
+  resource_id: string;
+  title: string;
+  resource_type: ResourceType;
+  total_views: number;
+  unique_viewers: number;
+  avg_view_duration_seconds: number;
+  total_downloads: number;
+  unique_downloaders: number;
+  total_bookmarks: number;
+  avg_reading_depth_page: number;
+  views_by_day: { date: string; count: number }[];
+  downloads_by_day: { date: string; count: number }[];
+}
+

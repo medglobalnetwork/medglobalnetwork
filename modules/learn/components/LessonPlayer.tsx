@@ -12,6 +12,7 @@ import {
 } from "../types";
 import { VideoPlayer } from "./VideoPlayer";
 import { VideoAnalyticsView } from "./VideoAnalyticsView";
+import { TeacherResourceManager } from "./resources/TeacherResourceManager";
 import {
   CheckCircle2,
   ArrowRight,
@@ -818,32 +819,11 @@ export function LessonPlayer({
 
         {/* TAB 7: RESOURCES */}
         {activeTab === "resources" && (
-          <div className="space-y-3">
-            {lesson.resources && lesson.resources.length > 0 ? (
-              lesson.resources.map((res) => (
-                <a
-                  key={res.id}
-                  href={res.file_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center justify-between rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-[#faf9f8] dark:bg-[#1c2128] p-4 hover:border-[#0f4c81] transition"
-                >
-                  <div className="flex items-center gap-3">
-                    <Paperclip className="size-4 text-[#0f4c81] dark:text-[#58a6ff]" />
-                    <div>
-                      <p className="text-xs font-bold text-[#171717] dark:text-[#f0f6fc]">{res.title}</p>
-                      <p className="text-[10px] text-[#77716b] dark:text-[#8b949e]">{res.file_type || "PDF Document"}</p>
-                    </div>
-                  </div>
-                  <Download className="size-4 text-[#77716b]" />
-                </a>
-              ))
-            ) : (
-              <p className="text-xs text-[#77716b] dark:text-[#8b949e] p-4 text-center">
-                No supplemental PDF resources attached to this lesson.
-              </p>
-            )}
-          </div>
+          <TeacherResourceManager
+            courseId={courseId || lesson.course_id}
+            lessonId={lesson.id}
+            isInstructor={true}
+          />
         )}
 
         {/* TAB 8: ANALYTICS */}

@@ -34,19 +34,23 @@ import {
   LearnNote,
   LearnCollection,
   MatchedJobRole,
+  LearningResource,
 } from "@/modules/learn/types";
+import { ResourceViewerModal } from "@/modules/learn/components/resources/ResourceViewerModal";
 
 export default function MyBoxPage() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
   const [activeTab, setActiveTab] = React.useState<
-    "in_progress" | "completed" | "saved" | "notes" | "certificates" | "collections"
+    "in_progress" | "completed" | "saved" | "resources" | "notes" | "certificates" | "collections"
   >("in_progress");
 
   const [inProgress, setInProgress] = React.useState<CourseEnrollment[]>([]);
   const [completed, setCompleted] = React.useState<CourseEnrollment[]>([]);
   const [saved, setSaved] = React.useState<LearnBookmark[]>([]);
+  const [savedResources, setSavedResources] = React.useState<LearningResource[]>([]);
+  const [selectedViewerResourceId, setSelectedViewerResourceId] = React.useState<string | null>(null);
   const [notes, setNotes] = React.useState<LearnNote[]>([]);
   const [certificates, setCertificates] = React.useState<Certificate[]>([]);
   const [collections, setCollections] = React.useState<LearnCollection[]>([]);
@@ -66,9 +70,12 @@ export default function MyBoxPage() {
     if (!session?.user) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/learn/my-box");
-      const data = await res.json();
-      if (res.ok) {
+      const [resBox, resRes] = await Promise.all([
+        fetch("/api/learn/my-box"),
+        fetch("/api/learn/resources/my-box"),
+      ]);
+      const data = await resBox.json();
+      if (resBox.ok) {
         setInProgress(data.inProgress || []);
         setCompleted(data.completed || []);
         setSaved(data.saved || []);
@@ -76,6 +83,10 @@ export default function MyBoxPage() {
         setCertificates(data.certificates || []);
         setCollections(data.collections || []);
         setMatchedJobs(data.matchedJobs || []);
+      }
+      if (resRes.ok) {
+        const dataRes = await resRes.json();
+        setSavedResources(dataRes.resources || []);
       }
     } catch (err) {
       console.error("Failed to load My Box data:", err);
@@ -167,7 +178,8 @@ export default function MyBoxPage() {
             {[
               { id: "in_progress", label: "In-Progress", count: inProgress.length },
               { id: "completed", label: "Completed", count: completed.length },
-              { id: "saved", label: "Saved", count: saved.length },
+              { id: "saved", label: "Saved Courses", count: saved.length },
+              { id: "resources", label: "Resources", count: savedResources.length },
               { id: "notes", label: "Clinical Notes", count: notes.length },
               { id: "certificates", label: "Certificates", count: certificates.length },
               { id: "collections", label: "Collections", count: collections.length },
@@ -377,6 +389,71 @@ export default function MyBoxPage() {
                 </h3>
                 <p className="text-xs text-[#77716b] dark:text-[#8b949e] mt-1 max-w-sm mx-auto">
                   Bookmark interesting masterclasses while browsing Explore to study them later.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 3.5. SAVED LEARNING RESOURCES TAB */}
+        {activeTab === "resources" && (
+          <div className="space-y-4">
+            {savedResources.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {savedResources.map((res) => (
+                  <div
+                    key={res.id}
+                    onClick={() => setSelectedViewerResourceId(res.id)}
+                    className="group flex flex-col justify-between rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-5 shadow-2xs hover:border-[#0f4c81] transition cursor-pointer"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="rounded-full bg-[#eef5fc] dark:bg-[#1c2433] px-2.5 py-0.5 text-[10px] font-bold text-[#0f4c81] dark:text-[#58a6ff] uppercase">
+                          {res.resource_type}
+                        </span>
+                        <span className="text-[10px] font-mono text-[#77716b] dark:text-[#8b949e]">
+                          v{res.current_version}.0
+                        </span>
+                      </div>
+
+                      <h4 className="mt-3 text-sm font-bold text-[#171717] dark:text-[#f0f6fc] group-hover:text-[#0f4c81] dark:group-hover:text-[#58a6ff] transition line-clamp-2">
+                        {res.title}
+                      </h4>
+
+                      {res.description && (
+                        <p className="mt-1 text-xs text-[#77716b] dark:text-[#8b949e] line-clamp-2">
+                          {res.description}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="mt-5 pt-3 border-t border-[#f0efee] dark:border-[#21262d] flex items-center justify-between text-xs">
+                      <span className="text-[10px] text-[#77716b] dark:text-[#8b949e]">
+                        {new Date(res.created_at).toLocaleDateString()}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedViewerResourceId(res.id);
+                        }}
+                        className="inline-flex items-center gap-1 font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline"
+                      >
+                        <span>Open Viewer</span>
+                        <ArrowRight className="size-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-3xl border border-dashed border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-12 text-center">
+                <BookOpen className="size-12 mx-auto text-[#8a8784] mb-3 opacity-50" />
+                <h3 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">
+                  No resources saved in My Box
+                </h3>
+                <p className="text-xs text-[#77716b] dark:text-[#8b949e] mt-1 max-w-sm mx-auto">
+                  Bookmark lecture handouts, clinical notes, and anatomical diagrams while taking courses to review them here.
                 </p>
               </div>
             )}
@@ -723,6 +800,18 @@ export default function MyBoxPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* RESOURCE VIEWER MODAL */}
+      {selectedViewerResourceId && (
+        <ResourceViewerModal
+          resourceId={selectedViewerResourceId}
+          isOpen={!!selectedViewerResourceId}
+          onClose={() => {
+            setSelectedViewerResourceId(null);
+            loadMyBoxData();
+          }}
+        />
       )}
     </div>
   );
