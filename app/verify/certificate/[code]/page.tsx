@@ -123,19 +123,19 @@ export default function PublicCertificateVerificationPage({
 
           {/* Recipient */}
           <h1 className="mt-2 text-2xl sm:text-4xl font-serif font-black text-[#171717] text-balance">
-            {certificate.recipient_name}
+            {certificate.recipient_name || (certificate as any).metadata?.student_name || "Healthcare Professional"}
           </h1>
 
           <p className="mt-3 text-xs text-[#77716b]">has successfully completed and attended</p>
 
           {/* Program Title */}
           <h3 className="mt-2 text-lg sm:text-xl font-bold text-[#171717] max-w-2xl mx-auto text-balance">
-            {certificate.title}
+            {certificate.title || (certificate as any).metadata?.course_title || "Course Masterclass"}
           </h3>
 
-          {certificate.subtitle && (
+          {(certificate.subtitle || (certificate as any).metadata?.skills_acquired?.join(" • ")) && (
             <p className="mt-1 text-xs font-semibold text-emerald-800 text-pretty">
-              {certificate.subtitle}
+              {certificate.subtitle || (certificate as any).metadata?.skills_acquired?.join(" • ")}
             </p>
           )}
 
@@ -143,7 +143,9 @@ export default function PublicCertificateVerificationPage({
           <div className="mt-12 grid grid-cols-1 gap-6 border-t border-[#f0efee] pt-8 sm:grid-cols-3 text-left">
             <div>
               <span className="text-[10px] uppercase text-[#77716b]">Issued By</span>
-              <p className="text-xs font-bold text-[#171717]">{certificate.issuer_name}</p>
+              <p className="text-xs font-bold text-[#171717]">
+                {certificate.issuer_name || (certificate as any).metadata?.instructor_name || "MedGlobalNetwork Faculty"}
+              </p>
               <p className="text-[10px] text-[#77716b]">Verified Healthcare Authority</p>
             </div>
 

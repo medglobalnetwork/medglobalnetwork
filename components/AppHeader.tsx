@@ -247,13 +247,26 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
   const isProfilePage = pathname?.startsWith("/profile");
   const isLearnWorkspace = pathname?.startsWith("/learn");
 
-  const handleBackToMgn = () => {
-    // Preserve origin or fallback cleanly to /home
-    if (typeof window !== "undefined" && window.history.length > 2) {
-      router.back();
-    } else {
-      router.push("/home");
+  // Track the last visited non-learn origin to cleanly exit the Learn workspace
+  React.useEffect(() => {
+    if (pathname && !pathname.startsWith("/learn") && typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("mgn_learn_return_url", pathname);
+      } catch {}
     }
+  }, [pathname]);
+
+  const handleBackToMgn = () => {
+    if (typeof window !== "undefined") {
+      try {
+        const returnUrl = sessionStorage.getItem("mgn_learn_return_url");
+        if (returnUrl && !returnUrl.startsWith("/learn")) {
+          router.push(returnUrl);
+          return;
+        }
+      } catch {}
+    }
+    router.push("/home");
   };
 
   return (

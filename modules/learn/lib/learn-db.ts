@@ -2057,33 +2057,53 @@ export async function getUserMyBoxData(userId: string): Promise<{
   // Aggregate user skills from completed courses / certs to match Clinical Opportunities
   const acquiredSkills = new Set<string>();
   for (const cert of learningData.certificates) {
-    if (cert.metadata?.skills_acquired) {
+    if (cert.metadata?.skills_acquired && Array.isArray(cert.metadata.skills_acquired)) {
       for (const s of cert.metadata.skills_acquired) acquiredSkills.add(s);
     }
   }
 
-  const sampleSkills = acquiredSkills.size > 0 ? Array.from(acquiredSkills) : ["Critical Care", "ECG", "Clinical Diagnostics"];
+  let matchedJobs: MatchedJobRole[] = [];
+  try {
+    const jobsRes: any = await sql`
+      SELECT 
+        j.id, 
+        j.title, 
+        j.location, 
+        j.work_mode,
+        j.employment_type as role_type, 
+        j.salary_min, 
+        j.salary_max, 
+        j.salary_currency, 
+        o.name as organization
+      FROM jobs j
+      LEFT JOIN organizations o ON o.id = j.organization_id
+      WHERE j.status = 'published'
+      ORDER BY j.created_at DESC
+      LIMIT 4
+    `.execute(database);
 
-  const matchedJobs: MatchedJobRole[] = [
-    {
-      id: "job-1",
-      title: "Senior Resident / Consultant Intensivist",
-      organization: "Apollo Hospitals",
-      location: "Bengaluru, KA",
-      role_type: "Full-Time",
-      matched_skills: sampleSkills.slice(0, 2),
-      salary_range: "₹18 - ₹26 LPA",
-    },
-    {
-      id: "job-2",
-      title: "Lead Musculoskeletal Specialist",
-      organization: "Fortis Healthcare",
-      location: "Mumbai, MH",
-      role_type: "Full-Time",
-      matched_skills: ["Rehab", "Diagnostics"],
-      salary_range: "₹12 - ₹18 LPA",
-    },
-  ];
+    if (jobsRes.rows && jobsRes.rows.length > 0) {
+      matchedJobs = jobsRes.rows.map((row: any) => {
+        let sal = "Competitive";
+        if (row.salary_min && row.salary_max) {
+          sal = `₹${(Number(row.salary_min) / 100000).toFixed(0)} - ₹${(Number(row.salary_max) / 100000).toFixed(0)} LPA`;
+        } else if (row.salary_min) {
+          sal = `₹${(Number(row.salary_min) / 100000).toFixed(0)}+ LPA`;
+        }
+        return {
+          id: row.id,
+          title: row.title,
+          organization: row.organization || "Healthcare Network",
+          location: row.location || "Clinical Hospital",
+          role_type: row.role_type || "Full-Time",
+          matched_skills: acquiredSkills.size > 0 ? Array.from(acquiredSkills).slice(0, 2) : ["Clinical Practice"],
+          salary_range: sal,
+        };
+      });
+    }
+  } catch {
+    matchedJobs = [];
+  }
 
   return {
     inProgress: learningData.inProgress,

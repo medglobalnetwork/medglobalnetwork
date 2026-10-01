@@ -452,58 +452,72 @@ export default function MyBoxPage() {
                 {certificates.map((cert) => (
                   <div
                     key={cert.id}
-                    className="rounded-3xl border-2 border-emerald-500/20 bg-gradient-to-br from-white via-white to-emerald-500/5 dark:from-[#161b22] dark:to-[#161b22] p-6 shadow-sm relative overflow-hidden"
+                    className="rounded-3xl border-2 border-emerald-500/20 bg-gradient-to-br from-white via-white to-emerald-500/5 dark:from-[#161b22] dark:to-[#161b22] p-6 shadow-sm relative overflow-hidden flex flex-col justify-between"
                   >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                          <Award className="size-6" />
+                    <div>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 shrink-0">
+                            <Award className="size-6" />
+                          </div>
+                          <div>
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 px-2.5 py-0.5 text-[10px] font-bold text-emerald-900 dark:text-emerald-300">
+                              <ShieldCheck className="size-3" /> Verified Credential
+                            </span>
+                            <h3 className="mt-1 text-sm sm:text-base font-bold text-[#171717] dark:text-[#f0f6fc] leading-snug">
+                              {cert.course?.title || cert.metadata?.course_title || "Accredited Medical Masterclass"}
+                            </h3>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 grid grid-cols-2 gap-2 text-xs border-y border-[#f0efee] dark:border-[#21262d] py-3 text-[#77716b] dark:text-[#8b949e]">
+                        <div>
+                          <span className="block text-[10px] uppercase font-semibold">Verification Code</span>
+                          <span className="font-mono font-bold text-[#171717] dark:text-[#f0f6fc] text-[11px]">
+                            {cert.verification_code}
+                          </span>
                         </div>
                         <div>
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 px-2.5 py-0.5 text-[10px] font-bold text-emerald-900 dark:text-emerald-300">
-                            <ShieldCheck className="size-3" /> Verified Credential
+                          <span className="block text-[10px] uppercase font-semibold">Issued Date</span>
+                          <span className="font-bold text-[#171717] dark:text-[#f0f6fc] text-[11px]">
+                            {new Date(cert.issued_at).toLocaleDateString()}
                           </span>
-                          <h3 className="mt-1 text-sm sm:text-base font-bold text-[#171717] dark:text-[#f0f6fc] leading-snug">
-                            {cert.course?.title || cert.metadata?.course_title}
-                          </h3>
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-2 text-xs border-y border-[#f0efee] dark:border-[#21262d] py-3 text-[#77716b] dark:text-[#8b949e]">
-                      <div>
-                        <span className="block text-[10px] uppercase font-semibold">Verification Code</span>
-                        <span className="font-mono font-bold text-[#171717] dark:text-[#f0f6fc] text-[11px]">
-                          {cert.verification_code}
+                    <div className="mt-4 space-y-3">
+                      <div className="flex items-center justify-between text-xs bg-[#f8f9fa] dark:bg-[#1a202c] p-2 rounded-xl border border-[#ded8d1] dark:border-[#30363d]">
+                        <span className="text-[11px] font-semibold text-[#5d5854] dark:text-[#8b949e] flex items-center gap-1.5">
+                          <ShieldCheck className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                          Public on MGN Profile
+                        </span>
+                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/80 px-2 py-0.5 rounded-md">
+                          Synced
                         </span>
                       </div>
-                      <div>
-                        <span className="block text-[10px] uppercase font-semibold">Issued Date</span>
-                        <span className="font-bold text-[#171717] dark:text-[#f0f6fc] text-[11px]">
-                          {new Date(cert.issued_at).toLocaleDateString()}
-                        </span>
+
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <a
+                          href={`/verify/certificate/${cert.verification_code}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-xs font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline"
+                        >
+                          <span>Public Verification Page</span>
+                          <ExternalLink className="size-3" />
+                        </a>
+
+                        <button
+                          type="button"
+                          onClick={() => window.open(`/verify/certificate/${cert.verification_code}`, "_blank")}
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] dark:bg-[#1f6feb] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[#0c3c66] transition cursor-pointer"
+                        >
+                          <Printer className="size-3.5" />
+                          <span>Print / PDF</span>
+                        </button>
                       </div>
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-                      <a
-                        href={`/verify/certificate/${cert.verification_code}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-xs font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline"
-                      >
-                        <span>Public Verification Page</span>
-                        <ExternalLink className="size-3" />
-                      </a>
-
-                      <button
-                        type="button"
-                        onClick={() => window.open(`/verify/certificate/${cert.verification_code}`, "_blank")}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] dark:bg-[#1f6feb] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[#0c3c66] transition cursor-pointer"
-                      >
-                        <Printer className="size-3.5" />
-                        <span>Print / PDF</span>
-                      </button>
                     </div>
                   </div>
                 ))}
@@ -629,7 +643,7 @@ export default function MyBoxPage() {
               {matchedJobs.map((job) => (
                 <div
                   key={job.id}
-                  onClick={() => router.push("/opportunities")}
+                  onClick={() => router.push(job.id ? `/opportunities/jobs/${job.id}` : "/opportunities")}
                   className="group flex flex-col justify-between rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#1c2128] p-4 shadow-2xs hover:border-[#0f4c81] transition cursor-pointer"
                 >
                   <div>
