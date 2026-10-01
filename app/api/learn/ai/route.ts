@@ -22,13 +22,19 @@ export async function POST(request: Request) {
     }
 
     const topic = context.lessonTitle || context.courseTitle || prompt;
+    const timeFormatted =
+      context.timestampSeconds !== undefined
+        ? `[Timestamp ${Math.floor(context.timestampSeconds / 60)}:${(context.timestampSeconds % 60)
+            .toString()
+            .padStart(2, "0")}]`
+        : "";
+    const selectedSnippet = context.selectedText ? `\n> Selected Lecture Excerpt: "${context.selectedText}"\n` : "";
     let reply = "";
     let quizPayload: any = undefined;
 
     switch (actionType) {
       case "explanation":
-        reply = `### 🩺 Clinical Breakdown: ${topic}
-
+        reply = `### 🩺 Clinical Breakdown: ${topic} ${timeFormatted}${selectedSnippet}
 **1. Core Pathophysiological Concept:**
 ${topic} involves essential clinical mechanisms that dictate diagnostic and treatment pathways. In clinical practice, recognizing the early physiological markers and differentiating benign vs high-risk presentations is paramount.
 

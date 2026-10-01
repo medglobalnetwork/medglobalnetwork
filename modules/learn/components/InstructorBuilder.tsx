@@ -13,11 +13,13 @@ import {
   Video,
 } from "lucide-react";
 import { CreateCourseInput } from "../types";
+import { InstructorVideoUploadModal } from "./InstructorVideoUploadModal";
 
 export function InstructorBuilder() {
   const router = useRouter();
   const [step, setStep] = React.useState<1 | 2 | 3>(1);
   const [createdCourseId, setCreatedCourseId] = React.useState<string | null>(null);
+  const [showVideoUploadModal, setShowVideoUploadModal] = React.useState(false);
 
   // Step 1: Course Info
   const [title, setTitle] = React.useState("");
@@ -425,29 +427,48 @@ export function InstructorBuilder() {
               </div>
 
               {lessonType === "video" ? (
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-xs font-bold text-[#171717] mb-1">
-                      Video URL (YouTube or MP4)
-                    </label>
-                    <input
-                      type="url"
-                      value={lessonUrl}
-                      onChange={(e) => setLessonUrl(e.target.value)}
-                      placeholder="https://www.youtube.com/watch?v=..."
-                      className="h-10 w-full rounded-xl border border-[#ded8d1] px-3 text-xs"
-                    />
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-xs font-bold text-[#171717] mb-1">
+                        Video URL (or Upload via Studio)
+                      </label>
+                      <input
+                        type="url"
+                        value={lessonUrl}
+                        onChange={(e) => setLessonUrl(e.target.value)}
+                        placeholder="https://... or uploaded storage key"
+                        className="h-10 w-full rounded-xl border border-[#ded8d1] px-3 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#171717] mb-1">
+                        Estimated Duration (Minutes)
+                      </label>
+                      <input
+                        type="number"
+                        value={lessonDuration}
+                        onChange={(e) => setLessonDuration(Number(e.target.value))}
+                        className="h-10 w-full rounded-xl border border-[#ded8d1] px-3 text-xs"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#171717] mb-1">
-                      Estimated Duration (Minutes)
-                    </label>
-                    <input
-                      type="number"
-                      value={lessonDuration}
-                      onChange={(e) => setLessonDuration(Number(e.target.value))}
-                      className="h-10 w-full rounded-xl border border-[#ded8d1] px-3 text-xs"
-                    />
+
+                  <div className="flex items-center justify-between rounded-2xl bg-[#eef5fc] p-3 border border-[#1769c2]/20">
+                    <div className="text-xs">
+                      <span className="font-bold text-[#1769c2]">MGN Video Upload Studio</span>
+                      <p className="text-[11px] text-[#5d5854]">
+                        Upload raw MP4/MOV/WebM with automatic multi-quality HLS transcoding, chapters & transcripts
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowVideoUploadModal(true)}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#1769c2] px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-[#0f4c81] transition cursor-pointer"
+                    >
+                      <Video className="size-3.5" />
+                      <span>Upload Video File</span>
+                    </button>
                   </div>
                 </div>
               ) : (
@@ -496,6 +517,17 @@ export function InstructorBuilder() {
           </div>
         </div>
       )}
+
+      {/* Instructor Video Upload Studio Modal */}
+      <InstructorVideoUploadModal
+        isOpen={showVideoUploadModal}
+        onClose={() => setShowVideoUploadModal(false)}
+        courseId={createdCourseId || undefined}
+        onUploadComplete={(data) => {
+          if (data.storageKey) setLessonUrl(data.storageKey);
+          if (data.videoAsset?.title && !lessonTitle) setLessonTitle(data.videoAsset.title);
+        }}
+      />
     </div>
   );
 }

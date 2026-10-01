@@ -351,6 +351,9 @@ export interface AskAIContext {
   lessonTitle?: string;
   lessonContent?: string;
   specialty?: string;
+  timestampSeconds?: number;
+  selectedText?: string;
+  transcriptExcerpt?: string;
 }
 
 export interface AskAIMessage {
@@ -365,4 +368,184 @@ export interface AskAIMessage {
     correctIndex: number;
     explanation: string;
   };
+}
+
+// ─────────────────────────────────────────────
+// MGN PRODUCTION VIDEO LECTURE SYSTEM TYPES
+// ─────────────────────────────────────────────
+
+export type VideoProcessingStatus =
+  | "UPLOADING"
+  | "UPLOADED"
+  | "SCANNING"
+  | "PROCESSING"
+  | "ENCODING"
+  | "GENERATING_THUMBNAIL"
+  | "GENERATING_TRANSCRIPT"
+  | "READY"
+  | "PROCESSING_FAILED"
+  | "ENCODING_FAILED"
+  | "TRANSCRIPT_FAILED";
+
+export type VideoQuality = "auto" | "360p" | "480p" | "720p" | "1080p" | "audio";
+
+export type VideoEventType =
+  | "PLAY"
+  | "PAUSE"
+  | "SEEK"
+  | "PROGRESS"
+  | "BUFFER"
+  | "COMPLETE"
+  | "EXIT";
+
+export interface VideoAsset {
+  id: string;
+  instructor_id: string;
+  course_id?: string | null;
+  lesson_id?: string | null;
+  title: string;
+  original_filename?: string | null;
+  file_size_bytes?: number | null;
+  mime_type?: string | null;
+  storage_key?: string | null;
+  status: VideoProcessingStatus;
+  duration_seconds: number;
+  aspect_ratio: string;
+  width: number;
+  height: number;
+  is_private: boolean;
+  thumbnail_url?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VideoVariant {
+  id: string;
+  video_asset_id: string;
+  quality: VideoQuality;
+  codec?: string | null;
+  bitrate?: number | null;
+  resolution?: string | null;
+  url?: string;
+  storage_key: string;
+  file_size_bytes?: number | null;
+  is_ready: boolean;
+  created_at: string;
+}
+
+export interface VideoChapter {
+  id: string;
+  video_asset_id?: string | null;
+  lesson_id: string;
+  title: string;
+  start_seconds: number;
+  end_seconds?: number | null;
+  order_index: number;
+  created_at: string;
+}
+
+export interface VideoTranscriptCue {
+  id?: string;
+  start: number; // in seconds
+  end: number;   // in seconds
+  text: string;
+}
+
+export interface VideoTranscript {
+  id: string;
+  video_asset_id?: string | null;
+  lesson_id: string;
+  language: string;
+  cues: VideoTranscriptCue[];
+  is_auto_generated: boolean;
+  is_verified: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VideoCaption {
+  id: string;
+  video_asset_id?: string | null;
+  lesson_id: string;
+  language: string;
+  label: string;
+  vtt_url?: string | null;
+  vtt_content?: string | null;
+  is_default: boolean;
+  created_at: string;
+}
+
+export interface VideoDiscussion {
+  id: string;
+  lesson_id: string;
+  course_id: string;
+  user_id: string;
+  parent_id?: string | null;
+  timestamp_seconds?: number | null;
+  message: string;
+  is_instructor_answer: boolean;
+  upvotes: number;
+  created_at: string;
+  updated_at: string;
+  user?: {
+    id: string;
+    name: string;
+    image?: string | null;
+    profession?: string | null;
+    specialization?: string | null;
+    is_instructor?: boolean;
+  };
+  replies?: VideoDiscussion[];
+}
+
+export interface VideoBookmarkItem {
+  id: string;
+  user_id: string;
+  lesson_id: string;
+  course_id: string;
+  timestamp_seconds: number;
+  title?: string | null;
+  note?: string | null;
+  created_at: string;
+}
+
+export interface VideoPlaybackSession {
+  playbackToken: string;
+  expiresAt: string;
+  asset?: VideoAsset;
+  streamUrl: string;
+  variants: {
+    quality: VideoQuality;
+    label: string;
+    url: string;
+    bitrate?: number;
+    resolution?: string;
+  }[];
+  chapters: VideoChapter[];
+  transcript?: VideoTranscript | null;
+  captions: VideoCaption[];
+  lastPositionSeconds: number;
+  completionWatchRatioRequired: number; // e.g. 0.8 (80%)
+  seekPolicy: "free" | "strict_unwatched";
+}
+
+export interface VideoAnalyticsRetentionPoint {
+  percentile: number; // 0 to 100
+  time_seconds: number;
+  retention_percentage: number;
+  drop_off_count: number;
+}
+
+export interface VideoAnalyticsSummary {
+  lesson_id: string;
+  lesson_title: string;
+  duration_seconds: number;
+  total_views: number;
+  unique_learners: number;
+  avg_watch_time_seconds: number;
+  completion_rate_percentage: number;
+  retention_curve: VideoAnalyticsRetentionPoint[];
+  rewatch_hotspots: { start_seconds: number; end_seconds: number; intensity: number }[];
+  most_bookmarked_timestamps: { timestamp_seconds: number; count: number }[];
+  most_discussed_timestamps: { timestamp_seconds: number; count: number }[];
 }

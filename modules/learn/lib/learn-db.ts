@@ -249,6 +249,136 @@ export interface LearnBookmarkTable {
   created_at: Date;
 }
 
+export interface VideoAssetTable {
+  id: string;
+  instructor_id: string;
+  course_id: string | null;
+  lesson_id: string | null;
+  title: string;
+  original_filename: string | null;
+  file_size_bytes: number | null;
+  mime_type: string | null;
+  storage_key: string | null;
+  status: string;
+  duration_seconds: number;
+  aspect_ratio: string;
+  width: number;
+  height: number;
+  is_private: boolean;
+  thumbnail_url: string | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface VideoVariantTable {
+  id: string;
+  video_asset_id: string;
+  quality: string;
+  codec: string | null;
+  bitrate: number | null;
+  resolution: string | null;
+  storage_key: string;
+  file_size_bytes: number | null;
+  is_ready: boolean;
+  created_at: Date;
+}
+
+export interface VideoChapterTable {
+  id: string;
+  video_asset_id: string | null;
+  lesson_id: string;
+  title: string;
+  start_seconds: number;
+  end_seconds: number | null;
+  order_index: number;
+  created_at: Date;
+}
+
+export interface VideoTranscriptTable {
+  id: string;
+  video_asset_id: string | null;
+  lesson_id: string;
+  language: string;
+  cues: any;
+  is_auto_generated: boolean;
+  is_verified: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface VideoCaptionTable {
+  id: string;
+  video_asset_id: string | null;
+  lesson_id: string;
+  language: string;
+  label: string;
+  vtt_url: string | null;
+  vtt_content: string | null;
+  is_default: boolean;
+  created_at: Date;
+}
+
+export interface VideoDiscussionTable {
+  id: string;
+  lesson_id: string;
+  course_id: string;
+  user_id: string;
+  parent_id: string | null;
+  timestamp_seconds: number | null;
+  message: string;
+  is_instructor_answer: boolean;
+  upvotes: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface VideoBookmarkTable {
+  id: string;
+  user_id: string;
+  lesson_id: string;
+  course_id: string;
+  timestamp_seconds: number;
+  title: string | null;
+  note: string | null;
+  created_at: Date;
+}
+
+export interface VideoProgressEventTable {
+  id: string;
+  user_id: string;
+  lesson_id: string;
+  course_id: string;
+  event_type: string;
+  position_seconds: number;
+  buffered_seconds: number | null;
+  playback_rate: number;
+  session_id: string | null;
+  created_at: Date;
+}
+
+export interface VideoPlaybackTokenTable {
+  id: string;
+  user_id: string;
+  lesson_id: string;
+  token: string;
+  expires_at: Date;
+  ip_address: string | null;
+  user_agent: string | null;
+  created_at: Date;
+}
+
+export interface VideoWatchSessionTable {
+  id: string;
+  user_id: string;
+  lesson_id: string;
+  course_id: string;
+  total_watch_time_seconds: number;
+  max_position_seconds: number;
+  completion_ratio: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface LearnDatabase {
   courses: CourseTable;
   course_modules: CourseModuleTable;
@@ -269,6 +399,16 @@ export interface LearnDatabase {
   learn_collections: LearnCollectionTable;
   learn_collection_items: LearnCollectionItemTable;
   learn_bookmarks: LearnBookmarkTable;
+  video_assets: VideoAssetTable;
+  video_variants: VideoVariantTable;
+  video_chapters: VideoChapterTable;
+  video_transcripts: VideoTranscriptTable;
+  video_captions: VideoCaptionTable;
+  video_discussions: VideoDiscussionTable;
+  video_bookmarks: VideoBookmarkTable;
+  video_progress_events: VideoProgressEventTable;
+  video_playback_tokens: VideoPlaybackTokenTable;
+  video_watch_sessions: VideoWatchSessionTable;
   user: {
     id: string;
     name: string;
@@ -408,6 +548,166 @@ export async function ensureLearnExtensions(): Promise<void> {
       .addColumn("course_id", "varchar(64)", (col: any) => col.notNull())
       .addColumn("lesson_id", "varchar(64)")
       .addColumn("created_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .execute();
+
+    // 9. Video Assets
+    await dbAny.schema
+      .createTable("video_assets")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("instructor_id", "text", (col: any) => col.notNull())
+      .addColumn("course_id", "varchar(64)")
+      .addColumn("lesson_id", "varchar(64)")
+      .addColumn("title", "varchar(255)", (col: any) => col.notNull())
+      .addColumn("original_filename", "text")
+      .addColumn("file_size_bytes", "bigint")
+      .addColumn("mime_type", "varchar(64)")
+      .addColumn("storage_key", "text")
+      .addColumn("status", "varchar(32)", (col: any) => col.defaultTo("READY"))
+      .addColumn("duration_seconds", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("aspect_ratio", "varchar(16)", (col: any) => col.defaultTo("16:9"))
+      .addColumn("width", "integer", (col: any) => col.defaultTo(1920))
+      .addColumn("height", "integer", (col: any) => col.defaultTo(1080))
+      .addColumn("is_private", "boolean", (col: any) => col.defaultTo(true))
+      .addColumn("thumbnail_url", "text")
+      .addColumn("created_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .addColumn("updated_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .execute();
+
+    // 10. Video Variants (Qualities: 360p, 480p, 720p, 1080p, audio)
+    await dbAny.schema
+      .createTable("video_variants")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("video_asset_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("quality", "varchar(16)", (col: any) => col.notNull())
+      .addColumn("codec", "varchar(32)")
+      .addColumn("bitrate", "integer")
+      .addColumn("resolution", "varchar(32)")
+      .addColumn("storage_key", "text", (col: any) => col.notNull())
+      .addColumn("file_size_bytes", "bigint")
+      .addColumn("is_ready", "boolean", (col: any) => col.defaultTo(true))
+      .addColumn("created_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .execute();
+
+    // 11. Video Chapters
+    await dbAny.schema
+      .createTable("video_chapters")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("video_asset_id", "varchar(64)")
+      .addColumn("lesson_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("title", "varchar(255)", (col: any) => col.notNull())
+      .addColumn("start_seconds", "integer", (col: any) => col.notNull())
+      .addColumn("end_seconds", "integer")
+      .addColumn("order_index", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("created_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .execute();
+
+    // 12. Video Transcripts
+    await dbAny.schema
+      .createTable("video_transcripts")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("video_asset_id", "varchar(64)")
+      .addColumn("lesson_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("language", "varchar(16)", (col: any) => col.defaultTo("en"))
+      .addColumn("cues", "jsonb", (col: any) => col.notNull())
+      .addColumn("is_auto_generated", "boolean", (col: any) => col.defaultTo(false))
+      .addColumn("is_verified", "boolean", (col: any) => col.defaultTo(true))
+      .addColumn("created_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .addColumn("updated_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .execute();
+
+    // 13. Video Captions / Subtitles
+    await dbAny.schema
+      .createTable("video_captions")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("video_asset_id", "varchar(64)")
+      .addColumn("lesson_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("language", "varchar(16)", (col: any) => col.notNull())
+      .addColumn("label", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("vtt_url", "text")
+      .addColumn("vtt_content", "text")
+      .addColumn("is_default", "boolean", (col: any) => col.defaultTo(false))
+      .addColumn("created_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .execute();
+
+    // 14. Video Discussions & Lesson Q&A
+    await dbAny.schema
+      .createTable("video_discussions")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("lesson_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("course_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("user_id", "text", (col: any) => col.notNull())
+      .addColumn("parent_id", "varchar(64)")
+      .addColumn("timestamp_seconds", "integer")
+      .addColumn("message", "text", (col: any) => col.notNull())
+      .addColumn("is_instructor_answer", "boolean", (col: any) => col.defaultTo(false))
+      .addColumn("upvotes", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("created_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .addColumn("updated_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .execute();
+
+    // 15. Video Bookmarks
+    await dbAny.schema
+      .createTable("video_bookmarks")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("user_id", "text", (col: any) => col.notNull())
+      .addColumn("lesson_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("course_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("timestamp_seconds", "integer", (col: any) => col.notNull())
+      .addColumn("title", "varchar(255)")
+      .addColumn("note", "text")
+      .addColumn("created_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .execute();
+
+    // 16. Video Progress Heartbeat Events
+    await dbAny.schema
+      .createTable("video_progress_events")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("user_id", "text", (col: any) => col.notNull())
+      .addColumn("lesson_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("course_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("event_type", "varchar(32)", (col: any) => col.notNull())
+      .addColumn("position_seconds", "integer", (col: any) => col.notNull())
+      .addColumn("buffered_seconds", "integer")
+      .addColumn("playback_rate", "numeric(4,2)", (col: any) => col.defaultTo(1.0))
+      .addColumn("session_id", "varchar(64)")
+      .addColumn("created_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .execute();
+
+    // 17. Video Playback Authorization Tokens
+    await dbAny.schema
+      .createTable("video_playback_tokens")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("user_id", "text", (col: any) => col.notNull())
+      .addColumn("lesson_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("token", "varchar(255)", (col: any) => col.notNull().unique())
+      .addColumn("expires_at", "timestamptz", (col: any) => col.notNull())
+      .addColumn("ip_address", "varchar(64)")
+      .addColumn("user_agent", "text")
+      .addColumn("created_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .execute();
+
+    // 18. Video Watch Aggregated Sessions
+    await dbAny.schema
+      .createTable("video_watch_sessions")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("user_id", "text", (col: any) => col.notNull())
+      .addColumn("lesson_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("course_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("total_watch_time_seconds", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("max_position_seconds", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("completion_ratio", "numeric(5,2)", (col: any) => col.defaultTo(0.0))
+      .addColumn("created_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .addColumn("updated_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
       .execute();
 
     extensionsEnsured = true;

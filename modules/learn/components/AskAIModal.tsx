@@ -177,10 +177,18 @@ export function AskAIModal({ isOpen, onClose, context }: AskAIModalProps) {
           </button>
         </div>
 
-        {/* Medical AI Disclaimer Banner */}
-        <div className="bg-[#f8f9fc] dark:bg-[#1a2233] border-b border-[#e8eef8] dark:border-[#26324d] px-4 py-1.5 flex items-center gap-2 text-[10px] text-[#556987] dark:text-[#9fb3d0]">
-          <Stethoscope className="size-3.5 text-[#0f4c81] dark:text-[#58a6ff] shrink-0" />
-          <span>Educational assistant for revision, case reasoning, and high-yield synthesis.</span>
+        {/* Medical AI Disclaimer Banner & Active Context */}
+        <div className="bg-[#f8f9fc] dark:bg-[#1a2233] border-b border-[#e8eef8] dark:border-[#26324d] px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-[10px] text-[#556987] dark:text-[#9fb3d0]">
+          <div className="flex items-center gap-2">
+            <Stethoscope className="size-3.5 text-[#0f4c81] dark:text-[#58a6ff] shrink-0" />
+            <span>Educational assistant for revision, case reasoning, and high-yield synthesis.</span>
+          </div>
+          {context?.timestampSeconds !== undefined && context.timestampSeconds > 0 && (
+            <div className="flex items-center gap-1.5 rounded-full bg-[#0f4c81]/10 dark:bg-[#58a6ff]/20 px-2.5 py-0.5 font-semibold text-[#0f4c81] dark:text-[#58a6ff]">
+              <span>⏱ {Math.floor(context.timestampSeconds / 60)}:{(context.timestampSeconds % 60).toString().padStart(2, "0")}</span>
+              {context.selectedText && <span className="max-w-[120px] truncate">· "{context.selectedText}"</span>}
+            </div>
+          )}
         </div>
 
         {/* Chat Messages Body */}
