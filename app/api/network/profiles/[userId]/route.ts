@@ -71,6 +71,7 @@ export async function GET(
         "pp.experience_verified",
         "pp.cover_image_url",
         "pp.profile_visibility",
+        "pp.show_member_id",
         "pp.created_at",
       ])
       .where((eb) => {
@@ -210,6 +211,7 @@ export async function GET(
         experience_verified: false,
         cover_image_url: null,
         profile_visibility: "public",
+        show_member_id: false,
         created_at: now,
       };
     }

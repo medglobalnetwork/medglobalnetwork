@@ -40,6 +40,7 @@ export default function AccountSettingsPage() {
   const [memberId, setMemberId] = React.useState<string | null>(null);
   const [isFoundingMember, setIsFoundingMember] = React.useState(false);
   const [membershipTier, setMembershipTier] = React.useState<string | null>(null);
+  const [showMemberId, setShowMemberId] = React.useState(false);
   const [avatarUrl, setAvatarUrl] = React.useState<string>(DEFAULT_BLANK_AVATAR);
   const [isSavingName, setIsSavingName] = React.useState(false);
   const [isSavingUsername, setIsSavingUsername] = React.useState(false);
@@ -72,6 +73,9 @@ export default function AccountSettingsPage() {
           }
           if (prof?.membership_tier) {
             setMembershipTier(prof.membership_tier);
+          }
+          if (prof?.show_member_id !== undefined) {
+            setShowMemberId(Boolean(prof.show_member_id));
           }
         })
         .catch((err) => console.error("Error fetching profile details:", err));
@@ -362,12 +366,36 @@ export default function AccountSettingsPage() {
           </div>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-[#f0efee] flex flex-wrap items-center justify-between gap-2 text-xs text-[#5d5854]">
+        <div className="mt-4 pt-3 border-t border-[#f0efee] flex flex-wrap items-center justify-between gap-3 text-xs text-[#5d5854]">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-emerald-600" />
             <span>Membership Status: <strong className="text-[#171717]">{isFoundingMember ? "Founding Member Cohort (Lifetime)" : "Standard Healthcare Member"}</strong></span>
           </div>
-          <span className="text-[11px] text-[#77716b]">Assigned to: {session.user.email}</span>
+
+          {/* Toggle show on profile */}
+          <label className="flex items-center gap-2 cursor-pointer bg-[#f8f7f6] px-3 py-1.5 rounded-xl border border-[#ded8d1] hover:bg-[#f0efee] transition">
+            <input
+              type="checkbox"
+              checked={showMemberId}
+              onChange={async (e) => {
+                const next = e.target.checked;
+                setShowMemberId(next);
+                try {
+                  await fetch("/api/network/profiles", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ show_member_id: next }),
+                  });
+                } catch (err) {
+                  console.error("Failed to update show_member_id:", err);
+                  setShowMemberId(!next);
+                }
+              }}
+              className="size-4 rounded border-[#ded8d1] text-[#0f4c81] focus:ring-[#0f4c81] cursor-pointer"
+            />
+            <span className="text-xs font-semibold text-[#171717]">Show on public profile</span>
+          </label>
         </div>
       </div>
 

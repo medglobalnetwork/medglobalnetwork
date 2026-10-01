@@ -84,6 +84,7 @@ export interface ProfessionalProfile {
   // Visibility
   profile_visibility?: string;
   cover_image_url?: string;
+  show_member_id?: boolean;
   // Computed (from joins)
   connection_count?: number;
   follower_count?: number;

@@ -115,6 +115,7 @@ export async function GET(request: Request) {
           "pp.education_verified",
           "pp.registration_verified",
           "pp.experience_verified",
+          "pp.show_member_id",
         ])
         .limit(pageSize)
         .offset(offset)
@@ -300,6 +301,7 @@ export async function POST(request: Request) {
             : existing.experience_years,
           cover_image_url: body.coverImageUrl !== undefined ? body.coverImageUrl : body.cover_image_url !== undefined ? body.cover_image_url : existing.cover_image_url,
           profile_visibility: body.profileVisibility ?? body.profile_visibility ?? existing.profile_visibility,
+          show_member_id: body.showMemberId !== undefined ? Boolean(body.showMemberId) : body.show_member_id !== undefined ? Boolean(body.show_member_id) : existing.show_member_id ?? false,
           updated_at: now,
         })
         .where("user_id", "=", session.user.id)
@@ -339,6 +341,7 @@ export async function POST(request: Request) {
           experience_verified: false,
           profile_visibility: body.profileVisibility ?? body.profile_visibility ?? "public",
           cover_image_url: body.coverImageUrl ?? body.cover_image_url ?? null,
+          show_member_id: body.showMemberId !== undefined ? Boolean(body.showMemberId) : body.show_member_id !== undefined ? Boolean(body.show_member_id) : false,
           created_at: now,
           updated_at: now,
         })

@@ -74,8 +74,30 @@ export function ProfileHeader({
     "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1600&auto=format&fit=crop&q=80"
   );
   const [avatarUrl, setAvatarUrl] = React.useState<string>(profile.image || "");
+  const [showMemberId, setShowMemberId] = React.useState<boolean>(Boolean(profile.show_member_id));
   const [showCoverModal, setShowCoverModal] = React.useState(false);
   const [showAvatarModal, setShowAvatarModal] = React.useState(false);
+
+  // Sync state with props & localStorage
+  React.useEffect(() => {
+    setShowMemberId(Boolean(profile.show_member_id));
+  }, [profile.show_member_id]);
+
+  const handleToggleShowMemberId = async () => {
+    const next = !showMemberId;
+    setShowMemberId(next);
+    try {
+      await fetch("/api/network/profiles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ show_member_id: next }),
+      });
+    } catch (err) {
+      console.error("Failed to persist show_member_id:", err);
+      setShowMemberId(!next);
+    }
+  };
 
   // Sync state with props & localStorage
   React.useEffect(() => {
@@ -272,14 +294,47 @@ export function ProfileHeader({
               ) : (
                 <CheckCircle2 className="h-4 w-4 text-[#0f4c81] fill-[#0f4c81] text-white shrink-0" />
               )}
-              {/* Unique Member ID Badge */}
-              <MemberBadge
-                memberId={profile.member_id}
-                isFoundingMember={profile.is_founding_member}
-                membershipTier={profile.membership_tier}
-                size="sm"
-                variant={profile.is_founding_member ? "full" : "pill"}
-              />
+              {/* Unique Member ID Badge: Controlled by user preference (hidden by default) */}
+              {isOwnProfile ? (
+                showMemberId ? (
+                  <div className="inline-flex items-center gap-1.5">
+                    <MemberBadge
+                      memberId={profile.member_id}
+                      isFoundingMember={profile.is_founding_member}
+                      membershipTier={profile.membership_tier}
+                      size="sm"
+                      variant={profile.is_founding_member ? "full" : "pill"}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleToggleShowMemberId}
+                      className="text-[10px] text-[#8a8784] hover:text-[#0f4c81] underline transition cursor-pointer"
+                      title="Hide Member ID from your public profile"
+                    >
+                      Hide on profile
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleToggleShowMemberId}
+                    className="inline-flex items-center gap-1 rounded-full border border-dashed border-[#ded8d1] px-2.5 py-0.5 text-[10px] font-semibold text-[#77716b] hover:border-[#0f4c81] hover:text-[#0f4c81] hover:bg-[#f0efee] transition cursor-pointer"
+                    title="Click to show your official Member ID on your public profile"
+                  >
+                    + Show ID on profile
+                  </button>
+                )
+              ) : (
+                profile.show_member_id && (
+                  <MemberBadge
+                    memberId={profile.member_id}
+                    isFoundingMember={profile.is_founding_member}
+                    membershipTier={profile.membership_tier}
+                    size="sm"
+                    variant={profile.is_founding_member ? "full" : "pill"}
+                  />
+                )
+              )}
             </div>
 
             {/* Handle & Profession & Specialization */}

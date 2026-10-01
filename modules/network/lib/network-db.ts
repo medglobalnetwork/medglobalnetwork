@@ -42,6 +42,7 @@ export interface ProfessionalProfileTable {
   experience_verified: boolean;
   profile_visibility: string | null;
   cover_image_url: string | null;
+  show_member_id?: boolean | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -296,6 +297,10 @@ export async function ensureNetworkingTables(): Promise<void> {
 
     await sql`
       ALTER TABLE professional_profiles ADD COLUMN IF NOT EXISTS membership_tier TEXT DEFAULT 'MEMBER';
+    `.execute(networkDb);
+
+    await sql`
+      ALTER TABLE professional_profiles ADD COLUMN IF NOT EXISTS show_member_id BOOLEAN DEFAULT false;
     `.execute(networkDb);
 
     await sql`

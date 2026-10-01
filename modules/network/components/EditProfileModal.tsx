@@ -82,9 +82,12 @@ export function EditProfileModal({
   const [skills, setSkills] = React.useState((profile.skills || []).join(", "));
   const [languages, setLanguages] = React.useState((profile.languages || []).join(", "));
   
-  // Privacy Scope
+  // Privacy Scope & Identity visibility
   const [privacyScope, setPrivacyScope] = React.useState<"public" | "connections" | "private">(
     (profile.profile_visibility as any) || "public"
+  );
+  const [showMemberId, setShowMemberId] = React.useState<boolean>(
+    Boolean(profile.show_member_id)
   );
 
   // Sub-modal triggers
@@ -121,6 +124,7 @@ export function EditProfileModal({
       setSkills((profile.skills || []).join(", "));
       setLanguages((profile.languages || []).join(", "));
       setPrivacyScope((profile.profile_visibility as any) || "public");
+      setShowMemberId(Boolean(profile.show_member_id));
       setError(null);
       setSaveSuccess(false);
     }
@@ -175,6 +179,7 @@ export function EditProfileModal({
       skills: parsedSkills,
       languages: parsedLanguages,
       profile_visibility: privacyScope,
+      show_member_id: showMemberId,
     };
 
     try {
@@ -615,6 +620,24 @@ export function EditProfileModal({
                   <div className="font-bold text-[#171717]">Only Me</div>
                   <div className="text-[10px] text-[#77716b]">Hidden from search</div>
                 </button>
+              </div>
+
+              {/* Member ID Visibility Toggle */}
+              <div className="mt-3 pt-3 border-t border-[#f0efee] rounded-2xl bg-[#faf9f8] p-3 border border-[#ded8d1]">
+                <label className="flex items-center justify-between cursor-pointer gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold text-[#171717]">Show MGN Member ID on Profile</div>
+                    <div className="text-[11px] text-[#77716b] mt-0.5">
+                      Allow other healthcare professionals visiting your profile to view your official Member ID badge. By default, it is hidden.
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={showMemberId}
+                    onChange={(e) => setShowMemberId(e.target.checked)}
+                    className="size-4.5 rounded border-[#ded8d1] text-[#0f4c81] focus:ring-[#0f4c81] cursor-pointer"
+                  />
+                </label>
               </div>
             </div>
 
