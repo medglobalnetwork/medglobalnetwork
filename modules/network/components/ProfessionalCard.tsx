@@ -339,167 +339,164 @@ export function ProfessionalCard({
   }
 
   // ─────────────────────────────────────────────────────────
-  // Grid Variant: Balanced, Compact Healthcare Card
+  // Grid Variant: Clean Minimalist Healthcare Profile Card
   // ─────────────────────────────────────────────────────────
   return (
-    <div className="group relative flex flex-col justify-between items-center text-center rounded-2xl border border-[#ded8d1] bg-white p-3.5 sm:p-4 shadow-2xs hover:shadow-xs hover:border-[#0f4c81]/30 transition-all duration-150">
-      {/* Top-Right Three Dots Menu */}
-      <div className="absolute right-2 top-2 sm:right-2.5 sm:top-2.5 z-20" ref={menuRef}>
-        <button
-          type="button"
-          onClick={() => setShowMenu(!showMenu)}
-          className="flex size-7 items-center justify-center rounded-full text-[#8a8784] hover:bg-[#f0efee] hover:text-[#171717] transition cursor-pointer"
-          title="More options"
-          aria-label="More options"
+    <div className="group relative flex flex-col items-center text-center p-3 sm:p-3.5 rounded-2xl bg-white hover:bg-[#faf9f8] transition-all duration-150">
+      {/* 1. Circular Profile Picture */}
+      <button
+        type="button"
+        onClick={() => router.push(`/profile/${destinationSlug}`)}
+        className="relative group/avatar focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded-full cursor-pointer"
+      >
+        <div
+          className="size-16 sm:size-18 rounded-full overflow-hidden flex items-center justify-center text-base sm:text-lg font-bold text-[#3f3f3c] border-2 border-white shadow-2xs ring-1 ring-[#ded8d1] transition duration-200 group-hover/avatar:scale-105"
+          style={{ background: avatarColor }}
         >
-          <MoreVertical className="size-3.5" />
-        </button>
+          {customImageSrc ? (
+            <img
+              src={customImageSrc}
+              alt={profile.name}
+              className="h-full w-full rounded-full object-cover"
+            />
+          ) : (
+            initials
+          )}
+        </div>
 
-        {showMenu && (
-          <div className="absolute right-0 top-full z-40 mt-1 w-44 rounded-2xl border border-[#ded8d1] bg-white p-1.5 shadow-xl text-left animate-in fade-in zoom-in-95 duration-100">
-            <button
-              type="button"
-              onClick={() => {
-                setShowMenu(false);
-                router.push(`/profile/${destinationSlug}`);
-              }}
-              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8] hover:text-[#171717]"
-            >
-              <User className="size-3.5 text-[#0f4c81]" />
-              View profile
-            </button>
-            <button
-              type="button"
-              onClick={handleToggleFollow}
-              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8] hover:text-[#171717]"
-            >
-              {isFollowing ? (
-                <>
-                  <UserCheck className="size-3.5 text-emerald-600" />
-                  Following
-                </>
-              ) : (
-                <>
-                  <UserPlus className="size-3.5 text-[#0f4c81]" />
-                  Follow
-                </>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowMenu(false);
-                router.push(`/messages?to=${profile.user_id}`);
-              }}
-              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8] hover:text-[#171717]"
-            >
-              <MessageSquare className="size-3.5 text-[#0f4c81]" />
-              Message
-            </button>
-            <button
-              type="button"
-              onClick={handleShare}
-              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8] hover:text-[#171717]"
-            >
-              {copied ? <Check className="size-3.5 text-emerald-600" /> : <Share2 className="size-3.5" />}
-              {copied ? "Copied!" : "Share account"}
-            </button>
-            <div className="my-1 border-t border-[#f0efee]" />
-            <button
-              type="button"
-              onClick={handleBlock}
-              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
-            >
-              <Ban className="size-3.5 text-rose-500" />
-              Block
-            </button>
-            <button
-              type="button"
-              onClick={handleReport}
-              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
-            >
-              <Flag className="size-3.5 text-rose-500" />
-              Report
-            </button>
-          </div>
+        {profile.is_founding_member && (
+          <span
+            className="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-950 shadow-xs ring-1 ring-white text-[10px]"
+            title="Founding Member"
+          >
+            👑
+          </span>
         )}
-      </div>
+      </button>
 
-      {/* Main Profile Info Column */}
-      <div className="flex flex-col items-center text-center w-full pt-0.5">
-        {/* Circular Avatar */}
+      {/* 2. Name with Verification Badge */}
+      <div className="mt-2.5 flex items-center justify-center gap-1 flex-wrap max-w-full px-1">
         <button
           type="button"
           onClick={() => router.push(`/profile/${destinationSlug}`)}
-          className="relative group/avatar focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] rounded-full"
+          className="truncate text-xs sm:text-sm font-bold text-[#171717] hover:text-[#0f4c81] transition text-center cursor-pointer"
         >
-          <div
-            className="size-14 sm:size-16 rounded-full overflow-hidden flex items-center justify-center text-base sm:text-lg font-bold text-[#3f3f3c] border-2 border-white shadow-2xs ring-1 ring-[#0f4c81]/15 transition duration-200 group-hover/avatar:scale-105"
-            style={{ background: avatarColor }}
-          >
-            {customImageSrc ? (
-              <img
-                src={customImageSrc}
-                alt={profile.name}
-                className="h-full w-full rounded-full object-cover"
-              />
-            ) : (
-              initials
-            )}
-          </div>
-
-          {profile.is_founding_member && (
-            <span
-              className="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-950 shadow-xs ring-1 ring-white text-[10px]"
-              title="Founding Member"
-            >
-              👑
-            </span>
-          )}
+          {profile.name}
         </button>
+        {isVerified && <VerificationBadge size="sm" />}
+      </div>
 
-        {/* Name with Verification Badge */}
-        <div className="mt-2.5 flex items-center justify-center gap-1 flex-wrap max-w-full px-1">
-          <button
-            type="button"
-            onClick={() => router.push(`/profile/${destinationSlug}`)}
-            className="truncate text-xs sm:text-sm font-bold text-[#171717] hover:text-[#0f4c81] transition text-center"
-          >
-            {profile.name}
-          </button>
-          {isVerified && <VerificationBadge size="sm" />}
-        </div>
-
-        {/* Profession */}
-        <p className="mt-0.5 truncate text-[11px] sm:text-xs font-semibold text-[#0f4c81] max-w-full px-1">
+      {/* 3. Some Info */}
+      <div className="mt-0.5 space-y-0.5 max-w-full px-1">
+        <p className="truncate text-[11px] sm:text-xs font-semibold text-[#0f4c81]">
           {profile.designation || profile.profession || "Healthcare Professional"}
         </p>
 
-        {/* Specialization */}
         {profile.specialization && (
-          <p className="mt-0.5 truncate text-[10px] sm:text-[11px] text-[#77716b] font-medium max-w-full px-1">
+          <p className="truncate text-[10px] sm:text-[11px] text-[#77716b] font-medium">
             {profile.specialization}
           </p>
         )}
 
-        {/* Organization / City */}
         {(profile.organization || profile.city) && (
-          <p className="mt-0.5 truncate text-[10px] text-[#8a8784] font-medium max-w-full px-1">
+          <p className="truncate text-[10px] text-[#8a8784] font-medium">
             {[profile.organization, profile.city].filter(Boolean).join(" · ")}
           </p>
         )}
       </div>
 
-      {/* Connect Button at Bottom */}
-      <div className="mt-3 w-full pt-1">
+      {/* 4. Connect Button + Three-dot Menu side-by-side */}
+      <div className="mt-3 flex items-center justify-center gap-1.5 w-full max-w-[200px]">
         <ConnectionButton
           targetUserId={profile.user_id}
           initialStatus={connectionStatus}
           onStatusChange={handleStatusChange}
           onConnectClick={() => setShowModal(true)}
           size="sm"
-          className="w-full justify-center !rounded-xl !py-1.5 !text-xs"
+          className="flex-1 justify-center rounded-xl !py-1.5 !text-xs"
         />
+
+        {/* 3-dots Menu Button next to Connect */}
+        <div className="relative shrink-0" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setShowMenu(!showMenu)}
+            className="flex size-7.5 items-center justify-center rounded-xl border border-[#ded8d1] bg-white text-[#77716b] hover:bg-[#f0efee] hover:text-[#171717] transition cursor-pointer"
+            title="More options"
+            aria-label="More options"
+          >
+            <MoreVertical className="size-3.5" />
+          </button>
+
+          {showMenu && (
+            <div className="absolute right-0 top-full z-40 mt-1 w-44 rounded-2xl border border-[#ded8d1] bg-white p-1.5 shadow-xl text-left animate-in fade-in zoom-in-95 duration-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMenu(false);
+                  router.push(`/profile/${destinationSlug}`);
+                }}
+                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8] hover:text-[#171717]"
+              >
+                <User className="size-3.5 text-[#0f4c81]" />
+                View profile
+              </button>
+              <button
+                type="button"
+                onClick={handleToggleFollow}
+                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8] hover:text-[#171717]"
+              >
+                {isFollowing ? (
+                  <>
+                    <UserCheck className="size-3.5 text-emerald-600" />
+                    Following
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="size-3.5 text-[#0f4c81]" />
+                    Follow
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMenu(false);
+                  router.push(`/messages?to=${profile.user_id}`);
+                }}
+                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8] hover:text-[#171717]"
+              >
+                <MessageSquare className="size-3.5 text-[#0f4c81]" />
+                Message
+              </button>
+              <button
+                type="button"
+                onClick={handleShare}
+                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#faf9f8] hover:text-[#171717]"
+              >
+                {copied ? <Check className="size-3.5 text-emerald-600" /> : <Share2 className="size-3.5" />}
+                {copied ? "Copied!" : "Share account"}
+              </button>
+              <div className="my-1 border-t border-[#f0efee]" />
+              <button
+                type="button"
+                onClick={handleBlock}
+                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+              >
+                <Ban className="size-3.5 text-rose-500" />
+                Block
+              </button>
+              <button
+                type="button"
+                onClick={handleReport}
+                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+              >
+                <Flag className="size-3.5 text-rose-500" />
+                Report
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {showModal && (
