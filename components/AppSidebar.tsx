@@ -27,6 +27,7 @@ import {
   Pin,
   PinOff,
   Plus,
+  Package,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { getUserAvatarUrl } from "@/lib/avatar";
@@ -64,7 +65,7 @@ export const WORKSPACE_NAV_ITEMS: NavItem[] = [
 export const LEARN_WORKSPACE_NAV_ITEMS: NavItem[] = [
   { id: "learn-dashboard", label: "Dashboard", href: "/learn", icon: Home, icon8Id: "i6fZC6wuprSu" },
   { id: "learn-explore", label: "Explore", href: "/learn/explore", icon: Compass, icon8Id: "AvANlXOxUB6Z" },
-  { id: "learn-mybox", label: "My Box", href: "/learn/my-box", icon: GraduationCap, icon8Id: "IOkzpfWnUztj" },
+  { id: "learn-mybox", label: "My Box", href: "/learn/my-box", icon: Package, icon8Id: "FnCSMZbfR6RU" },
   { id: "learn-instructor", label: "Instructor Studio", href: "/learn/instructor", icon: Plus, icon8Id: "SpuYztywr0Vl" },
 ];
 

@@ -32,11 +32,25 @@ interface LearnNavItem {
 const learnNavItems: LearnNavItem[] = [
   { id: "dashboard", label: "Dashboard", href: "/learn",         icon8Id: "i6fZC6wuprSu" },
   { id: "explore",   label: "Explore",   href: "/learn/explore", icon8Id: "AvANlXOxUB6Z" },
-  { id: "mybox",     label: "My Box",    href: "/learn/my-box",  icon8Id: "IOkzpfWnUztj" },
+  { id: "mybox",     label: "My Box",    href: "/learn/my-box",  icon8Id: "FnCSMZbfR6RU" },
   { id: "askai",     label: "Ask AI" },
 ];
 
 /* ── Fallback Icons (filled = active, outline = inactive) ── */
+function BoxFallback({ active }: { active: boolean }) {
+  return active ? (
+    <svg viewBox="0 0 24 24" className="size-6" fill="currentColor" stroke="none" aria-hidden="true">
+      <path d="M21 16.5l-9 5.2-9-5.2V7.5L12 2.3l9 5.2v9zM12 4.1L5.5 7.8 12 11.5l6.5-3.7L12 4.1zM4.5 9.2v6.2l6.5 3.7V13L4.5 9.2zm15 0L13 13v6.1l6.5-3.7V9.2z" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+      <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+      <line x1="12" y1="22.08" x2="12" y2="12" />
+    </svg>
+  );
+}
+
 function HomeFallback({ active }: { active: boolean }) {
   return active ? (
     <svg viewBox="0 0 24 24" className="size-6" fill="currentColor" stroke="none" aria-hidden="true">
@@ -198,7 +212,7 @@ export default function AppBottomNav({ onOpenAskAI }: { onOpenAskAI?: () => void
               );
             }
 
-            const Fallback = item.id === "dashboard" ? HomeFallback : item.id === "explore" ? LearnFallback : OpportunitiesFallback;
+            const Fallback = item.id === "dashboard" ? HomeFallback : item.id === "explore" ? LearnFallback : BoxFallback;
 
             return (
               <button

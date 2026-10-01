@@ -25,7 +25,8 @@
       "groups": { "id": "4C2pzaBlIDEO", "commonName": "groups" },
       "shield": { "id": "vy6OvJYHSJ8I", "commonName": "shield" },
       "crown": { "id": "JYQrEM0EyitQ", "commonName": "crown" },
-      "centralized-network": { "id": "SKiePQ8wY2FG", "commonName": "centralized-network" }
+      "centralized-network": { "id": "SKiePQ8wY2FG", "commonName": "centralized-network" },
+      "mybox": { "id": "FnCSMZbfR6RU", "commonName": "box" }
     }
   },
   "illustrations": {
