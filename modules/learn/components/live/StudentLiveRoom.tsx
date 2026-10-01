@@ -34,6 +34,7 @@ import {
   LiveNoteRecord,
 } from "@/modules/learn/lib/live-classroom-db";
 import { LiveVoiceDoubtModal } from "./LiveVoiceDoubtModal";
+import { ResourceViewerModal } from "../resources/ResourceViewerModal";
 
 interface StudentLiveRoomProps {
   session: LiveSessionRecord;
@@ -77,6 +78,7 @@ export function StudentLiveRoom({ session: initialSession, currentUser }: Studen
 
   // Resources Data
   const [resources, setResources] = React.useState<LiveResourceRecord[]>([]);
+  const [selectedViewerResourceId, setSelectedViewerResourceId] = React.useState<string | null>(null);
 
   // Attendance & Time tracking
   const [elapsedSeconds, setElapsedSeconds] = React.useState(0);
@@ -778,21 +780,36 @@ export function StudentLiveRoom({ session: initialSession, currentUser }: Studen
                   resources.map((res) => (
                     <div
                       key={res.id}
-                      className="flex items-center justify-between rounded-xl bg-[#21262d] p-3 border border-[#30363d]"
+                      className="flex items-center justify-between rounded-xl bg-[#21262d] p-3 border border-[#30363d] gap-2"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <FileText className="size-4 text-[#58a6ff] shrink-0" />
-                        <span className="text-xs font-semibold text-slate-200 truncate">{res.title}</span>
-                      </div>
-                      <a
-                        href={res.file_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 rounded-lg bg-[#0f4c81] px-2.5 py-1 text-xs font-bold text-white hover:bg-[#0c3c66] transition"
+                      <div
+                        onClick={() => {
+                          if (res.resource_id) {
+                            setSelectedViewerResourceId(res.resource_id);
+                          } else if (res.file_url) {
+                            window.open(res.file_url, "_blank");
+                          }
+                        }}
+                        className="flex items-center gap-2 min-w-0 cursor-pointer flex-1"
                       >
-                        <Download className="size-3" />
-                        <span>Get</span>
-                      </a>
+                        <FileText className="size-4 text-[#58a6ff] shrink-0" />
+                        <span className="text-xs font-semibold text-slate-200 truncate hover:text-[#58a6ff]">
+                          {res.title}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (res.resource_id) {
+                            setSelectedViewerResourceId(res.resource_id);
+                          } else if (res.file_url) {
+                            window.open(res.file_url, "_blank");
+                          }
+                        }}
+                        className="flex items-center gap-1 rounded-lg bg-[#0f4c81] px-2.5 py-1 text-xs font-bold text-white hover:bg-[#0c3c66] transition cursor-pointer"
+                      >
+                        <span>Open</span>
+                      </button>
                     </div>
                   ))
                 )}
@@ -808,6 +825,16 @@ export function StudentLiveRoom({ session: initialSession, currentUser }: Studen
         onClose={() => setIsVoiceDoubtOpen(false)}
         onSubmit={handleVoiceDoubtSubmit}
       />
+
+      {/* Live Classroom Resource Viewer Modal */}
+      {selectedViewerResourceId && (
+        <ResourceViewerModal
+          resourceId={selectedViewerResourceId}
+          isOpen={Boolean(selectedViewerResourceId)}
+          onClose={() => setSelectedViewerResourceId(null)}
+          courseId={session.course_id || undefined}
+        />
+      )}
     </div>
   );
 }

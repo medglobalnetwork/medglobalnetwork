@@ -20,6 +20,7 @@ export default function LessonPage() {
   const [curriculum, setCurriculum] = React.useState<CourseModule[]>([]);
   const [courseTitle, setCourseTitle] = React.useState<string>("");
   const [courseId, setCourseId] = React.useState<string>("");
+  const [isInstructor, setIsInstructor] = React.useState<boolean>(false);
   const [activeQuiz, setActiveQuiz] = React.useState<Quiz | null>(null);
   const [completedCertCode, setCompletedCertCode] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -40,6 +41,7 @@ export default function LessonPage() {
           setCurrentLesson(data.lesson);
           setCourseId(data.courseId);
           setCourseTitle(data.courseTitle);
+          setIsInstructor(Boolean(data.isInstructor));
           setCurriculum(data.curriculum || []);
 
           if (data.lesson.lesson_type === "quiz") {
@@ -193,6 +195,7 @@ export default function LessonPage() {
                 lesson={currentLesson}
                 courseTitle={courseTitle}
                 courseId={courseId}
+                isInstructor={isInstructor}
                 onCompleteLesson={loadLessonData}
                 onNextLesson={handleNextLesson}
                 onPrevLesson={handlePrevLesson}

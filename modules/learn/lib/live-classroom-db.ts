@@ -243,6 +243,7 @@ export interface LiveResourceRecord {
   title: string;
   resource_type: "pdf" | "case_study" | "presentation" | "reference" | "link";
   file_url: string;
+  resource_id?: string | null;
   file_size_bytes?: number | null;
   download_count: number;
   created_at: string;

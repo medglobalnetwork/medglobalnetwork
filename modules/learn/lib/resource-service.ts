@@ -355,9 +355,9 @@ export async function evaluateEffectivePermission(
     };
   }
 
-  // Check if user is the resource instructor or site admin
-  const isInstructor = resource.instructor_id === userId;
-  if (isInstructor) {
+  // Check if user is the resource creator
+  const isCreator = resource.instructor_id === userId;
+  if (isCreator) {
     return {
       canView: true,
       canDownload: true,
@@ -365,8 +365,29 @@ export async function evaluateEffectivePermission(
       canCopy: true,
       canOffline: true,
       isInstructor: true,
-      reason: "Instructor full access",
+      reason: "Resource creator full access",
     };
+  }
+
+  // Check if user is the course instructor
+  if (resource.course_id) {
+    const course = await resourceDb
+      .selectFrom("courses")
+      .select("instructor_id")
+      .where("id", "=", resource.course_id)
+      .executeTakeFirst();
+
+    if (course && course.instructor_id === userId) {
+      return {
+        canView: true,
+        canDownload: true,
+        canPrint: true,
+        canCopy: true,
+        canOffline: true,
+        isInstructor: true,
+        reason: "Course instructor full access",
+      };
+    }
   }
 
   // Quarantined / Rejected / Processing Failed resources cannot be viewed by general users
@@ -385,7 +406,7 @@ export async function evaluateEffectivePermission(
     };
   }
 
-  // Check Availability Window
+  // Check Resource Availability Window
   const now = new Date();
   if (resource.available_from && new Date(resource.available_from) > now) {
     return {
@@ -410,10 +431,11 @@ export async function evaluateEffectivePermission(
   }
 
   // Check Course Enrollment if attached to a course and not marked public
+  let userEnrollment: { id: string; status: string; created_at?: Date } | null = null;
   if (resource.course_id && !resource.is_public) {
     const enrollment = await resourceDb
       .selectFrom("course_enrollments")
-      .select(["id", "status"])
+      .select(["id", "status", "created_at"])
       .where("course_id", "=", resource.course_id)
       .where("user_id", "=", userId)
       .executeTakeFirst();
@@ -428,6 +450,7 @@ export async function evaluateEffectivePermission(
         reason: "Course enrollment required",
       };
     }
+    userEnrollment = enrollment;
   }
 
   // Resolve Permission Hierarchy:
@@ -468,6 +491,45 @@ export async function evaluateEffectivePermission(
       .where("course_id", "=", resource.course_id)
       .where("resource_id", "is", null)
       .executeTakeFirst();
+  }
+
+  // Check policy duration restrictions if specified
+  if (policy) {
+    if (
+      policy.access_duration_type === "until_date" &&
+      policy.access_valid_until &&
+      new Date(policy.access_valid_until) < now
+    ) {
+      return {
+        canView: false,
+        canDownload: false,
+        canPrint: false,
+        canCopy: false,
+        canOffline: false,
+        reason: `Resource access expired on ${new Date(policy.access_valid_until).toLocaleDateString()}`,
+      };
+    }
+
+    if (
+      policy.access_duration_type === "custom_days" &&
+      policy.access_days &&
+      userEnrollment?.created_at
+    ) {
+      const enrollmentDate = new Date(userEnrollment.created_at);
+      const accessExpireDate = new Date(
+        enrollmentDate.getTime() + policy.access_days * 24 * 60 * 60 * 1000
+      );
+      if (now > accessExpireDate) {
+        return {
+          canView: false,
+          canDownload: false,
+          canPrint: false,
+          canCopy: false,
+          canOffline: false,
+          reason: `Your ${policy.access_days}-day resource access window has expired`,
+        };
+      }
+    }
   }
 
   const allowView = policy ? policy.allow_view : true;

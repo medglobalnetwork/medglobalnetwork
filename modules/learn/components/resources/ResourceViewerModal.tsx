@@ -167,9 +167,51 @@ export function ResourceViewerModal({
   };
   const handleRotate = () => setRotation((prev) => (prev + 90) % 360);
 
+  // Print Handler
+  const handlePrint = () => {
+    if (!canPrint) return;
+    window.print();
+  };
+
   // Download Handler
   const handleDownload = async () => {
     if (!canDownload) return;
+
+    // For Native Notes without remote file, export structured note content
+    if (resource?.resource_type === "notes" && !resource.storage_key && !resource.file_url) {
+      const noteTitle = resource.title || "Clinical Notes";
+      const sections = resource.native_content?.sections || [];
+      let textContent = `# ${noteTitle}\nCategory: ${resource.category}\n\n`;
+      if (resource.description) {
+        textContent += `> ${resource.description}\n\n`;
+      }
+      for (const sec of sections) {
+        if (sec.type === "heading") {
+          textContent += `\n## ${sec.content}\n\n`;
+        } else if (sec.type === "clinical_callout") {
+          textContent += `\n[CLINICAL NOTE]: ${sec.content}\n\n`;
+        } else if (sec.type === "warning") {
+          textContent += `\n[WARNING]: ${sec.content}\n\n`;
+        } else if (sec.type === "key_takeaway") {
+          textContent += `\n[KEY TAKEAWAY]: ${sec.content}\n\n`;
+        } else {
+          textContent += `${sec.content}\n\n`;
+        }
+      }
+      textContent += `\n---\nExported from MGN Learn • ${new Date().toLocaleDateString()}`;
+
+      const blob = new Blob([textContent], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${noteTitle.replace(/[^a-z0-9]/gi, "_")}.md`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      return;
+    }
+
     try {
       const res = await fetch(`/api/learn/resources/${resourceId}/download`);
       const data = await res.json();
@@ -381,6 +423,18 @@ export function ResourceViewerModal({
                 className="p-2 rounded-xl bg-[#21262d]/50 text-white/30 cursor-not-allowed"
               >
                 <Lock className="size-4" />
+              </button>
+            )}
+
+            {/* Print Button (if permitted) */}
+            {canPrint && (
+              <button
+                type="button"
+                onClick={handlePrint}
+                title="Print this resource"
+                className="p-2 rounded-xl bg-[#21262d] text-white/70 hover:text-white hover:bg-[#30363d] transition cursor-pointer"
+              >
+                <Printer className="size-4" />
               </button>
             )}
 

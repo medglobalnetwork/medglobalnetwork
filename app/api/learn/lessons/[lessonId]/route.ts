@@ -19,7 +19,7 @@ export async function GET(
       .selectFrom("course_lessons as l")
       .innerJoin("courses as c", "c.id", "l.course_id")
       .selectAll("l")
-      .select(["c.title as course_title", "c.id as course_id"])
+      .select(["c.title as course_title", "c.id as course_id", "c.instructor_id as course_instructor_id"])
       .where("l.id", "=", lessonId)
       .executeTakeFirst();
 
@@ -28,6 +28,9 @@ export async function GET(
     }
 
     const curriculum = await getCourseCurriculum(rawLesson.course_id, session?.user?.id);
+    const isInstructor = Boolean(
+      session?.user?.id && session.user.id === (rawLesson as any).course_instructor_id
+    );
 
     return Response.json({
       lesson: {
@@ -47,6 +50,7 @@ export async function GET(
       },
       courseId: rawLesson.course_id,
       courseTitle: rawLesson.course_title,
+      isInstructor,
       curriculum,
     });
   } catch (err: any) {

@@ -46,6 +46,7 @@ interface LessonPlayerProps {
   onPrevLesson?: () => void;
   hasNext?: boolean;
   hasPrev?: boolean;
+  isInstructor?: boolean;
 }
 
 export function LessonPlayer({
@@ -57,11 +58,13 @@ export function LessonPlayer({
   onPrevLesson,
   hasNext = false,
   hasPrev = false,
+  isInstructor = false,
 }: LessonPlayerProps) {
   const [activeTab, setActiveTab] = React.useState<
     "overview" | "chapters" | "transcript" | "notes" | "bookmarks" | "discussion" | "resources" | "analytics"
   >("overview");
 
+  const [resourceCount, setResourceCount] = React.useState(lesson.resources?.length || 0);
   const [theaterMode, setTheaterMode] = React.useState(false);
   const [currentPlaybackTime, setCurrentPlaybackTime] = React.useState(0);
   const [isMarkingComplete, setIsMarkingComplete] = React.useState(false);
@@ -413,7 +416,7 @@ export function LessonPlayer({
             { id: "notes", label: `My Notes (${notes.length})` },
             { id: "bookmarks", label: `Bookmarks (${bookmarks.length})` },
             { id: "discussion", label: `Discussion (${discussions.length})` },
-            { id: "resources", label: `Resources (${lesson.resources?.length || 0})` },
+            { id: "resources", label: `Resources (${resourceCount})` },
             { id: "analytics", label: "Analytics" },
           ].map((tab) => {
             const active = activeTab === tab.id;
@@ -822,7 +825,8 @@ export function LessonPlayer({
           <TeacherResourceManager
             courseId={courseId || lesson.course_id}
             lessonId={lesson.id}
-            isInstructor={true}
+            isInstructor={isInstructor}
+            onResourceCountChange={(cnt) => setResourceCount(cnt)}
           />
         )}
 

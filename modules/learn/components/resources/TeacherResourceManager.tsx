@@ -32,6 +32,7 @@ interface TeacherResourceManagerProps {
   moduleId?: string;
   lessonId?: string;
   isInstructor?: boolean;
+  onResourceCountChange?: (count: number) => void;
 }
 
 export function TeacherResourceManager({
@@ -39,6 +40,7 @@ export function TeacherResourceManager({
   moduleId,
   lessonId,
   isInstructor = true,
+  onResourceCountChange,
 }: TeacherResourceManagerProps) {
   const [resources, setResources] = React.useState<LearningResource[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -77,17 +79,62 @@ export function TeacherResourceManager({
       const data = await res.json();
       if (res.ok && Array.isArray(data.resources)) {
         setResources(data.resources);
+        if (onResourceCountChange) {
+          onResourceCountChange(data.resources.length);
+        }
       }
     } catch (err) {
       console.error("Failed to load resources:", err);
     } finally {
       setLoading(false);
     }
-  }, [courseId, lessonId]);
+  }, [courseId, lessonId, onResourceCountChange]);
 
   React.useEffect(() => {
     fetchResources();
   }, [fetchResources]);
+
+  // Handle Bookmark Toggle
+  const handleToggleBookmark = async (resourceId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const res = await fetch(`/api/learn/resources/${resourceId}/bookmark`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setResources((prev) =>
+          prev.map((r) =>
+            r.id === resourceId ? { ...r, is_bookmarked: data.bookmarked } : r
+          )
+        );
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Handle Direct Download
+  const handleDirectDownload = async (resource: LearningResource, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const res = await fetch(`/api/learn/resources/${resource.id}/download`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Download not permitted");
+
+      if (data.downloadUrl) {
+        const link = document.createElement("a");
+        link.href = data.downloadUrl;
+        link.download = data.fileName || "learning-resource";
+        link.target = "_blank";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to download resource");
+    }
+  };
 
   // Handle Pin Toggle
   const handleTogglePin = async (resource: LearningResource) => {
@@ -391,6 +438,32 @@ export function TeacherResourceManager({
 
                 {/* Right Action Buttons */}
                 <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                  {/* Bookmark / Save to My Box */}
+                  <button
+                    type="button"
+                    onClick={(e) => handleToggleBookmark(res.id, e)}
+                    title={res.is_bookmarked ? "Saved in My Box" : "Save to My Box"}
+                    className={`p-1.5 rounded-xl border transition cursor-pointer ${
+                      res.is_bookmarked
+                        ? "bg-[#0f4c81] text-white border-[#0f4c81]"
+                        : "border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#21262d] text-[#5d5854] dark:text-[#8b949e] hover:text-[#0f4c81]"
+                    }`}
+                  >
+                    <BookOpen className="size-3.5" />
+                  </button>
+
+                  {/* Direct Download if permitted */}
+                  {isDownloadAllowed && (
+                    <button
+                      type="button"
+                      onClick={(e) => handleDirectDownload(res, e)}
+                      title="Download Resource"
+                      className="p-1.5 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 transition cursor-pointer"
+                    >
+                      <Download className="size-3.5" />
+                    </button>
+                  )}
+
                   {/* Open Viewer */}
                   <button
                     type="button"
