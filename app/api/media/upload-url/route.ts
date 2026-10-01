@@ -18,11 +18,22 @@ const ALLOWED_MIME_TYPES = [
   "application/pdf",
 ];
 
+import { checkRateLimit } from "@/lib/security";
+
 export async function POST(request: Request) {
   try {
     const session = await auth.api.getSession({ headers: await headers() });
     if (!session?.user) {
       return Response.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    // Rate limit presigned URL generation (max 30 per minute)
+    const rateLimit = checkRateLimit(`upload-url:${session.user.id}`, 30, 60000);
+    if (!rateLimit.allowed) {
+      return Response.json(
+        { error: "Too many upload requests. Please wait a moment." },
+        { status: 429 }
+      );
     }
 
     const body = await request.json();
@@ -43,8 +54,9 @@ export async function POST(request: Request) {
     }
 
     const sanitizedFolder = folder.replace(/[^a-zA-Z0-9_-]/g, "");
+    const safeFolder = sanitizedFolder || "posts";
     const safeFileName = slugifyFileName(fileName);
-    const key = `${sanitizedFolder}/${session.user.id}/${Date.now()}-${safeFileName}`;
+    const key = `${safeFolder}/${session.user.id}/${Date.now()}-${safeFileName}`;
 
     const presignedData = await generatePresignedUploadUrl({
       key,

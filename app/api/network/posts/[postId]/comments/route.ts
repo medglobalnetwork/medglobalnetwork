@@ -42,6 +42,8 @@ export async function GET(
   }
 }
 
+import { sanitizeText, checkRateLimit } from "@/lib/security";
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ postId: string }> }
@@ -49,6 +51,15 @@ export async function POST(
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
     return Response.json({ error: "Authentication required" }, { status: 401 });
+  }
+
+  // Rate limit: max 30 comments per minute
+  const rateLimit = checkRateLimit(`comment:${session.user.id}`, 30, 60000);
+  if (!rateLimit.allowed) {
+    return Response.json(
+      { error: "Commenting rate limit reached. Please wait a moment." },
+      { status: 429 }
+    );
   }
 
   const { postId } = await params;
@@ -59,8 +70,9 @@ export async function POST(
       parentId?: string;
     };
 
-    if (!content?.trim()) {
-      return Response.json({ error: "Comment content is required" }, { status: 400 });
+    const sanitizedContent = sanitizeText(content, 2000);
+    if (!sanitizedContent) {
+      return Response.json({ error: "Comment content cannot be empty" }, { status: 400 });
     }
 
     const id = generateId();
@@ -73,7 +85,7 @@ export async function POST(
         post_id: postId,
         author_id: session.user.id,
         parent_id: parentId ?? null,
-        content: content.trim(),
+        content: sanitizedContent,
         created_at: now,
         updated_at: now,
       })

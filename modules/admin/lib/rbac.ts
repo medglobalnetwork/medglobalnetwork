@@ -151,19 +151,10 @@ export const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
   ],
 };
 
-const superAdminEmails = new Set(
-  (process.env.ADMIN_EMAILS || "patreshubham141@gmail.com,admin@mgn.life")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean),
-);
+import { serverConfig } from "@/lib/env";
 
-const superAdminPhones = new Set(
-  (process.env.ADMIN_PHONES || "")
-    .split(",")
-    .map((p) => p.trim().replace(/\D/g, ""))
-    .filter(Boolean),
-);
+const superAdminEmails = new Set(serverConfig.adminEmails);
+const superAdminPhones = new Set(serverConfig.adminPhones);
 
 export interface AdminSessionContext {
   userId: string;

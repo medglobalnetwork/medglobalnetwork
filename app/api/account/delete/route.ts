@@ -57,10 +57,22 @@ export async function GET() {
   }
 }
 
+import { checkRateLimit } from "@/lib/security";
+
 export async function POST(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const reqHeaders = await headers();
+  const session = await auth.api.getSession({ headers: reqHeaders });
   if (!session?.user) {
     return Response.json({ error: "Authentication required" }, { status: 401 });
+  }
+
+  // Rate limit account deletion password attempts: max 5 per 5 minutes per user
+  const rateLimit = checkRateLimit(`account-delete:${session.user.id}`, 5, 300000);
+  if (!rateLimit.allowed) {
+    return Response.json(
+      { error: "Too many deletion attempts. Please wait 5 minutes." },
+      { status: 429 }
+    );
   }
 
   let hasPassword = false;

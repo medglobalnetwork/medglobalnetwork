@@ -1,9 +1,23 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { pool } from "@/lib/auth";
 import { normalizePhoneNumber } from "@/lib/phone-auth";
+import { checkRateLimit, getClientIp } from "@/lib/security";
 
 export async function POST(request: Request) {
   try {
+    const reqHeaders = await headers();
+    const clientIp = getClientIp(reqHeaders);
+
+    // Rate limit: max 20 lookups per minute per IP
+    const ipLimit = checkRateLimit(`resolve:${clientIp}`, 20, 60000);
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { found: false, error: "Too many requests. Please wait a moment." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const rawIdentifier = (body.identifier || "").trim();
 

@@ -120,10 +120,21 @@ export async function GET(request: Request) {
   }
 }
 
+import { sanitizeText, isSafeUrl, checkRateLimit } from "@/lib/security";
+
 export async function POST(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
     return Response.json({ error: "Authentication required" }, { status: 401 });
+  }
+
+  // Rate limit: max 20 posts per minute
+  const rateLimit = checkRateLimit(`post:${session.user.id}`, 20, 60000);
+  if (!rateLimit.allowed) {
+    return Response.json(
+      { error: "Posting rate limit reached. Please wait a moment." },
+      { status: 429 }
+    );
   }
 
   try {
@@ -135,8 +146,13 @@ export async function POST(request: Request) {
       mediaUrls?: string[];
     };
 
-    if (!content?.trim() && (!mediaUrls || mediaUrls.length === 0)) {
-      return Response.json({ error: "Content or media is required" }, { status: 400 });
+    const sanitizedContent = sanitizeText(content, 10000);
+    const safeMediaUrls = Array.isArray(mediaUrls)
+      ? mediaUrls.filter((url) => typeof url === "string" && isSafeUrl(url))
+      : [];
+
+    if (!sanitizedContent && safeMediaUrls.length === 0) {
+      return Response.json({ error: "Valid content or media is required" }, { status: 400 });
     }
 
     const id = generateId();
@@ -147,9 +163,9 @@ export async function POST(request: Request) {
       .values({
         id,
         author_id: session.user.id,
-        post_type: postType ?? (mediaUrls && mediaUrls.length > 0 ? "image" : "text"),
-        content: (content || "").trim(),
-        media_urls: mediaUrls && mediaUrls.length > 0 ? mediaUrls : null,
+        post_type: postType ?? (safeMediaUrls.length > 0 ? "image" : "text"),
+        content: sanitizedContent,
+        media_urls: safeMediaUrls.length > 0 ? safeMediaUrls : null,
         poll_options: null,
         poll_ends_at: null,
         community_id: communityId ?? null,

@@ -6,9 +6,21 @@ import {
   createPhoneSession,
   normalizePhoneNumber,
 } from "@/lib/phone-auth";
+import { checkRateLimit, getClientIp } from "@/lib/security";
 
 export async function POST(request: Request) {
   try {
+    const reqHeaders = await headers();
+    const clientIp = getClientIp(reqHeaders);
+
+    // IP rate limit on verification attempts: max 10 per minute
+    const ipLimit = checkRateLimit(`verify:ip:${clientIp}`, 10, 60000);
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { success: false, error: "Too many verification attempts. Please wait 1 minute." },
+        { status: 429 }
+      );
+    }
     const body = await request.json();
     const rawPhone = (body.phone || "").trim();
     const rawOtp = (body.otp || "").trim();
@@ -40,7 +52,6 @@ export async function POST(request: Request) {
     const user = await findOrCreateUserByPhone(rawPhone, fullName);
 
     // Extract headers for session tracking
-    const reqHeaders = await headers();
     const userAgent = reqHeaders.get("user-agent");
     const ipAddress =
       reqHeaders.get("x-forwarded-for")?.split(",")[0].trim() ||

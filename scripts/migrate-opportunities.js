@@ -9,7 +9,12 @@ async function migrate() {
   const connectionString =
     process.env.SUPABASE_DATABASE_URL ||
     process.env.DATABASE_URL ||
-    'postgresql://postgres.odebrozvkajmmuilutsa:Shubham2002%40@aws-0-ap-south-1.pooler.supabase.com:5432/postgres';
+    process.env.POSTGRES_URL;
+
+  if (!connectionString) {
+    console.error("❌ No database connection URL found in environment variables.");
+    process.exit(1);
+  }
 
   console.log("Connecting to PostgreSQL database...");
 

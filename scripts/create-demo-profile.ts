@@ -25,8 +25,8 @@ async function main() {
   const { auth } = await import("../lib/auth");
   const { networkDb, generateId } = await import("../modules/network/lib/network-db");
 
-  const email = "dr.rohan@mgn.life";
-  const password = "Doctor2026@";
+  const email = process.env.DEMO_USER_EMAIL || "dr.rohan@mgn.life";
+  const password = process.env.DEMO_USER_PASSWORD || "Doctor2026@";
   const name = "Dr. Rohan Malhotra, MD";
 
   console.log(`Creating / Updating Demo Clinician profile for: ${email}...`);

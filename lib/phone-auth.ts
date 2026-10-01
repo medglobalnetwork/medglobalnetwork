@@ -1,5 +1,6 @@
 import { pool } from "@/lib/auth";
 import crypto from "node:crypto";
+import { serverConfig, isProduction } from "./env";
 
 let tableEnsured = false;
 
@@ -118,17 +119,19 @@ export async function sendPhoneOtp(
   await pool.query(
     `INSERT INTO phone_verifications (id, phone, otp_hash, otp_plain, expires_at)
      VALUES ($1, $2, $3, $4, NOW() + INTERVAL '5 minutes')`,
-    [id, phone, otpHash, process.env.NODE_ENV !== "production" ? otpNumber : null]
+    [id, phone, otpHash, !isProduction ? otpNumber : null]
   );
 
   // Send SMS via Gateway if configured (e.g. Twilio / Fast2SMS / MSG91)
-  console.info(`[PHONE_AUTH] OTP for ${phone}: ${otpNumber}`);
+  if (!isProduction) {
+    console.info(`[PHONE_AUTH] OTP for ${phone}: ${otpNumber}`);
+  }
 
   return {
     success: true,
     phone,
     expiresInSeconds: 300,
-    devOtp: process.env.NODE_ENV !== "production" ? otpNumber : undefined,
+    devOtp: !isProduction ? otpNumber : undefined,
     message: `Verification code sent to ${phone}`,
   };
 }
@@ -296,7 +299,7 @@ export async function createPhoneSession(
   }
 
   // Sign token using better-auth secret
-  const secret = process.env.BETTER_AUTH_SECRET || "mgn-auth-super-secret-key-2026-production-stable-mgnlife";
+  const secret = serverConfig.authSecret;
   let signedSessionToken = sessionToken;
 
   try {

@@ -9,14 +9,15 @@
 
 import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { serverConfig } from "./env";
 
-const accountId = process.env.CLOUDFLARE_ACCOUNT_ID || "";
-const accessKeyId = process.env.R2_ACCESS_KEY_ID || "";
-const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY || "";
-const bucketName = process.env.R2_BUCKET_NAME || "";
-const mediaDomain = process.env.NEXT_PUBLIC_R2_MEDIA_DOMAIN || "https://media.mgn.life";
+const accountId = serverConfig.r2.accountId;
+const accessKeyId = serverConfig.r2.accessKeyId;
+const secretAccessKey = serverConfig.r2.secretAccessKey;
+const bucketName = serverConfig.r2.bucketName;
+const mediaDomain = serverConfig.r2.mediaDomain;
 
-export const isR2Configured = Boolean(accountId && accessKeyId && secretAccessKey && bucketName);
+export const isR2Configured = serverConfig.r2.isConfigured;
 
 /**
  * Singleton S3 Client configured for Cloudflare R2

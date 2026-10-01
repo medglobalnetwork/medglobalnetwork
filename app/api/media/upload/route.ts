@@ -20,11 +20,24 @@ const ALLOWED_MIME_TYPES = [
   "application/pdf",
 ];
 
+import { checkRateLimit } from "@/lib/security";
+
+const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30 MB maximum
+
 export async function POST(request: Request) {
   try {
     const session = await auth.api.getSession({ headers: await headers() });
     if (!session?.user) {
       return Response.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    // Rate limit per user: max 30 uploads per minute
+    const rateLimit = checkRateLimit(`upload:${session.user.id}`, 30, 60000);
+    if (!rateLimit.allowed) {
+      return Response.json(
+        { error: "Upload rate limit exceeded. Please wait a moment." },
+        { status: 429 }
+      );
     }
 
     const formData = await request.formData();
@@ -35,6 +48,13 @@ export async function POST(request: Request) {
       return Response.json({ error: "No file provided" }, { status: 400 });
     }
 
+    if (file.size > MAX_FILE_SIZE) {
+      return Response.json(
+        { error: `File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds the 30MB limit.` },
+        { status: 400 }
+      );
+    }
+
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
       return Response.json(
         { error: `Unsupported file type (${file.type}). Allowed: images, videos (mp4/webm/mov), and PDF.` },
@@ -43,8 +63,9 @@ export async function POST(request: Request) {
     }
 
     const sanitizedFolder = folder.replace(/[^a-zA-Z0-9_-]/g, "");
+    const safeFolder = sanitizedFolder || "posts";
     const safeFileName = slugifyFileName(file.name || "upload");
-    const key = `${sanitizedFolder}/${session.user.id}/${Date.now()}-${safeFileName}`;
+    const key = `${safeFolder}/${session.user.id}/${Date.now()}-${safeFileName}`;
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);

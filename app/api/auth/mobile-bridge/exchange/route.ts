@@ -1,10 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { exchangeMobileBridgeCode } from "@/lib/mobile-bridge";
 
+import { serverConfig, isProduction } from "@/lib/env";
+import { checkRateLimit, getClientIp } from "@/lib/security";
+import { headers } from "next/headers";
+
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
+    const reqHeaders = await headers();
+    const clientIp = getClientIp(reqHeaders);
+
+    // Rate limit bridge exchange attempts: max 20 per minute per IP
+    const ipLimit = checkRateLimit(`bridge:exchange:${clientIp}`, 20, 60000);
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again in a moment." },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     const { bridge_token } = body;
 
@@ -23,12 +39,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const isProduction = process.env.NODE_ENV === "production";
     const maxAge = 60 * 60 * 24 * 30; // 30 days
-
-    const secret =
-      process.env.BETTER_AUTH_SECRET ||
-      "mgn-auth-super-secret-key-2026-production-stable-mgnlife";
+    const secret = serverConfig.authSecret;
 
     let signedSessionToken = result.sessionToken;
     try {
