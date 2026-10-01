@@ -26,6 +26,7 @@ import {
 } from "../types";
 import { generateId } from "@/modules/network/lib/network-db";
 import { SharedCertificateService } from "@/modules/shared/certificates/certificate-service";
+import { LiveClassroomRepository, LiveSessionRecord } from "./live-classroom-db";
 
 // ─────────────────────────────────────────────
 // TABLE INTERFACES
@@ -1802,166 +1803,51 @@ export async function getLearningPaths(currentUserId?: string): Promise<Learning
 }
 
 // ─────────────────────────────────────────────
-// LIVE SESSIONS & WEBINARS
+// LIVE SESSIONS & CLASSROOM
 // ─────────────────────────────────────────────
 export async function getLiveSessions(currentUserId?: string): Promise<LiveSession[]> {
-  await ensureLearnExtensions();
   try {
-    const rawSessions = await (learnDb as any)
-      .selectFrom("learn_live_sessions as ls")
-      .innerJoin("user as u", "u.id", "ls.instructor_id")
-      .leftJoin("professional_profiles as pp", "pp.user_id", "ls.instructor_id")
-      .select([
-        "ls.id",
-        "ls.instructor_id",
-        "ls.title",
-        "ls.description",
-        "ls.category",
-        "ls.specialty",
-        "ls.scheduled_at",
-        "ls.duration_minutes",
-        "ls.meeting_url",
-        "ls.thumbnail",
-        "ls.max_participants",
-        "ls.registered_count",
-        "ls.status",
-        "ls.created_at",
-        "u.name as instructor_name",
-        "u.image as instructor_image",
-        "pp.profession as instructor_profession",
-        "pp.specialization as instructor_specialization",
-        "pp.designation as instructor_designation",
-      ])
-      .where("ls.status", "in", ["upcoming", "live"])
-      .orderBy("ls.scheduled_at", "asc")
-      .execute();
-
-    let regSet = new Set<string>();
-    if (currentUserId && rawSessions.length > 0) {
-      const regList = await (learnDb as any)
-        .selectFrom("learn_live_registrations")
-        .select(["session_id"])
-        .where("user_id", "=", currentUserId)
-        .execute();
-      for (const r of regList) regSet.add(r.session_id);
-    }
-
-    if (rawSessions && rawSessions.length > 0) {
-      return rawSessions.map((s: any) => ({
-        id: s.id,
-        instructor_id: s.instructor_id,
-        title: s.title,
-        description: s.description,
-        category: s.category,
-        specialty: s.specialty,
-        scheduled_at: new Date(s.scheduled_at).toISOString(),
-        duration_minutes: Number(s.duration_minutes) || 60,
-        meeting_url: s.meeting_url,
-        thumbnail: s.thumbnail,
-        max_participants: s.max_participants,
-        registered_count: Number(s.registered_count) || 0,
-        status: s.status || "upcoming",
-        user_registered: regSet.has(s.id),
-        instructor: {
-          id: s.instructor_id,
-          name: s.instructor_name,
-          email: "",
-          image: s.instructor_image,
-          profession: s.instructor_profession,
-          specialization: s.instructor_specialization,
-          designation: s.instructor_designation,
-        },
-        created_at: new Date(s.created_at).toISOString(),
-      }));
-    }
-  } catch {
-    // fallback
+    const records = await LiveClassroomRepository.getSessions(currentUserId);
+    return records.map((s: LiveSessionRecord) => ({
+      id: s.id,
+      instructor_id: s.instructor_id,
+      title: s.title,
+      description: s.description,
+      category: s.category,
+      specialty: s.specialty,
+      scheduled_at: s.scheduled_at,
+      duration_minutes: s.duration_minutes,
+      meeting_url: s.meeting_url || `/learn/live/${s.id}`,
+      thumbnail: s.thumbnail,
+      max_participants: s.max_participants,
+      registered_count: s.registered_count,
+      status: s.status,
+      user_registered: Boolean(s.user_registered),
+      instructor: s.instructor
+        ? {
+            id: s.instructor.id,
+            name: s.instructor.name,
+            email: "",
+            image: s.instructor.image || null,
+            profession: s.instructor.profession || null,
+            specialization: s.instructor.specialization || null,
+            organization: s.instructor.organization || null,
+          }
+        : undefined,
+      created_at: s.created_at,
+    }));
+  } catch (err) {
+    console.error("getLiveSessions error:", err);
+    return [];
   }
-
-  // Realistic upcoming live clinical masterclasses
-  const now = Date.now();
-  return [
-    {
-      id: "live-ecg-arrhythmias",
-      instructor_id: "faculty-cardio",
-      title: "Live Case Round: Complex Arrhythmias & Wide QRS Tachycardia",
-      description: "Interactive rhythm strip analysis with emergency cardioversion decisions and clinical pharmacology review.",
-      category: "Cardiology",
-      specialty: "Electrophysiology",
-      scheduled_at: new Date(now + 2 * 86400 * 1000).toISOString(),
-      duration_minutes: 75,
-      meeting_url: "/learn/live/live-ecg-arrhythmias",
-      thumbnail: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=600&q=80",
-      max_participants: 250,
-      registered_count: 142,
-      status: "upcoming",
-      instructor: {
-        id: "faculty-cardio",
-        name: "Dr. Vikram Sethi, MD, DM",
-        email: "vikram@mgn.life",
-        image: null,
-        profession: "Doctor",
-        specialization: "Cardiology",
-        designation: "Senior Interventional Cardiologist",
-        organization: "AIIMS New Delhi",
-        identity_verified: true,
-      },
-      created_at: new Date().toISOString(),
-    },
-    {
-      id: "live-shoulder-rehab",
-      instructor_id: "faculty-ortho",
-      title: "Live Masterclass: Rotator Cuff Tears & Conservative Rehab Protocols",
-      description: "Biomechanical evaluation, manual therapy demonstrations, and progressive exercise prescription.",
-      category: "Physiotherapy",
-      specialty: "Musculoskeletal",
-      scheduled_at: new Date(now + 4 * 86400 * 1000).toISOString(),
-      duration_minutes: 60,
-      meeting_url: "/learn/live/live-shoulder-rehab",
-      thumbnail: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=600&q=80",
-      max_participants: 200,
-      registered_count: 98,
-      status: "upcoming",
-      instructor: {
-        id: "faculty-ortho",
-        name: "Dr. Ananya Sharma, MPT, Ph.D.",
-        email: "ananya@mgn.life",
-        image: null,
-        profession: "Physiotherapist",
-        specialization: "Sports Physiotherapy",
-        designation: "Head of Physical Rehabilitation",
-        organization: "Max Healthcare",
-        identity_verified: true,
-      },
-      created_at: new Date().toISOString(),
-    },
-  ];
 }
 
 export async function registerForLiveSession(userId: string, sessionId: string): Promise<boolean> {
-  await ensureLearnExtensions();
   try {
-    const id = generateId();
-    await (learnDb as any)
-      .insertInto("learn_live_registrations")
-      .values({
-        id,
-        session_id: sessionId,
-        user_id: userId,
-        created_at: new Date(),
-      })
-      .onConflict((oc: any) => oc.columns(["session_id", "user_id"]).doNothing())
-      .execute();
-
-    await (learnDb as any)
-      .updateTable("learn_live_sessions")
-      .set({ registered_count: sql`registered_count + 1` })
-      .where("id", "=", sessionId)
-      .execute();
-
-    return true;
-  } catch {
-    return true; // gracefully simulate registration for seed sessions
+    return await LiveClassroomRepository.registerUser(sessionId, userId);
+  } catch (err) {
+    console.error("registerForLiveSession error:", err);
+    return false;
   }
 }
 
@@ -2665,3 +2551,11 @@ export async function createCourse(
 
   return id;
 }
+
+// ─────────────────────────────────────────────
+// LIVE CLASSROOM EXPORTS
+// ─────────────────────────────────────────────
+export {
+  LiveClassroomRepository,
+  ensureLiveClassroomTables,
+} from "./live-classroom-db";

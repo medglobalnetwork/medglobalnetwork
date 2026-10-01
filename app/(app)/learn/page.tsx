@@ -449,19 +449,26 @@ export default function LearnPage() {
                   </p>
                 </div>
               </div>
+              <Link
+                href="/learn/live"
+                className="text-xs font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline flex items-center gap-1 self-start sm:self-center"
+              >
+                <span>Live Classroom Hub</span>
+                <ChevronRight className="size-3.5" />
+              </Link>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {liveSessions.map((session) => (
+              {liveSessions.map((item) => (
                 <div
-                  key={session.id}
+                  key={item.id}
                   className="flex flex-col sm:flex-row gap-4 rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-4 shadow-2xs hover:border-[#0f4c81] transition"
                 >
                   <div className="relative aspect-video sm:w-48 sm:aspect-[4/3] rounded-xl overflow-hidden bg-[#f0efee] dark:bg-[#21262d] shrink-0">
-                    {session.thumbnail ? (
+                    {item.thumbnail ? (
                       <img
-                        src={session.thumbnail}
-                        alt={session.title}
+                        src={item.thumbnail}
+                        alt={item.title}
                         className="size-full object-cover"
                       />
                     ) : (
@@ -470,7 +477,7 @@ export default function LearnPage() {
                       </div>
                     )}
                     <span className="absolute top-2 left-2 rounded-full bg-rose-600 px-2 py-0.5 text-[9px] font-bold text-white shadow-2xs">
-                      Live Class
+                      {item.status === "live" ? "ON AIR" : "Live Class"}
                     </span>
                   </div>
 
@@ -479,7 +486,7 @@ export default function LearnPage() {
                       <div className="flex items-center gap-2 text-[11px] text-[#77716b] dark:text-[#8b949e]">
                         <Calendar className="size-3.5" />
                         <span>
-                          {new Date(session.scheduled_at).toLocaleDateString("en-IN", {
+                          {new Date(item.scheduled_at).toLocaleDateString("en-IN", {
                             weekday: "short",
                             month: "short",
                             day: "numeric",
@@ -487,35 +494,45 @@ export default function LearnPage() {
                             minute: "2-digit",
                           })}
                         </span>
-                        <span>· {session.duration_minutes}m</span>
+                        <span>· {item.duration_minutes}m</span>
                       </div>
 
                       <h3 className="mt-1 text-sm font-bold text-[#171717] dark:text-[#f0f6fc] line-clamp-2">
-                        {session.title}
+                        {item.title}
                       </h3>
                       <p className="mt-1 text-xs text-[#77716b] dark:text-[#8b949e] line-clamp-2">
-                        {session.description}
+                        {item.description}
                       </p>
                     </div>
 
                     <div className="mt-3 pt-2 border-t border-[#f0efee] dark:border-[#21262d] flex items-center justify-between">
                       <div className="text-[11px] font-semibold text-[#5d5854] dark:text-[#8b949e]">
-                        Faculty: {session.instructor?.name || "Medical Faculty"}
+                        Faculty: {item.instructor?.name || "Medical Faculty"}
                       </div>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          await fetch("/api/learn/live-sessions", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ sessionId: session.id }),
-                          });
-                          alert("Registered for live session!");
-                        }}
-                        className="rounded-xl bg-[#0f4c81] dark:bg-[#1f6feb] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[#0c3c66] transition cursor-pointer"
-                      >
-                        Reserve Seat
-                      </button>
+                      {item.status === "live" || item.user_registered ? (
+                        <Link
+                          href={`/learn/live/${item.id}`}
+                          className="rounded-xl bg-[#0f4c81] dark:bg-[#1f6feb] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[#0c3c66] transition"
+                        >
+                          Join Live
+                        </Link>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await fetch("/api/learn/live-sessions", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ sessionId: item.id }),
+                            });
+                            alert("Registered for live session!");
+                            router.push(`/learn/live/${item.id}`);
+                          }}
+                          className="rounded-xl bg-[#0f4c81] dark:bg-[#1f6feb] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[#0c3c66] transition cursor-pointer"
+                        >
+                          Reserve Seat
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

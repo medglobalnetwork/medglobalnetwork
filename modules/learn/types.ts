@@ -9,7 +9,17 @@ export type LessonType = "video" | "article" | "pdf" | "resource" | "quiz";
 export type EnrollmentStatus = "active" | "completed" | "cancelled";
 export type CertificateStatus = "valid" | "revoked";
 export type QuestionType = "single" | "multiple";
-export type LiveSessionStatus = "upcoming" | "live" | "completed" | "cancelled";
+export type LiveSessionStatus =
+  | "draft"
+  | "scheduled"
+  | "registration_open"
+  | "upcoming"
+  | "live"
+  | "ended"
+  | "processing_recording"
+  | "recording_ready"
+  | "completed"
+  | "cancelled";
 
 export interface InstructorProfile {
   id: string;
@@ -549,3 +559,27 @@ export interface VideoAnalyticsSummary {
   most_bookmarked_timestamps: { timestamp_seconds: number; count: number }[];
   most_discussed_timestamps: { timestamp_seconds: number; count: number }[];
 }
+
+export type {
+  LiveSessionLifecycle,
+  LiveParticipantRole,
+  LivePresenceStatus,
+  HandRaiseStatus,
+  VoiceDoubtStatus,
+  PollStatus,
+  LiveSessionRecord,
+  LiveSessionSettingsRecord,
+  LiveChatMessageRecord,
+  LiveHandRaiseRecord,
+  LiveSpeakerRecord,
+  LiveVoiceDoubtRecord,
+  LiveQuestionRecord,
+  LivePollRecord,
+  LivePollOptionRecord,
+  LivePresenceRecord,
+  LiveAttendanceRecord,
+  LiveResourceRecord,
+  LiveNoteRecord,
+  LiveWhiteboardRecord,
+  LiveRecordingRecord,
+} from "./lib/live-classroom-db";
