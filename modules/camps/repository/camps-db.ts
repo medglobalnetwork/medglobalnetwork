@@ -6,6 +6,7 @@
 import { database } from "@/lib/auth";
 import crypto from "crypto";
 import { CampFilterParams, CampRecord, CampRequiredRole, CampVolunteerApplication, CreateCampInput, CampReportRecord } from "../domain/types";
+import { boundingBox, distanceMeters } from "@/lib/geo";
 
 const db = database as any;
 
@@ -249,6 +250,73 @@ export class CampsRepository {
     });
 
     return { items, total };
+  }
+
+  /**
+   * Camps near a point, closest first.
+   *
+   * A bounding box narrows the set in SQL (cheap, index-friendly), then
+   * haversine runs in JS for the exact distance and ordering. Camps with
+   * no coordinates are skipped — an organizer has to set them first.
+   */
+  static async findNearby(
+    center: { lat: number; lng: number },
+    radiusMeters: number,
+    limit = 20
+  ): Promise<Array<CampRecord & { distance_meters: number }>> {
+    await this.ensureTables();
+
+    const box = boundingBox(center, radiusMeters);
+
+    const rows = await db
+      .selectFrom("camps as c")
+      .leftJoin("user as u", "u.id", "c.organizer_id")
+      .select([
+        "c.id",
+        "c.slug",
+        "c.title",
+        "c.camp_type",
+        "c.cover_url",
+        "c.organizer_id",
+        "c.start_date",
+        "c.end_date",
+        "c.venue_name",
+        "c.address",
+        "c.city",
+        "c.state",
+        "c.country",
+        "c.services",
+        "c.status",
+        "c.latitude",
+        "c.longitude",
+        "c.checkin_radius_meters",
+        "u.name as organizer_name",
+      ])
+      .where("c.latitude", "is not", null)
+      .where("c.longitude", "is not", null)
+      .where("c.status", "in", ["published", "approved", "active"])
+      .where("c.latitude", ">=", box.minLat)
+      .where("c.latitude", "<=", box.maxLat)
+      .where("c.longitude", ">=", box.minLng)
+      .where("c.longitude", "<=", box.maxLng)
+      .orderBy("c.start_date", "asc")
+      .limit(limit * 3) // box is generous; trim after the exact filter
+      .execute();
+
+    return rows
+      .map((r: any) => {
+        const distance = distanceMeters(center, {
+          lat: Number(r.latitude),
+          lng: Number(r.longitude),
+        });
+        return { ...r, distance_meters: Math.round(distance) };
+      })
+      .filter((r: { distance_meters: number }) => r.distance_meters <= radiusMeters)
+      .sort(
+        (a: { distance_meters: number }, b: { distance_meters: number }) =>
+          a.distance_meters - b.distance_meters
+      )
+      .slice(0, limit);
   }
 
   static async findById(id: string, currentUserId?: string): Promise<CampRecord | null> {

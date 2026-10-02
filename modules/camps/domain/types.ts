@@ -93,6 +93,11 @@ export interface CampRecord {
   city: string;
   state: string;
   country: string;
+  /** Venue coordinates — null until an organizer sets them. */
+  latitude?: number | null;
+  longitude?: number | null;
+  /** How far from the venue a volunteer may be and still check in. */
+  checkin_radius_meters?: number | null;
   target_population?: string | null;
   expected_beneficiaries: number;
   participant_capacity?: number | null;

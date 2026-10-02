@@ -10,6 +10,7 @@ import { SharedRegistrationEngine } from "@/modules/shared/registration/registra
 import { SharedCertificateService } from "@/modules/shared/certificates/certificate-service";
 import { SharedNotificationService } from "@/modules/shared/notifications/notification-service";
 import { database } from "@/lib/auth";
+import { distanceMeters } from "@/lib/geo";
 import crypto from "crypto";
 
 const db = database as any;
@@ -21,6 +22,110 @@ export class CampsService {
 
   static async getCampDetail(id: string, userId?: string): Promise<CampRecord | null> {
     return CampsRepository.findById(id, userId);
+  }
+
+  /** Camps near a point, closest first. */
+  static async getNearbyCamps(
+    center: { lat: number; lng: number },
+    radiusMeters: number,
+    limit = 20
+  ) {
+    return CampsRepository.findNearby(center, radiusMeters, limit);
+  }
+
+  /**
+   * Geofence check-in for a camp.
+   *
+   * Every attempt is recorded in camp_checkins — passed or failed — so an
+   * attendance dispute can be reviewed afterwards. A successful check-in
+   * also marks an approved volunteer as attended, which is what the
+   * organizer's roster reads.
+   */
+  static async checkIn(params: {
+    campId: string;
+    userId: string;
+    lat: number;
+    lng: number;
+    accuracyMeters?: number | null;
+  }) {
+    const camp = await CampsRepository.findById(params.campId, params.userId);
+    if (!camp) {
+      return { ok: false as const, error: "Camp not found" };
+    }
+
+    const venue = { lat: Number(camp.latitude), lng: Number(camp.longitude) };
+    if (!Number.isFinite(venue.lat) || !Number.isFinite(venue.lng)) {
+      return {
+        ok: false as const,
+        error: "This camp has no venue coordinates yet, so check-in is unavailable.",
+      };
+    }
+
+    const radiusMeters = Number(camp.checkin_radius_meters) || 500;
+
+    // A fix with a large accuracy radius cannot prove presence, so measure
+    // from the edge of the error circle rather than from the reported point.
+    const accuracy = params.accuracyMeters ?? 0;
+    const measured = distanceMeters({ lat: params.lat, lng: params.lng }, venue);
+    const distance = Math.max(0, Math.round(measured - accuracy));
+    const withinRadius = distance <= radiusMeters;
+
+    await db
+      .insertInto("camp_checkins")
+      .values({
+        id: `chk_${crypto.randomBytes(8).toString("hex")}`,
+        camp_id: params.campId,
+        user_id: params.userId,
+        latitude: params.lat,
+        longitude: params.lng,
+        accuracy_meters: accuracy || null,
+        distance_meters: distance,
+        radius_meters: radiusMeters,
+        within_radius: withinRadius,
+        method: "gps",
+        checked_in_at: new Date(),
+      })
+      .execute();
+
+    if (!withinRadius) {
+      return {
+        ok: false as const,
+        withinRadius: false,
+        distanceMeters: distance,
+        radiusMeters,
+        error: `You are ${distance} m from the venue. Move within ${radiusMeters} m to check in.`,
+      };
+    }
+
+    // Only an approved volunteer gets attendance; attendees are marked by
+    // the organizer through the roster.
+    await db
+      .updateTable("camp_volunteers")
+      .set({ attended: true, attendance_marked_at: new Date() })
+      .where("camp_id", "=", params.campId)
+      .where("user_id", "=", params.userId)
+      .where("status", "in", ["approved", "attended"])
+      .execute();
+
+    return {
+      ok: true as const,
+      withinRadius: true,
+      distanceMeters: distance,
+      radiusMeters,
+      error: null,
+    };
+  }
+
+  /** The signed-in user's check-in history for a camp. */
+  static async getMyCheckIns(campId: string, userId: string) {
+    return db
+      .selectFrom("camp_checkins")
+      .select(["id", "distance_meters", "radius_meters", "within_radius", "checked_in_at"])
+      .where("camp_id", "=", campId)
+      .where("user_id", "=", userId)
+      .orderBy("checked_in_at", "desc")
+      .limit(20)
+      .execute();
   }
 
   static async createCamp(input: CreateCampInput, userId: string): Promise<CampRecord> {

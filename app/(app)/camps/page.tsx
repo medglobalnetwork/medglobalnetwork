@@ -14,6 +14,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { CampCard } from "@/components/camps/CampCard";
+import { NearbyCamps } from "@/components/camps/NearbyCamps";
 import { CampRecord } from "@/modules/camps/domain/types";
 
 const CAMP_TYPES = [
@@ -120,6 +121,9 @@ export default function CampsDiscoveryPage() {
           </button>
         </form>
       </div>
+
+      {/* ── Nearby (device GPS, opt-in) ── */}
+      <NearbyCamps />
 
       {/* ── Camp Type Tabs & Volunteer Filter ── */}
       <div className="mt-6 space-y-3">

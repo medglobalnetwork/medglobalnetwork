@@ -38,19 +38,53 @@ export const ALL_ORGANIZATION_TYPES: OrganizationType[] = [
   "Other verified healthcare organisation",
 ];
 
+export function isHospitalWorkspace(type?: string | null): boolean {
+  if (!type) return true; // Default to Hospital if unspecified
+  const lower = type.toLowerCase();
+  return (
+    lower.includes("hospital") ||
+    lower.includes("clinic") ||
+    lower.includes("diagnostic") ||
+    lower.includes("government healthcare")
+  );
+}
+
+export function isCollegeWorkspace(type?: string | null): boolean {
+  if (!type) return false;
+  const lower = type.toLowerCase();
+  return (
+    lower.includes("college") ||
+    lower.includes("university") ||
+    lower.includes("training institute") ||
+    lower.includes("academic")
+  );
+}
+
 export type OrgRole =
+  // Universal / Core Roles
   | "OWNER"
   | "ADMIN"
-  | "HR_RECRUITER"
-  | "EVENT_MANAGER"
-  | "CAMP_MANAGER"
-  | "LEARNING_MANAGER"
-  | "RESEARCH_MANAGER"
-  | "MARKETING_MANAGER"
+  | "VIEWER"
+  | "CUSTOM"
   | "FINANCE_MANAGER"
   | "MODERATOR"
-  | "VIEWER"
-  | "CUSTOM";
+  // Hospital-Centric Roles
+  | "HR_MANAGER"
+  | "HR_RECRUITER"
+  | "TRAINING_MANAGER"
+  | "LEARNING_MANAGER"
+  | "CAMP_MANAGER"
+  | "EVENT_MANAGER"
+  | "RESEARCH_MANAGER"
+  | "MARKETING_MANAGER"
+  // College-Centric Roles
+  | "DEAN"
+  | "HOD"
+  | "FACULTY"
+  | "PLACEMENT_OFFICER"
+  | "STUDENT_COORDINATOR"
+  | "RESEARCH_COORDINATOR"
+  | "EVENT_COORDINATOR";
 
 export type OrgPermission =
   // Workspace Core
@@ -66,7 +100,7 @@ export type OrgPermission =
   | "MEMBERS_MANAGE"
   | "ROLES_MANAGE"
   | "DEPARTMENTS_MANAGE"
-  // Recruitment & Jobs
+  // Recruitment & Jobs (Hospital & Corporate)
   | "JOBS_VIEW"
   | "JOBS_CREATE"
   | "JOBS_EDIT"
@@ -83,7 +117,7 @@ export type OrgPermission =
   | "CONFERENCES_MANAGE"
   | "ATTENDANCE_MANAGE"
   | "CERTIFICATES_ISSUE"
-  // Health Camps
+  // Health Camps & Community Outreach
   | "CAMPS_VIEW"
   | "CAMPS_CREATE"
   | "CAMPS_EDIT"
@@ -97,7 +131,23 @@ export type OrgPermission =
   | "LEARNING_DELETE"
   | "LIVE_CLASSES_MANAGE"
   | "STUDENTS_MANAGE"
-  // Research
+  // Hospital Specific: Clinical Workforce & Internal SOP Training
+  | "CLINICAL_WORKFORCE_VIEW"
+  | "CLINICAL_WORKFORCE_MANAGE"
+  | "TRAINING_VIEW"
+  | "TRAINING_MANAGE"
+  // College Specific: Students, Faculty, Academic Programs, Assessments, Placements
+  | "STUDENTS_VIEW"
+  | "PROGRAMS_VIEW"
+  | "PROGRAMS_MANAGE"
+  | "FACULTY_VIEW"
+  | "FACULTY_MANAGE"
+  | "ASSESSMENTS_VIEW"
+  | "ASSESSMENTS_MANAGE"
+  | "ASSESSMENTS_GRADE"
+  | "PLACEMENTS_VIEW"
+  | "PLACEMENTS_MANAGE"
+  // Research & Clinical Trials
   | "RESEARCH_VIEW"
   | "RESEARCH_CREATE"
   | "RESEARCH_EDIT"
@@ -117,9 +167,11 @@ export type OrgPermission =
   // Moderation
   | "MODERATION_VIEW"
   | "MODERATION_MANAGE"
-  // Communication
+  // Communication & Announcements
   | "COMMUNICATION_VIEW"
   | "COMMUNICATION_SEND"
+  | "ANNOUNCEMENTS_VIEW"
+  | "ANNOUNCEMENTS_MANAGE"
   // Analytics
   | "ANALYTICS_VIEW"
   | "ANALYTICS_EXPORT";
@@ -416,8 +468,168 @@ export interface OrganizationCampVolunteerRecord {
   created_at: string;
 }
 
+// ------------------------------------------------------------
+// College / University Domain Records
+// ------------------------------------------------------------
+export interface StudentRecord {
+  id: string;
+  organization_id: string;
+  user_id?: string | null;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  program: string; // e.g., "BPT", "MBBS", "BDS", "B.Sc Nursing", "MPT"
+  year: number;
+  semester: number;
+  department?: string | null;
+  enrollment_number: string;
+  batch?: string | null;
+  status: "active" | "graduated" | "suspended" | "dropped";
+  academic_standing?: "good" | "probation" | "honor";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AcademicProgramRecord {
+  id: string;
+  organization_id: string;
+  name: string;
+  code: string;
+  degree_level: "Undergraduate" | "Postgraduate" | "Diploma" | "Doctorate";
+  duration_years: number;
+  department?: string | null;
+  description?: string | null;
+  curriculum?: Array<{
+    year: number;
+    semester: number;
+    subjects: Array<{ code: string; title: string; credits: number }>;
+  }>;
+  student_count?: number;
+  created_at: string;
+}
+
+export interface AssessmentRecord {
+  id: string;
+  organization_id: string;
+  department?: string | null;
+  program_id?: string | null;
+  course_id?: string | null;
+  title: string;
+  assessment_type: "mcq" | "case_based" | "assignment" | "quiz" | "practical" | "internal" | "mock";
+  total_marks: number;
+  pass_percentage: number;
+  duration_minutes: number;
+  due_date?: string | null;
+  status: "draft" | "published" | "closed" | "graded";
+  question_bank?: Array<{
+    id: string;
+    question: string;
+    options?: string[];
+    correct_answer?: string;
+    points: number;
+    case_scenario?: string;
+  }>;
+  scope: "private" | "department" | "institution" | "mgn_published";
+  created_by: string;
+  created_at: string;
+  submissions_count?: number;
+}
+
+export interface AssessmentSubmissionRecord {
+  id: string;
+  assessment_id: string;
+  organization_id: string;
+  student_id: string;
+  student_name: string;
+  student_enrollment?: string | null;
+  submitted_at: string;
+  score?: number | null;
+  max_score: number;
+  status: "submitted" | "graded" | "evaluated";
+  feedback?: string | null;
+}
+
+export interface PlacementRecord {
+  id: string;
+  organization_id: string;
+  company_name: string;
+  job_title: string;
+  job_type: "full_time" | "internship" | "clinical_residency";
+  eligible_programs: string[];
+  min_cgpa?: number | null;
+  package_ctc?: string | null;
+  location?: string | null;
+  deadline?: string | null;
+  status: "active" | "closed" | "completed";
+  description?: string | null;
+  applications_count: number;
+  offers_count: number;
+  created_at: string;
+}
+
+export interface PlacementApplicationRecord {
+  id: string;
+  placement_id: string;
+  organization_id: string;
+  student_id: string;
+  student_name: string;
+  student_program: string;
+  status: "applied" | "shortlisted" | "interview" | "offered" | "placed" | "rejected";
+  interview_date?: string | null;
+  notes?: string | null;
+  created_at: string;
+}
+
+// ------------------------------------------------------------
+// Hospital Domain Records
+// ------------------------------------------------------------
+export type ClinicalProfession =
+  | "Doctor"
+  | "Nurse"
+  | "Physiotherapist"
+  | "Pharmacist"
+  | "Lab Professional"
+  | "Radiology"
+  | "OT Staff"
+  | "Administration"
+  | "Other Healthcare";
+
+export interface HospitalInternalTrainingRecord {
+  id: string;
+  organization_id: string;
+  title: string;
+  category: "Infection Control" | "Emergency Protocol" | "Patient Safety" | "Clinical Skills" | "Hospital SOP Training" | "Department Training";
+  department?: string | null;
+  access_scope: "public" | "org_only" | "department_only" | "selected_staff";
+  content_type: "video" | "pdf" | "notes" | "quiz" | "assignment" | "live_class";
+  duration_hours: number;
+  has_certificate: boolean;
+  description?: string | null;
+  mandatory: boolean;
+  enrolled_count?: number;
+  completed_count?: number;
+  created_by: string;
+  created_at: string;
+}
+
+export interface OrganizationAnnouncementRecord {
+  id: string;
+  organization_id: string;
+  title: string;
+  message: string;
+  target_audience: "all" | "students" | "faculty" | "staff" | "department" | "program" | "semester" | "selected_group";
+  target_department?: string | null;
+  target_program?: string | null;
+  attachment_url?: string | null;
+  publish_date: string;
+  expiry_date?: string | null;
+  pinned: boolean;
+  created_by: string;
+  created_at: string;
+}
+
 export interface OrgDashboardMetrics {
-  // Recruitment
+  // Recruitment (Hospital / Standard)
   activeJobsCount: number;
   totalApplicationsCount: number;
   shortlistedCount: number;
@@ -434,7 +646,7 @@ export interface OrgDashboardMetrics {
   campVolunteersCount: number;
   campRegistrationsCount: number;
   campsCompletedCount: number;
-  // Learning
+  // Learning & LMS
   coursesCount: number;
   enrolledStudentsCount: number;
   liveClassesUpcomingCount: number;
@@ -447,9 +659,21 @@ export interface OrgDashboardMetrics {
   activeProjectsCount: number;
   researchCollaboratorsCount: number;
   publicationsCount: number;
-  // Members
+  // Members & Teams
   totalMembersCount: number;
   departmentsCount: number;
+  // Hospital-Specific Metrics
+  clinicalDoctorsCount?: number;
+  clinicalNursesCount?: number;
+  clinicalPhysiosCount?: number;
+  clinicalAlliedCount?: number;
+  internalTrainingsCount?: number;
+  // College-Specific Metrics
+  studentsCount?: number;
+  facultyCount?: number;
+  academicProgramsCount?: number;
+  activePlacementsCount?: number;
+  pendingAssessmentsCount?: number;
   // Subscription
   planName: SubscriptionPlan;
   subscriptionStatus: SubscriptionStatus;

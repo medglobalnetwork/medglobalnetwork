@@ -1,3 +1,8 @@
+// ============================================================
+// MGN Organisation Dynamic Sidebar Navigation
+// modules/organizations/components/OrgSidebar.tsx
+// ============================================================
+
 "use client";
 
 import React from "react";
@@ -10,7 +15,6 @@ import {
   Network,
   Briefcase,
   Calendar,
-  Layers,
   Tent,
   GraduationCap,
   FlaskConical,
@@ -21,15 +25,31 @@ import {
   Bell,
   Settings,
   ShieldCheck,
-  ChevronLeft,
   X,
   Compass,
   ArrowLeft,
   Sparkles,
+  BookOpen,
+  UserCheck,
   Award,
+  Stethoscope,
+  ClipboardList,
+  Target,
+  FileSpreadsheet,
 } from "lucide-react";
-import { OrganizationRecord, OrgRole, OrgPermission } from "../types";
-import { isModuleAllowed, OrgModuleId, getRoleBadgeClass, getRoleDisplayName } from "../lib/org-permissions";
+import {
+  OrganizationRecord,
+  OrgRole,
+  OrgPermission,
+  isHospitalWorkspace,
+  isCollegeWorkspace,
+} from "../types";
+import {
+  isModuleAllowed,
+  OrgModuleId,
+  getRoleBadgeClass,
+  getRoleDisplayName,
+} from "../lib/org-permissions";
 
 interface OrgSidebarProps {
   organization: OrganizationRecord;
@@ -57,7 +77,314 @@ export function OrgSidebar({
   const pathname = usePathname();
   const orgId = organization.id;
 
-  const allNavItems: { section?: string; items: NavItemConfig[] }[] = [
+  const isHospital = isHospitalWorkspace(organization.organization_type);
+  const isCollege = isCollegeWorkspace(organization.organization_type);
+
+  // 1. HOSPITAL SPECIALIZED NAVIGATION
+  const hospitalNavSections: { section?: string; items: NavItemConfig[] }[] = [
+    {
+      items: [
+        {
+          id: "dashboard",
+          label: "Dashboard",
+          href: (id) => `/org/${id}`,
+          icon: LayoutDashboard,
+        },
+        {
+          id: "profile",
+          label: "Hospital Profile",
+          href: (id) => `/org/${id}/profile`,
+          icon: Building2,
+        },
+      ],
+    },
+    {
+      section: "STAFF & CLINICAL WORKFORCE",
+      items: [
+        {
+          id: "jobs",
+          label: "Recruitment Pipeline",
+          href: (id) => `/org/${id}/jobs`,
+          icon: Briefcase,
+        },
+        {
+          id: "clinical",
+          label: "Clinical Workforce",
+          href: (id) => `/org/${id}/clinical`,
+          icon: Stethoscope,
+        },
+        {
+          id: "members",
+          label: "All Staff & Members",
+          href: (id) => `/org/${id}/members`,
+          icon: Users,
+        },
+        {
+          id: "departments",
+          label: "Clinical Departments",
+          href: (id) => `/org/${id}/departments`,
+          icon: Network,
+        },
+      ],
+    },
+    {
+      section: "EVENTS & MEDICAL OUTREACH",
+      items: [
+        {
+          id: "events",
+          label: "Conferences & CME",
+          href: (id) => `/org/${id}/events`,
+          icon: Calendar,
+        },
+        {
+          id: "camps",
+          label: "Medical Health Camps",
+          href: (id) => `/org/${id}/camps`,
+          icon: Tent,
+        },
+      ],
+    },
+    {
+      section: "LEARNING & HOSPITAL TRAINING",
+      items: [
+        {
+          id: "training",
+          label: "Internal SOP Training",
+          href: (id) => `/org/${id}/training`,
+          icon: Award,
+        },
+        {
+          id: "learning",
+          label: "Courses & Live Classes",
+          href: (id) => `/org/${id}/learning`,
+          icon: GraduationCap,
+        },
+      ],
+    },
+    {
+      section: "RESEARCH & CLINICAL TRIALS",
+      items: [
+        {
+          id: "research",
+          label: "Clinical Research Projects",
+          href: (id) => `/org/${id}/research`,
+          icon: FlaskConical,
+        },
+      ],
+    },
+    {
+      section: "COLLABORATION & OPERATIONS",
+      items: [
+        {
+          id: "groups",
+          label: "Clinical Groups",
+          href: (id) => `/org/${id}/groups`,
+          icon: Compass,
+        },
+        {
+          id: "communication",
+          label: "Announcements & Comms",
+          href: (id) => `/org/${id}/communication`,
+          icon: MessageSquare,
+        },
+        {
+          id: "calendar",
+          label: "Hospital Calendar",
+          href: (id) => `/org/${id}/calendar`,
+          icon: Calendar,
+        },
+        {
+          id: "analytics",
+          label: "Operational Analytics",
+          href: (id) => `/org/${id}/analytics`,
+          icon: BarChart3,
+        },
+        {
+          id: "billing",
+          label: "Subscription & Billing",
+          href: (id) => `/org/${id}/billing`,
+          icon: CreditCard,
+        },
+        {
+          id: "notifications",
+          label: "Notifications",
+          href: (id) => `/org/${id}/notifications`,
+          icon: Bell,
+        },
+      ],
+    },
+    {
+      section: "GOVERNANCE",
+      items: [
+        {
+          id: "settings",
+          label: "Settings & Audit Logs",
+          href: (id) => `/org/${id}/settings`,
+          icon: Settings,
+        },
+      ],
+    },
+  ];
+
+  // 2. COLLEGE / UNIVERSITY SPECIALIZED NAVIGATION
+  const collegeNavSections: { section?: string; items: NavItemConfig[] }[] = [
+    {
+      items: [
+        {
+          id: "dashboard",
+          label: "Dashboard",
+          href: (id) => `/org/${id}`,
+          icon: LayoutDashboard,
+        },
+        {
+          id: "profile",
+          label: "Institution Profile",
+          href: (id) => `/org/${id}/profile`,
+          icon: Building2,
+        },
+      ],
+    },
+    {
+      section: "ACADEMICS & STUDENTS",
+      items: [
+        {
+          id: "students",
+          label: "Students Directory",
+          href: (id) => `/org/${id}/students`,
+          icon: UserCheck,
+        },
+        {
+          id: "faculty",
+          label: "Faculty & Staff",
+          href: (id) => `/org/${id}/faculty`,
+          icon: Users,
+        },
+        {
+          id: "programs",
+          label: "Academic Programs",
+          href: (id) => `/org/${id}/programs`,
+          icon: BookOpen,
+        },
+        {
+          id: "departments",
+          label: "Academic Departments",
+          href: (id) => `/org/${id}/departments`,
+          icon: Network,
+        },
+      ],
+    },
+    {
+      section: "LEARNING & EXAMS",
+      items: [
+        {
+          id: "learning",
+          label: "Courses & Modules",
+          href: (id) => `/org/${id}/learning`,
+          icon: GraduationCap,
+        },
+        {
+          id: "assessments",
+          label: "Exams & Assessments",
+          href: (id) => `/org/${id}/assessments`,
+          icon: ClipboardList,
+        },
+      ],
+    },
+    {
+      section: "CAREERS & PLACEMENTS",
+      items: [
+        {
+          id: "placements",
+          label: "Placements & Drives",
+          href: (id) => `/org/${id}/placements`,
+          icon: Target,
+        },
+      ],
+    },
+    {
+      section: "EVENTS & OUTREACH",
+      items: [
+        {
+          id: "events",
+          label: "Academic Events & CME",
+          href: (id) => `/org/${id}/events`,
+          icon: Calendar,
+        },
+        {
+          id: "camps",
+          label: "Community Outreach / Camps",
+          href: (id) => `/org/${id}/camps`,
+          icon: Tent,
+        },
+      ],
+    },
+    {
+      section: "RESEARCH & PUBLICATIONS",
+      items: [
+        {
+          id: "research",
+          label: "Student & Faculty Research",
+          href: (id) => `/org/${id}/research`,
+          icon: FlaskConical,
+        },
+      ],
+    },
+    {
+      section: "COMMUNITY & OPS",
+      items: [
+        {
+          id: "groups",
+          label: "Batches & Communities",
+          href: (id) => `/org/${id}/groups`,
+          icon: Compass,
+        },
+        {
+          id: "communication",
+          label: "Announcements & Comms",
+          href: (id) => `/org/${id}/communication`,
+          icon: MessageSquare,
+        },
+        {
+          id: "calendar",
+          label: "Academic Calendar",
+          href: (id) => `/org/${id}/calendar`,
+          icon: Calendar,
+        },
+        {
+          id: "analytics",
+          label: "Institutional Analytics",
+          href: (id) => `/org/${id}/analytics`,
+          icon: BarChart3,
+        },
+        {
+          id: "billing",
+          label: "Subscription & Billing",
+          href: (id) => `/org/${id}/billing`,
+          icon: CreditCard,
+        },
+        {
+          id: "notifications",
+          label: "Notifications",
+          href: (id) => `/org/${id}/notifications`,
+          icon: Bell,
+        },
+      ],
+    },
+    {
+      section: "GOVERNANCE",
+      items: [
+        {
+          id: "settings",
+          label: "Settings & Audit Logs",
+          href: (id) => `/org/${id}/settings`,
+          icon: Settings,
+        },
+      ],
+    },
+  ];
+
+  // 3. GENERIC / CORPORATE WORKSPACE NAVIGATION
+  const genericNavSections: { section?: string; items: NavItemConfig[] }[] = [
     {
       items: [
         {
@@ -128,19 +455,13 @@ export function OrgSidebar({
       ],
     },
     {
-      section: "COLLABORATION & INSIGHTS",
+      section: "INSIGHTS & GOVERNANCE",
       items: [
         {
           id: "communication",
           label: "Contextual Messages",
           href: (id) => `/org/${id}/communication`,
           icon: MessageSquare,
-        },
-        {
-          id: "content",
-          label: "Content & Updates",
-          href: (id) => `/org/${id}/content`,
-          icon: FileText,
         },
         {
           id: "calendar",
@@ -166,11 +487,6 @@ export function OrgSidebar({
           href: (id) => `/org/${id}/notifications`,
           icon: Bell,
         },
-      ],
-    },
-    {
-      section: "GOVERNANCE",
-      items: [
         {
           id: "settings",
           label: "Settings & Audit",
@@ -181,8 +497,14 @@ export function OrgSidebar({
     },
   ];
 
-  // Filter out any modules where the user does not have permission
-  const visibleSections = allNavItems
+  const activeRawSections = isHospital
+    ? hospitalNavSections
+    : isCollege
+    ? collegeNavSections
+    : genericNavSections;
+
+  // Filter sections by role permissions
+  const visibleSections = activeRawSections
     .map((section) => ({
       ...section,
       items: section.items.filter((item) =>
@@ -198,7 +520,7 @@ export function OrgSidebar({
     return pathname.startsWith(targetHref);
   };
 
-  const roleLabel = getRoleDisplayName(userRole);
+  const roleLabel = getRoleDisplayName(userRole, organization.organization_type);
   const roleBadgeClass = getRoleBadgeClass(userRole);
 
   const sidebarContent = (
@@ -236,21 +558,27 @@ export function OrgSidebar({
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-400 truncate">
-              {organization.organization_type}
-            </p>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="text-[11px] font-semibold text-blue-400 truncate">
+                {isHospital
+                  ? "🏥 Hospital Panel"
+                  : isCollege
+                  ? "🎓 College Panel"
+                  : organization.organization_type}
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Role & Plan Pill */}
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
           <span
-            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${roleBadgeClass}`}
+            className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold border ${roleBadgeClass}`}
           >
             {roleLabel}
           </span>
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700">
-            {organization.plan || "Basic"} Plan
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700">
+            {organization.plan || "Basic"}
           </span>
         </div>
       </div>

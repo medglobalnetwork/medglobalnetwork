@@ -21,6 +21,7 @@ import {
   Video,
   Calendar,
   Share2,
+  MapPin,
   Mic,
   Pin,
   Smile,
@@ -44,7 +45,12 @@ import { VerificationBadge } from "@/modules/network/components/VerificationBadg
 import { ImageSelectorModal } from "@/components/media/ImageSelectorModal";
 import { VoiceMessagePlayer } from "./VoiceMessagePlayer";
 import { RichEntityCard } from "./RichEntityCard";
+import {
+  LocationMessageCard,
+  type LocationSharePayload,
+} from "./LocationMessageCard";
 import { ScheduleMeetingModal } from "./ScheduleMeetingModal";
+import { getDeviceLocation } from "@/lib/native-mobile";
 import { ShareEntityModal } from "./ShareEntityModal";
 import { CallModal } from "./CallModal";
 import { ConversationDetailsDrawer } from "./ConversationDetailsDrawer";
@@ -531,8 +537,7 @@ export function CommunicationShell() {
 
   // 6E. Calls — CallModal owns the live call; the shell only records the
   // session in the audit log once the call starts and finishes.
-  const handleStartCall = (type: "VOICE" | "VIDEO") => {
-    if (!selectedConversation) return;
+  const handleStartCall = (type: "VOICE" | "VIDEO") => {    if (!selectedConversation) return;
     setCallType(type);
     setActiveCallId(null);
     setShowCallModal(true);
@@ -554,6 +559,113 @@ export function CommunicationShell() {
   const handleEndCall = () => {
     setShowCallModal(false);
   };
+
+  // ── Live location share ───────────────────────────────────
+  // Starts a share, then refreshes the pin on a slow interval while the
+  // ── Live location share ───────────────────────────────────
+  // Starts a share, then refreshes the pin on a slow interval while the
+  // conversation stays open. The server row expires on its own, so a
+  // client that dies mid-share cannot leak presence indefinitely.
+  const [sharingLocation, setSharingLocation] = useState(false);
+  const [locationBusy, setLocationBusy] = useState(false);
+  const [locationNotice, setLocationNotice] = useState<string | null>(null);
+
+  const pushLocation = useCallback(
+    async (live: boolean) => {
+      const conversationId = selectedConversation?.id;
+      if (!conversationId) return false;
+
+      const position = await getDeviceLocation();
+      if (!position) {
+        setLocationNotice("Location unavailable — enable it to share.");
+        return false;
+      }
+
+      const activeTitle = selectedConversation?.name || null;
+
+      const res = await fetch("/api/location/share", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lat: position.lat,
+          lng: position.lng,
+          conversationId,
+          label: activeTitle || null,
+          ttlMinutes: 15,
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setLocationNotice(body.error || "Could not share your location");
+        return false;
+      }
+
+      await handleSendMessage(undefined, "LOCATION", {
+        content: "Shared live location",
+        location: {
+          lat: position.lat,
+          lng: position.lng,
+          label: activeTitle || null,
+          live,
+          sharedAt: new Date().toISOString(),
+        },
+      });
+
+      return true;
+    },
+    [selectedConversation, handleSendMessage]
+  );
+
+  const handleShareLocation = async () => {
+    setLocationBusy(true);
+    const ok = await pushLocation(true);
+    setLocationBusy(false);
+    if (ok) {
+      setSharingLocation(true);
+      setLocationNotice("Live location shared for 15 minutes");
+    }
+  };
+
+  const handleStopSharing = async () => {
+    setSharingLocation(false);
+    await fetch(
+      `/api/location/share?conversationId=${encodeURIComponent(
+        selectedConversation?.id ?? ""
+      )}`,
+      { method: "DELETE" }
+    ).catch(() => {});
+    setLocationNotice("Stopped sharing your location");
+  };
+
+  // Refresh the server-side pin only; the chat message is not re-sent.
+  useEffect(() => {
+    if (!sharingLocation || !selectedConversation) return;
+    const timer = setInterval(() => {
+      void (async () => {
+        const position = await getDeviceLocation();
+        if (!position) return;
+        const activeTitle = selectedConversation?.name || null;
+        await fetch("/api/location/share", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            lat: position.lat,
+            lng: position.lng,
+            conversationId: selectedConversation.id,
+            label: activeTitle || null,
+            ttlMinutes: 15,
+          }),
+        }).catch(() => {});
+      })();
+    }, 60_000);
+    return () => clearInterval(timer);
+  }, [sharingLocation, selectedConversation]);
+
+  // Leaving the conversation ends the share.
+  useEffect(() => {
+    if (sharingLocation && !selectedConversation) setSharingLocation(false);
+  }, [selectedConversation, sharingLocation]);
 
   // 7. Create Group
   const handleCreateGroup = async (e: React.FormEvent) => {
@@ -1216,24 +1328,34 @@ export function CommunicationShell() {
                           )}
 
                           {/* Voice Message */}
-                          {msg.type === "VOICE" && (
+                          {msg.type === "VOICE" ? (
                             <div className="mb-1.5">
                               <VoiceMessagePlayer
-                                durationSeconds={msg.metadata?.voice?.durationSeconds || 12}
+                                durationSeconds={(msg.metadata as any)?.voice?.durationSeconds || 12}
                                 isMe={isMe}
                               />
                             </div>
-                          )}
+                          ) : null}
 
                           {/* Rich Entity / Meeting Card */}
-                          {msg.metadata?.entity && (
+                          {(msg.metadata as any)?.entity ? (
                             <div className="mb-2">
                               <RichEntityCard
-                                entity={msg.metadata.entity as RichEntitySharePayload}
+                                entity={(msg.metadata as any).entity as RichEntitySharePayload}
                                 isMe={isMe}
                               />
                             </div>
-                          )}
+                          ) : null}
+
+                          {/* Shared Location */}
+                          {msg.type === "LOCATION" && (msg.metadata as any)?.location ? (
+                            <div className="mb-2">
+                              <LocationMessageCard
+                                payload={(msg.metadata as any).location as LocationSharePayload}
+                                isMe={isMe}
+                              />
+                            </div>
+                          ) : null}
 
                           {/* Text Content */}
                           {msg.deletedForAll ? (
@@ -1502,6 +1624,35 @@ export function CommunicationShell() {
                     title="Share MGN Entity (Event/Camp/Job/Research)"
                   >
                     <Share2 className="h-5 w-5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      sharingLocation ? handleStopSharing() : handleShareLocation()
+                    }
+                    disabled={locationBusy}
+                    className={`p-2 rounded-xl transition shrink-0 disabled:opacity-50 ${
+                      sharingLocation
+                        ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100"
+                        : "text-[#77716b] hover:text-[#1769c2] hover:bg-[#f0f4f8]"
+                    }`}
+                    title={
+                      sharingLocation
+                        ? "Stop sharing your live location"
+                        : "Share live location for 15 minutes"
+                    }
+                    aria-label={
+                      sharingLocation
+                        ? "Stop sharing your live location"
+                        : "Share live location for 15 minutes"
+                    }
+                  >
+                    {locationBusy ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <MapPin className="h-5 w-5" />
+                    )}
                   </button>
 
                   <VoicePill

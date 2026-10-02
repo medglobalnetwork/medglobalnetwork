@@ -1,3 +1,8 @@
+// ============================================================
+// MGN Organisation Dynamic Header
+// modules/organizations/components/OrgHeader.tsx
+// ============================================================
+
 "use client";
 
 import React, { useState } from "react";
@@ -21,8 +26,19 @@ import {
   Check,
   LogOut,
   ExternalLink,
+  UserCheck,
+  ClipboardList,
+  Target,
+  Award,
+  BookOpen,
 } from "lucide-react";
-import { OrganizationRecord, OrgRole, OrgPermission } from "../types";
+import {
+  OrganizationRecord,
+  OrgRole,
+  OrgPermission,
+  isHospitalWorkspace,
+  isCollegeWorkspace,
+} from "../types";
 import { authClient } from "@/lib/auth-client";
 import { getUserAvatarUrl } from "@/lib/avatar";
 import { hasOrgPermission } from "../lib/org-permissions";
@@ -47,11 +63,18 @@ export function OrgHeader({
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
   const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
 
+  const isHospital = isHospitalWorkspace(organization.organization_type);
+  const isCollege = isCollegeWorkspace(organization.organization_type);
+
   const canCreateJob = hasOrgPermission(userRole, customPermissions, "JOBS_CREATE");
   const canCreateEvent = hasOrgPermission(userRole, customPermissions, "EVENTS_CREATE");
   const canCreateCamp = hasOrgPermission(userRole, customPermissions, "CAMPS_CREATE");
   const canCreateGroup = hasOrgPermission(userRole, customPermissions, "GROUPS_CREATE");
   const canCreateContent = hasOrgPermission(userRole, customPermissions, "CONTENT_CREATE");
+  const canCreateTraining = hasOrgPermission(userRole, customPermissions, "TRAINING_MANAGE");
+  const canCreateStudent = hasOrgPermission(userRole, customPermissions, "STUDENTS_MANAGE");
+  const canCreateAssessment = hasOrgPermission(userRole, customPermissions, "ASSESSMENTS_MANAGE");
+  const canCreatePlacement = hasOrgPermission(userRole, customPermissions, "PLACEMENTS_MANAGE");
 
   const avatarUrl = getUserAvatarUrl(session?.user?.id, session?.user?.image);
 
@@ -86,7 +109,9 @@ export function OrgHeader({
                   <ShieldCheck className="size-3.5 text-emerald-400 shrink-0" />
                 )}
               </div>
-              <span className="text-[11px] text-slate-400 block -mt-0.5">Workspace</span>
+              <span className="text-[11px] text-slate-400 block -mt-0.5">
+                {isHospital ? "Hospital Panel" : isCollege ? "College Panel" : "Workspace"}
+              </span>
             </div>
             <ChevronDown className="size-4 text-slate-400" />
           </button>
@@ -148,97 +173,122 @@ export function OrgHeader({
       {/* Right section: Quick actions, notifications, profile */}
       <div className="flex items-center gap-2.5">
         {/* Quick Action Dropdown */}
-        {(canCreateJob || canCreateEvent || canCreateCamp || canCreateGroup || canCreateContent) && (
-          <div className="relative">
-            <button
-              onClick={() => setIsQuickActionOpen((prev) => !prev)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-sm transition-all active:scale-95"
-            >
-              <Plus className="size-4" />
-              <span className="hidden sm:inline">Quick Create</span>
-              <ChevronDown className="size-3.5 opacity-80" />
-            </button>
+        <div className="relative">
+          <button
+            onClick={() => setIsQuickActionOpen((prev) => !prev)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-sm transition-all active:scale-95"
+          >
+            <Plus className="size-4" />
+            <span className="hidden sm:inline">Quick Create</span>
+            <ChevronDown className="size-3.5 opacity-80" />
+          </button>
 
-            {isQuickActionOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setIsQuickActionOpen(false)}
-                />
-                <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 p-1.5 text-slate-200 animate-in fade-in zoom-in-95 duration-100">
-                  <div className="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                    Quick Operational Actions
-                  </div>
-
-                  {canCreateJob && (
-                    <Link
-                      href={`/org/${organization.id}/jobs/create`}
-                      onClick={() => setIsQuickActionOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
-                    >
-                      <Briefcase className="size-4 text-blue-400" />
-                      <span>Create Job Opening</span>
-                    </Link>
-                  )}
-
-                  {canCreateEvent && (
-                    <>
-                      <Link
-                        href={`/org/${organization.id}/events/create`}
-                        onClick={() => setIsQuickActionOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
-                      >
-                        <Calendar className="size-4 text-purple-400" />
-                        <span>Create Event / CME</span>
-                      </Link>
-                      <Link
-                        href={`/org/${organization.id}/events/conferences?action=create`}
-                        onClick={() => setIsQuickActionOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
-                      >
-                        <Layers className="size-4 text-indigo-400" />
-                        <span>Create Conference</span>
-                      </Link>
-                    </>
-                  )}
-
-                  {canCreateCamp && (
-                    <Link
-                      href={`/org/${organization.id}/camps/create`}
-                      onClick={() => setIsQuickActionOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
-                    >
-                      <Tent className="size-4 text-teal-400" />
-                      <span>Create Health Camp</span>
-                    </Link>
-                  )}
-
-                  {canCreateGroup && (
-                    <Link
-                      href={`/org/${organization.id}/groups?action=create`}
-                      onClick={() => setIsQuickActionOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
-                    >
-                      <Compass className="size-4 text-amber-400" />
-                      <span>Create Group / Community</span>
-                    </Link>
-                  )}
-
-                  {canCreateContent && (
-                    <Link
-                      href={`/org/${organization.id}/content?action=post`}
-                      onClick={() => setIsQuickActionOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
-                    >
-                      <FileText className="size-4 text-rose-400" />
-                      <span>Post Update / Story</span>
-                    </Link>
-                  )}
+          {isQuickActionOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setIsQuickActionOpen(false)}
+              />
+              <div className="absolute right-0 mt-2 w-60 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 p-1.5 text-slate-200 animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  {isHospital ? "Hospital Operations" : isCollege ? "Academic Operations" : "Quick Actions"}
                 </div>
-              </>
-            )}
-          </div>
-        )}
+
+                {isCollege ? (
+                  <>
+                    <Link
+                      href={`/org/${organization.id}/students`}
+                      onClick={() => setIsQuickActionOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
+                    >
+                      <UserCheck className="size-4 text-blue-400" />
+                      <span>Add Student</span>
+                    </Link>
+                    <Link
+                      href={`/org/${organization.id}/assessments`}
+                      onClick={() => setIsQuickActionOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
+                    >
+                      <ClipboardList className="size-4 text-cyan-400" />
+                      <span>Create Assessment / Exam</span>
+                    </Link>
+                    <Link
+                      href={`/org/${organization.id}/placements`}
+                      onClick={() => setIsQuickActionOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
+                    >
+                      <Target className="size-4 text-rose-400" />
+                      <span>Post Placement Drive</span>
+                    </Link>
+                    <Link
+                      href={`/org/${organization.id}/programs`}
+                      onClick={() => setIsQuickActionOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
+                    >
+                      <BookOpen className="size-4 text-purple-400" />
+                      <span>Create Academic Program</span>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    {canCreateJob && (
+                      <Link
+                        href={`/org/${organization.id}/jobs/create`}
+                        onClick={() => setIsQuickActionOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
+                      >
+                        <Briefcase className="size-4 text-blue-400" />
+                        <span>Create Job Opening</span>
+                      </Link>
+                    )}
+
+                    {canCreateCamp && (
+                      <Link
+                        href={`/org/${organization.id}/camps/create`}
+                        onClick={() => setIsQuickActionOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
+                      >
+                        <Tent className="size-4 text-teal-400" />
+                        <span>Create Health Camp</span>
+                      </Link>
+                    )}
+
+                    {isHospital && (
+                      <Link
+                        href={`/org/${organization.id}/training`}
+                        onClick={() => setIsQuickActionOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
+                      >
+                        <Award className="size-4 text-indigo-400" />
+                        <span>Create SOP Training</span>
+                      </Link>
+                    )}
+                  </>
+                )}
+
+                {canCreateEvent && (
+                  <Link
+                    href={`/org/${organization.id}/events/create`}
+                    onClick={() => setIsQuickActionOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
+                  >
+                    <Calendar className="size-4 text-purple-400" />
+                    <span>Host CME / Event</span>
+                  </Link>
+                )}
+
+                <Link
+                  href={`/org/${organization.id}/communication`}
+                  onClick={() => setIsQuickActionOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
+                >
+                  <FileText className="size-4 text-rose-400" />
+                  <span>Post Announcement</span>
+                </Link>
+              </div>
+            </>
+          )}
+        </div>
 
         {/* Notifications */}
         <Link

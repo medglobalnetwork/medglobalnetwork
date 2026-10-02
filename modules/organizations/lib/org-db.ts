@@ -231,6 +231,171 @@ export async function ensureOrgTables(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_camp_vol_camp ON organization_camp_volunteers(camp_id);
     `.execute(db);
 
+    // 12. College Students Table
+    await sql`
+      CREATE TABLE IF NOT EXISTS organization_students (
+        id VARCHAR(64) PRIMARY KEY,
+        organization_id VARCHAR(64) NOT NULL,
+        user_id VARCHAR(64),
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255),
+        phone VARCHAR(50),
+        program VARCHAR(100) NOT NULL,
+        year INT DEFAULT 1,
+        semester INT DEFAULT 1,
+        department VARCHAR(100),
+        enrollment_number VARCHAR(100) NOT NULL,
+        batch VARCHAR(50),
+        status VARCHAR(30) NOT NULL DEFAULT 'active',
+        academic_standing VARCHAR(50) DEFAULT 'good',
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT uq_org_enrollment UNIQUE (organization_id, enrollment_number)
+      );
+      CREATE INDEX IF NOT EXISTS idx_org_students_org ON organization_students(organization_id);
+      CREATE INDEX IF NOT EXISTS idx_org_students_program ON organization_students(program);
+    `.execute(db);
+
+    // 13. College Academic Programs
+    await sql`
+      CREATE TABLE IF NOT EXISTS organization_academic_programs (
+        id VARCHAR(64) PRIMARY KEY,
+        organization_id VARCHAR(64) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        code VARCHAR(50) NOT NULL,
+        degree_level VARCHAR(50) NOT NULL DEFAULT 'Undergraduate',
+        duration_years NUMERIC(3, 1) NOT NULL DEFAULT 4.0,
+        department VARCHAR(100),
+        description TEXT,
+        curriculum JSONB DEFAULT '[]',
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT uq_org_program_code UNIQUE (organization_id, code)
+      );
+      CREATE INDEX IF NOT EXISTS idx_org_prog_org ON organization_academic_programs(organization_id);
+    `.execute(db);
+
+    // 14. College Assessments & Exams
+    await sql`
+      CREATE TABLE IF NOT EXISTS organization_assessments (
+        id VARCHAR(64) PRIMARY KEY,
+        organization_id VARCHAR(64) NOT NULL,
+        department VARCHAR(100),
+        program_id VARCHAR(64),
+        course_id VARCHAR(64),
+        title VARCHAR(255) NOT NULL,
+        assessment_type VARCHAR(50) NOT NULL DEFAULT 'mcq',
+        total_marks NUMERIC(6, 2) NOT NULL DEFAULT 100,
+        pass_percentage NUMERIC(5, 2) NOT NULL DEFAULT 50,
+        duration_minutes INT DEFAULT 60,
+        due_date TIMESTAMPTZ,
+        status VARCHAR(30) NOT NULL DEFAULT 'draft',
+        question_bank JSONB DEFAULT '[]',
+        scope VARCHAR(50) DEFAULT 'department',
+        created_by VARCHAR(64) NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_org_assess_org ON organization_assessments(organization_id);
+    `.execute(db);
+
+    // 15. College Assessment Submissions
+    await sql`
+      CREATE TABLE IF NOT EXISTS organization_assessment_submissions (
+        id VARCHAR(64) PRIMARY KEY,
+        assessment_id VARCHAR(64) NOT NULL,
+        organization_id VARCHAR(64) NOT NULL,
+        student_id VARCHAR(64) NOT NULL,
+        student_name VARCHAR(255) NOT NULL,
+        student_enrollment VARCHAR(100),
+        submitted_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        score NUMERIC(6, 2),
+        max_score NUMERIC(6, 2) NOT NULL DEFAULT 100,
+        status VARCHAR(30) DEFAULT 'submitted',
+        feedback TEXT
+      );
+      CREATE INDEX IF NOT EXISTS idx_org_subm_assess ON organization_assessment_submissions(assessment_id);
+      CREATE INDEX IF NOT EXISTS idx_org_subm_org ON organization_assessment_submissions(organization_id);
+    `.execute(db);
+
+    // 16. College Placements
+    await sql`
+      CREATE TABLE IF NOT EXISTS organization_placements (
+        id VARCHAR(64) PRIMARY KEY,
+        organization_id VARCHAR(64) NOT NULL,
+        company_name VARCHAR(255) NOT NULL,
+        job_title VARCHAR(255) NOT NULL,
+        job_type VARCHAR(50) NOT NULL DEFAULT 'full_time',
+        eligible_programs TEXT[] DEFAULT '{}',
+        min_cgpa NUMERIC(4, 2),
+        package_ctc VARCHAR(100),
+        location VARCHAR(150),
+        deadline TIMESTAMPTZ,
+        status VARCHAR(30) NOT NULL DEFAULT 'active',
+        description TEXT,
+        applications_count INT DEFAULT 0,
+        offers_count INT DEFAULT 0,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_org_place_org ON organization_placements(organization_id);
+    `.execute(db);
+
+    // 17. College Placement Applications
+    await sql`
+      CREATE TABLE IF NOT EXISTS organization_placement_applications (
+        id VARCHAR(64) PRIMARY KEY,
+        placement_id VARCHAR(64) NOT NULL,
+        organization_id VARCHAR(64) NOT NULL,
+        student_id VARCHAR(64) NOT NULL,
+        student_name VARCHAR(255) NOT NULL,
+        student_program VARCHAR(100) NOT NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'applied',
+        interview_date TIMESTAMPTZ,
+        notes TEXT,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_org_papp_place ON organization_placement_applications(placement_id);
+      CREATE INDEX IF NOT EXISTS idx_org_papp_org ON organization_placement_applications(organization_id);
+    `.execute(db);
+
+    // 18. Hospital Internal SOP & Clinical Trainings
+    await sql`
+      CREATE TABLE IF NOT EXISTS organization_internal_trainings (
+        id VARCHAR(64) PRIMARY KEY,
+        organization_id VARCHAR(64) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        category VARCHAR(100) NOT NULL DEFAULT 'Clinical Skills',
+        department VARCHAR(100),
+        access_scope VARCHAR(50) NOT NULL DEFAULT 'org_only',
+        content_type VARCHAR(50) NOT NULL DEFAULT 'video',
+        duration_hours NUMERIC(4, 1) DEFAULT 2.0,
+        has_certificate BOOLEAN DEFAULT TRUE,
+        description TEXT,
+        mandatory BOOLEAN DEFAULT FALSE,
+        created_by VARCHAR(64) NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_org_train_org ON organization_internal_trainings(organization_id);
+    `.execute(db);
+
+    // 19. Targeted Announcements
+    await sql`
+      CREATE TABLE IF NOT EXISTS organization_announcements (
+        id VARCHAR(64) PRIMARY KEY,
+        organization_id VARCHAR(64) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        message TEXT NOT NULL,
+        target_audience VARCHAR(50) NOT NULL DEFAULT 'all',
+        target_department VARCHAR(100),
+        target_program VARCHAR(100),
+        attachment_url TEXT,
+        publish_date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        expiry_date TIMESTAMPTZ,
+        pinned BOOLEAN DEFAULT FALSE,
+        created_by VARCHAR(64) NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_org_ann_org ON organization_announcements(organization_id);
+    `.execute(db);
+
     isInitialized = true;
   } catch (err) {
     console.error("ensureOrgTables error:", err);

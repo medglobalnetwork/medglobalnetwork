@@ -50,7 +50,8 @@ export type MessageType =
   | "PRODUCT"
   | "POLL"
   | "SYSTEM"
-  | "MEETING";
+  | "MEETING"
+  | "LOCATION";
 
 export type MessageStatus = "SENT" | "DELIVERED" | "READ" | "FAILED";
 

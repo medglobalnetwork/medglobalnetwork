@@ -19,6 +19,7 @@ import {
   Building,
 } from "lucide-react";
 import { CampRecord, CampRequiredRole } from "@/modules/camps/domain/types";
+import { CampCheckIn } from "@/components/camps/CampCheckIn";
 
 export default function CampDetailPage({
   params,
@@ -177,6 +178,9 @@ export default function CampDetailPage({
           {message}
         </div>
       )}
+
+      {/* Geofence check-in — only useful once the venue has coordinates */}
+      <CampCheckIn camp={camp} onMessage={setMessage} />
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">

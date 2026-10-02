@@ -17,6 +17,14 @@ import {
   OrgRole,
   OrgPermission,
   OrganizationType,
+  StudentRecord,
+  AcademicProgramRecord,
+  AssessmentRecord,
+  AssessmentSubmissionRecord,
+  PlacementRecord,
+  PlacementApplicationRecord,
+  HospitalInternalTrainingRecord,
+  OrganizationAnnouncementRecord,
 } from "../types";
 import { ROLE_DEFAULT_PERMISSIONS } from "./org-permissions";
 
@@ -193,7 +201,6 @@ export class OrganizationService {
 
     if (!slug) slug = "org-" + Date.now().toString(36);
 
-    // Check slug uniqueness
     const existing = await db
       .selectFrom("organizations")
       .select("id")
@@ -355,12 +362,13 @@ export class OrganizationService {
       WHERE organization_id = ${orgId}
     `.execute(db).catch(() => ({ rows: [{ active_projects: "0" }] }));
 
-    // 7. Team & Members
+    // 7. Team & Members & Clinical Workforce
     const membersRes = await sql<any>`
       SELECT
-        COUNT(*) as total_members
-      FROM organization_members
-      WHERE organization_id = ${orgId} AND status = 'active'
+        COUNT(*) as total_members,
+        COUNT(*) FILTER (WHERE om.role = 'FACULTY') as faculty_count
+      FROM organization_members om
+      WHERE om.organization_id = ${orgId} AND om.status = 'active'
     `.execute(db);
 
     const deptRes = await sql<any>`
@@ -369,7 +377,50 @@ export class OrganizationService {
       WHERE organization_id = ${orgId}
     `.execute(db);
 
-    // 8. Subscription
+    // 8. Hospital Clinical Workforce Breakdown
+    const clinicalRes = await sql<any>`
+      SELECT
+        COUNT(*) FILTER (WHERE LOWER(om.designation) LIKE '%doctor%' OR LOWER(om.department) IN ('cardiology', 'neurology', 'orthopaedics', 'emergency', 'icu', 'paediatrics')) as doctors_count,
+        COUNT(*) FILTER (WHERE LOWER(om.designation) LIKE '%nurse%' OR LOWER(om.department) LIKE '%nurs%') as nurses_count,
+        COUNT(*) FILTER (WHERE LOWER(om.designation) LIKE '%physio%' OR LOWER(om.department) LIKE '%physio%') as physios_count,
+        COUNT(*) FILTER (WHERE LOWER(om.designation) LIKE '%allied%' OR LOWER(om.designation) LIKE '%therapist%' OR LOWER(om.designation) LIKE '%technician%') as allied_count
+      FROM organization_members om
+      WHERE om.organization_id = ${orgId} AND om.status = 'active'
+    `.execute(db).catch(() => ({ rows: [{}] }));
+
+    // 9. Hospital Internal Trainings
+    const trainRes = await sql<any>`
+      SELECT COUNT(*) as internal_trainings_count
+      FROM organization_internal_trainings
+      WHERE organization_id = ${orgId}
+    `.execute(db).catch(() => ({ rows: [{ internal_trainings_count: "0" }] }));
+
+    // 10. College Students & Programs & Placements & Assessments
+    const studentsRes = await sql<any>`
+      SELECT COUNT(*) as students_count
+      FROM organization_students
+      WHERE organization_id = ${orgId} AND status = 'active'
+    `.execute(db).catch(() => ({ rows: [{ students_count: "0" }] }));
+
+    const progRes = await sql<any>`
+      SELECT COUNT(*) as prog_count
+      FROM organization_academic_programs
+      WHERE organization_id = ${orgId}
+    `.execute(db).catch(() => ({ rows: [{ prog_count: "0" }] }));
+
+    const placeRes = await sql<any>`
+      SELECT COUNT(*) as placements_count
+      FROM organization_placements
+      WHERE organization_id = ${orgId} AND status = 'active'
+    `.execute(db).catch(() => ({ rows: [{ placements_count: "0" }] }));
+
+    const assessRes = await sql<any>`
+      SELECT COUNT(*) as assess_count
+      FROM organization_assessments
+      WHERE organization_id = ${orgId} AND status IN ('published', 'draft')
+    `.execute(db).catch(() => ({ rows: [{ assess_count: "0" }] }));
+
+    // 11. Subscription
     const subRes = await db
       .selectFrom("organization_subscriptions")
       .select(["plan", "status", "current_period_end"])
@@ -386,6 +437,12 @@ export class OrganizationService {
     const r = researchRes.rows[0] || {};
     const m = membersRes.rows[0] || {};
     const d = deptRes.rows[0] || {};
+    const clin = clinicalRes.rows[0] || {};
+    const tr = trainRes.rows[0] || {};
+    const stu = studentsRes.rows[0] || {};
+    const pr = progRes.rows[0] || {};
+    const pl = placeRes.rows[0] || {};
+    const as = assessRes.rows[0] || {};
 
     return {
       activeJobsCount: parseInt(j.active_jobs || "0", 10),
@@ -406,7 +463,7 @@ export class OrganizationService {
       campsCompletedCount: parseInt(camp.camps_completed || "0", 10),
 
       coursesCount: parseInt(l.courses_count || "0", 10),
-      enrolledStudentsCount: 0,
+      enrolledStudentsCount: parseInt(stu.students_count || "0", 10),
       liveClassesUpcomingCount: 0,
       courseCompletionsCount: 0,
 
@@ -421,9 +478,286 @@ export class OrganizationService {
       totalMembersCount: parseInt(m.total_members || "1", 10),
       departmentsCount: parseInt(d.total_depts || "0", 10),
 
+      // Hospital metrics
+      clinicalDoctorsCount: parseInt(clin.doctors_count || "0", 10),
+      clinicalNursesCount: parseInt(clin.nurses_count || "0", 10),
+      clinicalPhysiosCount: parseInt(clin.physios_count || "0", 10),
+      clinicalAlliedCount: parseInt(clin.allied_count || "0", 10),
+      internalTrainingsCount: parseInt(tr.internal_trainings_count || "0", 10),
+
+      // College metrics
+      studentsCount: parseInt(stu.students_count || "0", 10),
+      facultyCount: parseInt(m.faculty_count || "0", 10),
+      academicProgramsCount: parseInt(pr.prog_count || "0", 10),
+      activePlacementsCount: parseInt(pl.placements_count || "0", 10),
+      pendingAssessmentsCount: parseInt(as.assess_count || "0", 10),
+
       planName: (subRes?.plan as any) || "Basic",
       subscriptionStatus: (subRes?.status as any) || "ACTIVE",
       renewalDate: subRes?.current_period_end ? new Date(subRes.current_period_end).toISOString() : new Date().toISOString(),
     };
+  }
+
+  // ============================================================
+  // College Service Methods: Students, Programs, Assessments, Placements
+  // ============================================================
+
+  static async getStudents(
+    orgId: string,
+    filters?: { program?: string; year?: number; status?: string; search?: string }
+  ): Promise<StudentRecord[]> {
+    await ensureOrgTables();
+
+    let query = sql<any>`
+      SELECT * FROM organization_students
+      WHERE organization_id = ${orgId}
+    `;
+
+    if (filters?.program) {
+      query = sql<any>`${query} AND program = ${filters.program}`;
+    }
+    if (filters?.year) {
+      query = sql<any>`${query} AND year = ${filters.year}`;
+    }
+    if (filters?.status) {
+      query = sql<any>`${query} AND status = ${filters.status}`;
+    }
+    if (filters?.search) {
+      const term = `%${filters.search}%`;
+      query = sql<any>`${query} AND (name ILIKE ${term} OR enrollment_number ILIKE ${term} OR email ILIKE ${term})`;
+    }
+
+    query = sql<any>`${query} ORDER BY name ASC`;
+
+    const res = await query.execute(db);
+    return res.rows;
+  }
+
+  static async createStudent(orgId: string, data: Partial<StudentRecord>): Promise<StudentRecord> {
+    await ensureOrgTables();
+    const id = generateOrgId();
+
+    await sql`
+      INSERT INTO organization_students (
+        id, organization_id, user_id, name, email, phone, program, year, semester,
+        department, enrollment_number, batch, status, academic_standing, created_at, updated_at
+      ) VALUES (
+        ${id}, ${orgId}, ${data.user_id || null}, ${data.name}, ${data.email || null},
+        ${data.phone || null}, ${data.program || "BPT"}, ${data.year || 1}, ${data.semester || 1},
+        ${data.department || null}, ${data.enrollment_number}, ${data.batch || null},
+        ${data.status || "active"}, ${data.academic_standing || "good"}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+      )
+    `.execute(db);
+
+    const res = await sql<any>`SELECT * FROM organization_students WHERE id = ${id}`.execute(db);
+    return res.rows[0];
+  }
+
+  static async deleteStudent(orgId: string, studentId: string): Promise<boolean> {
+    await ensureOrgTables();
+    await sql`DELETE FROM organization_students WHERE id = ${studentId} AND organization_id = ${orgId}`.execute(db);
+    return true;
+  }
+
+  static async getAcademicPrograms(orgId: string): Promise<AcademicProgramRecord[]> {
+    await ensureOrgTables();
+    const res = await sql<any>`
+      SELECT 
+        p.*,
+        (SELECT COUNT(*) FROM organization_students WHERE organization_id = ${orgId} AND program = p.code) as student_count
+      FROM organization_academic_programs p
+      WHERE p.organization_id = ${orgId}
+      ORDER BY p.name ASC
+    `.execute(db);
+
+    return res.rows.map((r: any) => ({
+      ...r,
+      student_count: parseInt(r.student_count || "0", 10),
+      curriculum: Array.isArray(r.curriculum) ? r.curriculum : [],
+    }));
+  }
+
+  static async createAcademicProgram(orgId: string, data: Partial<AcademicProgramRecord>): Promise<AcademicProgramRecord> {
+    await ensureOrgTables();
+    const id = generateOrgId();
+
+    await sql`
+      INSERT INTO organization_academic_programs (
+        id, organization_id, name, code, degree_level, duration_years, department, description, curriculum, created_at
+      ) VALUES (
+        ${id}, ${orgId}, ${data.name}, ${data.code}, ${data.degree_level || "Undergraduate"},
+        ${data.duration_years || 4.0}, ${data.department || null}, ${data.description || null},
+        ${JSON.stringify(data.curriculum || [])}, CURRENT_TIMESTAMP
+      )
+    `.execute(db);
+
+    const res = await sql<any>`SELECT * FROM organization_academic_programs WHERE id = ${id}`.execute(db);
+    return res.rows[0];
+  }
+
+  static async getAssessments(orgId: string, department?: string): Promise<AssessmentRecord[]> {
+    await ensureOrgTables();
+    let q = sql<any>`
+      SELECT 
+        a.*,
+        (SELECT COUNT(*) FROM organization_assessment_submissions WHERE assessment_id = a.id) as submissions_count
+      FROM organization_assessments a
+      WHERE a.organization_id = ${orgId}
+    `;
+
+    if (department) {
+      q = sql<any>`${q} AND a.department = ${department}`;
+    }
+
+    q = sql<any>`${q} ORDER BY a.created_at DESC`;
+    const res = await q.execute(db);
+    return res.rows.map((r: any) => ({
+      ...r,
+      submissions_count: parseInt(r.submissions_count || "0", 10),
+      question_bank: Array.isArray(r.question_bank) ? r.question_bank : [],
+    }));
+  }
+
+  static async createAssessment(orgId: string, userId: string, data: Partial<AssessmentRecord>): Promise<AssessmentRecord> {
+    await ensureOrgTables();
+    const id = generateOrgId();
+
+    await sql`
+      INSERT INTO organization_assessments (
+        id, organization_id, department, program_id, course_id, title, assessment_type,
+        total_marks, pass_percentage, duration_minutes, due_date, status, question_bank, scope, created_by, created_at
+      ) VALUES (
+        ${id}, ${orgId}, ${data.department || null}, ${data.program_id || null}, ${data.course_id || null},
+        ${data.title}, ${data.assessment_type || "mcq"}, ${data.total_marks || 100}, ${data.pass_percentage || 50},
+        ${data.duration_minutes || 60}, ${data.due_date || null}, ${data.status || "published"},
+        ${JSON.stringify(data.question_bank || [])}, ${data.scope || "department"}, ${userId}, CURRENT_TIMESTAMP
+      )
+    `.execute(db);
+
+    const res = await sql<any>`SELECT * FROM organization_assessments WHERE id = ${id}`.execute(db);
+    return res.rows[0];
+  }
+
+  static async getPlacements(orgId: string): Promise<PlacementRecord[]> {
+    await ensureOrgTables();
+    const res = await sql<any>`
+      SELECT * FROM organization_placements
+      WHERE organization_id = ${orgId}
+      ORDER BY created_at DESC
+    `.execute(db);
+
+    return res.rows.map((r: any) => ({
+      ...r,
+      eligible_programs: Array.isArray(r.eligible_programs) ? r.eligible_programs : [],
+      applications_count: parseInt(r.applications_count || "0", 10),
+      offers_count: parseInt(r.offers_count || "0", 10),
+    }));
+  }
+
+  static async createPlacement(orgId: string, data: Partial<PlacementRecord>): Promise<PlacementRecord> {
+    await ensureOrgTables();
+    const id = generateOrgId();
+
+    await sql`
+      INSERT INTO organization_placements (
+        id, organization_id, company_name, job_title, job_type, eligible_programs,
+        min_cgpa, package_ctc, location, deadline, status, description, created_at
+      ) VALUES (
+        ${id}, ${orgId}, ${data.company_name}, ${data.job_title}, ${data.job_type || "full_time"},
+        ${data.eligible_programs || []}, ${data.min_cgpa || null}, ${data.package_ctc || null},
+        ${data.location || null}, ${data.deadline || null}, ${data.status || "active"},
+        ${data.description || null}, CURRENT_TIMESTAMP
+      )
+    `.execute(db);
+
+    const res = await sql<any>`SELECT * FROM organization_placements WHERE id = ${id}`.execute(db);
+    return res.rows[0];
+  }
+
+  // ============================================================
+  // Hospital Service Methods: Internal SOP Training & Clinical Workforce
+  // ============================================================
+
+  static async getInternalTrainings(orgId: string, department?: string): Promise<HospitalInternalTrainingRecord[]> {
+    await ensureOrgTables();
+    let q = sql<any>`
+      SELECT * FROM organization_internal_trainings
+      WHERE organization_id = ${orgId}
+    `;
+    if (department) {
+      q = sql<any>`${q} AND (department = ${department} OR access_scope = 'org_only' OR access_scope = 'public')`;
+    }
+    q = sql<any>`${q} ORDER BY created_at DESC`;
+
+    const res = await q.execute(db);
+    return res.rows;
+  }
+
+  static async createInternalTraining(
+    orgId: string,
+    userId: string,
+    data: Partial<HospitalInternalTrainingRecord>
+  ): Promise<HospitalInternalTrainingRecord> {
+    await ensureOrgTables();
+    const id = generateOrgId();
+
+    await sql`
+      INSERT INTO organization_internal_trainings (
+        id, organization_id, title, category, department, access_scope, content_type,
+        duration_hours, has_certificate, description, mandatory, created_by, created_at
+      ) VALUES (
+        ${id}, ${orgId}, ${data.title}, ${data.category || "Clinical Skills"}, ${data.department || null},
+        ${data.access_scope || "org_only"}, ${data.content_type || "video"}, ${data.duration_hours || 2.0},
+        ${data.has_certificate ?? true}, ${data.description || null}, ${data.mandatory ?? false},
+        ${userId}, CURRENT_TIMESTAMP
+      )
+    `.execute(db);
+
+    const res = await sql<any>`SELECT * FROM organization_internal_trainings WHERE id = ${id}`.execute(db);
+    return res.rows[0];
+  }
+
+  // ============================================================
+  // Targeted Announcements Service Methods
+  // ============================================================
+
+  static async getAnnouncements(orgId: string, audience?: string): Promise<OrganizationAnnouncementRecord[]> {
+    await ensureOrgTables();
+    let q = sql<any>`
+      SELECT * FROM organization_announcements
+      WHERE organization_id = ${orgId}
+    `;
+
+    if (audience && audience !== "all") {
+      q = sql<any>`${q} AND (target_audience = 'all' OR target_audience = ${audience})`;
+    }
+
+    q = sql<any>`${q} ORDER BY pinned DESC, publish_date DESC`;
+    const res = await q.execute(db);
+    return res.rows;
+  }
+
+  static async createAnnouncement(
+    orgId: string,
+    userId: string,
+    data: Partial<OrganizationAnnouncementRecord>
+  ): Promise<OrganizationAnnouncementRecord> {
+    await ensureOrgTables();
+    const id = generateOrgId();
+
+    await sql`
+      INSERT INTO organization_announcements (
+        id, organization_id, title, message, target_audience, target_department,
+        target_program, attachment_url, publish_date, expiry_date, pinned, created_by, created_at
+      ) VALUES (
+        ${id}, ${orgId}, ${data.title}, ${data.message}, ${data.target_audience || "all"},
+        ${data.target_department || null}, ${data.target_program || null}, ${data.attachment_url || null},
+        ${data.publish_date || new Date().toISOString()}, ${data.expiry_date || null},
+        ${data.pinned ?? false}, ${userId}, CURRENT_TIMESTAMP
+      )
+    `.execute(db);
+
+    const res = await sql<any>`SELECT * FROM organization_announcements WHERE id = ${id}`.execute(db);
+    return res.rows[0];
   }
 }
