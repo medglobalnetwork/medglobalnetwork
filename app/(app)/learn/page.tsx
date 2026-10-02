@@ -11,7 +11,6 @@ import {
   Brain,
   CheckCircle2,
   Clock,
-  Compass,
   FileText,
   Flame,
   GraduationCap,

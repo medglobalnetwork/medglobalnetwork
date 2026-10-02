@@ -24,6 +24,7 @@ import {
   LogOut,
   ExternalLink,
   Compass,
+  Globe,
   Pin,
   PinOff,
   Plus,
@@ -65,7 +66,7 @@ export const WORKSPACE_NAV_ITEMS: NavItem[] = [
 
 export const LEARN_WORKSPACE_NAV_ITEMS: NavItem[] = [
   { id: "learn-dashboard", label: "Dashboard", href: "/learn", icon: Home, icon8Id: "i6fZC6wuprSu" },
-  { id: "learn-explore", label: "Explore", href: "/learn/explore", icon: Compass, icon8Id: "AvANlXOxUB6Z" },
+  { id: "learn-explore", label: "Explore", href: "/learn/explore", icon: Globe, icon8Id: "AvANlXOxUB6Z" },
   { id: "learn-mylearning", label: "My Learning", href: "/learn/my-learning", icon: GraduationCap, icon8Id: "AvANlXOxUB6Z" },
   { id: "learn-practice", label: "Practice", href: "/learn/practice", icon: ShieldCheck, icon8Id: "YzsadpdsoN8e" },
   { id: "learn-resources", label: "Resources", href: "/learn/resources", icon: BookOpen, icon8Id: "FnCSMZbfR6RU" },

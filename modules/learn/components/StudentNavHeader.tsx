@@ -6,8 +6,8 @@ import { usePathname } from "next/navigation";
 import {
   BookOpen,
   Brain,
-  Compass,
   FileText,
+  Globe,
   GraduationCap,
   Layers,
   Sparkles,
@@ -63,7 +63,7 @@ export function StudentNavHeader({ activeTab }: StudentNavHeaderProps) {
       id: "explore" as StudentNavTab,
       label: "Explore",
       href: "/learn/explore",
-      icon: Compass,
+      icon: Globe,
     },
     {
       id: "my-learning" as StudentNavTab,
@@ -239,7 +239,7 @@ export function StudentNavHeader({ activeTab }: StudentNavHeaderProps) {
                 : "text-[#77716b] dark:text-[#8b949e]"
             }`}
           >
-            <Compass className="size-5" />
+            <Globe className="size-5" />
             <span className="text-[10px] mt-0.5">Explore</span>
           </Link>
 
