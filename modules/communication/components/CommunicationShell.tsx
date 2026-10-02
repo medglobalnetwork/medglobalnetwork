@@ -529,41 +529,30 @@ export function CommunicationShell() {
     }
   };
 
-  // 6E. Calls
-  const handleStartCall = async (type: "VOICE" | "VIDEO") => {
+  // 6E. Calls — CallModal owns the live call; the shell only records the
+  // session in the audit log once the call starts and finishes.
+  const handleStartCall = (type: "VOICE" | "VIDEO") => {
     if (!selectedConversation) return;
     setCallType(type);
+    setActiveCallId(null);
     setShowCallModal(true);
-
-    try {
-      const res = await fetch("/api/v1/communication/calls", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          conversationId: selectedConversation.id,
-          callType: type,
-          participantIds: detailsData.members.map((m) => m.userId),
-        }),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        setActiveCallId(json.callId || null);
-      }
-    } catch (e) {
-      console.error("Error initiating call:", e);
-    }
   };
 
-  const handleEndCall = async () => {
+  const handleCallStarted = (callId: string) => {
+    setActiveCallId(callId);
+  };
+
+  const handleCallEnded = async (callId: string, durationSeconds: number) => {
+    setActiveCallId(null);
+    await fetch("/api/v1/communication/calls", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ callId, durationSeconds }),
+    }).catch(() => {});
+  };
+
+  const handleEndCall = () => {
     setShowCallModal(false);
-    if (activeCallId) {
-      fetch("/api/v1/communication/calls", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ callId: activeCallId, durationSeconds: 45 }),
-      }).catch(() => {});
-      setActiveCallId(null);
-    }
   };
 
   // 7. Create Group
@@ -1611,8 +1600,7 @@ export function CommunicationShell() {
             isOpen={showDetailsDrawer}
             onClose={() => setShowDetailsDrawer(false)}
             onStartCall={(type) => {
-              setCallType(type);
-              setShowCallModal(true);
+              handleStartCall(type);
             }}
             onScheduleMeeting={() => setShowScheduleModal(true)}
             onBlockUser={async (blockedId) => {
@@ -1685,6 +1673,10 @@ export function CommunicationShell() {
         peerName={activeTitle}
         peerImage={activeIsDirect ? activePeer?.image : selectedConversation?.avatarUrl}
         peerTitle={activeSubtitle}
+        peerId={activePeer?.userId ?? null}
+        conversationId={selectedConversation?.id ?? null}
+        onCallStarted={handleCallStarted}
+        onCallEnded={handleCallEnded}
       />
 
       {/* New Group Modal */}

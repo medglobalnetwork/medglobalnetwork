@@ -33,6 +33,7 @@ import {
   Plus,
   Package,
   BookOpen,
+  Building2,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { getUserAvatarUrl } from "@/lib/avatar";
@@ -61,6 +62,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
 ];
 
 export const WORKSPACE_NAV_ITEMS: NavItem[] = [
+  { id: "organizations", label: "Workspaces", href: "/organizations", icon: Building2, icon8Id: "IOkzpfWnUztj" },
   { id: "create", label: "Create", href: "/create", icon: Plus, icon8Id: "SpuYztywr0Vl" },
   { id: "messages", label: "Messages", href: "/messages", icon: MessageSquare, icon8Id: "d7iUgF8ZrDaO" },
   { id: "calendar", label: "Schedule", href: "/calendar", icon: CalendarDays, icon8Id: "vwGXRtPWrZSn" },

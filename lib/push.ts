@@ -257,16 +257,36 @@ export async function pushToUser(
 /** Sends to every active device of many users (one payload for all). */
 export async function pushToUsers(
   userIds: string[],
-  payload: PushPayload
+  payload: PushPayload,
+  category?: PushCategory
 ): Promise<PushResult> {
   if (userIds.length === 0) return { sent: 0, failed: 0, invalidTokens: [] };
+
+  if (category && !PUSH_CATEGORIES.includes(category)) {
+    console.error(`[push] rejected unknown category: ${category}`);
+    return { sent: 0, failed: 0, invalidTokens: [] };
+  }
+
   try {
-    const res = await pool.query<{ token: string }>(
-      `SELECT token FROM push_devices
-        WHERE user_id = ANY($1::text[])
-          AND last_seen_at > NOW() - INTERVAL '90 days'`,
-      [userIds]
-    );
+    // Preferences are per-user, so an explicit opt-out removes the device rows
+    // from the result set rather than filtering after delivery.
+    const res = category
+      ? await pool.query<{ token: string }>(
+          `SELECT d.token FROM push_devices d
+            WHERE d.user_id = ANY($1::text[])
+              AND d.last_seen_at > NOW() - INTERVAL '90 days'
+              AND COALESCE(
+                    (SELECT (${category}) FROM push_preferences p WHERE p.user_id = d.user_id),
+                    TRUE
+                  )`,
+          [userIds]
+        )
+      : await pool.query<{ token: string }>(
+          `SELECT token FROM push_devices
+            WHERE user_id = ANY($1::text[])
+              AND last_seen_at > NOW() - INTERVAL '90 days'`,
+          [userIds]
+        );
     return await pushToTokens(res.rows.map((r) => r.token), payload);
   } catch (err) {
     console.error("[push] pushToUsers error:", err);

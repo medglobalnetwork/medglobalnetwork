@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import UserMenu from "@/components/UserMenu";
+import AnnouncementsBell from "@/components/AnnouncementsBell";
 import { useScrollDirection } from "@/lib/useScrollDirection";
 import { formatContentTimestamp, formatExactDateTime } from "@/lib/date";
 import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
@@ -344,15 +345,19 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                   <Search className="size-[22px] stroke-[2]" />
                 </button>
 
-                <div className="relative">
-                  <button
-                    type="button"
-                    aria-label="Notifications"
-                    aria-expanded={notifOpen}
-                    onClick={handleToggleNotifications}
-                    className="relative flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
-                  >
-                    <Bell className="size-6 stroke-[1.9]" />
+                <AnnouncementsBell />
+
+<AnnouncementsBell />
+
+                  <div className="relative">
+                    <button
+                      type="button"
+                      aria-label="Notifications"
+                      aria-expanded={notifOpen}
+                      onClick={handleToggleNotifications}
+                      className="relative flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
+                    >
+                      <Bell className="size-6 stroke-[1.9]" />
                     {unreadCount > 0 && (
                       <span className="absolute right-1.5 top-1.5 flex size-3.5 min-w-3.5 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-[#161b22]">
                         {unreadCount}
@@ -398,6 +403,8 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
               {/* Right: Notifications, Messages & User Menu */}
               <div className="flex items-center justify-end gap-1.5 sm:gap-2.5 w-40 lg:w-52 shrink-0">
                 {/* Notifications */}
+                <AnnouncementsBell />
+
                 <div className="relative">
                   <button
                     type="button"

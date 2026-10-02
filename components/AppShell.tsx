@@ -7,6 +7,8 @@ import AppHeader from "@/components/AppHeader";
 import AppBottomNav from "@/components/AppBottomNav";
 import AppSplashScreen from "@/components/AppSplashScreen";
 import { PullToRefresh } from "@/components/PullToRefresh";
+import PushToast from "@/components/PushToast";
+import { IncomingCallListener } from "@/modules/communication/components/IncomingCallListener";
 import { initNativeApp, syncPushToken } from "@/lib/native-mobile";
 import { AskAIModal } from "@/modules/learn/components/AskAIModal";
 import { AskAIContext } from "@/modules/learn/types";
@@ -133,6 +135,12 @@ export function AppShell({ children }: AppShellProps) {
     <div className="min-h-dvh bg-[#faf9f8] dark:bg-[#0d1117] flex transition-colors duration-200">
       {/* Initial Startup Splash Screen with Pulsing Logo */}
       <AppSplashScreen />
+
+      {/* Foreground pushes: tray handles these when the app is backgrounded */}
+      <PushToast />
+
+      {/* Incoming 1:1 calls — push driven, with a polling fallback */}
+      <IncomingCallListener />
 
       {/* 1. SIDEBAR (Desktop fixed side-nav + Mobile slide-over drawer) */}
       <AppSidebar

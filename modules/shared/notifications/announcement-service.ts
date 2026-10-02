@@ -53,17 +53,21 @@ export class AnnouncementService {
 
     const audience = await this.resolveAudience(scope, scopeId);
 
-    void pushToUsers(audience, {
-      title: priority === "urgent" ? `⚠️ ${title}` : title,
-      body,
-      channelId: "announcements",
-      data: {
-        kind: "announcement",
-        announcementId: announcement.id,
-        scope,
-        scopeId: scopeId ?? "",
+    void pushToUsers(
+      audience,
+      {
+        title: priority === "urgent" ? `⚠️ ${title}` : title,
+        body,
+        channelId: "announcements",
+        data: {
+          kind: "announcement",
+          announcementId: announcement.id,
+          scope,
+          scopeId: scopeId ?? "",
+        },
       },
-    }).catch((err) =>
+      "announcements"
+    ).catch((err) =>
       console.error("[AnnouncementService] push failed:", err)
     );
 
@@ -124,7 +128,7 @@ export class AnnouncementService {
          LEFT JOIN "user" u ON u.id = a.created_by
          LEFT JOIN announcement_reads r
                 ON r.announcement_id = a.id AND r.user_id = $1
-        WHERE a.expires_at IS NULL OR a.expires_at > NOW()
+        WHERE (a.expires_at IS NULL OR a.expires_at > NOW())
           AND (
             a.scope = 'global'
             OR (a.scope = 'camp' AND a.scope_id IN (
