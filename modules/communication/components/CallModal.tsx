@@ -69,16 +69,22 @@ export function CallModal({
   const [isMuted, setIsMuted] = useState(false);
   const [videoOn, setVideoOn] = useState(callType === "VIDEO");
   const [error, setError] = useState<string | null>(null);
+  // Browsers keep audio silent until a gesture unlocks the context, so an
+  // incoming call on desktop web can ring visually only.
+  const [audioBlocked, setAudioBlocked] = useState(false);
 
   const engineRef = useRef<WebRTCCall | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
 
   const callIdRef = useRef<string | null>(existingCallId ?? null);
-  const selfIdRef = useRef<string | null>(null);
   const connectedAtRef = useRef<number | null>(null);
+  // Read by hangUp, which must not re-create whenever the parent passes a
+  // new inline callback. Synced in an effect rather than during render.
   const onCallEndedRef = useRef(onCallEnded);
-  onCallEndedRef.current = onCallEnded;
+  useEffect(() => {
+    onCallEndedRef.current = onCallEnded;
+  }, [onCallEnded]);
 
   /** Ends the server-side call and tears down the peer connection. */
   const hangUp = useCallback(
@@ -115,11 +121,16 @@ export function CallModal({
   // Reset when the modal opens, and always release media on close/unmount.
   useEffect(() => {
     if (isOpen) {
-      setPhase("idle");
-      setCallDuration(0);
-      setIsMuted(false);
-      setVideoOn(callType === "VIDEO");
-      setError(null);
+      // Deferred: this is a cascading render if set synchronously in the
+      // effect body. The modal is not visible for this frame either way.
+      queueMicrotask(() => {
+        setPhase("idle");
+        setCallDuration(0);
+        setIsMuted(false);
+        setVideoOn(callType === "VIDEO");
+        setError(null);
+        setAudioBlocked(false);
+      });
       return;
     }
 
@@ -174,7 +185,6 @@ export function CallModal({
 
         const engine = new WebRTCCall({
           callId: call.id,
-          selfId: selfIdRef.current ?? "",
           peer,
           role: "caller",
           media: callType,
@@ -214,18 +224,23 @@ export function CallModal({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, role, peerId, callType, conversationId, peerName, peerImage, hangUp, onClose]);
+  }, [isOpen, role, peerId, callType, conversationId, peerName, peerImage, hangUp, onClose, onCallStarted]);
 
   // Incoming: attach to the ringing call and ring until answered.
   useEffect(() => {
     if (!isOpen || role !== "callee" || !existingCallId) return;
 
     startRingtone();
-    setPhase("ringing-in");
+
+    queueMicrotask(() => {
+      setPhase("ringing-in");
+      // Browsers keep audio silent until a gesture unlocks the context, so
+      // an incoming call on desktop web can ring visually only.
+      setAudioBlocked(!canPlayRingtone());
+    });
 
     const engine = new WebRTCCall({
       callId: existingCallId,
-      selfId: selfIdRef.current ?? "",
       peer: { id: peerId ?? "", name: peerName, image: peerImage },
       role: "callee",
       media: callType,
@@ -259,6 +274,7 @@ export function CallModal({
     if (!id) return;
 
     stopRingtone();
+    setAudioBlocked(false);
     callIdRef.current = id;
 
     const res = await fetch(`/api/calls/${id}`, {
@@ -359,23 +375,39 @@ export function CallModal({
         )}
 
         {isIncoming ? (
-          <div className="flex items-center gap-6">
-            <button
-              type="button"
-              onClick={() => void hangUp("decline")}
-              className="h-14 w-14 rounded-full bg-rose-600 hover:bg-rose-700 active:scale-95 transition shadow-lg shadow-rose-900/40 flex items-center justify-center"
-              aria-label="Decline call"
-            >
-              <PhoneOff className="h-6 w-6" />
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleAccept()}
-              className="h-14 w-14 rounded-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition shadow-lg shadow-emerald-900/40 flex items-center justify-center"
-              aria-label="Accept call"
-            >
-              <PhoneIncoming className="h-6 w-6" />
-            </button>
+          <div className="flex flex-col items-center gap-4">
+            {audioBlocked && (
+              <button
+                type="button"
+                onClick={() => {
+                  // This click is the gesture that unlocks the AudioContext.
+                  startRingtone();
+                  setAudioBlocked(!canPlayRingtone());
+                }}
+                className="rounded-lg bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-amber-300 hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+              >
+                🔇 Sound is blocked — tap to enable the ringtone
+              </button>
+            )}
+
+            <div className="flex items-center gap-6">
+              <button
+                type="button"
+                onClick={() => void hangUp("decline")}
+                className="h-14 w-14 rounded-full bg-rose-600 hover:bg-rose-700 active:scale-95 transition shadow-lg shadow-rose-900/40 flex items-center justify-center"
+                aria-label="Decline call"
+              >
+                <PhoneOff className="h-6 w-6" />
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleAccept()}
+                className="h-14 w-14 rounded-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition shadow-lg shadow-emerald-900/40 flex items-center justify-center"
+                aria-label="Accept call"
+              >
+                <PhoneIncoming className="h-6 w-6" />
+              </button>
+            </div>
           </div>
         ) : (
           <div className="flex items-center gap-4">

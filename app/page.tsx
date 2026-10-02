@@ -11,17 +11,36 @@ import { StatsBanner } from "@/modules/landing/components/StatsBanner";
 import { MobileAppSection } from "@/modules/landing/components/MobileAppSection";
 import { CtaBanner } from "@/modules/landing/components/CtaBanner";
 import { LandingFooter } from "@/modules/landing/components/LandingFooter";
+import { authClient } from "@/lib/auth-client";
+import { isNativePlatform } from "@/lib/native-mobile";
+
+function BootScreen() {
+  return (
+    <div className="min-h-dvh bg-white dark:bg-[#0b0f17] flex items-center justify-center text-sm font-semibold text-[#0f4c81]">
+      Loading MGN...
+    </div>
+  );
+}
+
+// Stable no-op subscription: native detection is a synchronous read, not a
+// stream. useSyncExternalStore keeps SSR/hydration at `false` (so the website
+// still server-renders the landing page) and swaps to the real client value
+// immediately after mount, without a hydration mismatch.
+const subscribeToNothing = () => () => {};
 
 function LandingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const isNative = React.useSyncExternalStore(subscribeToNothing, isNativePlatform, () => false);
+  const { data: session, isPending: isSessionPending } = authClient.useSession();
+
+  const bridgeToken = searchParams?.get("bridge_token");
+  const error = searchParams?.get("error");
+  const authAction = searchParams?.get("auth");
+  const hasAuthParams = Boolean(bridgeToken || error || authAction);
 
   // If OAuth bridge_token, error, or explicit auth request is passed, route to dedicated login/signup page
   useEffect(() => {
-    const bridgeToken = searchParams?.get("bridge_token");
-    const error = searchParams?.get("error");
-    const authAction = searchParams?.get("auth");
-
     if (bridgeToken || error) {
       const target = `/login?${searchParams.toString()}`;
       router.replace(target);
@@ -30,7 +49,20 @@ function LandingContent() {
     } else if (authAction === "signin" || authAction === "login") {
       router.push("/login");
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, bridgeToken, error, authAction]);
+
+  // The native app never shows the marketing landing page: an authenticated
+  // session goes straight to the app home, everyone else to login. Explicit
+  // auth params (OAuth bridge, ?auth=) still win so those flows are not
+  // hijacked by the session redirect.
+  useEffect(() => {
+    if (!isNative || isSessionPending || hasAuthParams) return;
+    router.replace(session?.user ? "/home" : "/login");
+  }, [isNative, isSessionPending, hasAuthParams, session, router]);
+
+  if (isNative) {
+    return <BootScreen />;
+  }
 
   const handleNavigateAuth = (mode: "signin" | "signup" = "signin") => {
     if (mode === "signup") {

@@ -191,7 +191,7 @@ export class CallService {
    * previous poll; anything at or below it was already handled.
    */
   static async drainSignals(callId: string, userId: string, afterId = 0) {
-    const res = await pool.query<{ id: string; kind: SignalKind; payload: any }>(
+    const res = await pool.query<{ id: string; kind: SignalKind; payload: unknown }>(
       `WITH claimed AS (
          UPDATE call_signals
             SET consumed = TRUE

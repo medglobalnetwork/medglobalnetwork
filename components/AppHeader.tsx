@@ -17,7 +17,7 @@ import { useScrollDirection } from "@/lib/useScrollDirection";
 import { formatContentTimestamp, formatExactDateTime } from "@/lib/date";
 import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
 
-/* ── Notification popup ─────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Notification popup Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 function NotifPopup({
   onClose,
   onViewAll,
@@ -113,7 +113,7 @@ function NotifPopup({
           <li className="p-4 text-center text-xs text-[#8a8784] dark:text-[#8b949e]">Loading notifications...</li>
         ) : notifs.length === 0 ? (
           <li className="p-6 text-center text-xs text-[#8a8784] dark:text-[#8b949e]">
-            <p className="mb-1 text-lg">🔔</p>
+            <p className="mb-1 text-lg">Ã°Å¸â€â€</p>
             No notifications yet
           </li>
         ) : (
@@ -153,7 +153,7 @@ function NotifPopup({
           onClick={onViewAll}
           className="w-full text-center text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
         >
-          View all notifications →
+          View all notifications Ã¢â€ â€™
         </button>
       </div>
     </div>
@@ -164,7 +164,7 @@ interface AppHeaderProps {
   onOpenMobileDrawer?: () => void;
 }
 
-/* ── Header Message Icon (Icons8 matching sidebar) ── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Header Message Icon (Icons8 matching sidebar) Ã¢â€â‚¬Ã¢â€â‚¬ */
 function HeaderMessageIcon({ className = "size-6" }: { className?: string }) {
   const [imgError, setImgError] = React.useState(false);
   const pathname = usePathname();
@@ -186,7 +186,7 @@ function HeaderMessageIcon({ className = "size-6" }: { className?: string }) {
   );
 }
 
-/* ── Main App Header ────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Main App Header Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
   const router = useRouter();
   const pathname = usePathname();
@@ -345,10 +345,7 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                   <Search className="size-[22px] stroke-[2]" />
                 </button>
 
-                <AnnouncementsBell />
-
-<AnnouncementsBell />
-
+                  <AnnouncementsBell />
                   <div className="relative">
                     <button
                       type="button"
@@ -358,8 +355,8 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                       className="relative flex size-10 items-center justify-center rounded-full text-[#5d5854] dark:text-[#8b949e] transition hover:bg-[#f0efee] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] cursor-pointer"
                     >
                       <Bell className="size-6 stroke-[1.9]" />
-                    {unreadCount > 0 && (
-                      <span className="absolute right-1.5 top-1.5 flex size-3.5 min-w-3.5 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-[#161b22]">
+                      {unreadCount > 0 && (
+                        <span className="absolute right-1.5 top-1.5 flex size-3.5 min-w-3.5 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] font-bold text-white ring-2 ring-white dark:ring-[#161b22]">
                         {unreadCount}
                       </span>
                     )}
@@ -403,8 +400,8 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
               {/* Right: Notifications, Messages & User Menu */}
               <div className="flex items-center justify-end gap-1.5 sm:gap-2.5 w-40 lg:w-52 shrink-0">
                 {/* Notifications */}
-                <AnnouncementsBell />
 
+                <AnnouncementsBell />
                 <div className="relative">
                   <button
                     type="button"
@@ -491,6 +488,7 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                     <Search className="size-[22px] stroke-[2]" />
                   </button>
 
+                  <AnnouncementsBell />
                   <div className="relative">
                     <button
                       type="button"
@@ -556,6 +554,8 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
 
                 {/* Right: Notifications, Messages, User Menu */}
                 <div className="flex items-center justify-end gap-1.5 sm:gap-2.5 w-48 lg:w-56 shrink-0">
+
+                  <AnnouncementsBell />
                   <div className="relative">
                     <button
                       type="button"
@@ -634,6 +634,8 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                   </button>
 
                   {/* Notifications */}
+
+                  <AnnouncementsBell />
                   <div className="relative">
                     <button
                       type="button"
@@ -689,6 +691,8 @@ export default function AppHeader({ onOpenMobileDrawer }: AppHeaderProps = {}) {
                 {/* Right: Notifications, Messages, User Menu */}
                 <div className="flex items-center justify-end gap-1.5 sm:gap-2.5 w-40 lg:w-52 shrink-0">
                   {/* Notifications */}
+
+                  <AnnouncementsBell />
                   <div className="relative">
                     <button
                       type="button"

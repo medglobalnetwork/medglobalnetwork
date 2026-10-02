@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  DEBUG-ONLY manifest overlay.
+
+  Lets the debug build load the local Next.js dev server over `adb reverse`
+  (http://localhost:3000). Release builds merge only src/main, so they keep
+  usesCleartextTraffic="false" and the HTTPS-only network security config.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:usesCleartextTraffic="true"
+        tools:replace="android:usesCleartextTraffic" />
+</manifest>

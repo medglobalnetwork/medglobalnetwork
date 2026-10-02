@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import {
   verifyPhoneOtp,
-  findOrCreateUserByPhone,
+  findUserByPhone,
   createPhoneSession,
   normalizePhoneNumber,
 } from "@/lib/phone-auth";
@@ -13,8 +13,8 @@ export async function POST(request: Request) {
     const reqHeaders = await headers();
     const clientIp = getClientIp(reqHeaders);
 
-    // IP rate limit on verification attempts: max 10 per minute
-    const ipLimit = checkRateLimit(`verify:ip:${clientIp}`, 10, 60000);
+    // IP rate limit on verification attempts: max 15 per minute
+    const ipLimit = checkRateLimit(`verify:ip:${clientIp}`, 15, 60000);
     if (!ipLimit.allowed) {
       return NextResponse.json(
         { success: false, error: "Too many verification attempts. Please wait 1 minute." },
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const rawPhone = (body.phone || "").trim();
     const rawOtp = (body.otp || "").trim();
-    const fullName = (body.name || "").trim();
+    const purpose = (body.purpose || "login") as "login" | "signup" | "verify";
 
     if (!rawPhone) {
       return NextResponse.json(
@@ -48,8 +48,30 @@ export async function POST(request: Request) {
       );
     }
 
-    // OTP is valid - find or create user
-    const user = await findOrCreateUserByPhone(rawPhone, fullName);
+    const normalizedPhone = normalizePhoneNumber(rawPhone);
+
+    // If purpose is verification for signup/onboarding only
+    if (purpose === "signup" || purpose === "verify") {
+      return NextResponse.json({
+        success: true,
+        verified: true,
+        phone: normalizedPhone,
+        message: "Phone number verified successfully.",
+      });
+    }
+
+    // Default purpose is "login": ONLY allow login if account exists!
+    const user = await findUserByPhone(normalizedPhone);
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          notFound: true,
+          error: "No account found with this phone number. Please sign up to create an account.",
+        },
+        { status: 404 }
+      );
+    }
 
     // Extract headers for session tracking
     const userAgent = reqHeaders.get("user-agent");
@@ -58,7 +80,7 @@ export async function POST(request: Request) {
       reqHeaders.get("x-real-ip");
 
     // Create session in PostgreSQL
-    const { sessionToken, signedSessionToken, maxAge } = await createPhoneSession(
+    const { signedSessionToken, maxAge } = await createPhoneSession(
       user.id,
       userAgent,
       ipAddress
@@ -71,7 +93,8 @@ export async function POST(request: Request) {
         id: user.id,
         email: user.email,
         name: user.name,
-        isNewUser: user.isNewUser,
+        phone: user.phone,
+        isNewUser: false,
       },
       message: "Authentication successful.",
     });

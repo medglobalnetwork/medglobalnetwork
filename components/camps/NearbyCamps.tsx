@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   LocateFixed,
@@ -58,6 +58,10 @@ export function NearbyCamps() {
   const [radiusKm, setRadiusKm] = useState(25);
   const [message, setMessage] = useState<string | null>(null);
 
+  // Nothing is requested until the user asks for it. Kept in a ref so the
+  // radius effect never re-triggers on the fetch's own status transitions.
+  const optedIn = useRef(false);
+
   const loadNearby = useCallback(async (km: number) => {
     setStatus("locating");
     setMessage(null);
@@ -89,11 +93,13 @@ export function NearbyCamps() {
     }
   }, []);
 
-  // Nothing is requested until the user asks for it.
+  // Re-query only when the radius changes. Depends on radiusKm alone —
+  // including `status` here would loop, because finishing a fetch sets
+  // status back to "ready" and re-arms the effect.
   useEffect(() => {
-    if (status !== "ready") return;
+    if (!optedIn.current) return;
     void loadNearby(radiusKm);
-  }, [radiusKm, status, loadNearby]);
+  }, [radiusKm, loadNearby]);
 
   if (status === "idle") {
     return (
@@ -113,6 +119,7 @@ export function NearbyCamps() {
           <button
             type="button"
             onClick={() => {
+              optedIn.current = true;
               void triggerHaptic();
               void loadNearby(radiusKm);
             }}

@@ -25,6 +25,9 @@ import {
   TrendingUp,
   RefreshCw,
   Smartphone,
+  ChevronLeft,
+  Check,
+  UserPlus,
 } from "lucide-react";
 import CodeSlots from "@/components/ui/CodeSlots";
 
@@ -141,6 +144,8 @@ interface FormErrors {
   confirmPassword?: string;
   phone?: string;
   otp?: string;
+  emailOtp?: string;
+  phoneOtp?: string;
   agreeToTerms?: string;
   general?: string;
 }
@@ -167,6 +172,29 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   const [otpCountdown, setOtpCountdown] = React.useState(0);
   const [isSendingOtp, setIsSendingOtp] = React.useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = React.useState(false);
+  const [phoneUserNotFound, setPhoneUserNotFound] = React.useState(false);
+
+  // Signup Multi-Step Verification States
+  const [signupPhase, setSignupPhase] = React.useState<"details" | "verification">("details");
+  const [activeVerifyTab, setActiveVerifyTab] = React.useState<"phone" | "email">("phone");
+
+  // Phone Verification (Signup)
+  const [phoneOtpCode, setPhoneOtpCode] = React.useState("");
+  const [isPhoneVerified, setIsPhoneVerified] = React.useState(false);
+  const [phoneOtpStatus, setPhoneOtpStatus] = React.useState<"idle" | "error" | "success">("idle");
+  const [phoneDevOtp, setPhoneDevOtp] = React.useState<string | undefined>(undefined);
+  const [phoneOtpCountdown, setPhoneOtpCountdown] = React.useState(0);
+  const [isSendingPhoneOtp, setIsSendingPhoneOtp] = React.useState(false);
+  const [isVerifyingPhoneOtp, setIsVerifyingPhoneOtp] = React.useState(false);
+
+  // Email Verification (Signup)
+  const [emailOtpCode, setEmailOtpCode] = React.useState("");
+  const [isEmailVerified, setIsEmailVerified] = React.useState(false);
+  const [emailOtpStatus, setEmailOtpStatus] = React.useState<"idle" | "error" | "success">("idle");
+  const [emailDevOtp, setEmailDevOtp] = React.useState<string | undefined>(undefined);
+  const [emailOtpCountdown, setEmailOtpCountdown] = React.useState(0);
+  const [isSendingEmailOtp, setIsSendingEmailOtp] = React.useState(false);
+  const [isVerifyingEmailOtp, setIsVerifyingEmailOtp] = React.useState(false);
 
   // Account Type Selection: INDIVIDUAL vs ORGANISATION (For Signup)
   const [accountType, setAccountType] = React.useState<"INDIVIDUAL" | "ORGANISATION">("INDIVIDUAL");
@@ -197,7 +225,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
-  // OTP Countdown Timer
+  // OTP Countdown Timers
   React.useEffect(() => {
     if (otpCountdown > 0) {
       const timer = setInterval(() => {
@@ -206,6 +234,24 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
       return () => clearInterval(timer);
     }
   }, [otpCountdown]);
+
+  React.useEffect(() => {
+    if (phoneOtpCountdown > 0) {
+      const timer = setInterval(() => {
+        setPhoneOtpCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [phoneOtpCountdown]);
+
+  React.useEffect(() => {
+    if (emailOtpCountdown > 0) {
+      const timer = setInterval(() => {
+        setEmailOtpCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [emailOtpCountdown]);
 
   // Load saved email/username on mount
   React.useEffect(() => {
@@ -224,6 +270,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   React.useEffect(() => {
     if (queryMode === "signup" || queryMode === "signin") {
       setMode(queryMode);
+      setSignupPhase("details");
     }
   }, [queryMode]);
 
@@ -275,8 +322,20 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         case "identifier":
           if (mode === "signin") {
             if (!value || (typeof value === "string" && !value.trim())) {
-              error = loginMethod === "phone" ? "Phone number is required" : "Email address is required";
+              error = loginMethod === "phone" ? "Mobile number is required" : "Email address is required";
             } else if (loginMethod === "phone" && typeof value === "string") {
+              const digits = value.replace(/\D/g, "");
+              if (digits.length < 10) {
+                error = "Please enter a valid 10-digit mobile number";
+              }
+            }
+          }
+          break;
+        case "phone":
+          if (mode === "signup") {
+            if (!value || (typeof value === "string" && !value.trim())) {
+              error = "Mobile number is required for account verification";
+            } else if (typeof value === "string") {
               const digits = value.replace(/\D/g, "");
               if (digits.length < 10) {
                 error = "Please enter a valid 10-digit mobile number";
@@ -379,7 +438,10 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     }
   };
 
-  // Send OTP handler
+  // ═══════════════════════════════════════════════
+  // PHONE OTP LOGIN HANDLERS (STRICT ACCOUNT CHECK)
+  // ═══════════════════════════════════════════════
+
   async function handleSendPhoneOtp() {
     const rawNum = identifier.trim();
     const digits = rawNum.replace(/\D/g, "");
@@ -391,17 +453,25 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     setIsSendingOtp(true);
     setErrors({});
     setSuccessMessage("");
+    setPhoneUserNotFound(false);
 
     try {
       const res = await fetch("/api/auth/phone/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: rawNum }),
+        body: JSON.stringify({ phone: rawNum, purpose: "login" }),
       });
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        setErrors({ general: data.error || "Failed to send verification code. Please try again." });
+        if (data.notFound || res.status === 404 || data.error?.includes("No account found")) {
+          setPhoneUserNotFound(true);
+          setErrors({
+            general: "No account found with this phone number. Please sign up to create an account.",
+          });
+        } else {
+          setErrors({ general: data.error || "Failed to send verification code. Please try again." });
+        }
       } else {
         setOtpSent(true);
         setDevOtp(data.devOtp);
@@ -415,7 +485,6 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     }
   }
 
-  // Verify OTP handler
   async function verifyOtpWithCode(codeToVerify: string) {
     const rawNum = identifier.trim();
     if (!rawNum) {
@@ -441,23 +510,27 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         body: JSON.stringify({
           phone: rawNum,
           otp: codeToVerify.trim(),
+          purpose: "login",
         }),
       });
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        setErrors({ general: data.error || "Invalid verification code. Please try again." });
+        if (data.notFound || res.status === 404) {
+          setPhoneUserNotFound(true);
+          setErrors({
+            general: "No account found with this phone number. Please sign up to create an account.",
+          });
+        } else {
+          setErrors({ general: data.error || "Invalid verification code. Please try again." });
+        }
         setOtpStatus("error");
       } else {
         setOtpStatus("success");
         setSuccessMessage("Login successful! Redirecting...");
         setTimeout(() => {
-          if (data.user?.isNewUser) {
-            router.push("/onboarding");
-          } else {
-            router.push("/home");
-          }
-        }, 600);
+          router.push("/home");
+        }, 500);
       }
     } catch {
       setErrors({ general: "Verification failed. Please check your connection." });
@@ -472,6 +545,242 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     await verifyOtpWithCode(otpCode);
   }
 
+  // ═══════════════════════════════════════════════
+  // SIGNUP VERIFICATION HANDLERS (DUAL OTP)
+  // ═══════════════════════════════════════════════
+
+  async function sendSignupPhoneOtp() {
+    const rawNum = phone.trim();
+    if (!rawNum || rawNum.replace(/\D/g, "").length < 10) {
+      setErrors({ phoneOtp: "Please enter a valid 10-digit mobile number." });
+      return;
+    }
+
+    setIsSendingPhoneOtp(true);
+    setErrors({});
+    try {
+      const res = await fetch("/api/auth/phone/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: rawNum, purpose: "signup" }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setErrors({ phoneOtp: data.error || "Failed to send mobile verification code." });
+      } else {
+        setPhoneDevOtp(data.devOtp);
+        setPhoneOtpCountdown(30);
+        setSuccessMessage(`Mobile verification code sent to ${data.phone}`);
+      }
+    } catch {
+      setErrors({ phoneOtp: "Failed to send mobile code. Check connection." });
+    } finally {
+      setIsSendingPhoneOtp(false);
+    }
+  }
+
+  async function verifySignupPhoneOtp(codeToVerify: string) {
+    const rawNum = phone.trim();
+    if (!rawNum) {
+      setErrors({ phoneOtp: "Mobile number is required." });
+      setPhoneOtpStatus("error");
+      return;
+    }
+    if (!codeToVerify.trim() || codeToVerify.trim().length < 4) {
+      setErrors({ phoneOtp: "Please enter the 6-digit OTP code." });
+      setPhoneOtpStatus("error");
+      return;
+    }
+
+    setIsVerifyingPhoneOtp(true);
+    setPhoneOtpStatus("idle");
+    setErrors({});
+
+    try {
+      const res = await fetch("/api/auth/phone/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: rawNum,
+          otp: codeToVerify.trim(),
+          purpose: "signup",
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setErrors({ phoneOtp: data.error || "Invalid mobile verification code." });
+        setPhoneOtpStatus("error");
+      } else {
+        setIsPhoneVerified(true);
+        setPhoneOtpStatus("success");
+        setSuccessMessage("Mobile number verified successfully!");
+        // If email is not yet verified, switch tab to email
+        if (!isEmailVerified) {
+          setActiveVerifyTab("email");
+        }
+      }
+    } catch {
+      setErrors({ phoneOtp: "Verification failed. Please try again." });
+      setPhoneOtpStatus("error");
+    } finally {
+      setIsVerifyingPhoneOtp(false);
+    }
+  }
+
+  async function sendSignupEmailOtp() {
+    const rawEmail = email.trim().toLowerCase();
+    if (!rawEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+      setErrors({ emailOtp: "Please enter a valid email address." });
+      return;
+    }
+
+    setIsSendingEmailOtp(true);
+    setErrors({});
+    try {
+      const res = await fetch("/api/auth/email/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: rawEmail, purpose: "signup" }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setErrors({ emailOtp: data.error || "Failed to send email verification code." });
+      } else {
+        setEmailDevOtp(data.devOtp);
+        setEmailOtpCountdown(30);
+        setSuccessMessage(`Email verification code sent to ${data.email}`);
+      }
+    } catch {
+      setErrors({ emailOtp: "Failed to send email code. Check connection." });
+    } finally {
+      setIsSendingEmailOtp(false);
+    }
+  }
+
+  async function verifySignupEmailOtp(codeToVerify: string) {
+    const rawEmail = email.trim().toLowerCase();
+    if (!rawEmail) {
+      setErrors({ emailOtp: "Email address is required." });
+      setEmailOtpStatus("error");
+      return;
+    }
+    if (!codeToVerify.trim() || codeToVerify.trim().length < 4) {
+      setErrors({ emailOtp: "Please enter the 6-digit verification code." });
+      setEmailOtpStatus("error");
+      return;
+    }
+
+    setIsVerifyingEmailOtp(true);
+    setEmailOtpStatus("idle");
+    setErrors({});
+
+    try {
+      const res = await fetch("/api/auth/email/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: rawEmail,
+          otp: codeToVerify.trim(),
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setErrors({ emailOtp: data.error || "Invalid email verification code." });
+        setEmailOtpStatus("error");
+      } else {
+        setIsEmailVerified(true);
+        setEmailOtpStatus("success");
+        setSuccessMessage("Email address verified successfully!");
+      }
+    } catch {
+      setErrors({ emailOtp: "Verification failed. Please try again." });
+      setEmailOtpStatus("error");
+    } finally {
+      setIsVerifyingEmailOtp(false);
+    }
+  }
+
+  // Finalize Registration after Both Verifications
+  async function finalizeRegistration() {
+    if (!isPhoneVerified) {
+      setErrors({ general: "Please verify your mobile number before completing registration." });
+      setActiveVerifyTab("phone");
+      return;
+    }
+    if (!isEmailVerified) {
+      setErrors({ general: "Please verify your email address before completing registration." });
+      setActiveVerifyTab("email");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrors({});
+    setSuccessMessage("");
+
+    try {
+      const registeredName =
+        accountType === "INDIVIDUAL"
+          ? fullName.trim()
+          : `${orgName.trim()} (${repName.trim()})`;
+
+      // Store onboarding draft
+      if (typeof window !== "undefined") {
+        const draftPayload: Record<string, any> = {
+          accountType,
+          phone: phone.trim(),
+          username: username.trim().toLowerCase(),
+          step: 1,
+        };
+
+        if (accountType === "INDIVIDUAL") {
+          draftPayload.category = "healthcare_professional";
+          draftPayload.professionOrType = "doctor";
+          draftPayload.legalFirstName = fullName.trim();
+        } else {
+          draftPayload.category = orgType;
+          draftPayload.professionOrType = orgType;
+          draftPayload.legalFirstName = orgName.trim();
+          draftPayload.dynamicValues = {
+            auth_rep_name: repName.trim(),
+          };
+        }
+
+        localStorage.setItem("mgn_onboarding_form_draft", JSON.stringify(draftPayload));
+      }
+
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          phone: phone.trim(),
+          password,
+          name: registeredName,
+          accountType,
+          username: username.trim().toLowerCase(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setErrors({ general: data.error || "Failed to create verified account. Please try again." });
+        setIsSubmitting(false);
+      } else {
+        setSuccessMessage("Account created & verified successfully! Redirecting to onboarding...");
+        setTimeout(() => router.push("/onboarding"), 600);
+      }
+    } catch {
+      setErrors({ general: "An unexpected error occurred. Please try again." });
+      setIsSubmitting(false);
+    }
+  }
+
+  // Validate Details Form
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
@@ -483,6 +792,9 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     } else {
       const emailErr = validateField("email", email);
       if (emailErr) newErrors.email = emailErr;
+
+      const phoneErr = validateField("phone", phone);
+      if (phoneErr) newErrors.phone = phoneErr;
 
       const passErr = validateField("password", password);
       if (passErr) newErrors.password = passErr;
@@ -531,53 +843,48 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
     if (mode === "signup") {
       try {
-        const registeredName =
-          accountType === "INDIVIDUAL"
-            ? fullName.trim()
-            : `${orgName.trim()} (${repName.trim()})`;
+        // Pre-check if email or phone is already taken
+        const [emailCheckRes, phoneCheckRes] = await Promise.all([
+          fetch("/api/auth/email/check-user", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email.trim() }),
+          }),
+          fetch("/api/auth/phone/check-user", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: phone.trim() }),
+          }),
+        ]);
 
-        if (typeof window !== "undefined") {
-          const draftPayload: Record<string, any> = {
-            accountType,
-            phone: phone.trim(),
-            username: username.trim().toLowerCase(),
-            step: 1,
-          };
+        const emailCheck = await emailCheckRes.json();
+        const phoneCheck = await phoneCheckRes.json();
 
-          if (accountType === "INDIVIDUAL") {
-            draftPayload.category = "healthcare_professional";
-            draftPayload.professionOrType = "doctor";
-            draftPayload.legalFirstName = fullName.trim();
-          } else {
-            draftPayload.category = orgType;
-            draftPayload.professionOrType = orgType;
-            draftPayload.legalFirstName = orgName.trim();
-            draftPayload.dynamicValues = {
-              auth_rep_name: repName.trim(),
-            };
-          }
-
-          localStorage.setItem("mgn_onboarding_form_draft", JSON.stringify(draftPayload));
-        }
-
-        const { error } = await authClient.signUp.email({
-          email: email.trim(),
-          password,
-          name: registeredName,
-        });
-
-        if (error) {
-          setErrors({ general: error.message || "Failed to create account. Please try again." });
+        if (emailCheck.exists) {
+          setErrors({ email: "An account with this email address already exists. Please log in." });
           setIsSubmitting(false);
-        } else {
-          setSuccessMessage("Account created successfully! Redirecting...");
-          setTimeout(() => router.push("/onboarding"), 600);
+          return;
         }
+
+        if (phoneCheck.exists) {
+          setErrors({ phone: "An account with this mobile number already exists. Please log in." });
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Transition to Dual Verification Phase
+        setSignupPhase("verification");
+        setIsSubmitting(false);
+
+        // Auto trigger initial OTPs
+        sendSignupPhoneOtp();
+        sendSignupEmailOtp();
       } catch {
-        setErrors({ general: "An unexpected error occurred. Please try again." });
+        setErrors({ general: "Failed to initialize verification. Please try again." });
         setIsSubmitting(false);
       }
     } else {
+      // Email / Identifier password login
       try {
         let resolvedEmail = identifier.trim();
 
@@ -688,7 +995,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           </Link>
         </div>
 
-        {/* Middle: Headline, Subtitle & 4 Pillars (Overlaid over the image top half) */}
+        {/* Middle: Headline, Subtitle & 4 Pillars */}
         <div className="space-y-4 my-auto pt-6 pb-2 z-10 max-w-lg text-left">
           <h1 className="text-3xl lg:text-4xl xl:text-5xl font-black tracking-tight text-[#0c2b4e] dark:text-[#f0f6fc] leading-[1.14] text-balance">
             One Network. <br />
@@ -754,12 +1061,12 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
       </div>
 
       {/* ═══════════════════════════════════════════════
-          RIGHT 50% COLUMN: AUTH FORM (ROUNDED-NONE)
+          RIGHT 50% COLUMN: AUTH FORM
           ═══════════════════════════════════════════════ */}
       <div className="w-full lg:w-1/2 min-h-dvh flex flex-col justify-between bg-white dark:bg-[#0d1117] p-5 sm:p-8 lg:p-12 xl:p-16 z-10 rounded-none overflow-y-auto">
         
         {/* Top Header */}
-        <div className="flex items-center justify-between w-full max-w-[420px] mx-auto pb-4">
+        <div className="flex items-center justify-between w-full max-w-[440px] mx-auto pb-4">
           <Link href="/" className="lg:hidden flex items-center gap-2 group">
             <img
               src="/logo.png"
@@ -778,8 +1085,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           </Link>
         </div>
 
-        {/* Center Main Form Area (Rounded-None) */}
-        <div className="w-full max-w-[420px] mx-auto my-auto py-4 sm:py-6 rounded-none animate-in fade-in duration-200">
+        {/* Center Main Form Area */}
+        <div className="w-full max-w-[440px] mx-auto my-auto py-4 sm:py-6 rounded-none animate-in fade-in duration-200">
           
           {/* Header inside Form Area */}
           <div className="text-center mb-6">
@@ -787,14 +1094,18 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               {isForgotPassword
                 ? "Reset Password"
                 : mode === "signup"
-                ? "Create Account"
+                ? signupPhase === "verification"
+                  ? "Verify Account"
+                  : "Create Account"
                 : "Welcome Back!"}
             </h2>
             <p className="mt-1 text-xs sm:text-sm text-[#6b7280] dark:text-[#8b949e]">
               {isForgotPassword
                 ? "Enter your email or phone to reset your password"
                 : mode === "signup"
-                ? "Join the verified healthcare network"
+                ? signupPhase === "verification"
+                  ? "Verify both mobile number and email to activate your account"
+                  : "Join the verified healthcare network"
                 : "Login to continue to your account"}
             </p>
           </div>
@@ -808,6 +1119,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                   setLoginMethod("email");
                   setErrors({});
                   setSuccessMessage("");
+                  setPhoneUserNotFound(false);
                 }}
                 className={`flex items-center justify-center gap-2 py-2.5 text-xs font-semibold rounded-none transition cursor-pointer ${
                   loginMethod === "email"
@@ -825,6 +1137,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                   setLoginMethod("phone");
                   setErrors({});
                   setSuccessMessage("");
+                  setPhoneUserNotFound(false);
                 }}
                 className={`flex items-center justify-center gap-2 py-2.5 text-xs font-semibold rounded-none transition cursor-pointer ${
                   loginMethod === "phone"
@@ -838,8 +1151,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
             </div>
           )}
 
-          {/* Account Type Selector (Sign Up Mode) */}
-          {mode === "signup" && !isForgotPassword && (
+          {/* Account Type Selector (Sign Up Mode, Details Phase) */}
+          {mode === "signup" && !isForgotPassword && signupPhase === "details" && (
             <div className="mb-5 space-y-2 text-left">
               <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-[#8b949e]">
                 Account Type
@@ -927,9 +1240,31 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           )}
 
           {errors.general && (
-            <div className="mb-4 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-none flex items-center gap-2 text-xs font-medium text-rose-700 dark:text-rose-400 animate-in fade-in text-left">
-              <AlertTriangle className="size-4 shrink-0" />
-              <span>{errors.general}</span>
+            <div className="mb-4 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-none flex items-start gap-2.5 text-xs font-medium text-rose-700 dark:text-rose-400 animate-in fade-in text-left">
+              <AlertTriangle className="size-4 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <span>{errors.general}</span>
+                {/* Clean inline callout for unverified / non-existent phone user */}
+                {phoneUserNotFound && (
+                  <div className="mt-2.5 pt-2 border-t border-rose-200/60 dark:border-rose-800/60 flex items-center justify-between">
+                    <span className="text-[11px] text-rose-600 dark:text-rose-300">New to MedGlobalNetwork?</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode("signup");
+                        setPhone(identifier.replace(/^\+91\s*/, ""));
+                        setErrors({});
+                        setSuccessMessage("");
+                        setPhoneUserNotFound(false);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] rounded-none shadow-2xs transition cursor-pointer"
+                    >
+                      <UserPlus className="size-3" />
+                      Sign Up Now
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -989,11 +1324,11 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
             </form>
           ) : mode === "signin" && loginMethod === "phone" && phoneAuthMode === "otp" ? (
             /* ═══════════════════════════════════════════
-               CASE B: SIGN IN VIA PHONE OTP (REAL OTP)
+               CASE B: SIGN IN VIA PHONE OTP (RESTRICTED TO REGISTERED USERS)
                ═══════════════════════════════════════════ */
             <div className="space-y-4 text-left">
               {!otpSent ? (
-                /* Step 1: Enter Phone Number & Send OTP */
+                /* Step 1: Enter Phone Number & Request OTP */
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -1003,7 +1338,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                 >
                   <div>
                     <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                      Mobile Number
+                      Registered Mobile Number
                     </label>
                     <div className="flex items-center">
                       <div className="h-11 px-3 bg-slate-100 dark:bg-[#1c2128] border border-r-0 border-slate-200 dark:border-slate-700 flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 select-none">
@@ -1016,6 +1351,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                         onChange={(e) => {
                           const val = e.target.value.replace(/\D/g, "").slice(0, 10);
                           setIdentifier(val ? `+91${val}` : "");
+                          if (phoneUserNotFound) setPhoneUserNotFound(false);
+                          if (errors.general) setErrors({});
                         }}
                         placeholder="98765 43210"
                         autoFocus
@@ -1030,7 +1367,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                       </p>
                     )}
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">
-                      We'll send a 6-digit verification code to this number.
+                      Phone OTP login is available for registered accounts.
                     </p>
                   </div>
 
@@ -1043,7 +1380,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                     {isSendingOtp ? (
                       <span className="flex items-center justify-center gap-2">
                         <Loader2 className="size-4 animate-spin" />
-                        Sending code...
+                        Checking account & sending code...
                       </span>
                     ) : (
                       <>
@@ -1180,12 +1517,336 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                 </form>
               )}
             </div>
+          ) : mode === "signup" && signupPhase === "verification" ? (
+            /* ═══════════════════════════════════════════
+               CASE C: SIGNUP DUAL VERIFICATION (EMAIL & PHONE OTP)
+               ═══════════════════════════════════════════ */
+            <div className="space-y-4 text-left animate-in fade-in">
+              {/* Dual Verification Header & Progress */}
+              <div className="p-3 bg-slate-50 dark:bg-[#161b22] border border-slate-200 dark:border-slate-800 rounded-none mb-2">
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  <span>Verification Status</span>
+                  <span className="font-bold text-[#0f4c81] dark:text-[#58a6ff]">
+                    {(isPhoneVerified ? 1 : 0) + (isEmailVerified ? 1 : 0)} of 2 Verified
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div
+                    className={`p-2 border flex items-center gap-2 text-[11px] font-semibold transition ${
+                      isPhoneVerified
+                        ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400"
+                        : "bg-white dark:bg-[#0d1117] border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
+                    }`}
+                  >
+                    {isPhoneVerified ? (
+                      <CheckCircle2 className="size-3.5 text-emerald-600 shrink-0" />
+                    ) : (
+                      <Phone className="size-3.5 text-slate-400 shrink-0" />
+                    )}
+                    <span className="truncate">Phone: {isPhoneVerified ? "Verified" : "Pending"}</span>
+                  </div>
+
+                  <div
+                    className={`p-2 border flex items-center gap-2 text-[11px] font-semibold transition ${
+                      isEmailVerified
+                        ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400"
+                        : "bg-white dark:bg-[#0d1117] border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
+                    }`}
+                  >
+                    {isEmailVerified ? (
+                      <CheckCircle2 className="size-3.5 text-emerald-600 shrink-0" />
+                    ) : (
+                      <Mail className="size-3.5 text-slate-400 shrink-0" />
+                    )}
+                    <span className="truncate">Email: {isEmailVerified ? "Verified" : "Pending"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Selector Tabs for Phone vs Email OTP */}
+              <div className="grid grid-cols-2 gap-2 p-1 rounded-none bg-[#f0f4f8] dark:bg-[#161b22] border border-slate-200/80 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setActiveVerifyTab("phone")}
+                  className={`flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-none transition cursor-pointer ${
+                    activeVerifyTab === "phone"
+                      ? "bg-white dark:bg-[#21262d] text-[#0f4c81] dark:text-[#58a6ff] shadow-xs border border-[#0f4c81]/30 dark:border-[#58a6ff]/30"
+                      : "text-[#6b7280] dark:text-[#8b949e]"
+                  }`}
+                >
+                  <Phone className="size-3.5" />
+                  <span>Phone OTP</span>
+                  {isPhoneVerified && <Check className="size-3 text-emerald-600" />}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveVerifyTab("email")}
+                  className={`flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-none transition cursor-pointer ${
+                    activeVerifyTab === "email"
+                      ? "bg-white dark:bg-[#21262d] text-[#0f4c81] dark:text-[#58a6ff] shadow-xs border border-[#0f4c81]/30 dark:border-[#58a6ff]/30"
+                      : "text-[#6b7280] dark:text-[#8b949e]"
+                  }`}
+                >
+                  <Mail className="size-3.5" />
+                  <span>Email OTP</span>
+                  {isEmailVerified && <Check className="size-3 text-emerald-600" />}
+                </button>
+              </div>
+
+              {/* Tab 1: Phone Verification */}
+              {activeVerifyTab === "phone" && (
+                <div className="p-4 border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-bold text-[#0c2b4e] dark:text-slate-200">
+                        Verify Mobile Number
+                      </div>
+                      <div className="text-[11px] text-slate-500 font-mono">{phone}</div>
+                    </div>
+                    {isPhoneVerified ? (
+                      <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold inline-flex items-center gap-1">
+                        <Check className="size-3" /> Verified
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 text-[11px] font-bold">
+                        Pending OTP
+                      </span>
+                    )}
+                  </div>
+
+                  {!isPhoneVerified ? (
+                    <>
+                      <div className="flex justify-center my-2">
+                        <CodeSlots
+                          length={6}
+                          value={phoneOtpCode}
+                          status={phoneOtpStatus}
+                          onChange={(code) => {
+                            setPhoneOtpCode(code);
+                            if (phoneOtpStatus !== "idle") setPhoneOtpStatus("idle");
+                            if (errors.phoneOtp) setErrors({});
+                          }}
+                          onComplete={(code) => {
+                            verifySignupPhoneOtp(code);
+                          }}
+                          accentColor="#0f4c81"
+                          inkColor="#0f4c81"
+                          slotColor="#f0efee"
+                          digitColor="#171717"
+                          dangerColor="#e11d48"
+                          slotSize={42}
+                          gap={6}
+                          radius={8}
+                          autoFocus={true}
+                        />
+                      </div>
+
+                      {phoneDevOtp && (
+                        <div className="p-2 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-xs text-blue-700 dark:text-blue-300 flex items-center justify-between">
+                          <span>
+                            Dev Phone OTP: <strong className="font-mono">{phoneDevOtp}</strong>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPhoneOtpCode(phoneDevOtp);
+                              verifySignupPhoneOtp(phoneDevOtp);
+                            }}
+                            className="text-[11px] underline font-bold cursor-pointer"
+                          >
+                            Auto-fill & Verify
+                          </button>
+                        </div>
+                      )}
+
+                      {errors.phoneOtp && (
+                        <p className="text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                          <AlertTriangle className="size-3 shrink-0" />
+                          {errors.phoneOtp}
+                        </p>
+                      )}
+
+                      <div className="flex items-center justify-between pt-1 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => verifySignupPhoneOtp(phoneOtpCode)}
+                          disabled={isVerifyingPhoneOtp || phoneOtpCode.length < 4}
+                          className="px-4 py-2 bg-[#0f4c81] text-white font-bold rounded-none hover:bg-[#0c3c66] transition disabled:opacity-50 cursor-pointer"
+                        >
+                          {isVerifyingPhoneOtp ? "Verifying..." : "Verify Mobile OTP"}
+                        </button>
+
+                        {phoneOtpCountdown > 0 ? (
+                          <span className="text-slate-400 text-[11px]">Resend in {phoneOtpCountdown}s</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={sendSignupPhoneOtp}
+                            disabled={isSendingPhoneOtp}
+                            className="text-[11px] font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
+                          >
+                            Resend Code
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                      <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
+                      <span>Phone number verified. Proceed to email verification or complete registration.</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab 2: Email Verification */}
+              {activeVerifyTab === "email" && (
+                <div className="p-4 border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-bold text-[#0c2b4e] dark:text-slate-200">
+                        Verify Email Address
+                      </div>
+                      <div className="text-[11px] text-slate-500">{email}</div>
+                    </div>
+                    {isEmailVerified ? (
+                      <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold inline-flex items-center gap-1">
+                        <Check className="size-3" /> Verified
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 text-[11px] font-bold">
+                        Pending Code
+                      </span>
+                    )}
+                  </div>
+
+                  {!isEmailVerified ? (
+                    <>
+                      <div className="flex justify-center my-2">
+                        <CodeSlots
+                          length={6}
+                          value={emailOtpCode}
+                          status={emailOtpStatus}
+                          onChange={(code) => {
+                            setEmailOtpCode(code);
+                            if (emailOtpStatus !== "idle") setEmailOtpStatus("idle");
+                            if (errors.emailOtp) setErrors({});
+                          }}
+                          onComplete={(code) => {
+                            verifySignupEmailOtp(code);
+                          }}
+                          accentColor="#0f4c81"
+                          inkColor="#0f4c81"
+                          slotColor="#f0efee"
+                          digitColor="#171717"
+                          dangerColor="#e11d48"
+                          slotSize={42}
+                          gap={6}
+                          radius={8}
+                          autoFocus={true}
+                        />
+                      </div>
+
+                      {emailDevOtp && (
+                        <div className="p-2 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-xs text-blue-700 dark:text-blue-300 flex items-center justify-between">
+                          <span>
+                            Dev Email OTP: <strong className="font-mono">{emailDevOtp}</strong>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEmailOtpCode(emailDevOtp);
+                              verifySignupEmailOtp(emailDevOtp);
+                            }}
+                            className="text-[11px] underline font-bold cursor-pointer"
+                          >
+                            Auto-fill & Verify
+                          </button>
+                        </div>
+                      )}
+
+                      {errors.emailOtp && (
+                        <p className="text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                          <AlertTriangle className="size-3 shrink-0" />
+                          {errors.emailOtp}
+                        </p>
+                      )}
+
+                      <div className="flex items-center justify-between pt-1 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => verifySignupEmailOtp(emailOtpCode)}
+                          disabled={isVerifyingEmailOtp || emailOtpCode.length < 4}
+                          className="px-4 py-2 bg-[#0f4c81] text-white font-bold rounded-none hover:bg-[#0c3c66] transition disabled:opacity-50 cursor-pointer"
+                        >
+                          {isVerifyingEmailOtp ? "Verifying..." : "Verify Email OTP"}
+                        </button>
+
+                        {emailOtpCountdown > 0 ? (
+                          <span className="text-slate-400 text-[11px]">Resend in {emailOtpCountdown}s</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={sendSignupEmailOtp}
+                            disabled={isSendingEmailOtp}
+                            className="text-[11px] font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
+                          >
+                            Resend Code
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                      <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
+                      <span>Email address verified. You can now activate your account.</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Complete Registration Action */}
+              <div className="pt-2 space-y-2">
+                <button
+                  type="button"
+                  onClick={finalizeRegistration}
+                  disabled={isSubmitting || !isPhoneVerified || !isEmailVerified}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-none bg-[#16804d] dark:bg-[#2ea043] py-3 text-sm font-bold text-white shadow-xs hover:bg-[#12663d] transition disabled:opacity-50 cursor-pointer active:scale-98"
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="size-4 animate-spin" />
+                      Activating verified account...
+                    </span>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="size-4" />
+                      <span>Complete Account Creation</span>
+                      <ArrowRight className="size-4" />
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSignupPhase("details");
+                    setErrors({});
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-1 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer"
+                >
+                  <ChevronLeft className="size-3.5" />
+                  <span>Edit Registration Details</span>
+                </button>
+              </div>
+            </div>
           ) : (
             /* ═══════════════════════════════════════════
-               CASE C: STANDARD PASSWORD LOGIN / SIGN UP
+               CASE D: STANDARD LOGIN / SIGNUP DETAILS FORM
                ═══════════════════════════════════════════ */
             <form onSubmit={handleSubmit} className="space-y-4 text-left">
-              {/* Sign In Mode: Email vs Phone (Password mode) */}
+              {/* Sign In Mode: Email vs Phone */}
               {mode === "signin" && (
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
@@ -1199,6 +1860,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                           setPhoneAuthMode("otp");
                           setOtpSent(false);
                           setErrors({});
+                          setPhoneUserNotFound(false);
                         }}
                         className="text-[11px] font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
                       >
@@ -1239,7 +1901,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               {mode === "signup" && accountType === "INDIVIDUAL" && (
                 <div>
                   <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                    Full Name
+                    Full Name <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
                     <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
@@ -1267,7 +1929,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                 <>
                   <div>
                     <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                      Hospital / Organization Name
+                      Hospital / Organization Name <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
                       <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
@@ -1311,7 +1973,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
                   <div>
                     <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                      Authorized Representative Name
+                      Authorized Representative Name <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
                       <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
@@ -1339,7 +2001,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               {mode === "signup" && (
                 <div>
                   <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                    {accountType === "ORGANISATION" ? "Work Email Address" : "Email Address"}
+                    {accountType === "ORGANISATION" ? "Official Work Email" : "Email Address"}{" "}
+                    <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
@@ -1362,22 +2025,37 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                 </div>
               )}
 
-              {/* Sign Up Mode: Phone Number (Optional) */}
+              {/* Sign Up Mode: Mobile Number (Mandatory) */}
               {mode === "signup" && (
                 <div>
                   <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                    Mobile Number <span className="text-[11px] font-normal text-slate-400">(Optional)</span>
+                    Mobile Number <span className="text-rose-500">*</span>{" "}
+                    <span className="text-[11px] font-normal text-slate-400">(will be verified with OTP)</span>
                   </label>
-                  <div className="relative">
-                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                  <div className="flex items-center">
+                    <div className="h-11 px-3 bg-slate-100 dark:bg-[#1c2128] border border-r-0 border-slate-200 dark:border-slate-700 flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 select-none">
+                      <Smartphone className="size-3.5 text-slate-500" />
+                      <span>+91</span>
+                    </div>
                     <input
                       type="tel"
-                      value={phone}
-                      onChange={(e) => handleInputChange("phone", e.target.value)}
-                      placeholder="+91 98765 43210"
-                      className="h-11 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                      value={phone.replace(/^\+91\s*/, "")}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                        handleInputChange("phone", val ? `+91${val}` : "");
+                      }}
+                      onBlur={() => handleFieldBlur("phone", phone)}
+                      placeholder="98765 43210"
+                      required
+                      className="h-11 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] px-3 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81] tracking-wider"
                     />
                   </div>
+                  {errors.phone && (
+                    <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
+                      <AlertTriangle className="size-3 shrink-0" />
+                      {errors.phone}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -1385,7 +2063,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               {mode === "signup" && (
                 <div>
                   <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                    Preferred Username
+                    Preferred Username <span className="text-[11px] font-normal text-slate-400">(Optional)</span>
                   </label>
                   <div className="relative">
                     <AtSign className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
@@ -1410,7 +2088,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               {/* Password Field */}
               <div>
                 <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                  Password
+                  Password <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
@@ -1445,7 +2123,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               {mode === "signup" && (
                 <div>
                   <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                    Confirm Password
+                    Confirm Password <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
@@ -1533,11 +2211,11 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
                     <Loader2 className="size-4 animate-spin" />
-                    {mode === "signin" ? "Logging in..." : "Creating account..."}
+                    {mode === "signin" ? "Logging in..." : "Validating details..."}
                   </span>
                 ) : (
                   <>
-                    <span>{mode === "signin" ? "Login" : "Create Account"}</span>
+                    <span>{mode === "signin" ? "Login" : "Continue to Verification"}</span>
                     <ArrowRight className="size-4" />
                   </>
                 )}
@@ -1553,11 +2231,14 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                 <button
                   type="button"
                   onClick={() => {
-                    setMode(mode === "signin" ? "signup" : "signin");
+                    const newMode = mode === "signin" ? "signup" : "signin";
+                    setMode(newMode);
+                    setSignupPhase("details");
                     setErrors({});
                     setSuccessMessage("");
                     setOtpSent(false);
                     setOtpCode("");
+                    setPhoneUserNotFound(false);
                   }}
                   className="font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer ml-1"
                 >
@@ -1575,7 +2256,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         </div>
 
         {/* Minimal Footer */}
-        <footer className="w-full max-w-[420px] mx-auto text-center text-xs text-slate-400 dark:text-slate-500 pt-4">
+        <footer className="w-full max-w-[440px] mx-auto text-center text-xs text-slate-400 dark:text-slate-500 pt-4">
           © {new Date().getFullYear()} Med Global Network (MGN). All rights reserved.
         </footer>
       </div>

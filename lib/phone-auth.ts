@@ -86,16 +86,124 @@ function hashOtp(otp: string): string {
 }
 
 /**
- * Generate a 6-digit numeric OTP and store in phone_verifications table
+ * Find existing registered user associated with this phone number.
+ * Returns null if no user account exists for this phone number.
+ */
+export async function findUserByPhone(
+  rawPhone: string
+): Promise<{ id: string; email: string; name: string; phone: string } | null> {
+  await ensurePhoneAuthTables();
+
+  const phone = normalizePhoneNumber(rawPhone);
+  if (!phone) return null;
+  const digits = phone.replace(/\D/g, "");
+  const fallbackEmail = `phone_${digits}@mgn.life`;
+
+  // 1. Direct Lookup in "user" table
+  const userRes = await pool.query(
+    `SELECT id, name, email, phone FROM "user" 
+     WHERE phone = $1 
+        OR phone = $2 
+        OR phone = $3
+        OR LOWER(email) = LOWER($4)
+     LIMIT 1`,
+    [phone, digits, `+${digits}`, fallbackEmail]
+  );
+
+  if (userRes.rows.length > 0) {
+    const u = userRes.rows[0];
+    return {
+      id: u.id,
+      email: u.email,
+      name: u.name || "MGN Member",
+      phone: u.phone || phone,
+    };
+  }
+
+  // 2. Lookup in professional_profiles
+  const profileRes = await pool.query(
+    `SELECT u.id, u.name, u.email, pp.phone 
+     FROM "user" u
+     JOIN professional_profiles pp ON pp.user_id = u.id
+     WHERE pp.phone = $1 OR pp.phone = $2 OR pp.phone = $3
+     LIMIT 1`,
+    [phone, digits, `+${digits}`]
+  );
+
+  if (profileRes.rows.length > 0) {
+    const u = profileRes.rows[0];
+    return {
+      id: u.id,
+      email: u.email,
+      name: u.name || "MGN Member",
+      phone: u.phone || phone,
+    };
+  }
+
+  // 3. Lookup in mgn_identities if present
+  try {
+    const idRes = await pool.query(
+      `SELECT u.id, u.name, u.email, mi.phone 
+       FROM "user" u
+       JOIN mgn_identities mi ON mi.user_id = u.id
+       WHERE mi.phone = $1 OR mi.phone = $2 OR mi.phone = $3
+       LIMIT 1`,
+      [phone, digits, `+${digits}`]
+    );
+
+    if (idRes.rows.length > 0) {
+      const u = idRes.rows[0];
+      return {
+        id: u.id,
+        email: u.email,
+        name: u.name || "MGN Member",
+        phone: u.phone || phone,
+      };
+    }
+  } catch {
+    // Ignore if table not yet initialized
+  }
+
+  return null;
+}
+
+/**
+ * Check if a phone number is already registered
+ */
+export async function checkPhoneRegistered(rawPhone: string): Promise<boolean> {
+  const user = await findUserByPhone(rawPhone);
+  return user !== null;
+}
+
+/**
+ * Generate a 6-digit numeric OTP and store in phone_verifications table.
+ * If purpose is 'login', rejects if no user account exists with this phone number.
  */
 export async function sendPhoneOtp(
-  rawPhone: string
+  rawPhone: string,
+  purpose: "login" | "signup" | "verify" = "login"
 ): Promise<{ success: boolean; phone: string; expiresInSeconds: number; devOtp?: string; message: string }> {
   await ensurePhoneAuthTables();
 
   const phone = normalizePhoneNumber(rawPhone);
   if (!phone || phone.length < 10) {
     throw new Error("Please enter a valid mobile number.");
+  }
+
+  // For phone login: ensure user already exists in database
+  if (purpose === "login") {
+    const existingUser = await findUserByPhone(phone);
+    if (!existingUser) {
+      throw new Error("No account found with this phone number. Please sign up to create an account.");
+    }
+  }
+
+  // For signup: optionally check if already registered
+  if (purpose === "signup") {
+    const existingUser = await findUserByPhone(phone);
+    if (existingUser) {
+      throw new Error("An account with this phone number already exists. Please log in.");
+    }
   }
 
   // Rate limit: Check if OTP was sent in the last 30 seconds for this phone
@@ -190,7 +298,29 @@ export async function verifyPhoneOtp(rawPhone: string, rawOtp: string): Promise<
 }
 
 /**
- * Find or create a user associated with this phone number
+ * Check if a phone number was verified within the last 15 minutes
+ */
+export async function isPhoneVerifiedRecently(rawPhone: string): Promise<boolean> {
+  await ensurePhoneAuthTables();
+
+  const phone = normalizePhoneNumber(rawPhone);
+  if (!phone) return false;
+
+  const res = await pool.query(
+    `SELECT id FROM phone_verifications 
+     WHERE phone = $1 
+       AND verified = TRUE 
+       AND created_at > NOW() - INTERVAL '15 minutes'
+     LIMIT 1`,
+    [phone]
+  );
+
+  return res.rows.length > 0;
+}
+
+/**
+ * Find or create a user associated with this phone number (legacy support).
+ * Note: New flows strictly require findUserByPhone for login and separate signup verification.
  */
 export async function findOrCreateUserByPhone(
   rawPhone: string,
@@ -198,51 +328,21 @@ export async function findOrCreateUserByPhone(
 ): Promise<{ id: string; email: string; name: string; isNewUser: boolean }> {
   await ensurePhoneAuthTables();
 
+  const existing = await findUserByPhone(rawPhone);
+  if (existing) {
+    return {
+      id: existing.id,
+      email: existing.email,
+      name: existing.name,
+      isNewUser: false,
+    };
+  }
+
   const phone = normalizePhoneNumber(rawPhone);
   const digits = phone.replace(/\D/g, "");
   const fallbackEmail = `phone_${digits}@mgn.life`;
 
-  // 1. Lookup in "user" table by phone or by synthesized phone email
-  const existingUserRes = await pool.query(
-    `SELECT id, name, email FROM "user" 
-     WHERE phone = $1 
-        OR phone = $2 
-        OR LOWER(email) = LOWER($3)
-     LIMIT 1`,
-    [phone, digits, fallbackEmail]
-  );
-
-  if (existingUserRes.rows.length > 0) {
-    const u = existingUserRes.rows[0];
-    return {
-      id: u.id,
-      email: u.email,
-      name: u.name || "MGN Member",
-      isNewUser: false,
-    };
-  }
-
-  // 2. Lookup in mgn_identities or professional_profiles if user was created with phone
-  const profileLookup = await pool.query(
-    `SELECT u.id, u.name, u.email 
-     FROM "user" u
-     JOIN professional_profiles pp ON pp.user_id = u.id
-     WHERE pp.phone = $1 OR pp.phone = $2
-     LIMIT 1`,
-    [phone, digits]
-  );
-
-  if (profileLookup.rows.length > 0) {
-    const u = profileLookup.rows[0];
-    return {
-      id: u.id,
-      email: u.email,
-      name: u.name || "MGN Member",
-      isNewUser: false,
-    };
-  }
-
-  // 3. Create new user for phone login
+  // Create new user for phone signup
   const userId = crypto.randomUUID();
   const displayName = fullName?.trim() || `Member ${digits.slice(-4)}`;
   const username = `user_${digits.slice(-6)}`;

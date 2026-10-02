@@ -52,7 +52,6 @@ export class WebRTCCall {
   constructor(
     private readonly opts: {
       callId: string;
-      selfId: string;
       peer: CallPeer;
       role: "caller" | "callee";
       media: CallMedia;
@@ -219,7 +218,10 @@ export class WebRTCCall {
       );
       if (!res.ok) return;
 
-      const data = await res.json();
+      const data = (await res.json()) as {
+        signals?: Array<{ id: string; kind: string; payload: unknown }>;
+        status?: string | null;
+      };
       for (const signal of data.signals ?? []) {
         this.cursor = Number(signal.id) || this.cursor;
         await this.handleSignal(signal.kind, signal.payload);
@@ -234,11 +236,18 @@ export class WebRTCCall {
     }
   }
 
-  private async handleSignal(kind: string, payload: any) {
+  private async handleSignal(kind: string, payload: unknown) {
+    // Only the shapes this engine sends ever arrive here; the switch below
+    // narrows each one before it reaches the WebRTC API.
+    const body = (payload ?? {}) as {
+      sdp?: RTCSessionDescriptionInit;
+      reason?: string;
+    };
+
     switch (kind) {
       case "offer": {
-        if (this.opts.role !== "callee" || !this.pc) return;
-        await this.pc.setRemoteDescription(payload);
+        if (this.opts.role !== "callee" || !this.pc || !body.sdp) return;
+        await this.pc.setRemoteDescription(body.sdp);
         const answer = await this.pc.createAnswer();
         await this.pc.setLocalDescription(answer);
         await this.send("answer", { sdp: this.pc.localDescription?.sdp, type: "answer" });
@@ -247,10 +256,10 @@ export class WebRTCCall {
       }
 
       case "answer": {
-        if (this.opts.role !== "caller" || !this.pc) return;
+        if (this.opts.role !== "caller" || !this.pc || !body.sdp) return;
         // setRemoteDescription throws if an offer was never sent — ignore duplicates.
         if (this.pc.signalingState === "have-local-offer") {
-          await this.pc.setRemoteDescription(payload);
+          await this.pc.setRemoteDescription(body.sdp);
           this.setPhase("connecting");
         }
         break;
@@ -259,7 +268,7 @@ export class WebRTCCall {
       case "ice": {
         if (!this.pc || !payload) return;
         try {
-          await this.pc.addIceCandidate(payload);
+          await this.pc.addIceCandidate(payload as RTCIceCandidateInit);
         } catch {
           // A rejected candidate is normal when both ends restart ICE.
         }
@@ -267,8 +276,8 @@ export class WebRTCCall {
       }
 
       case "hangup":
-        this.emit("ended", payload?.reason ?? "hangup");
-        void this.dispose(payload?.reason ?? "hangup");
+        this.emit("ended", body.reason ?? "hangup");
+        void this.dispose(body.reason ?? "hangup");
         break;
 
       case "mute":

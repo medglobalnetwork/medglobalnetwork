@@ -2,11 +2,19 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { CallModal } from "@/modules/communication/components/CallModal";
+import { isNativePlatform } from "@/lib/native-mobile";
 
 /** Raised by lib/push-client when a call push arrives while the app is open. */
 export const INCOMING_CALL_EVENT = "mgn-incoming-call";
 
-const POLL_MS = 8000;
+/**
+ * Native gets a foreground FCM push, so a 5 s poll is enough as a safety
+ * net. On the web there is no push at all, so polling is the only signal —
+ * but it runs at a slower rate and pauses on hidden tabs so it does not
+ * cost every visitor a request every few seconds.
+ */
+const NATIVE_POLL_MS = 5000;
+const WEB_POLL_MS = 20000;
 
 type IncomingCall = {
   callId: string;
@@ -67,9 +75,14 @@ export function IncomingCallListener() {
   }, [openCall]);
 
   useEffect(() => {
-    void checkForIncoming();
+    // Scheduled rather than called inline: the probe is a network request,
+    // and running it in the effect body would render synchronously first.
+    const initial = setTimeout(() => void checkForIncoming(), 0);
 
-    const interval = setInterval(() => void checkForIncoming(), POLL_MS);
+    const interval = setInterval(
+      () => void checkForIncoming(),
+      isNativePlatform() ? NATIVE_POLL_MS : WEB_POLL_MS
+    );
     const onVisible = () => {
       if (document.visibilityState === "visible") void checkForIncoming();
     };
@@ -82,6 +95,7 @@ export function IncomingCallListener() {
     window.addEventListener(INCOMING_CALL_EVENT, onPush as EventListener);
 
     return () => {
+      clearTimeout(initial);
       clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener(INCOMING_CALL_EVENT, onPush as EventListener);

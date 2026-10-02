@@ -34,7 +34,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
         // Flush cookies whenever the app comes to foreground — ensures session cookies
         // set by fetch() are written to disk before the next page navigation reads them.
