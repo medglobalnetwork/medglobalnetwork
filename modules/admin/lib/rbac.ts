@@ -198,18 +198,18 @@ export async function getAdminSession(reqHeaders?: Headers): Promise<AdminSessio
       }
     }
 
-    // Check user table and profiles for phone
+    // Check user table and identities for phone
     try {
       const uRes: any = await sql`
-        SELECT u.email, u.phone as u_phone, pp.phone as pp_phone
+        SELECT u.email, u.phone as u_phone, mi.phone as mi_phone
         FROM "user" u
-        LEFT JOIN professional_profiles pp ON pp.user_id = u.id
+        LEFT JOIN mgn_identities mi ON mi.user_id = u.id
         WHERE u.id = ${userId} LIMIT 1
       `.execute(database);
 
       if (uRes?.rows?.[0]) {
         const row = uRes.rows[0];
-        if (matchesAdminPhone(row.u_phone) || matchesAdminPhone(row.pp_phone)) {
+        if (matchesAdminPhone(row.u_phone) || matchesAdminPhone(row.mi_phone)) {
           isSuperAdminFallback = true;
         }
       }

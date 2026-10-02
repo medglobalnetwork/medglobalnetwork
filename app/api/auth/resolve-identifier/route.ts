@@ -68,21 +68,27 @@ export async function POST(request: Request) {
         });
       }
 
-      // Check professional_profiles for phone
-      const phoneProfileRes = await pool.query(
-        `SELECT u.email 
-         FROM professional_profiles pp
-         JOIN "user" u ON u.id = pp.user_id
-         WHERE pp.phone = $1 OR pp.phone = $2 OR pp.phone = $3
-         LIMIT 1`,
-        [normalizedPhone, digitsOnly, `+${digitsOnly}`]
-      );
+      // Check mgn_identities or mgn_organisation_identities for phone
+      try {
+        const phoneIdentityRes = await pool.query(
+          `SELECT u.email 
+           FROM "user" u
+           LEFT JOIN mgn_identities mi ON mi.user_id = u.id
+           LEFT JOIN mgn_organisation_identities moi ON moi.user_id = u.id
+           WHERE mi.phone = $1 OR mi.phone = $2 OR mi.phone = $3
+              OR moi.auth_rep_phone = $1 OR moi.auth_rep_phone = $2 OR moi.auth_rep_phone = $3
+           LIMIT 1`,
+          [normalizedPhone, digitsOnly, `+${digitsOnly}`]
+        );
 
-      if (phoneProfileRes.rows.length > 0 && phoneProfileRes.rows[0].email) {
-        return NextResponse.json({
-          found: true,
-          email: phoneProfileRes.rows[0].email,
-        });
+        if (phoneIdentityRes.rows.length > 0 && phoneIdentityRes.rows[0].email) {
+          return NextResponse.json({
+            found: true,
+            email: phoneIdentityRes.rows[0].email,
+          });
+        }
+      } catch {
+        // Table might not exist yet
       }
     }
 

@@ -120,33 +120,15 @@ export async function findUserByPhone(
     };
   }
 
-  // 2. Lookup in professional_profiles
-  const profileRes = await pool.query(
-    `SELECT u.id, u.name, u.email, pp.phone 
-     FROM "user" u
-     JOIN professional_profiles pp ON pp.user_id = u.id
-     WHERE pp.phone = $1 OR pp.phone = $2 OR pp.phone = $3
-     LIMIT 1`,
-    [phone, digits, `+${digits}`]
-  );
-
-  if (profileRes.rows.length > 0) {
-    const u = profileRes.rows[0];
-    return {
-      id: u.id,
-      email: u.email,
-      name: u.name || "MGN Member",
-      phone: u.phone || phone,
-    };
-  }
-
-  // 3. Lookup in mgn_identities if present
+  // 2. Lookup in mgn_identities or mgn_organisation_identities if present
   try {
     const idRes = await pool.query(
-      `SELECT u.id, u.name, u.email, mi.phone 
+      `SELECT u.id, u.name, u.email, COALESCE(mi.phone, u.phone) as phone 
        FROM "user" u
-       JOIN mgn_identities mi ON mi.user_id = u.id
+       LEFT JOIN mgn_identities mi ON mi.user_id = u.id
+       LEFT JOIN mgn_organisation_identities moi ON moi.user_id = u.id
        WHERE mi.phone = $1 OR mi.phone = $2 OR mi.phone = $3
+          OR moi.auth_rep_phone = $1 OR moi.auth_rep_phone = $2 OR moi.auth_rep_phone = $3
        LIMIT 1`,
       [phone, digits, `+${digits}`]
     );
@@ -161,7 +143,7 @@ export async function findUserByPhone(
       };
     }
   } catch {
-    // Ignore if table not yet initialized
+    // Ignore if tables not yet initialized
   }
 
   return null;
