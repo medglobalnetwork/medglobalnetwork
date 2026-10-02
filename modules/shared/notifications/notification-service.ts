@@ -7,6 +7,7 @@
 // ============================================================
 
 import { database } from "@/lib/auth";
+import { pushToUser } from "@/lib/push";
 import crypto from "crypto";
 
 const db = database as any;
@@ -20,13 +21,35 @@ export interface SendNotificationParams {
   message: string;
 }
 
+/** Short title shown on the lock-screen notification, keyed by event type. */
+const PUSH_TITLES: Record<string, string> = {
+  event_registered: "Event registration",
+  event_status_updated: "Event update",
+  camp_volunteer_application: "New volunteer application",
+  camp_volunteer_approved: "Application approved",
+  camp_volunteer_rejected: "Application update",
+  camp_volunteer_attended: "Attendance verified",
+  camp_participant_registered: "Registration confirmed",
+  research_collaboration_request: "Collaboration request",
+  research_collaboration_accepted: "Collaboration accepted",
+  research_collaboration_declined: "Collaboration declined",
+  research_opp_application: "New research applicant",
+  certificate_issued: "Your certificate is ready",
+  connection_request: "New connection request",
+  connection_accepted: "Connection accepted",
+  post_like: "New like",
+  post_comment: "New comment",
+  message: "New message",
+};
+
 export class SharedNotificationService {
   /**
    * Generic notification dispatcher storing directly in network_notifications
+   * and mirroring to native push when the user has an FCM-registered device.
    */
   static async send(params: SendNotificationParams): Promise<void> {
+    const id = crypto.randomUUID();
     try {
-      const id = crypto.randomUUID();
       await db
         .insertInto("network_notifications" as any)
         .values({
@@ -43,6 +66,28 @@ export class SharedNotificationService {
         .execute();
     } catch (err) {
       console.error("[SharedNotificationService] Error dispatching notification:", err);
+    }
+
+    // Push is best-effort: a delivery failure must never break the caller.
+    try {
+      await pushToUser(
+        params.userId,
+        {
+          title: PUSH_TITLES[params.type] ?? "MedGlobalNetwork",
+          body: params.message,
+          channelId: "pings",
+          data: {
+            notificationId: id,
+            type: params.type,
+            entityType: params.entityType ?? "",
+            entityId: params.entityId ?? "",
+            actorId: params.actorId ?? "",
+          },
+        },
+        "pings"
+      );
+    } catch (err) {
+      console.error("[SharedNotificationService] Error pushing notification:", err);
     }
   }
 

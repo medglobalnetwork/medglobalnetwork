@@ -210,11 +210,38 @@ export async function pushToTokens(
   return result;
 }
 
+export const PUSH_CATEGORIES = ["pings", "announcements", "calls"] as const;
+export type PushCategory = (typeof PUSH_CATEGORIES)[number];
+
 /** Sends to every active device of one user. */
 export async function pushToUser(
   userId: string,
-  payload: PushPayload
+  payload: PushPayload,
+  category?: PushCategory
 ): Promise<PushResult> {
+  const empty: PushResult = { sent: 0, failed: 0, invalidTokens: [] };
+
+  // Runtime guard: `category` becomes a column name below, so a value that
+  // never came from this module's own types must not reach the query.
+  if (category && !PUSH_CATEGORIES.includes(category)) {
+    console.error(`[push] rejected unknown category: ${category}`);
+    return empty;
+  }
+
+  if (category) {
+    try {
+      const pref = await pool.query<{ enabled: boolean }>(
+        `SELECT COALESCE((${category}), TRUE) AS enabled
+           FROM push_preferences WHERE user_id = $1`,
+        [userId]
+      );
+      // No row means the user never set preferences — default is enabled.
+      if (pref.rows[0] && pref.rows[0].enabled === false) return empty;
+    } catch {
+      // Preferences table not migrated yet — deliver anyway.
+    }
+  }
+
   try {
     const res = await pool.query<{ token: string }>(
       `SELECT token FROM push_devices WHERE user_id = $1 AND last_seen_at > NOW() - INTERVAL '90 days'`,
@@ -223,7 +250,7 @@ export async function pushToUser(
     return await pushToTokens(res.rows.map((r) => r.token), payload);
   } catch (err) {
     console.error(`[push] pushToUser(${userId}) error:`, err);
-    return { sent: 0, failed: 0, invalidTokens: [] };
+    return empty;
   }
 }
 

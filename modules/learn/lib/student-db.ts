@@ -462,7 +462,7 @@ async function seedDefaultMedicalContent() {
         await db
           .insertInto("student_mcq_options")
           .values({
-            id: generateId("opt"),
+            id: generateId(),
             question_id: item.q.id,
             option_text: opt.text,
             is_correct: opt.correct,
@@ -1037,7 +1037,7 @@ export const MCQPracticeService = {
     const weakTopics = topicBreakdown.filter((t) => t.accuracy < 60).map((t) => t.topic);
     const strongTopics = topicBreakdown.filter((t) => t.accuracy >= 80).map((t) => t.topic);
 
-    const attemptId = generateId("att");
+    const attemptId = generateId();
 
     await db
       .insertInto("student_mcq_attempts")
@@ -1524,7 +1524,7 @@ export const BookService = {
         await db
           .insertInto("student_book_progress")
           .values({
-            id: generateId("prog"),
+            id: generateId(),
             user_id: userId,
             book_id: bookId,
             current_page: page,
@@ -1587,7 +1587,7 @@ export const NotesService = {
 
   async createNote(userId: string, data: Partial<StudentNoteItem>): Promise<StudentNoteItem> {
     await ensureStudentWorkspaceTables();
-    const id = generateId("note");
+    const id = generateId();
     await db
       .insertInto("student_notes")
       .values({
@@ -1753,7 +1753,7 @@ export const StudentCollectionService = {
 
   async createCollection(userId: string, data: { title: string; description?: string; color?: string }): Promise<StudentCollectionItem> {
     await ensureStudentWorkspaceTables();
-    const id = generateId("col");
+    const id = generateId();
     await db
       .insertInto("student_collections")
       .values({
@@ -1793,7 +1793,7 @@ export const StudentCollectionService = {
     if (!col) return;
     const items = typeof col.items === "string" ? JSON.parse(col.items) : col.items || [];
     items.push({
-      id: generateId("it"),
+      id: generateId(),
       collection_id: collectionId,
       ...item,
       added_at: new Date().toISOString(),

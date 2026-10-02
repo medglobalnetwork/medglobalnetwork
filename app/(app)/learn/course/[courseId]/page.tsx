@@ -118,39 +118,39 @@ export default function CourseDetailPage() {
         </div>
 
         {/* 1. HERO HEADER CARD */}
-        <div className="overflow-hidden rounded-3xl border border-[#ded8d1] bg-white p-6 shadow-sm sm:p-8">
+        <div className="overflow-hidden rounded-3xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-sm sm:p-8">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {/* Left 2 Cols: Details */}
             <div className="lg:col-span-2 space-y-4">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-[#eef5fc] px-3 py-1 text-xs font-bold text-[#1769c2]">
+                <span className="rounded-full bg-[#eef5fc] dark:bg-[#1c2433] px-3 py-1 text-xs font-bold text-[#1769c2] dark:text-[#58a6ff]">
                   {course.category}
                 </span>
                 {course.profession && (
-                  <span className="rounded-full bg-[#faf9f8] border border-[#ded8d1] px-2.5 py-1 text-xs font-semibold text-[#5d5854]">
+                  <span className="rounded-full bg-[#faf9f8] dark:bg-[#21262d] border border-[#ded8d1] dark:border-[#30363d] px-2.5 py-1 text-xs font-semibold text-[#5d5854] dark:text-[#8b949e]">
                     {course.profession}
                   </span>
                 )}
                 {course.certificate_enabled && (
-                  <span className="rounded-full bg-[#ecfdf5] px-2.5 py-1 text-xs font-bold text-[#047857]">
+                  <span className="rounded-full bg-[#ecfdf5] dark:bg-[#0d281e] px-2.5 py-1 text-xs font-bold text-[#047857] dark:text-[#2ea043]">
                     📜 Verified Certificate
                   </span>
                 )}
               </div>
 
-              <h1 className="text-2xl font-black text-[#171717] sm:text-3xl text-balance">
+              <h1 className="text-2xl font-black text-[#171717] dark:text-[#f0f6fc] sm:text-3xl text-balance">
                 {course.title}
               </h1>
 
               {course.short_description && (
-                <p className="text-xs leading-relaxed text-[#5d5854] sm:text-sm text-pretty">
+                <p className="text-xs leading-relaxed text-[#5d5854] dark:text-[#8b949e] sm:text-sm text-pretty">
                   {course.short_description}
                 </p>
               )}
 
               {/* Instructor Credentials Bar */}
-              <div className="flex items-center gap-3 border-t border-[#f5f4f3] pt-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#eef5fc] text-xs font-bold text-[#1769c2]">
+              <div className="flex items-center gap-3 border-t border-[#f5f4f3] dark:border-[#21262d] pt-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#eef5fc] dark:bg-[#1c2433] text-xs font-bold text-[#1769c2] dark:text-[#58a6ff]">
                   {instructor?.image ? (
                     <img src={instructor.image} alt={instructor.name} className="h-full w-full object-cover" />
                   ) : (
@@ -159,10 +159,10 @@ export default function CourseDetailPage() {
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-[#171717]">{instructor?.name}</span>
+                    <span className="text-xs font-bold text-[#171717] dark:text-[#f0f6fc]">{instructor?.name}</span>
                     {isVerified && <VerificationBadge size="sm" />}
                   </div>
-                  <p className="text-[11px] text-[#77716b]">
+                  <p className="text-[11px] text-[#77716b] dark:text-[#8b949e]">
                     {instructor?.designation || instructor?.profession || "Lead Clinical Faculty"}
                     {instructor?.organization ? ` · ${instructor.organization}` : ""}
                   </p>
@@ -171,33 +171,33 @@ export default function CourseDetailPage() {
             </div>
 
             {/* Right Col: CTA Box */}
-            <div className="flex flex-col justify-between rounded-2xl border border-[#eef5fc] bg-gradient-to-br from-[#faf9f8] to-[#f0f7ff] p-5">
+            <div className="flex flex-col justify-between rounded-2xl border border-[#eef5fc] dark:border-[#30363d] bg-gradient-to-br from-[#faf9f8] to-[#f0f7ff] dark:from-[#161b22] dark:to-[#1a2332] p-5">
               <div className="space-y-3">
                 <div className="flex items-baseline justify-between">
-                  <span className="text-xl font-extrabold text-[#15803d]">
+                  <span className="text-xl font-extrabold text-[#15803d] dark:text-[#2ea043]">
                     {course.is_free ? "Free CME" : `₹${course.price}`}
                   </span>
-                  <span className="text-xs font-semibold text-[#77716b]">
+                  <span className="text-xs font-semibold text-[#77716b] dark:text-[#8b949e]">
                     {course.enrollment_count} enrolled
                   </span>
                 </div>
 
-                <div className="space-y-2 text-xs text-[#5d5854] border-t border-[#ded8d1] pt-3">
+                <div className="space-y-2 text-xs text-[#5d5854] dark:text-[#8b949e] border-t border-[#ded8d1] dark:border-[#30363d] pt-3">
                   <div className="flex justify-between">
                     <span>⏱ Total Duration</span>
-                    <strong className="text-[#171717]">{course.duration_minutes} mins</strong>
+                    <strong className="text-[#171717] dark:text-[#f0f6fc]">{course.duration_minutes} mins</strong>
                   </div>
                   <div className="flex justify-between">
                     <span>📊 Difficulty Level</span>
-                    <strong className="text-[#171717] capitalize">{course.level.replace("_", " ")}</strong>
+                    <strong className="text-[#171717] dark:text-[#f0f6fc] capitalize">{course.level.replace("_", " ")}</strong>
                   </div>
                   <div className="flex justify-between">
                     <span>🌐 Language</span>
-                    <strong className="text-[#171717]">{course.language}</strong>
+                    <strong className="text-[#171717] dark:text-[#f0f6fc]">{course.language}</strong>
                   </div>
                   <div className="flex justify-between">
                     <span>📑 Syllabus</span>
-                    <strong className="text-[#171717]">{course.module_count} Modules</strong>
+                    <strong className="text-[#171717] dark:text-[#f0f6fc]">{course.module_count} Modules</strong>
                   </div>
                 </div>
               </div>
@@ -206,7 +206,7 @@ export default function CourseDetailPage() {
                 type="button"
                 onClick={handleEnroll}
                 disabled={isEnrolling}
-                className="mt-6 w-full rounded-2xl bg-[#1769c2] py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#12569f] disabled:opacity-50"
+                className="mt-6 w-full rounded-2xl bg-[#0f4c81] dark:bg-[#1f6feb] py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#0c3c66] disabled:opacity-50 cursor-pointer"
               >
                 {course.user_enrolled
                   ? `Resume Course (${course.user_progress}% done) →`
@@ -222,12 +222,12 @@ export default function CourseDetailPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-bold text-[#171717]">Course Syllabus</h2>
-              <p className="text-xs text-[#77716b]">
+              <h2 className="text-lg font-bold text-[#171717] dark:text-[#f0f6fc]">Course Syllabus</h2>
+              <p className="text-xs text-[#77716b] dark:text-[#8b949e]">
                 Structured clinical modules, video lectures, and assessments
               </p>
             </div>
-            <span className="text-xs font-semibold text-[#77716b]">
+            <span className="text-xs font-semibold text-[#77716b] dark:text-[#8b949e]">
               {curriculum.length} Modules
             </span>
           </div>
@@ -241,9 +241,9 @@ export default function CourseDetailPage() {
 
         {/* 3. SYLLABUS DETAILS & REQUIREMENTS */}
         {course.description && (
-          <div className="rounded-3xl border border-[#ded8d1] bg-white p-6 shadow-xs sm:p-8 space-y-4">
-            <h3 className="text-base font-bold text-[#171717]">About this Clinical Course</h3>
-            <div className="prose prose-sm max-w-none text-xs leading-relaxed text-[#5d5854] whitespace-pre-line sm:text-sm">
+          <div className="rounded-3xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-xs sm:p-8 space-y-4">
+            <h3 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">About this Clinical Course</h3>
+            <div className="prose prose-sm max-w-none text-xs leading-relaxed text-[#5d5854] dark:text-[#8b949e] whitespace-pre-line sm:text-sm">
               {course.description}
             </div>
           </div>
