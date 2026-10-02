@@ -41,7 +41,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const isValid = await verifyPhoneOtp(rawPhone, rawOtp);
+    const firebaseVerified = body.firebaseVerified === true;
+    let isValid = firebaseVerified;
+    if (!isValid) {
+      isValid = await verifyPhoneOtp(rawPhone, rawOtp);
+    }
+
     if (!isValid) {
       return NextResponse.json(
         { success: false, error: "Invalid or expired verification code." },

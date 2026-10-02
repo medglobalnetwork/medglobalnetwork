@@ -30,6 +30,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import CodeSlots from "@/components/ui/CodeSlots";
+import { getFirebaseAuth, RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from "@/lib/firebase";
 
 // Password strength calculation utility
 interface PasswordStrength {
@@ -173,6 +174,32 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   const [isSendingOtp, setIsSendingOtp] = React.useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = React.useState(false);
   const [phoneUserNotFound, setPhoneUserNotFound] = React.useState(false);
+  const phoneConfirmationRef = React.useRef<ConfirmationResult | null>(null);
+  const signupPhoneConfirmationRef = React.useRef<ConfirmationResult | null>(null);
+
+  const setupRecaptcha = React.useCallback((containerId: string = "recaptcha-container") => {
+    try {
+      if (typeof window === "undefined") return null;
+      const auth = getFirebaseAuth();
+      if ((window as any).recaptchaVerifier) {
+        try {
+          (window as any).recaptchaVerifier.clear();
+        } catch {}
+      }
+      const container = document.getElementById(containerId);
+      if (!container) return null;
+      const verifier = new RecaptchaVerifier(auth, containerId, {
+        size: "invisible",
+        callback: () => {},
+        "expired-callback": () => {},
+      });
+      (window as any).recaptchaVerifier = verifier;
+      return verifier;
+    } catch (e) {
+      console.warn("Recaptcha setup notice:", e);
+      return null;
+    }
+  }, []);
 
   // Signup Multi-Step Verification States
   const [signupPhase, setSignupPhase] = React.useState<"details" | "verification">("details");
@@ -456,6 +483,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     setPhoneUserNotFound(false);
 
     try {
+      // 1. Strict user existence check via backend
       const res = await fetch("/api/auth/phone/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -472,12 +500,35 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         } else {
           setErrors({ general: data.error || "Failed to send verification code. Please try again." });
         }
-      } else {
-        setOtpSent(true);
-        setDevOtp(data.devOtp);
-        setOtpCountdown(data.expiresInSeconds ? 30 : 30);
-        setSuccessMessage(`Verification code sent to ${data.phone}`);
+        setIsSendingOtp(false);
+        return;
       }
+
+      // 2. Trigger real Firebase Phone SMS OTP to mobile
+      const formattedPhone = rawNum.startsWith("+")
+        ? rawNum
+        : digits.length === 10
+        ? `+91${digits}`
+        : `+${digits}`;
+
+      try {
+        const auth = getFirebaseAuth();
+        const appVerifier = setupRecaptcha("recaptcha-container");
+        if (appVerifier) {
+          const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+          phoneConfirmationRef.current = confirmation;
+          setSuccessMessage(`Real SMS verification code sent to ${formattedPhone}`);
+        } else {
+          setSuccessMessage(`Verification code sent to ${data.phone || formattedPhone}`);
+        }
+      } catch (fbErr: any) {
+        console.warn("Firebase Phone Auth client notification:", fbErr?.message || fbErr);
+        setSuccessMessage(`Verification code sent to ${data.phone || formattedPhone}`);
+      }
+
+      setOtpSent(true);
+      setDevOtp(undefined);
+      setOtpCountdown(60);
     } catch {
       setErrors({ general: "Failed to connect to authentication server. Please try again." });
     } finally {
@@ -503,6 +554,16 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     setSuccessMessage("");
     setOtpStatus("idle");
 
+    let firebaseSuccess = false;
+    if (phoneConfirmationRef.current) {
+      try {
+        await phoneConfirmationRef.current.confirm(codeToVerify.trim());
+        firebaseSuccess = true;
+      } catch (fbErr: any) {
+        console.warn("Firebase confirmation notice:", fbErr?.message || fbErr);
+      }
+    }
+
     try {
       const res = await fetch("/api/auth/phone/verify-otp", {
         method: "POST",
@@ -510,6 +571,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         body: JSON.stringify({
           phone: rawNum,
           otp: codeToVerify.trim(),
+          firebaseVerified: firebaseSuccess,
           purpose: "login",
         }),
       });
@@ -551,7 +613,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
   async function sendSignupPhoneOtp() {
     const rawNum = phone.trim();
-    if (!rawNum || rawNum.replace(/\D/g, "").length < 10) {
+    const digits = rawNum.replace(/\D/g, "");
+    if (!rawNum || digits.length < 10) {
       setErrors({ phoneOtp: "Please enter a valid 10-digit mobile number." });
       return;
     }
@@ -568,11 +631,33 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
       if (!res.ok || !data.success) {
         setErrors({ phoneOtp: data.error || "Failed to send mobile verification code." });
-      } else {
-        setPhoneDevOtp(data.devOtp);
-        setPhoneOtpCountdown(30);
-        setSuccessMessage(`Mobile verification code sent to ${data.phone}`);
+        setIsSendingPhoneOtp(false);
+        return;
       }
+
+      const formattedPhone = rawNum.startsWith("+")
+        ? rawNum
+        : digits.length === 10
+        ? `+91${digits}`
+        : `+${digits}`;
+
+      try {
+        const auth = getFirebaseAuth();
+        const appVerifier = setupRecaptcha("recaptcha-container");
+        if (appVerifier) {
+          const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+          signupPhoneConfirmationRef.current = confirmation;
+          setSuccessMessage(`Real SMS verification code sent to ${formattedPhone}`);
+        } else {
+          setSuccessMessage(`Mobile verification code sent to ${data.phone || formattedPhone}`);
+        }
+      } catch (fbErr: any) {
+        console.warn("Firebase Phone Auth signup trigger notice:", fbErr?.message || fbErr);
+        setSuccessMessage(`Mobile verification code sent to ${data.phone || formattedPhone}`);
+      }
+
+      setPhoneDevOtp(undefined);
+      setPhoneOtpCountdown(60);
     } catch {
       setErrors({ phoneOtp: "Failed to send mobile code. Check connection." });
     } finally {
@@ -597,6 +682,16 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     setPhoneOtpStatus("idle");
     setErrors({});
 
+    let firebaseSuccess = false;
+    if (signupPhoneConfirmationRef.current) {
+      try {
+        await signupPhoneConfirmationRef.current.confirm(codeToVerify.trim());
+        firebaseSuccess = true;
+      } catch (fbErr: any) {
+        console.warn("Firebase signup confirmation notice:", fbErr?.message || fbErr);
+      }
+    }
+
     try {
       const res = await fetch("/api/auth/phone/verify-otp", {
         method: "POST",
@@ -604,6 +699,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         body: JSON.stringify({
           phone: rawNum,
           otp: codeToVerify.trim(),
+          firebaseVerified: firebaseSuccess,
           purpose: "signup",
         }),
       });
@@ -1451,24 +1547,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                       />
                     </div>
 
-                    {/* Non-prod dev OTP helper */}
-                    {devOtp && (
-                      <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-xs text-blue-700 dark:text-blue-300 flex items-center justify-between">
-                        <span>
-                          Test OTP: <strong className="font-mono">{devOtp}</strong>
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOtpCode(devOtp);
-                            verifyOtpWithCode(devOtp);
-                          }}
-                          className="text-[11px] underline font-bold cursor-pointer"
-                        >
-                          Auto-fill & Verify
-                        </button>
-                      </div>
-                    )}
+                    {/* Invisible reCAPTCHA container for Firebase Phone Auth */}
+                    <div id="recaptcha-container" />
 
                     {errors.otp && (
                       <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
@@ -1642,24 +1722,6 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                         />
                       </div>
 
-                      {phoneDevOtp && (
-                        <div className="p-2 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-xs text-blue-700 dark:text-blue-300 flex items-center justify-between">
-                          <span>
-                            Dev Phone OTP: <strong className="font-mono">{phoneDevOtp}</strong>
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPhoneOtpCode(phoneDevOtp);
-                              verifySignupPhoneOtp(phoneDevOtp);
-                            }}
-                            className="text-[11px] underline font-bold cursor-pointer"
-                          >
-                            Auto-fill & Verify
-                          </button>
-                        </div>
-                      )}
-
                       {errors.phoneOtp && (
                         <p className="text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1">
                           <AlertTriangle className="size-3 shrink-0" />
@@ -1747,24 +1809,6 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                           autoFocus={true}
                         />
                       </div>
-
-                      {emailDevOtp && (
-                        <div className="p-2 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-xs text-blue-700 dark:text-blue-300 flex items-center justify-between">
-                          <span>
-                            Dev Email OTP: <strong className="font-mono">{emailDevOtp}</strong>
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEmailOtpCode(emailDevOtp);
-                              verifySignupEmailOtp(emailDevOtp);
-                            }}
-                            className="text-[11px] underline font-bold cursor-pointer"
-                          >
-                            Auto-fill & Verify
-                          </button>
-                        </div>
-                      )}
 
                       {errors.emailOtp && (
                         <p className="text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1">
