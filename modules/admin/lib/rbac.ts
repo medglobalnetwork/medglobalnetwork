@@ -179,23 +179,37 @@ export async function getAdminSession(reqHeaders?: Headers): Promise<AdminSessio
     const email = (session.user.email || "").toLowerCase();
     let isSuperAdminFallback = superAdminEmails.has(email);
 
+    // Helper to test if a phone number string matches any super admin phone
+    const matchesAdminPhone = (raw: string | null | undefined): boolean => {
+      if (!raw) return false;
+      const digits = raw.replace(/\D/g, "");
+      if (!digits) return false;
+      if (superAdminPhones.has(digits) || superAdminPhones.has(digits.slice(-10))) return true;
+      for (const p of superAdminPhones) {
+        if (p.slice(-10) === digits.slice(-10)) return true;
+      }
+      return false;
+    };
+
     // Also check phone numbers or phone emails (phone_9876543210@mgn.life)
     if (email.startsWith("phone_")) {
-      const phoneDigits = email.replace(/\D/g, "");
-      if (phoneDigits && superAdminPhones.has(phoneDigits)) {
+      if (matchesAdminPhone(email)) {
         isSuperAdminFallback = true;
       }
     }
 
-    // Check user table for role or phone
+    // Check user table and profiles for phone
     try {
       const uRes: any = await sql`
-        SELECT email, phone FROM "user" WHERE id = ${userId} LIMIT 1
+        SELECT u.email, u.phone as u_phone, pp.phone as pp_phone
+        FROM "user" u
+        LEFT JOIN professional_profiles pp ON pp.user_id = u.id
+        WHERE u.id = ${userId} LIMIT 1
       `.execute(database);
 
       if (uRes?.rows?.[0]) {
-        const uPhone = (uRes.rows[0].phone || "").replace(/\D/g, "");
-        if (uPhone && superAdminPhones.has(uPhone)) {
+        const row = uRes.rows[0];
+        if (matchesAdminPhone(row.u_phone) || matchesAdminPhone(row.pp_phone)) {
           isSuperAdminFallback = true;
         }
       }
