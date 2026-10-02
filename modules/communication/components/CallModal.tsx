@@ -11,7 +11,7 @@ import {
   PhoneIncoming,
 } from "lucide-react";
 import { getUserAvatarUrl } from "@/lib/avatar";
-import { startRingtone, stopRingtone } from "@/lib/ringtone";
+import { startRingtone, stopRingtone, canPlayRingtone } from "@/lib/ringtone";
 import { WebRTCCall, CallPhase, CallPeer } from "../lib/webrtc-call";
 
 interface CallModalProps {

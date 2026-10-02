@@ -537,7 +537,25 @@ export function CommunicationShell() {
 
   // 6E. Calls — CallModal owns the live call; the shell only records the
   // session in the audit log once the call starts and finishes.
-  const handleStartCall = (type: "VOICE" | "VIDEO") => {    if (!selectedConversation) return;
+
+  // The call engine is 1:1 (a calls row is caller→callee), so a group has
+  // no single peer: it resolves to the first other member, and a
+  // conversation with nobody else has no call target at all.
+  const callPeerId: string | null =
+    selectedConversation?.type === "DIRECT"
+      ? (selectedConversation.peerIdentity?.userId ?? null)
+      : (detailsData.members.find(
+          (m) => m.userId && m.userId !== session?.user?.id
+        )?.userId as string | undefined) ?? null;
+
+  const handleStartCall = (type: "VOICE" | "VIDEO") => {
+    if (!selectedConversation) return;
+    if (!callPeerId) {
+      setLocationNotice(
+        "1:1 calls need another participant — group calling is not available."
+      );
+      return;
+    }
     setCallType(type);
     setActiveCallId(null);
     setShowCallModal(true);
@@ -562,14 +580,15 @@ export function CommunicationShell() {
 
   // ── Live location share ───────────────────────────────────
   // Starts a share, then refreshes the pin on a slow interval while the
-  // ── Live location share ───────────────────────────────────
-  // Starts a share, then refreshes the pin on a slow interval while the
   // conversation stays open. The server row expires on its own, so a
   // client that dies mid-share cannot leak presence indefinitely.
   const [sharingLocation, setSharingLocation] = useState(false);
   const [locationBusy, setLocationBusy] = useState(false);
   const [locationNotice, setLocationNotice] = useState<string | null>(null);
 
+  const shareLabel = selectedConversation?.name || null;
+
+  /** Pushes one fix to the server. `live` marks the chat message as moving. */
   const pushLocation = useCallback(
     async (live: boolean) => {
       const conversationId = selectedConversation?.id;
@@ -581,8 +600,6 @@ export function CommunicationShell() {
         return false;
       }
 
-      const activeTitle = selectedConversation?.name || null;
-
       const res = await fetch("/api/location/share", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -590,7 +607,7 @@ export function CommunicationShell() {
           lat: position.lat,
           lng: position.lng,
           conversationId,
-          label: activeTitle || null,
+          label: selectedConversation?.name || null,
           ttlMinutes: 15,
         }),
       });
@@ -606,7 +623,7 @@ export function CommunicationShell() {
         location: {
           lat: position.lat,
           lng: position.lng,
-          label: activeTitle || null,
+          label: selectedConversation?.name || null,
           live,
           sharedAt: new Date().toISOString(),
         },
@@ -645,7 +662,6 @@ export function CommunicationShell() {
       void (async () => {
         const position = await getDeviceLocation();
         if (!position) return;
-        const activeTitle = selectedConversation?.name || null;
         await fetch("/api/location/share", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -653,7 +669,7 @@ export function CommunicationShell() {
             lat: position.lat,
             lng: position.lng,
             conversationId: selectedConversation.id,
-            label: activeTitle || null,
+            label: selectedConversation.name || null,
             ttlMinutes: 15,
           }),
         }).catch(() => {});
@@ -1581,6 +1597,24 @@ export function CommunicationShell() {
                 </div>
               )}
 
+              {/* Location / call notice — self-clearing */}
+              {locationNotice && (
+                <div
+                  role="status"
+                  className="flex items-center justify-between gap-3 border-t border-[#f0efee] bg-[#f5f9fd] px-4 py-2 text-[11px] font-semibold text-[#1769c2]"
+                >
+                  <span>{locationNotice}</span>
+                  <button
+                    type="button"
+                    onClick={() => setLocationNotice(null)}
+                    className="shrink-0 rounded px-1.5 text-[#5d5854] hover:bg-[#e8f0f8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2]"
+                    aria-label="Dismiss notice"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+
               {/* Selected Attachments Preview */}
               {selectedAttachments.length > 0 && (
                 <div className="p-2 px-4 bg-white border-t border-[#f0efee] flex items-center gap-2 overflow-x-auto">
@@ -1834,7 +1868,7 @@ export function CommunicationShell() {
         peerName={activeTitle}
         peerImage={activeIsDirect ? activePeer?.image : selectedConversation?.avatarUrl}
         peerTitle={activeSubtitle}
-        peerId={activePeer?.userId ?? null}
+        peerId={callPeerId}
         conversationId={selectedConversation?.id ?? null}
         onCallStarted={handleCallStarted}
         onCallEnded={handleCallEnded}

@@ -73,6 +73,24 @@ export function startRingtone(): void {
   loop();
 }
 
+/**
+ * Can audio actually play right now?
+ *
+ * Browsers block sound until a user gesture has unlocked the context, so
+ * an incoming-call ring on desktop web is silent until the user clicks
+ * anything on the page. Callers must check this rather than assume.
+ */
+export function canPlayRingtone(): boolean {
+  if (typeof window === "undefined") return false;
+  const Ctor =
+    window.AudioContext ??
+    (window as unknown as { webkitAudioContext?: typeof AudioContext })
+      .webkitAudioContext;
+  if (!Ctor) return false;
+  const ctx = getContext();
+  return ctx ? ctx.state === "running" : false;
+}
+
 /** Stops the ringtone. Safe to call when not ringing. */
 export function stopRingtone(): void {
   playing = false;
