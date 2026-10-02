@@ -1,6 +1,7 @@
 // app/api/learn/notes/route.ts
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { NotesService } from "@/modules/learn/lib/student-db";
 import {
   getLessonNotes,
   getUserNotes,
@@ -16,11 +17,20 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const lessonId = searchParams.get("lessonId");
+  const noteType = searchParams.get("note_type") || undefined;
+  const courseId = searchParams.get("course_id") || undefined;
 
   try {
     if (lessonId) {
       const notes = await getLessonNotes(session.user.id, lessonId);
       return Response.json({ notes });
+    }
+    const studentNotes = await NotesService.getStudentNotes(session.user.id, {
+      note_type: noteType,
+      course_id: courseId,
+    });
+    if (studentNotes && studentNotes.length > 0) {
+      return Response.json({ notes: studentNotes });
     }
     const notes = await getUserNotes(session.user.id);
     return Response.json({ notes });
@@ -38,11 +48,29 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { courseId, lessonId, noteText, timestampSeconds, tags } = body;
+    const { title, content, note_type, courseId, lessonId, noteText, timestampSeconds, tags, subject, topic, visibility, attachments } = body;
+
+    // Check if rich student note
+    if (title || content) {
+      const note = await NotesService.createNote(session.user.id, {
+        title: title || "Untitled Note",
+        content: content || noteText || "",
+        note_type: note_type || "Personal Notes",
+        course_id: courseId || null,
+        lesson_id: lessonId || null,
+        timestamp_seconds: Number(timestampSeconds) || null,
+        subject: subject || null,
+        topic: topic || null,
+        tags: Array.isArray(tags) ? tags : [],
+        attachments: Array.isArray(attachments) ? attachments : [],
+        visibility: visibility || "only_me",
+      });
+      return Response.json({ note });
+    }
 
     if (!courseId || !lessonId || !noteText?.trim()) {
       return Response.json(
-        { error: "courseId, lessonId, and noteText are required" },
+        { error: "Note title/content or courseId/lessonId/noteText are required" },
         { status: 400 }
       );
     }
@@ -84,3 +112,4 @@ export async function DELETE(request: Request) {
     return Response.json({ error: "Failed to delete note" }, { status: 500 });
   }
 }
+

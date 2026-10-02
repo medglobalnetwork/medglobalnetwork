@@ -4,6 +4,7 @@ import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { CurriculumAccordion } from "@/modules/learn/components/CurriculumAccordion";
+import { StudentNavHeader } from "@/modules/learn/components/StudentNavHeader";
 import { VerificationBadge } from "@/modules/network/components/VerificationBadge";
 import { Course, CourseModule } from "@/modules/learn/types";
 
@@ -100,7 +101,8 @@ export default function CourseDetailPage() {
     instructor?.registration_verified;
 
   return (
-    <main className="min-h-dvh bg-[#f5f5f4] pb-36 text-[#171717]">
+    <main className="min-h-dvh bg-[#f5f5f4] dark:bg-[#0d1117] pb-36 text-[#171717] dark:text-[#f0f6fc]">
+      <StudentNavHeader activeTab="explore" />
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
         {/* Breadcrumbs */}
         <div className="flex items-center gap-2 text-xs font-semibold text-[#77716b]">

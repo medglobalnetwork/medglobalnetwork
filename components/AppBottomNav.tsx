@@ -174,84 +174,263 @@ export default function AppBottomNav({ onOpenAskAI }: { onOpenAskAI?: () => void
     }
   };
 
+  const [isMoreOpen, setIsMoreOpen] = React.useState(false);
+
   if (isLearnWorkspace) {
-    // 4-tab Learn Navigation
+    // 5-tab Learn Navigation: Dashboard | Explore | My Learning | Practice | More
+    const isDashboard = pathname === "/learn" || pathname === "/learn/";
+    const isExplore = pathname === "/learn/explore" || pathname.startsWith("/learn/courses");
+    const isMyLearning = pathname.startsWith("/learn/my-learning");
+    const isPractice = pathname.startsWith("/learn/practice");
+    const isMoreActive =
+      pathname.startsWith("/learn/resources") ||
+      pathname.startsWith("/learn/books") ||
+      pathname.startsWith("/learn/mind-maps") ||
+      pathname.startsWith("/learn/notes") ||
+      pathname.startsWith("/learn/question-banks") ||
+      pathname.startsWith("/learn/my-box") ||
+      pathname.startsWith("/learn/calendar");
+
     return (
-      <nav
-        aria-label="Learn Navigation"
-        className={`fixed bottom-0 left-0 right-0 z-50 flex md:hidden w-full items-center justify-around border-t border-[#e8e6e3] dark:border-[#30363d] bg-white/95 dark:bg-[#161b22]/95 backdrop-blur-md px-1 pt-1.5 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_-2px_12px_rgba(0,0,0,0.4)] transition-transform duration-300 ease-in-out ${
-          hidden ? "translate-y-full pointer-events-none" : "translate-y-0"
-        }`}
-        style={{
-          paddingBottom: "max(0.4rem, env(safe-area-inset-bottom, 0px))",
-        }}
-      >
-        <div className="flex w-full items-center justify-around max-w-lg mx-auto">
-          {learnNavItems.map((item) => {
-            const isDashboard = item.id === "dashboard" && (pathname === "/learn" || pathname === "/learn/");
-            const isExplore = item.id === "explore" && (pathname === "/learn/explore" || pathname.startsWith("/learn/courses"));
-            const isMyBox = item.id === "mybox" && (pathname.startsWith("/learn/my-box") || pathname.startsWith("/learn/my-learning"));
-            const isActive = isDashboard || isExplore || isMyBox;
-
-            if (item.id === "askai") {
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  aria-label="Ask Medical AI"
-                  onClick={handleOpenAi}
-                  className="flex flex-1 flex-col items-center justify-center py-1 transition-colors relative cursor-pointer text-[#0f4c81] dark:text-[#58a6ff] active:scale-95 group"
-                >
-                  <div className="relative flex items-center justify-center size-6 rounded-lg bg-gradient-to-tr from-[#0f4c81] to-[#1769c2] text-white shadow-xs">
-                    <Sparkles className="size-3.5 text-amber-300" />
-                  </div>
-                  <span className="mt-1 text-[10px] font-bold leading-tight text-[#0f4c81] dark:text-[#58a6ff]">
-                    Ask AI
-                  </span>
-                </button>
-              );
-            }
-
-            const Fallback = item.id === "dashboard" ? HomeFallback : item.id === "explore" ? LearnFallback : BoxFallback;
-
-            return (
-              <button
-                key={item.id}
-                type="button"
-                aria-label={item.label}
-                aria-current={isActive ? "page" : undefined}
-                onClick={() => item.href && router.push(item.href)}
-                className={`flex flex-1 flex-col items-center justify-center py-1 transition-colors relative cursor-pointer ${
-                  isActive
-                    ? "text-[#0f4c81] dark:text-[#58a6ff]"
-                    : "text-[#77716b] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc] active:scale-95"
-                }`}
-              >
-                <div className="relative flex items-center justify-center">
-                  <Icons8BottomNavIcon
-                    iconId={item.icon8Id}
-                    active={isActive}
-                    fallback={Fallback}
-                    className="size-6"
-                  />
-                  {isActive && (
-                    <span className="absolute -bottom-1 size-1 rounded-full bg-[#16804d] dark:bg-[#2ea043]" />
-                  )}
+      <>
+        {/* More Bottom Sheet Modal */}
+        {isMoreOpen && (
+          <div
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200"
+            onClick={() => setIsMoreOpen(false)}
+          >
+            <div
+              className="bg-white dark:bg-[#161b22] border-t border-[#e8e6e3] dark:border-[#30363d] rounded-t-3xl p-5 shadow-2xl max-w-lg mx-auto w-full animate-in slide-in-from-bottom duration-250"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-[#f0efee] dark:border-[#21262d] mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="size-2 rounded-full bg-[#0f4c81] dark:bg-[#58a6ff]" />
+                  <h3 className="text-sm font-bold text-[#171717] dark:text-[#f0f6fc]">
+                    Student Learning Hub
+                  </h3>
                 </div>
-                <span
-                  className={`mt-1 text-[10px] font-semibold leading-tight ${
-                    isActive ? "text-[#0f4c81] dark:text-[#58a6ff]" : "text-[#77716b] dark:text-[#8b949e]"
-                  }`}
+                <button
+                  type="button"
+                  onClick={() => setIsMoreOpen(false)}
+                  className="p-1 rounded-full text-[#77716b] hover:bg-[#f5f4f2] dark:hover:bg-[#21262d]"
                 >
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
+                  <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-4 gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMoreOpen(false);
+                    router.push("/learn/resources");
+                  }}
+                  className="flex flex-col items-center gap-1.5 p-2.5 rounded-2xl hover:bg-[#f5f4f2] dark:hover:bg-[#21262d] text-center transition"
+                >
+                  <div className="size-11 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#0f4c81] dark:text-[#58a6ff] flex items-center justify-center font-bold text-lg">
+                    📚
+                  </div>
+                  <span className="text-[11px] font-semibold text-[#171717] dark:text-[#f0f6fc]">Resources</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMoreOpen(false);
+                    router.push("/learn/books");
+                  }}
+                  className="flex flex-col items-center gap-1.5 p-2.5 rounded-2xl hover:bg-[#f5f4f2] dark:hover:bg-[#21262d] text-center transition"
+                >
+                  <div className="size-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-lg">
+                    📖
+                  </div>
+                  <span className="text-[11px] font-semibold text-[#171717] dark:text-[#f0f6fc]">Books</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMoreOpen(false);
+                    router.push("/learn/mind-maps");
+                  }}
+                  className="flex flex-col items-center gap-1.5 p-2.5 rounded-2xl hover:bg-[#f5f4f2] dark:hover:bg-[#21262d] text-center transition"
+                >
+                  <div className="size-11 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-lg">
+                    🧠
+                  </div>
+                  <span className="text-[11px] font-semibold text-[#171717] dark:text-[#f0f6fc]">Mind Maps</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMoreOpen(false);
+                    router.push("/learn/notes");
+                  }}
+                  className="flex flex-col items-center gap-1.5 p-2.5 rounded-2xl hover:bg-[#f5f4f2] dark:hover:bg-[#21262d] text-center transition"
+                >
+                  <div className="size-11 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-lg">
+                    📝
+                  </div>
+                  <span className="text-[11px] font-semibold text-[#171717] dark:text-[#f0f6fc]">Notes</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMoreOpen(false);
+                    router.push("/learn/question-banks");
+                  }}
+                  className="flex flex-col items-center gap-1.5 p-2.5 rounded-2xl hover:bg-[#f5f4f2] dark:hover:bg-[#21262d] text-center transition"
+                >
+                  <div className="size-11 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold text-lg">
+                    🗂️
+                  </div>
+                  <span className="text-[11px] font-semibold text-[#171717] dark:text-[#f0f6fc]">Q-Banks</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMoreOpen(false);
+                    router.push("/learn/my-box");
+                  }}
+                  className="flex flex-col items-center gap-1.5 p-2.5 rounded-2xl hover:bg-[#f5f4f2] dark:hover:bg-[#21262d] text-center transition"
+                >
+                  <div className="size-11 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-lg">
+                    📦
+                  </div>
+                  <span className="text-[11px] font-semibold text-[#171717] dark:text-[#f0f6fc]">My Box</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMoreOpen(false);
+                    router.push("/learn/calendar");
+                  }}
+                  className="flex flex-col items-center gap-1.5 p-2.5 rounded-2xl hover:bg-[#f5f4f2] dark:hover:bg-[#21262d] text-center transition"
+                >
+                  <div className="size-11 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-lg">
+                    📅
+                  </div>
+                  <span className="text-[11px] font-semibold text-[#171717] dark:text-[#f0f6fc]">Calendar</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMoreOpen(false);
+                    handleOpenAi();
+                  }}
+                  className="flex flex-col items-center gap-1.5 p-2.5 rounded-2xl hover:bg-[#f5f4f2] dark:hover:bg-[#21262d] text-center transition"
+                >
+                  <div className="size-11 rounded-xl bg-gradient-to-tr from-[#0f4c81] to-[#1769c2] text-white flex items-center justify-center shadow-xs">
+                    <Sparkles className="size-5 text-amber-300" />
+                  </div>
+                  <span className="text-[11px] font-bold text-[#0f4c81] dark:text-[#58a6ff]">Ask AI</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <nav
+          aria-label="Learn Navigation"
+          className={`fixed bottom-0 left-0 right-0 z-50 flex md:hidden w-full items-center justify-around border-t border-[#e8e6e3] dark:border-[#30363d] bg-white/95 dark:bg-[#161b22]/95 backdrop-blur-md px-1 pt-1.5 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_-2px_12px_rgba(0,0,0,0.4)] transition-transform duration-300 ease-in-out ${
+            hidden ? "translate-y-full pointer-events-none" : "translate-y-0"
+          }`}
+          style={{
+            paddingBottom: "max(0.4rem, env(safe-area-inset-bottom, 0px))",
+          }}
+        >
+          <div className="flex w-full items-center justify-around max-w-lg mx-auto">
+            {/* 1. Dashboard */}
+            <button
+              type="button"
+              aria-label="Dashboard"
+              onClick={() => router.push("/learn")}
+              className={`flex flex-1 flex-col items-center justify-center py-1 transition-colors relative cursor-pointer ${
+                isDashboard ? "text-[#0f4c81] dark:text-[#58a6ff]" : "text-[#77716b] dark:text-[#8b949e]"
+              }`}
+            >
+              <div className="relative flex items-center justify-center">
+                <Icons8BottomNavIcon iconId="i6fZC6wuprSu" active={isDashboard} fallback={HomeFallback} className="size-6" />
+                {isDashboard && <span className="absolute -bottom-1 size-1 rounded-full bg-[#16804d] dark:bg-[#2ea043]" />}
+              </div>
+              <span className="mt-1 text-[10px] font-semibold leading-tight">Dashboard</span>
+            </button>
+
+            {/* 2. Explore */}
+            <button
+              type="button"
+              aria-label="Explore"
+              onClick={() => router.push("/learn/explore")}
+              className={`flex flex-1 flex-col items-center justify-center py-1 transition-colors relative cursor-pointer ${
+                isExplore ? "text-[#0f4c81] dark:text-[#58a6ff]" : "text-[#77716b] dark:text-[#8b949e]"
+              }`}
+            >
+              <div className="relative flex items-center justify-center">
+                <Icons8BottomNavIcon iconId="AvANlXOxUB6Z" active={isExplore} fallback={LearnFallback} className="size-6" />
+                {isExplore && <span className="absolute -bottom-1 size-1 rounded-full bg-[#16804d] dark:bg-[#2ea043]" />}
+              </div>
+              <span className="mt-1 text-[10px] font-semibold leading-tight">Explore</span>
+            </button>
+
+            {/* 3. My Learning */}
+            <button
+              type="button"
+              aria-label="My Learning"
+              onClick={() => router.push("/learn/my-learning")}
+              className={`flex flex-1 flex-col items-center justify-center py-1 transition-colors relative cursor-pointer ${
+                isMyLearning ? "text-[#0f4c81] dark:text-[#58a6ff]" : "text-[#77716b] dark:text-[#8b949e]"
+              }`}
+            >
+              <div className="relative flex items-center justify-center">
+                <Icons8BottomNavIcon iconId="AvANlXOxUB6Z" active={isMyLearning} fallback={LearnFallback} className="size-6" />
+                {isMyLearning && <span className="absolute -bottom-1 size-1 rounded-full bg-[#16804d] dark:bg-[#2ea043]" />}
+              </div>
+              <span className="mt-1 text-[10px] font-semibold leading-tight">My Learning</span>
+            </button>
+
+            {/* 4. Practice */}
+            <button
+              type="button"
+              aria-label="Practice"
+              onClick={() => router.push("/learn/practice")}
+              className={`flex flex-1 flex-col items-center justify-center py-1 transition-colors relative cursor-pointer ${
+                isPractice ? "text-[#0f4c81] dark:text-[#58a6ff]" : "text-[#77716b] dark:text-[#8b949e]"
+              }`}
+            >
+              <div className="relative flex items-center justify-center">
+                <Icons8BottomNavIcon iconId="YzsadpdsoN8e" active={isPractice} fallback={NetworkFallback} className="size-6" />
+                {isPractice && <span className="absolute -bottom-1 size-1 rounded-full bg-[#16804d] dark:bg-[#2ea043]" />}
+              </div>
+              <span className="mt-1 text-[10px] font-semibold leading-tight">Practice</span>
+            </button>
+
+            {/* 5. More */}
+            <button
+              type="button"
+              aria-label="More"
+              onClick={() => setIsMoreOpen(true)}
+              className={`flex flex-1 flex-col items-center justify-center py-1 transition-colors relative cursor-pointer ${
+                isMoreActive ? "text-[#0f4c81] dark:text-[#58a6ff]" : "text-[#77716b] dark:text-[#8b949e]"
+              }`}
+            >
+              <div className="relative flex items-center justify-center">
+                <Icons8BottomNavIcon iconId="FnCSMZbfR6RU" active={isMoreActive} fallback={BoxFallback} className="size-6" />
+                {isMoreActive && <span className="absolute -bottom-1 size-1 rounded-full bg-[#16804d] dark:bg-[#2ea043]" />}
+              </div>
+              <span className="mt-1 text-[10px] font-semibold leading-tight">More</span>
+            </button>
+          </div>
+        </nav>
+      </>
     );
   }
+
 
   // Standard 5-tab Ecosystem Navigation
   const activeTab: NavTab =

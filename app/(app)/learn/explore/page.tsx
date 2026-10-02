@@ -16,6 +16,7 @@ import {
   Filter,
 } from "lucide-react";
 import { CourseCard } from "@/modules/learn/components/CourseCard";
+import { StudentNavHeader } from "@/modules/learn/components/StudentNavHeader";
 import { Course } from "@/modules/learn/types";
 
 export default function LearnExplorePage() {
@@ -96,6 +97,7 @@ export default function LearnExplorePage() {
 
   return (
     <div className="min-h-dvh bg-[#faf9f8] dark:bg-[#0d1117] pb-24 text-[#171717] dark:text-[#f0f6fc]">
+      <StudentNavHeader activeTab="explore" />
       {/* Top Banner Header */}
       <div className="border-b border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-4 py-6 sm:px-8">
         <div className="mx-auto max-w-7xl">

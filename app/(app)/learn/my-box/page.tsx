@@ -27,6 +27,7 @@ import {
   Folder,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { StudentNavHeader } from "@/modules/learn/components/StudentNavHeader";
 import {
   CourseEnrollment,
   Certificate,
@@ -142,6 +143,7 @@ export default function MyBoxPage() {
 
   return (
     <div className="min-h-dvh bg-[#faf9f8] dark:bg-[#0d1117] pb-28 text-[#171717] dark:text-[#f0f6fc]">
+      <StudentNavHeader />
       {/* Top Header */}
       <div className="border-b border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-4 py-6 sm:px-8">
         <div className="mx-auto max-w-7xl">

@@ -7,7 +7,7 @@ import AppHeader from "@/components/AppHeader";
 import AppBottomNav from "@/components/AppBottomNav";
 import AppSplashScreen from "@/components/AppSplashScreen";
 import { PullToRefresh } from "@/components/PullToRefresh";
-import { initNativeApp } from "@/lib/native-mobile";
+import { initNativeApp, syncPushToken } from "@/lib/native-mobile";
 import { AskAIModal } from "@/modules/learn/components/AskAIModal";
 import { AskAIContext } from "@/modules/learn/types";
 
@@ -46,6 +46,12 @@ export function AppShell({ children }: AppShellProps) {
   useEffect(() => {
     initNativeApp(() => router.back());
   }, [router]);
+
+  // Register this device for native push (FCM). Android only prompts once,
+  // so re-running on every mount is cheap and self-healing after a token change.
+  useEffect(() => {
+    void syncPushToken();
+  }, []);
 
   // Restore user pin preference on client mount if previously set
   useEffect(() => {

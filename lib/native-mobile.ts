@@ -15,6 +15,8 @@ export const isNativePlatform = (): boolean => {
   return typeof window !== "undefined" && Capacitor.isNativePlatform();
 };
 
+const PUSH_TOKEN_KEY = "mgn_push_token";
+
 /**
  * Initialize Native Android App Features:
  * - Status bar theming (#0f4c81)
@@ -90,27 +92,117 @@ export const getDeviceLocation = async (): Promise<{ lat: number; lng: number } 
 
 /**
  * Register device for Push Notifications (FCM)
+ *
+ * Listeners are attached BEFORE `register()` — on Android the registration
+ * event can fire immediately, and a listener added afterwards never sees it.
  */
 export const registerPushNotifications = async (): Promise<string | null> => {
   if (!isNativePlatform()) return null;
 
   try {
     const perm = await PushNotifications.requestPermissions();
-    if (perm.receive === "granted") {
-      await PushNotifications.register();
-      return new Promise((resolve) => {
-        PushNotifications.addListener("registration", (token) => {
-          resolve(token.value);
+    if (perm.receive !== "granted") return null;
+
+    return new Promise<string | null>((resolve) => {
+      let settled = false;
+      const finish = (value: string | null) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      void Promise.all([
+        PushNotifications.addListener("registration", (token) =>
+          finish(token.value)
+        ),
+        PushNotifications.addListener("registrationError", () => finish(null)),
+      ]).then(() => PushNotifications.register())
+        .catch((err) => {
+          console.warn("Push registration error:", err);
+          finish(null);
         });
-        PushNotifications.addListener("registrationError", () => {
-          resolve(null);
-        });
-      });
-    }
+
+      // Android occasionally never emits either event on an already-registered device.
+      setTimeout(() => finish(null), 15000);
+    });
   } catch (err) {
     console.warn("Push registration error:", err);
+    return null;
   }
-  return null;
+};
+
+/**
+ * Register the device for push and hand the FCM token to the server.
+ * Safe to call on every app start — registration is idempotent.
+ */
+export const syncPushToken = async (): Promise<string | null> => {
+  const token = await registerPushNotifications();
+  if (!token) return null;
+
+  let appVersion: string | undefined;
+  try {
+    const info = await CapApp.getInfo();
+    appVersion = `${info.version} (${info.build})`;
+  } catch {
+    // getInfo unavailable on this platform — version is optional
+  }
+
+  try {
+    const res = await fetch("/api/notifications/devices", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        token,
+        platform: "android",
+        appVersion,
+      }),
+    });
+    if (!res.ok) {
+      console.warn("Push token sync rejected:", res.status);
+      return token;
+    }
+    try {
+      localStorage.setItem(PUSH_TOKEN_KEY, token);
+    } catch {}
+    return token;
+  } catch (err) {
+    console.warn("Push token sync failed:", err);
+  }
+  return token;
+};
+
+/**
+ * Drop the server-side token on sign-out so the next account on this device
+ * does not inherit the previous user's pushes.
+ */
+export const unregisterPushToken = async (): Promise<void> => {
+  if (!isNativePlatform()) return;
+
+  let token: string | null = null;
+  try {
+    token = localStorage.getItem(PUSH_TOKEN_KEY);
+  } catch {}
+
+  try {
+    if (token) {
+      await fetch("/api/notifications/devices", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ token }),
+      });
+      localStorage.removeItem(PUSH_TOKEN_KEY);
+    }
+  } catch (err) {
+    console.warn("Push token removal failed:", err);
+  }
+
+  try {
+    await PushNotifications.unregister();
+  } catch {
+    // Nothing to unregister
+  }
 };
 
 /**

@@ -893,3 +893,429 @@ export interface TestPaperSubmission {
   answers?: TestSubmissionAnswerDetail[];
 }
 
+// ─────────────────────────────────────────────
+// STUDENT LEARNING WORKSPACE TYPES (PHASE 5 / PRODUCTION)
+// ─────────────────────────────────────────────
+
+export type QuestionDifficulty = "easy" | "medium" | "hard" | "all";
+export type StudentMCQType =
+  | "single"
+  | "multiple"
+  | "true_false"
+  | "image"
+  | "case_based"
+  | "clinical_scenario"
+  | "assertion_reason"
+  | "match_based";
+
+export interface PracticeOption {
+  id: string;
+  option_text: string;
+  is_correct?: boolean; // Stripped or revealed based on review mode
+  explanation?: string;
+  order_index: number;
+}
+
+export interface PracticeQuestion {
+  id: string;
+  subject: string;
+  topic: string;
+  subtopic?: string;
+  difficulty: QuestionDifficulty;
+  question_type: StudentMCQType;
+  question_text: string;
+  case_vignette?: string;
+  image_url?: string;
+  explanation: string;
+  reference?: string;
+  author_name?: string;
+  is_verified: boolean;
+  options: PracticeOption[];
+}
+
+export interface PracticeAnswer {
+  question_id: string;
+  selected_option_ids: string[];
+  is_correct?: boolean;
+  is_marked_for_review?: boolean;
+  time_spent_seconds?: number;
+}
+
+export interface TopicPerformanceBreakdown {
+  topic: string;
+  total: number;
+  correct: number;
+  accuracy: number;
+}
+
+export interface DifficultyPerformanceBreakdown {
+  difficulty: string;
+  total: number;
+  correct: number;
+  accuracy: number;
+}
+
+export interface PracticeAttempt {
+  id: string;
+  user_id: string;
+  mode: "practice" | "topic" | "weak_areas" | "mock_test" | "custom";
+  subject: string;
+  topic?: string;
+  difficulty?: string;
+  total_questions: number;
+  score: number;
+  percentage: number;
+  correct_count: number;
+  incorrect_count: number;
+  skipped_count: number;
+  time_taken_seconds: number;
+  time_limit_minutes?: number;
+  completed: boolean;
+  submitted_at: string;
+  topic_breakdown?: TopicPerformanceBreakdown[];
+  difficulty_breakdown?: DifficultyPerformanceBreakdown[];
+  weak_topics?: string[];
+  strong_topics?: string[];
+  answers?: PracticeAnswer[];
+  questions?: PracticeQuestion[];
+}
+
+export interface WeakTopicRecord {
+  subject: string;
+  topic: string;
+  total_attempted: number;
+  total_correct: number;
+  accuracy: number;
+  last_practiced_at: string;
+  is_weak: boolean;
+  recommendations?: {
+    revision_notes_count: number;
+    mind_map_id?: string;
+    mind_map_title?: string;
+    lecture_id?: string;
+    lecture_title?: string;
+    mcq_practice_topic: string;
+  };
+}
+
+export interface QuestionBankItem {
+  id: string;
+  title: string;
+  slug: string;
+  subject: string;
+  topics: string[];
+  question_count: number;
+  difficulty: QuestionDifficulty | "mixed";
+  creator_name: string;
+  creator_id?: string;
+  is_verified: boolean;
+  access: "FREE" | "PAID";
+  price?: number;
+  currency?: string;
+  description?: string;
+  bookmark_count: number;
+  is_bookmarked?: boolean;
+  created_at: string;
+}
+
+export interface MockTestItem {
+  id: string;
+  title: string;
+  description?: string;
+  subject: string;
+  duration_minutes: number;
+  total_questions: number;
+  passing_percentage: number;
+  access: "FREE" | "PAID";
+  attempts_count: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface SavedQuestionRecord {
+  id: string;
+  user_id: string;
+  question_id: string;
+  notes?: string;
+  tags?: string[];
+  created_at: string;
+  question?: PracticeQuestion;
+}
+
+// ─────────────────────────────────────────────
+// MIND MAPS
+// ─────────────────────────────────────────────
+
+export type MindMapCategory =
+  | "Anatomy"
+  | "Physiology"
+  | "Pathology"
+  | "Pharmacology"
+  | "Clinical Concepts"
+  | "Procedures"
+  | "Exam Revision"
+  | "Course Specific";
+
+export interface MindMapNodeItem {
+  id: string;
+  mind_map_id: string;
+  parent_id?: string | null;
+  label: string;
+  description?: string | null;
+  node_type: "root" | "branch" | "leaf" | "clinical";
+  color?: string;
+  icon?: string;
+  order_index: number;
+  linked_lecture_id?: string | null;
+  linked_lecture_title?: string | null;
+  linked_mcq_topic?: string | null;
+  linked_note_id?: string | null;
+  is_expanded?: boolean;
+  children?: MindMapNodeItem[];
+}
+
+export interface MindMapEdgeItem {
+  id: string;
+  mind_map_id: string;
+  source_id: string;
+  target_id: string;
+  label?: string | null;
+  edge_type?: string;
+}
+
+export interface MindMapItem {
+  id: string;
+  title: string;
+  slug: string;
+  category: MindMapCategory | string;
+  subject: string;
+  topic: string;
+  description?: string | null;
+  root_nodes?: MindMapNodeItem[];
+  edges?: MindMapEdgeItem[];
+  creator_name: string;
+  creator_role?: string;
+  is_verified: boolean;
+  is_public: boolean;
+  access: "FREE" | "PAID";
+  price?: number;
+  bookmarks_count: number;
+  is_bookmarked?: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// ─────────────────────────────────────────────
+// MEDICAL BOOKS & EBOOK READER
+// ─────────────────────────────────────────────
+
+export interface BookTableOfContentsItem {
+  title: string;
+  page: number;
+  level?: number;
+}
+
+export interface BookItem {
+  id: string;
+  title: string;
+  slug: string;
+  author: string;
+  publisher?: string | null;
+  cover_url?: string | null;
+  file_url?: string | null;
+  description?: string | null;
+  category: string;
+  subject: string;
+  page_count: number;
+  isbn?: string | null;
+  access: "FREE" | "PAID" | "SUBSCRIPTION";
+  price: number;
+  discount_price?: number | null;
+  currency: string;
+  is_licensed: boolean;
+  rating_avg: number;
+  rating_count: number;
+  reads_count: number;
+  table_of_contents?: BookTableOfContentsItem[];
+  user_has_access?: boolean;
+  user_progress?: {
+    current_page: number;
+    total_pages: number;
+    percentage: number;
+    last_read_at: string;
+  };
+  is_saved?: boolean;
+  created_at: string;
+}
+
+export interface BookBookmarkItem {
+  id: string;
+  book_id: string;
+  user_id: string;
+  page_number: number;
+  note?: string | null;
+  highlight_text?: string | null;
+  created_at: string;
+}
+
+// ─────────────────────────────────────────────
+// STUDENT NOTES & SHARED NOTES FEED
+// ─────────────────────────────────────────────
+
+export type StudentNoteType =
+  | "Course Notes"
+  | "Lecture Notes"
+  | "Subject Notes"
+  | "Revision Notes"
+  | "Exam Notes"
+  | "Clinical Notes"
+  | "Mind Map Notes"
+  | "Personal Notes";
+
+export type NoteVisibility =
+  | "only_me"
+  | "connections"
+  | "followers"
+  | "community"
+  | "public";
+
+export interface NoteAttachmentItem {
+  id: string;
+  name: string;
+  url: string;
+  file_type: string;
+  size_bytes?: number;
+}
+
+export interface StudentNoteItem {
+  id: string;
+  user_id: string;
+  title: string;
+  content: string;
+  note_type: StudentNoteType;
+  course_id?: string | null;
+  course_title?: string | null;
+  lesson_id?: string | null;
+  lesson_title?: string | null;
+  timestamp_seconds?: number | null;
+  subject?: string | null;
+  topic?: string | null;
+  tags: string[];
+  attachments?: NoteAttachmentItem[];
+  visibility: NoteVisibility;
+  copyright_declared: boolean;
+  moderation_status: "pending" | "approved" | "rejected";
+  views_count: number;
+  saves_count: number;
+  shares_count: number;
+  is_saved?: boolean;
+  is_shared?: boolean;
+  author_name?: string;
+  author_profession?: string;
+  author_image?: string | null;
+  author_verified?: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NoteCommentItem {
+  id: string;
+  note_id: string;
+  user_id: string;
+  user_name: string;
+  user_image?: string | null;
+  user_profession?: string | null;
+  content: string;
+  created_at: string;
+}
+
+// ─────────────────────────────────────────────
+// STUDENT MY BOX & CUSTOM COLLECTIONS
+// ─────────────────────────────────────────────
+
+export interface CollectionItemEntry {
+  id: string;
+  collection_id: string;
+  item_type:
+    | "course"
+    | "lesson"
+    | "book"
+    | "note"
+    | "mind_map"
+    | "question_bank"
+    | "question";
+  item_id: string;
+  title: string;
+  subtitle?: string;
+  thumbnail?: string;
+  added_at: string;
+}
+
+export interface StudentCollectionItem {
+  id: string;
+  user_id: string;
+  title: string;
+  description?: string | null;
+  color?: string;
+  is_public: boolean;
+  item_count: number;
+  created_at: string;
+  updated_at: string;
+  items?: CollectionItemEntry[];
+}
+
+// ─────────────────────────────────────────────
+// STUDENT DASHBOARD & RECOMMENDATION ENGINE
+// ─────────────────────────────────────────────
+
+export interface RecommendationFeedSection {
+  category: string;
+  title: string;
+  subtitle?: string;
+  reason?: string;
+  items: Course[];
+}
+
+export interface StudentDashboardData {
+  continue_learning: CourseEnrollment[];
+  recommendations: RecommendationFeedSection[];
+  upcoming_lectures: LiveSession[];
+  enrolled_summary: {
+    in_progress_count: number;
+    completed_count: number;
+    total_enrolled: number;
+    average_progress: number;
+    learning_streak_days: number;
+  };
+  weak_topics: WeakTopicRecord[];
+  recent_resources: {
+    notes: StudentNoteItem[];
+    books: BookItem[];
+    mind_maps: MindMapItem[];
+  };
+  community_notes: StudentNoteItem[];
+}
+
+export interface StudentCalendarEvent {
+  id: string;
+  title: string;
+  event_type:
+    | "live_lecture"
+    | "live_class"
+    | "workshop"
+    | "webinar"
+    | "exam"
+    | "quiz_deadline"
+    | "assignment"
+    | "study_reminder";
+  scheduled_at: string;
+  end_at?: string;
+  instructor_name?: string;
+  instructor_image?: string;
+  course_id?: string;
+  course_title?: string;
+  meeting_url?: string;
+  status?: string;
+}
+
+
