@@ -5,11 +5,9 @@ const config: CapacitorConfig = {
   appName: "MedGlobalNetwork",
   webDir: "public",
   server: {
-    // DEV ONLY — points at the local Next.js dev server over `adb reverse`
-    // so the device loads uncommitted code. Restore to
-    // "https://www.mgn.life" before shipping.
-    url: "http://localhost:3000",
-    cleartext: true,
+    // Points directly to the live production deployment for instant over-the-air updates
+    url: "https://www.mgn.life",
+    cleartext: false,
     androidScheme: "https",
   },
   android: {

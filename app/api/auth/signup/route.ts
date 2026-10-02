@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { pool, auth } from "@/lib/auth";
-import { normalizePhoneNumber, isPhoneVerifiedRecently, verifyPhoneOtp, findUserByPhone } from "@/lib/phone-auth";
+import { normalizePhoneNumber, isPhoneVerifiedRecently, verifyPhoneOtp, findUserByPhone, createPhoneSession } from "@/lib/phone-auth";
 import { isEmailVerifiedRecently, verifyEmailOtp, checkEmailRegistered } from "@/lib/email-auth";
 import { checkRateLimit, getClientIp } from "@/lib/security";
 
@@ -167,7 +167,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // 8. Prepare response with session cookies if available
+    // 8. Create session in PostgreSQL & prepare response with session cookies
+    const userAgent = reqHeaders.get("user-agent");
+    const ipAddress =
+      reqHeaders.get("x-forwarded-for")?.split(",")[0].trim() ||
+      reqHeaders.get("x-real-ip");
+
+    const { signedSessionToken, maxAge } = await createPhoneSession(
+      createdUser.id,
+      userAgent,
+      ipAddress
+    );
+
     const isProduction = process.env.NODE_ENV === "production";
     const response = NextResponse.json({
       success: true,
@@ -181,6 +192,26 @@ export async function POST(request: Request) {
       },
       message: "Account verified and created successfully!",
     });
+
+    // Set standard Better Auth session cookie
+    response.cookies.set("better-auth.session_token", signedSessionToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      maxAge,
+    });
+
+    // If HTTPS / production, also set __Secure- prefix cookie
+    if (isProduction) {
+      response.cookies.set("__Secure-better-auth.session_token", signedSessionToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge,
+      });
+    }
 
     return response;
   } catch (err: any) {

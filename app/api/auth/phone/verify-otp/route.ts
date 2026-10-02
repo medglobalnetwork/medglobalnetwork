@@ -24,7 +24,8 @@ export async function POST(request: Request) {
     const body = await request.json();
     const rawPhone = (body.phone || "").trim();
     const rawOtp = (body.otp || "").trim();
-    const purpose = (body.purpose || "login") as "login" | "signup" | "verify";
+    const isVerifyPath = request.url.includes("/api/auth/phone/verify");
+    const purpose = (body.purpose || (isVerifyPath ? "verify" : "login")) as "login" | "signup" | "verify";
 
     if (!rawPhone) {
       return NextResponse.json(
