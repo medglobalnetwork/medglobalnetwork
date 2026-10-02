@@ -514,21 +514,32 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
       try {
         const auth = getFirebaseAuth();
         const appVerifier = setupRecaptcha("recaptcha-container");
-        if (appVerifier) {
-          const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
-          phoneConfirmationRef.current = confirmation;
-          setSuccessMessage(`Real SMS verification code sent to ${formattedPhone}`);
-        } else {
-          setSuccessMessage(`Verification code sent to ${data.phone || formattedPhone}`);
+        if (!appVerifier) {
+          throw new Error("Phone security verifier could not be initialized. Please refresh the page.");
         }
-      } catch (fbErr: any) {
-        console.warn("Firebase Phone Auth client notification:", fbErr?.message || fbErr);
-        setSuccessMessage(`Verification code sent to ${data.phone || formattedPhone}`);
-      }
 
-      setOtpSent(true);
-      setDevOtp(undefined);
-      setOtpCountdown(60);
+        const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+        phoneConfirmationRef.current = confirmation;
+        setOtpSent(true);
+        setDevOtp(undefined);
+        setOtpCountdown(60);
+        setSuccessMessage(`Real SMS verification code sent to ${formattedPhone}. Please check your phone.`);
+      } catch (fbErr: any) {
+        console.error("Firebase Phone Auth error:", fbErr);
+        let errorMsg = fbErr?.message || "Failed to send SMS to your mobile phone.";
+        if (fbErr?.code === "auth/invalid-phone-number") {
+          errorMsg = "Invalid phone number format. Please check the mobile number.";
+        } else if (fbErr?.code === "auth/quota-exceeded" || fbErr?.code === "auth/too-many-requests") {
+          errorMsg = "SMS quota limit reached. Please wait a few moments or try again later.";
+        } else if (fbErr?.code === "auth/unauthorized-domain") {
+          errorMsg = "Domain is not authorized in Firebase Console (Authentication > Settings > Authorized domains).";
+        } else if (fbErr?.code === "auth/operation-not-allowed") {
+          errorMsg = "Phone Authentication is not enabled in Firebase Console (Authentication > Sign-in method > Phone).";
+        } else if (fbErr?.code === "auth/captcha-check-failed") {
+          errorMsg = "reCAPTCHA verification failed. Please refresh and try again.";
+        }
+        setErrors({ general: errorMsg });
+      }
     } catch {
       setErrors({ general: "Failed to connect to authentication server. Please try again." });
     } finally {
@@ -644,20 +655,31 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
       try {
         const auth = getFirebaseAuth();
         const appVerifier = setupRecaptcha("recaptcha-container");
-        if (appVerifier) {
-          const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
-          signupPhoneConfirmationRef.current = confirmation;
-          setSuccessMessage(`Real SMS verification code sent to ${formattedPhone}`);
-        } else {
-          setSuccessMessage(`Mobile verification code sent to ${data.phone || formattedPhone}`);
+        if (!appVerifier) {
+          throw new Error("Phone security verifier could not be initialized. Please refresh the page.");
         }
-      } catch (fbErr: any) {
-        console.warn("Firebase Phone Auth signup trigger notice:", fbErr?.message || fbErr);
-        setSuccessMessage(`Mobile verification code sent to ${data.phone || formattedPhone}`);
-      }
 
-      setPhoneDevOtp(undefined);
-      setPhoneOtpCountdown(60);
+        const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+        signupPhoneConfirmationRef.current = confirmation;
+        setPhoneDevOtp(undefined);
+        setPhoneOtpCountdown(60);
+        setSuccessMessage(`Real SMS verification code sent to ${formattedPhone}. Please check your phone.`);
+      } catch (fbErr: any) {
+        console.error("Firebase Phone Auth signup error:", fbErr);
+        let errorMsg = fbErr?.message || "Failed to send SMS to your mobile phone.";
+        if (fbErr?.code === "auth/invalid-phone-number") {
+          errorMsg = "Invalid phone number format. Please check the mobile number.";
+        } else if (fbErr?.code === "auth/quota-exceeded" || fbErr?.code === "auth/too-many-requests") {
+          errorMsg = "SMS quota limit reached. Please wait a few moments or try again later.";
+        } else if (fbErr?.code === "auth/unauthorized-domain") {
+          errorMsg = "Domain is not authorized in Firebase Console (Authentication > Settings > Authorized domains).";
+        } else if (fbErr?.code === "auth/operation-not-allowed") {
+          errorMsg = "Phone Authentication is not enabled in Firebase Console (Authentication > Sign-in method > Phone).";
+        } else if (fbErr?.code === "auth/captcha-check-failed") {
+          errorMsg = "reCAPTCHA verification failed. Please refresh and try again.";
+        }
+        setErrors({ phoneOtp: errorMsg });
+      }
     } catch {
       setErrors({ phoneOtp: "Failed to send mobile code. Check connection." });
     } finally {
@@ -1327,6 +1349,9 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
             </div>
           )}
 
+          {/* Permanent invisible reCAPTCHA container for Firebase Phone Auth */}
+          <div id="recaptcha-container" />
+
           {/* Global Alerts */}
           {successMessage && (
             <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-none flex items-center gap-2 text-xs font-medium text-emerald-700 dark:text-emerald-400 animate-in fade-in text-left">
@@ -1546,9 +1571,6 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                         autoFocus={true}
                       />
                     </div>
-
-                    {/* Invisible reCAPTCHA container for Firebase Phone Auth */}
-                    <div id="recaptcha-container" />
 
                     {errors.otp && (
                       <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
