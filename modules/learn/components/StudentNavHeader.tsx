@@ -90,7 +90,7 @@ export function StudentNavHeader({ activeTab }: StudentNavHeaderProps) {
 
   return (
     <>
-      <header className="sticky top-14 sm:top-16 z-20 bg-white/95 dark:bg-[#161b22]/95 backdrop-blur-md border-b border-[#e8e6e3] dark:border-[#30363d] shadow-2xs">
+      <header className="relative bg-white dark:bg-[#161b22] border-b border-[#e8e6e3] dark:border-[#30363d]">
         {/* ───────────────────────────────────────────── */}
         {/* UNIFIED WORKSPACE BAR: TABS & QUICK TOOLS     */}
         {/* ───────────────────────────────────────────── */}

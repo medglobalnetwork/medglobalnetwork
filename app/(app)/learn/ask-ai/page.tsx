@@ -110,7 +110,7 @@ export default function StudentAskAIPage() {
     <div className="min-h-screen bg-[#faf9f8] dark:bg-[#0d1117] text-[#171717] dark:text-[#f0f6fc] pb-12 flex flex-col">
       <StudentNavHeader activeTab="ask-ai" />
       {/* Top Header */}
-      <div className="bg-white/80 dark:bg-[#161b22]/80 backdrop-blur-md border-b border-[#e8e6e3] dark:border-[#30363d] sticky top-0 z-30 px-4 py-3">
+      <div className="bg-white/80 dark:bg-[#161b22]/80 backdrop-blur-md border-b border-[#e8e6e3] dark:border-[#30363d] px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Link
