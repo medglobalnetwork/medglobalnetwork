@@ -25,6 +25,9 @@ import {
   ExternalLink,
   Compass,
   Globe,
+  LayoutDashboard,
+  FolderHeart,
+  Target,
   Pin,
   PinOff,
   Plus,
@@ -65,13 +68,13 @@ export const WORKSPACE_NAV_ITEMS: NavItem[] = [
 ];
 
 export const LEARN_WORKSPACE_NAV_ITEMS: NavItem[] = [
-  { id: "learn-dashboard", label: "Dashboard", href: "/learn", icon: Home, icon8Id: "i6fZC6wuprSu" },
-  { id: "learn-explore", label: "Explore", href: "/learn/explore", icon: Globe, icon8Id: "AvANlXOxUB6Z" },
+  { id: "learn-dashboard", label: "Dashboard", href: "/learn", icon: LayoutDashboard, icon8Id: "sUJRwjfnGwbJ" },
+  { id: "learn-explore", label: "Explore", href: "/learn/explore", icon: Globe, icon8Id: "K6FkUVH0GtOD" },
   { id: "learn-mylearning", label: "My Learning", href: "/learn/my-learning", icon: GraduationCap, icon8Id: "AvANlXOxUB6Z" },
-  { id: "learn-practice", label: "Practice", href: "/learn/practice", icon: ShieldCheck, icon8Id: "YzsadpdsoN8e" },
-  { id: "learn-resources", label: "Resources", href: "/learn/resources", icon: BookOpen, icon8Id: "FnCSMZbfR6RU" },
-  { id: "learn-mybox", label: "My Box", href: "/learn/my-box", icon: Package, icon8Id: "FnCSMZbfR6RU" },
-  { id: "learn-instructor", label: "Instructor Studio", href: "/learn/instructor", icon: Plus, icon8Id: "SpuYztywr0Vl" },
+  { id: "learn-practice", label: "Practice", href: "/learn/practice", icon: Target, icon8Id: "AYFSAzltJPA5" },
+  { id: "learn-resources", label: "Resources", href: "/learn/resources", icon: BookOpen, icon8Id: "V8Llcp5r9iZW" },
+  { id: "learn-mybox", label: "My Box", href: "/learn/my-box", icon: FolderHeart, icon8Id: "dICWPexHhnSo" },
+  { id: "learn-instructor", label: "Instructor Studio", href: "/learn/instructor", icon: Plus, icon8Id: "6bsPWoUBhUuJ" },
 ];
 
 
