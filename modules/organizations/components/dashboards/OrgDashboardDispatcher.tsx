@@ -31,6 +31,7 @@ import { ResearchManagerDashboard } from "./ResearchManagerDashboard";
 import { MarketingDashboard } from "./MarketingDashboard";
 import { FinanceDashboard } from "./FinanceDashboard";
 import { ModeratorDashboard } from "./ModeratorDashboard";
+import { StudentCoordinatorDashboard } from "./StudentCoordinatorDashboard";
 import { ViewerDashboard } from "./ViewerDashboard";
 import { Eye, Shield } from "lucide-react";
 import { getRoleDisplayName } from "../../lib/org-permissions";
@@ -107,6 +108,9 @@ export function OrgDashboardDispatcher({
       case "RESEARCH_COORDINATOR":
         return <ResearchManagerDashboard organization={organization} metrics={metrics} />;
 
+      case "STUDENT_COORDINATOR":
+        return <StudentCoordinatorDashboard organization={organization} metrics={metrics} />;
+
       case "MARKETING_MANAGER":
         return <MarketingDashboard organization={organization} metrics={metrics} />;
 
@@ -148,6 +152,7 @@ export function OrgDashboardDispatcher({
         "PLACEMENT_OFFICER",
         "RESEARCH_COORDINATOR",
         "EVENT_COORDINATOR",
+        "STUDENT_COORDINATOR",
         "FINANCE_MANAGER",
         "MODERATOR",
         "VIEWER",

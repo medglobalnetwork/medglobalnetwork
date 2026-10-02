@@ -1163,8 +1163,13 @@ export function CommunicationShell() {
                   <button
                     type="button"
                     onClick={() => handleStartCall("VOICE")}
-                    className="p-2 text-[#77716b] hover:text-[#1769c2] hover:bg-[#f0f4f8] rounded-xl transition"
-                    title="Audio Call"
+                    disabled={!callPeerId}
+                    className="p-2 text-[#77716b] hover:text-[#1769c2] hover:bg-[#f0f4f8] rounded-xl transition disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+                    title={
+                      callPeerId
+                        ? "Audio Call"
+                        : "1:1 calls are only available in direct conversations"
+                    }
                   >
                     <Phone className="h-4 w-4" />
                   </button>
@@ -1172,8 +1177,13 @@ export function CommunicationShell() {
                   <button
                     type="button"
                     onClick={() => handleStartCall("VIDEO")}
-                    className="p-2 text-[#77716b] hover:text-[#1769c2] hover:bg-[#f0f4f8] rounded-xl transition"
-                    title="Video Call"
+                    disabled={!callPeerId}
+                    className="p-2 text-[#77716b] hover:text-[#1769c2] hover:bg-[#f0f4f8] rounded-xl transition disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+                    title={
+                      callPeerId
+                        ? "Video Call"
+                        : "1:1 calls are only available in direct conversations"
+                    }
                   >
                     <Video className="h-4 w-4" />
                   </button>

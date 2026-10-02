@@ -11,9 +11,21 @@ export const dynamic = "force-dynamic";
 const MAX_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 const DEFAULT_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
+/** Is the caller a member of this conversation? */
+async function isConversationMember(conversationId: string, userId: string) {
+  const res = await pool.query(
+    `SELECT 1 FROM conversation_members
+      WHERE conversation_id = $1 AND user_id = $2
+      LIMIT 1`,
+    [conversationId, userId]
+  );
+  return res.rows.length > 0;
+}
+
 /**
- * GET — live location shares visible to the caller.
- * Returns both the caller's own share and shares addressed to them.
+ * GET — live location shares visible to the caller: their own share, any
+ * share addressed to them directly, and any share in a conversation they
+ * are a member of.
  */
 export async function GET() {
   try {
@@ -31,7 +43,13 @@ export async function GET() {
          FROM location_shares s
          JOIN "user" u ON u.id = s.user_id
         WHERE s.expires_at > NOW()
-          AND (s.user_id = $1 OR s.user_id = ANY(s.sharing_with))
+          AND (
+            s.user_id = $1
+            OR s.user_id = ANY(s.sharing_with)
+            OR s.conversation_id IN (
+              SELECT conversation_id FROM conversation_members WHERE user_id = $1
+            )
+          )
         ORDER BY s.created_at DESC`,
       [userId]
     );
@@ -82,19 +100,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // A conversation share is visible to that conversation; a direct share
-    // is visible to the listed users only.
+    // A conversation share is visible to that conversation's members; a
+    // direct share is visible to the listed users only.
     const conversationId =
       typeof body.conversationId === "string" ? body.conversationId : null;
 
-    if (conversationId) {
-      const member = await pool.query(
-        `SELECT 1 FROM conversations WHERE id = $1 LIMIT 1`,
-        [conversationId]
-      );
-      if (member.rows.length === 0) {
-        return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
-      }
+    if (conversationId && !(await isConversationMember(conversationId, userId))) {
+      // Deliberately 404, not 403: a non-member should not learn that the
+      // conversation exists.
+      return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
     }
 
     const expiresAt = new Date(Date.now() + ttlMs);

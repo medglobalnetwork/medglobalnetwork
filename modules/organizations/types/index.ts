@@ -99,6 +99,7 @@ export type OrgPermission =
   | "MEMBERS_INVITE"
   | "MEMBERS_MANAGE"
   | "ROLES_MANAGE"
+  | "DEPARTMENTS_VIEW"
   | "DEPARTMENTS_MANAGE"
   // Recruitment & Jobs (Hospital & Corporate)
   | "JOBS_VIEW"
