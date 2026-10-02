@@ -30,9 +30,9 @@ interface LearnNavItem {
 }
 
 const learnNavItems: LearnNavItem[] = [
-  { id: "dashboard", label: "Dashboard", href: "/learn",         icon8Id: "i6fZC6wuprSu" },
-  { id: "explore",   label: "Explore",   href: "/learn/explore", icon8Id: "AvANlXOxUB6Z" },
-  { id: "mybox",     label: "My Box",    href: "/learn/my-box",  icon8Id: "FnCSMZbfR6RU" },
+  { id: "dashboard", label: "Dashboard", href: "/learn",         icon8Id: "sUJRwjfnGwbJ" },
+  { id: "explore",   label: "Explore",   href: "/learn/explore", icon8Id: "K6FkUVH0GtOD" },
+  { id: "mybox",     label: "My Box",    href: "/learn/my-box",  icon8Id: "dICWPexHhnSo" },
   { id: "askai",     label: "Ask AI" },
 ];
 
@@ -356,7 +356,7 @@ export default function AppBottomNav({ onOpenAskAI }: { onOpenAskAI?: () => void
               }`}
             >
               <div className="relative flex items-center justify-center">
-                <Icons8BottomNavIcon iconId="i6fZC6wuprSu" active={isDashboard} fallback={HomeFallback} className="size-6" />
+                <Icons8BottomNavIcon iconId="sUJRwjfnGwbJ" active={isDashboard} fallback={HomeFallback} className="size-6" />
                 {isDashboard && <span className="absolute -bottom-1 size-1 rounded-full bg-[#16804d] dark:bg-[#2ea043]" />}
               </div>
               <span className="mt-1 text-[10px] font-semibold leading-tight">Dashboard</span>
@@ -372,7 +372,7 @@ export default function AppBottomNav({ onOpenAskAI }: { onOpenAskAI?: () => void
               }`}
             >
               <div className="relative flex items-center justify-center">
-                <Icons8BottomNavIcon iconId="AvANlXOxUB6Z" active={isExplore} fallback={LearnFallback} className="size-6" />
+                <Icons8BottomNavIcon iconId="K6FkUVH0GtOD" active={isExplore} fallback={LearnFallback} className="size-6" />
                 {isExplore && <span className="absolute -bottom-1 size-1 rounded-full bg-[#16804d] dark:bg-[#2ea043]" />}
               </div>
               <span className="mt-1 text-[10px] font-semibold leading-tight">Explore</span>
@@ -404,7 +404,7 @@ export default function AppBottomNav({ onOpenAskAI }: { onOpenAskAI?: () => void
               }`}
             >
               <div className="relative flex items-center justify-center">
-                <Icons8BottomNavIcon iconId="YzsadpdsoN8e" active={isPractice} fallback={NetworkFallback} className="size-6" />
+                <Icons8BottomNavIcon iconId="AYFSAzltJPA5" active={isPractice} fallback={NetworkFallback} className="size-6" />
                 {isPractice && <span className="absolute -bottom-1 size-1 rounded-full bg-[#16804d] dark:bg-[#2ea043]" />}
               </div>
               <span className="mt-1 text-[10px] font-semibold leading-tight">Practice</span>
@@ -420,7 +420,7 @@ export default function AppBottomNav({ onOpenAskAI }: { onOpenAskAI?: () => void
               }`}
             >
               <div className="relative flex items-center justify-center">
-                <Icons8BottomNavIcon iconId="FnCSMZbfR6RU" active={isMoreActive} fallback={BoxFallback} className="size-6" />
+                <Icons8BottomNavIcon iconId="V8Llcp5r9iZW" active={isMoreActive} fallback={BoxFallback} className="size-6" />
                 {isMoreActive && <span className="absolute -bottom-1 size-1 rounded-full bg-[#16804d] dark:bg-[#2ea043]" />}
               </div>
               <span className="mt-1 text-[10px] font-semibold leading-tight">More</span>

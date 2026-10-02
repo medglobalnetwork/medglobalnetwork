@@ -296,7 +296,7 @@ export function AppSidebar({
                       onClick={handleNavClick}
                       className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold transition group relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] ${
                         active
-                          ? "bg-[#0f4c81]/10 dark:bg-[#1f293d] text-[#0f4c81] dark:text-[#58a6ff]"
+                          ? "bg-[#f0efee] dark:bg-[#21262d] text-[#171717] dark:text-[#f0f6fc]"
                           : "text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f8f7f6] dark:hover:bg-[#1c202a] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
                       } ${!isExpanded ? "justify-center px-2" : ""}`}
                       title={!isExpanded ? item.label : undefined}
@@ -597,7 +597,7 @@ export function AppSidebar({
                           onClick={onCloseMobileDrawer}
                           className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] dark:focus-visible:ring-[#388bfd] ${
                             active
-                              ? "bg-[#0f4c81]/10 dark:bg-[#1f293d] text-[#0f4c81] dark:text-[#58a6ff]"
+                              ? "bg-[#f0efee] dark:bg-[#21262d] text-[#171717] dark:text-[#f0f6fc]"
                               : "text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f8f7f6] dark:hover:bg-[#1c202a] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
                           }`}
                         >
