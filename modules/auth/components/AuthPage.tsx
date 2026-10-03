@@ -175,31 +175,36 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   const [phoneUserNotFound, setPhoneUserNotFound] = React.useState(false);
   const phoneConfirmationRef = React.useRef<ConfirmationResult | null>(null);
   const signupPhoneConfirmationRef = React.useRef<ConfirmationResult | null>(null);
+  const [recaptchaMode, setRecaptchaMode] = React.useState<"invisible" | "normal">("invisible");
 
-  const setupRecaptcha = React.useCallback((containerId: string = "recaptcha-container") => {
-    try {
-      if (typeof window === "undefined") return null;
-      const auth = getFirebaseAuth();
-      if ((window as any).recaptchaVerifier) {
-        try {
-          (window as any).recaptchaVerifier.clear();
-        } catch {}
-        (window as any).recaptchaVerifier = null;
+  const setupRecaptcha = React.useCallback(
+    (containerId: string = "recaptcha-container", forceNormal?: boolean) => {
+      try {
+        if (typeof window === "undefined") return null;
+        const auth = getFirebaseAuth();
+        if ((window as any).recaptchaVerifier) {
+          try {
+            (window as any).recaptchaVerifier.clear();
+          } catch {}
+          (window as any).recaptchaVerifier = null;
+        }
+        const container = document.getElementById(containerId);
+        if (!container) return null;
+        const mode = forceNormal || recaptchaMode === "normal" ? "normal" : "invisible";
+        const verifier = new RecaptchaVerifier(auth, containerId, {
+          size: mode,
+          callback: () => {},
+          "expired-callback": () => {},
+        });
+        (window as any).recaptchaVerifier = verifier;
+        return verifier;
+      } catch (e) {
+        console.warn("Recaptcha setup notice:", e);
+        return null;
       }
-      const container = document.getElementById(containerId);
-      if (!container) return null;
-      const verifier = new RecaptchaVerifier(auth, containerId, {
-        size: "invisible",
-        callback: () => {},
-        "expired-callback": () => {},
-      });
-      (window as any).recaptchaVerifier = verifier;
-      return verifier;
-    } catch (e) {
-      console.warn("Recaptcha setup notice:", e);
-      return null;
-    }
-  }, []);
+    },
+    [recaptchaMode]
+  );
 
   // Signup Multi-Step Verification States
   const [signupPhase, setSignupPhase] = React.useState<"details" | "verification">("details");
@@ -535,8 +540,23 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           errorMsg = "Domain is not authorized in Firebase Console (Authentication > Settings > Authorized domains).";
         } else if (fbErr?.code === "auth/operation-not-allowed") {
           errorMsg = "Phone Authentication is disabled in Firebase Console (Authentication > Sign-in method > Phone).";
-        } else if (fbErr?.code === "auth/internal-error" || fbErr?.code === "auth/captcha-check-failed") {
-          errorMsg = "Firebase reCAPTCHA internal error: Please add domain to Firebase Console Authorized Domains or add test number.";
+        } else if (
+          fbErr?.code === "auth/invalid-app-credential" ||
+          fbErr?.code === "auth/internal-error" ||
+          fbErr?.code === "auth/captcha-check-failed"
+        ) {
+          if (recaptchaMode === "invisible") {
+            setRecaptchaMode("normal");
+            setTimeout(() => {
+              try {
+                const v = setupRecaptcha("recaptcha-container", true);
+                v?.render();
+              } catch {}
+            }, 100);
+            errorMsg = "Security check: Please tick 'I am not a robot' above and click Get Verification Code again.";
+          } else {
+            errorMsg = "Security verification failed. Please complete the reCAPTCHA box above or add test phone number in Firebase Console.";
+          }
         }
         setErrors({ general: errorMsg });
       }
@@ -675,8 +695,23 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           errorMsg = "Domain is not authorized in Firebase Console (Authentication > Settings > Authorized domains).";
         } else if (fbErr?.code === "auth/operation-not-allowed") {
           errorMsg = "Phone Authentication is disabled in Firebase Console (Authentication > Sign-in method > Phone).";
-        } else if (fbErr?.code === "auth/internal-error" || fbErr?.code === "auth/captcha-check-failed") {
-          errorMsg = "Firebase reCAPTCHA internal error: Ensure domain is in Firebase Console Authorized Domains.";
+        } else if (
+          fbErr?.code === "auth/invalid-app-credential" ||
+          fbErr?.code === "auth/internal-error" ||
+          fbErr?.code === "auth/captcha-check-failed"
+        ) {
+          if (recaptchaMode === "invisible") {
+            setRecaptchaMode("normal");
+            setTimeout(() => {
+              try {
+                const v = setupRecaptcha("recaptcha-container", true);
+                v?.render();
+              } catch {}
+            }, 100);
+            errorMsg = "Security check: Please tick 'I am not a robot' above and click Send OTP again.";
+          } else {
+            errorMsg = "Security check failed. Please complete the reCAPTCHA box above or add test phone number in Firebase Console.";
+          }
         }
         setErrors({ phoneOtp: errorMsg });
       }
@@ -1349,8 +1384,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
             </div>
           )}
 
-          {/* Permanent invisible reCAPTCHA container for Firebase Phone Auth */}
-          <div id="recaptcha-container" />
+          {/* Permanent reCAPTCHA container for Firebase Phone Auth */}
+          <div id="recaptcha-container" className="flex justify-center my-3" />
 
           {/* Global Alerts */}
           {successMessage && (
