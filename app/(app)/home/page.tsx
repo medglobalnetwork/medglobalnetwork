@@ -85,7 +85,7 @@ export default function HomePage() {
   const displayName = session.user.name || "Healthcare Professional";
 
   return (
-    <main className="min-h-dvh bg-white pb-24 text-[#171717]">
+    <main className="min-h-dvh bg-[#faf9f8] dark:bg-[#0d1117] bg-[radial-gradient(#d4d0c8_1.25px,transparent_1.25px)] dark:bg-[radial-gradient(#30363d_1.25px,transparent_1.25px)] [background-size:20px_20px] pb-24 text-[#171717] dark:text-[#f0f6fc]">
       <div className="mx-auto max-w-[1440px] px-3 py-4 sm:px-6 lg:px-8">
         {/* 2-Column Responsive Layout Matching Mockup */}
         <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12 lg:gap-8">

@@ -77,9 +77,9 @@ export function QuickLinksBar() {
       title: "Network",
       href: "/network",
       iconId: "SKiePQ8wY2FG",
-      colorHex: "0F4C81",
-      fallbackClass: "text-[#0f4c81]",
-      hoverClass: "group-hover:text-[#0f4c81]",
+      colorHex: "000000",
+      fallbackClass: "text-black dark:text-white",
+      hoverClass: "group-hover:text-black dark:group-hover:text-white",
       fallbackIcon: (
         <svg viewBox="0 0 24 24" className="size-full" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="3" />
@@ -97,9 +97,9 @@ export function QuickLinksBar() {
       title: "Learn",
       href: "/learn",
       iconId: "AvANlXOxUB6Z",
-      colorHex: "4F46E5",
-      fallbackClass: "text-[#4f46e5]",
-      hoverClass: "group-hover:text-[#4f46e5]",
+      colorHex: "000000",
+      fallbackClass: "text-black dark:text-white",
+      hoverClass: "group-hover:text-black dark:group-hover:text-white",
       fallbackIcon: <GraduationCap className="size-full stroke-[1.9]" />,
     },
     {
@@ -107,9 +107,9 @@ export function QuickLinksBar() {
       title: "Jobs",
       href: "/opportunities/jobs",
       iconId: "IOkzpfWnUztj",
-      colorHex: "D97706",
-      fallbackClass: "text-[#d97706]",
-      hoverClass: "group-hover:text-[#d97706]",
+      colorHex: "000000",
+      fallbackClass: "text-black dark:text-white",
+      hoverClass: "group-hover:text-black dark:group-hover:text-white",
       fallbackIcon: <Briefcase className="size-full stroke-[1.9]" />,
     },
     {
@@ -117,9 +117,9 @@ export function QuickLinksBar() {
       title: "Events",
       href: "/events",
       iconId: "vwGXRtPWrZSn",
-      colorHex: "E11D48",
-      fallbackClass: "text-[#e11d48]",
-      hoverClass: "group-hover:text-[#e11d48]",
+      colorHex: "000000",
+      fallbackClass: "text-black dark:text-white",
+      hoverClass: "group-hover:text-black dark:group-hover:text-white",
       fallbackIcon: <Calendar className="size-full stroke-[1.9]" />,
     },
     {
@@ -127,9 +127,9 @@ export function QuickLinksBar() {
       title: "Camps",
       href: "/camps",
       iconId: "HBLTBJiOS1vp",
-      colorHex: "16804D",
-      fallbackClass: "text-[#16804d]",
-      hoverClass: "group-hover:text-[#16804d]",
+      colorHex: "000000",
+      fallbackClass: "text-black dark:text-white",
+      hoverClass: "group-hover:text-black dark:group-hover:text-white",
       fallbackIcon: (
         <svg viewBox="0 0 24 24" className="size-full" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 10.5L12 3l9 7.5V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9.5z" />
@@ -142,9 +142,9 @@ export function QuickLinksBar() {
       title: "Research",
       href: "/research",
       iconId: "9ZmP1ylpYlqn",
-      colorHex: "0D9488",
-      fallbackClass: "text-[#0d9488]",
-      hoverClass: "group-hover:text-[#0d9488]",
+      colorHex: "000000",
+      fallbackClass: "text-black dark:text-white",
+      hoverClass: "group-hover:text-black dark:group-hover:text-white",
       fallbackIcon: <FlaskConical className="size-full stroke-[1.9]" />,
     },
     {
@@ -152,9 +152,9 @@ export function QuickLinksBar() {
       title: "Marketplace",
       href: "/marketplace",
       iconId: "VksxHreSn4ck",
-      colorHex: "7C3AED",
-      fallbackClass: "text-[#7c3aed]",
-      hoverClass: "group-hover:text-[#7c3aed]",
+      colorHex: "000000",
+      fallbackClass: "text-black dark:text-white",
+      hoverClass: "group-hover:text-black dark:group-hover:text-white",
       fallbackIcon: <ShoppingBag className="size-full stroke-[1.9]" />,
     },
     {
@@ -162,9 +162,9 @@ export function QuickLinksBar() {
       title: "AI Assistant",
       href: "#ai-assistant-section",
       iconId: "YxCw7An8DYqf",
-      colorHex: "2563EB",
-      fallbackClass: "text-[#2563eb]",
-      hoverClass: "group-hover:text-[#2563eb]",
+      colorHex: "000000",
+      fallbackClass: "text-black dark:text-white",
+      hoverClass: "group-hover:text-black dark:group-hover:text-white",
       fallbackIcon: <Sparkles className="size-full stroke-[1.9]" />,
     },
   ];
