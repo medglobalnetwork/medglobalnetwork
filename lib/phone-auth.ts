@@ -196,7 +196,7 @@ export async function sendPhoneOtp(
     [phone]
   );
 
-  if (recentRes.rows.length > 0) {
+  if (isProduction && recentRes.rows.length > 0) {
     throw new Error("Please wait 30 seconds before requesting a new OTP.");
   }
 
