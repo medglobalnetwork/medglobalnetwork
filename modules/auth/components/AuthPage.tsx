@@ -32,7 +32,6 @@ import {
 import CodeSlots from "@/components/ui/CodeSlots";
 import { getFirebaseAuth, RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from "@/lib/firebase";
 
-// Password strength calculation utility
 interface PasswordStrength {
   score: number;
   feedback: string[];
@@ -185,6 +184,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         try {
           (window as any).recaptchaVerifier.clear();
         } catch {}
+        (window as any).recaptchaVerifier = null;
       }
       const container = document.getElementById(containerId);
       if (!container) return null;
@@ -504,7 +504,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         return;
       }
 
-      // 2. Trigger real Firebase Phone SMS OTP to mobile
+      // 2. Trigger Firebase Phone Auth (SMS OTP)
       const formattedPhone = rawNum.startsWith("+")
         ? rawNum
         : digits.length === 10
@@ -523,20 +523,20 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         setOtpSent(true);
         setDevOtp(undefined);
         setOtpCountdown(60);
-        setSuccessMessage(`Real SMS verification code sent to ${formattedPhone}. Please check your phone.`);
+        setSuccessMessage(`Verification code sent to ${formattedPhone}. Please check your phone.`);
       } catch (fbErr: any) {
         console.error("Firebase Phone Auth error:", fbErr);
         let errorMsg = fbErr?.message || "Failed to send SMS to your mobile phone.";
         if (fbErr?.code === "auth/invalid-phone-number") {
           errorMsg = "Invalid phone number format. Please check the mobile number.";
         } else if (fbErr?.code === "auth/quota-exceeded" || fbErr?.code === "auth/too-many-requests") {
-          errorMsg = "SMS quota limit reached. Please wait a few moments or try again later.";
+          errorMsg = "SMS quota limit reached. Please wait or use Firebase test phone number.";
         } else if (fbErr?.code === "auth/unauthorized-domain") {
           errorMsg = "Domain is not authorized in Firebase Console (Authentication > Settings > Authorized domains).";
         } else if (fbErr?.code === "auth/operation-not-allowed") {
-          errorMsg = "Phone Authentication is not enabled in Firebase Console (Authentication > Sign-in method > Phone).";
-        } else if (fbErr?.code === "auth/captcha-check-failed") {
-          errorMsg = "reCAPTCHA verification failed. Please refresh and try again.";
+          errorMsg = "Phone Authentication is disabled in Firebase Console (Authentication > Sign-in method > Phone).";
+        } else if (fbErr?.code === "auth/internal-error" || fbErr?.code === "auth/captcha-check-failed") {
+          errorMsg = "Firebase reCAPTCHA internal error: Please add domain to Firebase Console Authorized Domains or add test number.";
         }
         setErrors({ general: errorMsg });
       }
@@ -668,15 +668,15 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         console.error("Firebase Phone Auth signup error:", fbErr);
         let errorMsg = fbErr?.message || "Failed to send SMS to your mobile phone.";
         if (fbErr?.code === "auth/invalid-phone-number") {
-          errorMsg = "Invalid phone number format. Please check the mobile number.";
+          errorMsg = "Invalid phone number format (+91XXXXXXXXXX).";
         } else if (fbErr?.code === "auth/quota-exceeded" || fbErr?.code === "auth/too-many-requests") {
-          errorMsg = "SMS quota limit reached. Please wait a few moments or try again later.";
+          errorMsg = "SMS quota limit reached. Please wait a few moments or use a test number.";
         } else if (fbErr?.code === "auth/unauthorized-domain") {
           errorMsg = "Domain is not authorized in Firebase Console (Authentication > Settings > Authorized domains).";
         } else if (fbErr?.code === "auth/operation-not-allowed") {
-          errorMsg = "Phone Authentication is not enabled in Firebase Console (Authentication > Sign-in method > Phone).";
-        } else if (fbErr?.code === "auth/captcha-check-failed") {
-          errorMsg = "reCAPTCHA verification failed. Please refresh and try again.";
+          errorMsg = "Phone Authentication is disabled in Firebase Console (Authentication > Sign-in method > Phone).";
+        } else if (fbErr?.code === "auth/internal-error" || fbErr?.code === "auth/captcha-check-failed") {
+          errorMsg = "Firebase reCAPTCHA internal error: Ensure domain is in Firebase Console Authorized Domains.";
         }
         setErrors({ phoneOtp: errorMsg });
       }
