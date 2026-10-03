@@ -190,8 +190,9 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         }
         const container = document.getElementById(containerId);
         if (!container) return null;
+        container.innerHTML = "";
         const mode = forceNormal || recaptchaMode === "normal" ? "normal" : "invisible";
-        const verifier = new RecaptchaVerifier(auth, containerId, {
+        const verifier = new RecaptchaVerifier(auth, container, {
           size: mode,
           callback: () => {},
           "expired-callback": () => {},
