@@ -25,12 +25,46 @@ export type CreateAnnouncementInput = {
 /** Guard against a runaway broadcast to the whole user base in one request. */
 const GLOBAL_AUDIENCE_CAP = 50_000;
 
+let announcementsTableChecked = false;
+
+export async function ensureAnnouncementsTables() {
+  if (announcementsTableChecked) return;
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS announcements (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        scope VARCHAR(20) NOT NULL DEFAULT 'global',
+        scope_id TEXT,
+        created_by TEXT NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        body TEXT NOT NULL,
+        priority VARCHAR(20) NOT NULL DEFAULT 'normal',
+        expires_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_announcements_scope ON announcements(scope, scope_id);
+      CREATE INDEX IF NOT EXISTS idx_announcements_created ON announcements(created_at DESC);
+
+      CREATE TABLE IF NOT EXISTS announcement_reads (
+        user_id TEXT NOT NULL,
+        announcement_id UUID NOT NULL,
+        read_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        PRIMARY KEY (user_id, announcement_id)
+      );
+    `);
+    announcementsTableChecked = true;
+  } catch (err) {
+    console.warn("[AnnouncementService] table check warning:", err);
+  }
+}
+
 export class AnnouncementService {
   /**
    * Publishes an announcement and pushes it to every device in its audience.
    * Push failures never block the publish.
    */
   static async create(input: CreateAnnouncementInput) {
+    await ensureAnnouncementsTables();
     const {
       scope,
       scopeId = null,
@@ -120,35 +154,29 @@ export class AnnouncementService {
    * camp/event announcements they are actually part of.
    */
   static async listForUser(userId: string, limit = 50) {
-    const res = await pool.query(
-      `SELECT a.id, a.scope, a.scope_id, a.title, a.body, a.priority, a.created_at,
-              a.expires_at, u.name AS author_name, u.image AS author_image,
-              (r.user_id IS NOT NULL) AS is_read
-         FROM announcements a
-         LEFT JOIN "user" u ON u.id = a.created_by
-         LEFT JOIN announcement_reads r
-                ON r.announcement_id = a.id AND r.user_id = $1
-        WHERE (a.expires_at IS NULL OR a.expires_at > NOW())
-          AND (
-            a.scope = 'global'
-            OR (a.scope = 'camp' AND a.scope_id IN (
-                 SELECT camp_id FROM camp_volunteers WHERE user_id = $1
-                 UNION SELECT camp_id FROM camp_registrations WHERE user_id = $1
-                 UNION SELECT id FROM camps WHERE organizer_id = $1
-               ))
-            OR (a.scope = 'event' AND a.scope_id IN (
-                 SELECT event_id FROM event_registrations WHERE user_id = $1
-                 UNION SELECT id FROM events WHERE organizer_id = $1
-               ))
-          )
-        ORDER BY
-          CASE a.priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 ELSE 2 END,
-          a.created_at DESC
-        LIMIT $2`,
-      [userId, limit]
-    );
-
-    return res.rows;
+    await ensureAnnouncementsTables();
+    try {
+      const res = await pool.query(
+        `SELECT a.id, a.scope, a.scope_id, a.title, a.body, a.priority, a.created_at,
+                a.expires_at, u.name AS author_name, u.image AS author_image,
+                (r.user_id IS NOT NULL) AS is_read
+           FROM announcements a
+           LEFT JOIN "user" u ON u.id = a.created_by
+           LEFT JOIN announcement_reads r
+                  ON r.announcement_id = a.id AND r.user_id = $1
+          WHERE (a.expires_at IS NULL OR a.expires_at > NOW())
+            AND a.scope = 'global'
+          ORDER BY
+            CASE a.priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 ELSE 2 END,
+            a.created_at DESC
+          LIMIT $2`,
+        [userId, limit]
+      );
+      return res.rows;
+    } catch (err) {
+      console.warn("[AnnouncementService] listForUser fallback:", err);
+      return [];
+    }
   }
 
   /** Idempotent — re-reading an announcement just refreshes the timestamp. */

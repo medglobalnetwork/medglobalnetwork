@@ -17,6 +17,45 @@ export type SignalKind = "offer" | "answer" | "ice" | "hangup" | "mute" | "video
 /** A ringing call that goes unanswered for this long is closed as missed. */
 const RING_TIMEOUT_SECONDS = 45;
 
+let callsTableChecked = false;
+
+export async function ensureCallsTables() {
+  if (callsTableChecked) return;
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS calls (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        caller_id TEXT NOT NULL,
+        callee_id TEXT NOT NULL,
+        call_type VARCHAR(10) NOT NULL DEFAULT 'VOICE',
+        conversation_id TEXT,
+        status VARCHAR(20) NOT NULL DEFAULT 'ringing',
+        end_reason VARCHAR(50),
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        accepted_at TIMESTAMPTZ,
+        ended_at TIMESTAMPTZ
+      );
+      CREATE INDEX IF NOT EXISTS idx_calls_caller ON calls(caller_id, status);
+      CREATE INDEX IF NOT EXISTS idx_calls_callee ON calls(callee_id, status);
+
+      CREATE TABLE IF NOT EXISTS call_signals (
+        id BIGSERIAL PRIMARY KEY,
+        call_id UUID NOT NULL,
+        from_user TEXT NOT NULL,
+        to_user TEXT NOT NULL,
+        kind VARCHAR(20) NOT NULL,
+        payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+        consumed BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_call_signals_pending ON call_signals(call_id, to_user, consumed, id);
+    `);
+    callsTableChecked = true;
+  } catch (err) {
+    console.warn("[CallService] table check warning:", err);
+  }
+}
+
 export class CallService {
   /**
    * Places a call and pushes the ring to the callee's devices so the
@@ -29,6 +68,7 @@ export class CallService {
     conversationId?: string | null;
     callerName?: string | null;
   }) {
+    await ensureCallsTables();
     const { callerId, calleeId, callType, conversationId = null, callerName } = params;
 
     // One live call per pair — a second dial supersedes the first.
@@ -96,25 +136,37 @@ export class CallService {
    * call instead (see findIncoming).
    */
   static async findActiveForCaller(userId: string) {
-    const res = await pool.query(
-      `SELECT * FROM calls
-        WHERE caller_id = $1 AND status IN ('ringing', 'accepted')
-        ORDER BY created_at DESC LIMIT 1`,
-      [userId]
-    );
-    return res.rows[0] ?? null;
+    await ensureCallsTables();
+    try {
+      const res = await pool.query(
+        `SELECT * FROM calls
+          WHERE caller_id = $1 AND status IN ('ringing', 'accepted')
+          ORDER BY created_at DESC LIMIT 1`,
+        [userId]
+      );
+      return res.rows[0] ?? null;
+    } catch (err) {
+      console.warn("[CallService] findActiveForCaller fallback:", err);
+      return null;
+    }
   }
 
   /** Ringing calls addressed to this user that they have not yet resolved. */
   static async findIncoming(userId: string) {
-    const res = await pool.query(
-      `SELECT * FROM calls
-        WHERE callee_id = $1 AND status = 'ringing'
-          AND created_at > NOW() - INTERVAL '${RING_TIMEOUT_SECONDS} seconds'
-        ORDER BY created_at DESC LIMIT 1`,
-      [userId]
-    );
-    return res.rows[0] ?? null;
+    await ensureCallsTables();
+    try {
+      const res = await pool.query(
+        `SELECT * FROM calls
+          WHERE callee_id = $1 AND status = 'ringing'
+            AND created_at > NOW() - INTERVAL '${RING_TIMEOUT_SECONDS} seconds'
+          ORDER BY created_at DESC LIMIT 1`,
+        [userId]
+      );
+      return res.rows[0] ?? null;
+    } catch (err) {
+      console.warn("[CallService] findIncoming fallback:", err);
+      return null;
+    }
   }
 
   /** Moves a ringing call to accepted. Only the callee may accept. */

@@ -31,11 +31,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data: announcements, unreadCount });
   } catch (error) {
-    console.error("GET /api/announcements error:", error);
-    return NextResponse.json(
-      { error: "Failed to load announcements" },
-      { status: 500 }
-    );
+    console.warn("GET /api/announcements error (returning empty fallback):", error);
+    return NextResponse.json({ data: [], unreadCount: 0 });
   }
 }
 

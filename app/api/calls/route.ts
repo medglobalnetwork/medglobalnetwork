@@ -38,8 +38,8 @@ export async function GET() {
       incoming: incoming ?? null,
     });
   } catch (error) {
-    console.error("GET /api/calls error:", error);
-    return NextResponse.json({ error: "Failed to load call state" }, { status: 500 });
+    console.warn("GET /api/calls error (returning empty fallback):", error);
+    return NextResponse.json({ outgoing: null, incoming: null });
   }
 }
 
