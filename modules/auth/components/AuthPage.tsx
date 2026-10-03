@@ -535,7 +535,9 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         let errorMsg = fbErr?.message || "Failed to send SMS to your mobile phone.";
         if (fbErr?.code === "auth/invalid-phone-number") {
           errorMsg = "Invalid phone number format. Please check the mobile number.";
-        } else if (fbErr?.code === "auth/quota-exceeded" || fbErr?.code === "auth/too-many-requests") {
+        } else if (fbErr?.code === "auth/too-many-requests") {
+          errorMsg = "Too many attempts on this phone number. Please wait a few minutes or log in with password instead.";
+        } else if (fbErr?.code === "auth/quota-exceeded") {
           errorMsg = "SMS quota limit reached. Please wait or use Firebase test phone number.";
         } else if (fbErr?.code === "auth/unauthorized-domain") {
           errorMsg = "Domain is not authorized in Firebase Console (Authentication > Settings > Authorized domains).";
@@ -690,7 +692,9 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         let errorMsg = fbErr?.message || "Failed to send SMS to your mobile phone.";
         if (fbErr?.code === "auth/invalid-phone-number") {
           errorMsg = "Invalid phone number format (+91XXXXXXXXXX).";
-        } else if (fbErr?.code === "auth/quota-exceeded" || fbErr?.code === "auth/too-many-requests") {
+        } else if (fbErr?.code === "auth/too-many-requests") {
+          errorMsg = "Too many attempts on this phone number. Please wait a few minutes before trying again.";
+        } else if (fbErr?.code === "auth/quota-exceeded") {
           errorMsg = "SMS quota limit reached. Please wait a few moments or use a test number.";
         } else if (fbErr?.code === "auth/unauthorized-domain") {
           errorMsg = "Domain is not authorized in Firebase Console (Authentication > Settings > Authorized domains).";
