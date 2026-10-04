@@ -23,18 +23,18 @@ const securityHeaders = [
   },
   {
     key: "Permissions-Policy",
-    value: "camera=(self), microphone=(self), geolocation=(self), payment=()",
+    value: "camera=(self), microphone=(self), geolocation=(self), payment=*",
   },
   {
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://www.google.com https://www.gstatic.com https://apis.google.com https://*.firebaseapp.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://www.google.com https://www.gstatic.com https://apis.google.com https://*.firebaseapp.com https://static.cloudflareinsights.com https://checkout.razorpay.com https://www.recaptcha.net https://*.recaptcha.net",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' blob: data: https: http:",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "connect-src 'self' https: http://localhost:* ws://localhost:* wss: capacitor://localhost",
-      "frame-src 'self' https://accounts.google.com https://www.google.com https://recaptcha.google.com https://*.firebaseapp.com",
+      "connect-src 'self' https: http://localhost:* ws://localhost:* wss: capacitor://localhost https://*.cloudflareinsights.com https://api.razorpay.com https://lumberjack.razorpay.com",
+      "frame-src 'self' https://accounts.google.com https://www.google.com https://recaptcha.google.com https://www.recaptcha.net https://*.firebaseapp.com https://api.razorpay.com https://checkout.razorpay.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
