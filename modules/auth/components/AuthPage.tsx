@@ -570,11 +570,18 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         setSuccessMessage(`Verification code sent to ${formattedPhone}. Please check your phone.`);
       } catch (fbErr: any) {
         console.error("Firebase Phone Auth error:", fbErr);
+        setIsRecaptchaSolved(false);
+        setTimeout(() => {
+          try {
+            setupRecaptcha("recaptcha-container", true);
+          } catch {}
+        }, 150);
+
         let errorMsg = fbErr?.message || "Failed to send SMS to your mobile phone.";
         if (fbErr?.code === "auth/invalid-phone-number") {
           errorMsg = "Invalid phone number format. Please check the mobile number.";
         } else if (fbErr?.code === "auth/too-many-requests") {
-          errorMsg = "Too many attempts on this phone number. Please wait a few minutes or log in with password instead.";
+          errorMsg = "Too many attempts on this phone number. Firebase has temporarily locked SMS. Please wait 15 minutes, add this number as a test number in Firebase Console, or log in with password instead.";
         } else if (fbErr?.code === "auth/quota-exceeded") {
           errorMsg = "SMS quota limit reached. Please wait or use Firebase test phone number.";
         } else if (fbErr?.code === "auth/unauthorized-domain") {
@@ -586,12 +593,6 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           fbErr?.code === "auth/internal-error" ||
           fbErr?.code === "auth/captcha-check-failed"
         ) {
-          setIsRecaptchaSolved(false);
-          setTimeout(() => {
-            try {
-              setupRecaptcha("recaptcha-container", true);
-            } catch {}
-          }, 100);
           errorMsg = "Security verification expired. Please complete the reCAPTCHA box again.";
         }
         setErrors({ general: errorMsg });
