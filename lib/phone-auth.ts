@@ -188,17 +188,7 @@ export async function sendPhoneOtp(
     }
   }
 
-  // Rate limit: Check if OTP was sent in the last 30 seconds for this phone
-  const recentRes = await pool.query(
-    `SELECT created_at FROM phone_verifications 
-     WHERE phone = $1 AND created_at > NOW() - INTERVAL '30 seconds'
-     ORDER BY created_at DESC LIMIT 1`,
-    [phone]
-  );
-
-  if (isProduction && recentRes.rows.length > 0) {
-    throw new Error("Please wait 30 seconds before requesting a new OTP.");
-  }
+  // Rate limit check removed to prevent deadlock when reCAPTCHA verification is required
 
   // Generate cryptographically random 6-digit OTP
   const otpNumber = Math.floor(100000 + Math.random() * 900000).toString();

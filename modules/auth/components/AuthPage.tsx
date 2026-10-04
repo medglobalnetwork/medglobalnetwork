@@ -140,6 +140,7 @@ interface FormErrors {
   orgType?: string;
   email?: string;
   identifier?: string;
+  phoneLogin?: string;
   password?: string;
   confirmPassword?: string;
   phone?: string;
@@ -175,10 +176,10 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   const [phoneUserNotFound, setPhoneUserNotFound] = React.useState(false);
   const phoneConfirmationRef = React.useRef<ConfirmationResult | null>(null);
   const signupPhoneConfirmationRef = React.useRef<ConfirmationResult | null>(null);
-  const [recaptchaMode, setRecaptchaMode] = React.useState<"invisible" | "normal">("invisible");
+  const [isRecaptchaSolved, setIsRecaptchaSolved] = React.useState(false);
 
   const setupRecaptcha = React.useCallback(
-    (containerId: string = "recaptcha-container", forceNormal?: boolean) => {
+    (containerId: string = "recaptcha-container", forceNormal: boolean = true) => {
       try {
         if (typeof window === "undefined") return null;
         const auth = getFirebaseAuth();
@@ -191,20 +192,28 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         const container = document.getElementById(containerId);
         if (!container) return null;
         container.innerHTML = "";
-        const mode = forceNormal || recaptchaMode === "normal" ? "normal" : "invisible";
+        const mode = forceNormal ? "normal" : "invisible";
         const verifier = new RecaptchaVerifier(auth, container, {
           size: mode,
-          callback: () => {},
-          "expired-callback": () => {},
+          callback: () => {
+            setIsRecaptchaSolved(true);
+            setErrors({});
+          },
+          "expired-callback": () => {
+            setIsRecaptchaSolved(false);
+          },
         });
         (window as any).recaptchaVerifier = verifier;
+        verifier.render().catch((err: any) => {
+          console.warn("reCAPTCHA render notice:", err);
+        });
         return verifier;
       } catch (e) {
         console.warn("Recaptcha setup notice:", e);
         return null;
       }
     },
-    [recaptchaMode]
+    []
   );
 
   // Signup Multi-Step Verification States
@@ -234,6 +243,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
   // Form Fields
   const [identifier, setIdentifier] = React.useState("");
+  const [phoneLogin, setPhoneLogin] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -290,14 +300,34 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       const savedIdentifier = localStorage.getItem("userIdentifier") || localStorage.getItem("userEmail");
+      const savedPhone = localStorage.getItem("userPhone");
       const savedRemember = localStorage.getItem("rememberMe") === "true";
       if (savedIdentifier) {
-        setIdentifier(savedIdentifier);
-        setEmail(savedIdentifier);
+        // If saved identifier looks like an email or username, populate identifier
+        if (savedIdentifier.includes("@") || !/^\+?\d{10,13}$/.test(savedIdentifier)) {
+          setIdentifier(savedIdentifier);
+          setEmail(savedIdentifier);
+        } else {
+          setPhoneLogin(savedIdentifier);
+        }
         setRememberMe(savedRemember);
+      }
+      if (savedPhone) {
+        setPhoneLogin(savedPhone);
       }
     }
   }, []);
+
+  // Auto initialize visible reCAPTCHA when Phone OTP login mode is active
+  React.useEffect(() => {
+    if (mode === "signin" && loginMethod === "phone" && phoneAuthMode === "otp" && !otpSent) {
+      setIsRecaptchaSolved(false);
+      const timer = setTimeout(() => {
+        setupRecaptcha("recaptcha-container", true);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [mode, loginMethod, phoneAuthMode, otpSent, setupRecaptcha]);
 
   // Sync mode if query param changes
   React.useEffect(() => {
@@ -476,10 +506,15 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   // ═══════════════════════════════════════════════
 
   async function handleSendPhoneOtp() {
-    const rawNum = identifier.trim();
+    const rawNum = phoneLogin.trim();
     const digits = rawNum.replace(/\D/g, "");
     if (!digits || digits.length < 10) {
-      setErrors({ identifier: "Please enter a valid 10-digit mobile number." });
+      setErrors({ phoneLogin: "Please enter a valid 10-digit mobile number." });
+      return;
+    }
+
+    if (!isRecaptchaSolved) {
+      setErrors({ general: "Please tick 'I'm not a robot' before requesting the verification code." });
       return;
     }
 
@@ -519,7 +554,10 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
       try {
         const auth = getFirebaseAuth();
-        const appVerifier = setupRecaptcha("recaptcha-container");
+        let appVerifier = (window as any).recaptchaVerifier;
+        if (!appVerifier) {
+          appVerifier = setupRecaptcha("recaptcha-container", true);
+        }
         if (!appVerifier) {
           throw new Error("Phone security verifier could not be initialized. Please refresh the page.");
         }
@@ -548,18 +586,13 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           fbErr?.code === "auth/internal-error" ||
           fbErr?.code === "auth/captcha-check-failed"
         ) {
-          if (recaptchaMode === "invisible") {
-            setRecaptchaMode("normal");
-            setTimeout(() => {
-              try {
-                const v = setupRecaptcha("recaptcha-container", true);
-                v?.render();
-              } catch {}
-            }, 100);
-            errorMsg = "Security check: Please tick 'I am not a robot' above and click Get Verification Code again.";
-          } else {
-            errorMsg = "Security verification failed. Please complete the reCAPTCHA box above or add test phone number in Firebase Console.";
-          }
+          setIsRecaptchaSolved(false);
+          setTimeout(() => {
+            try {
+              setupRecaptcha("recaptcha-container", true);
+            } catch {}
+          }, 100);
+          errorMsg = "Security verification expired. Please complete the reCAPTCHA box again.";
         }
         setErrors({ general: errorMsg });
       }
@@ -571,9 +604,9 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   }
 
   async function verifyOtpWithCode(codeToVerify: string) {
-    const rawNum = identifier.trim();
+    const rawNum = phoneLogin.trim();
     if (!rawNum) {
-      setErrors({ identifier: "Phone number is required." });
+      setErrors({ phoneLogin: "Phone number is required." });
       setOtpStatus("error");
       return;
     }
@@ -677,7 +710,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
       try {
         const auth = getFirebaseAuth();
-        const appVerifier = setupRecaptcha("recaptcha-container");
+        const appVerifier = setupRecaptcha("signup-recaptcha-container", false);
         if (!appVerifier) {
           throw new Error("Phone security verifier could not be initialized. Please refresh the page.");
         }
@@ -705,18 +738,12 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           fbErr?.code === "auth/internal-error" ||
           fbErr?.code === "auth/captcha-check-failed"
         ) {
-          if (recaptchaMode === "invisible") {
-            setRecaptchaMode("normal");
-            setTimeout(() => {
-              try {
-                const v = setupRecaptcha("recaptcha-container", true);
-                v?.render();
-              } catch {}
-            }, 100);
-            errorMsg = "Security check: Please tick 'I am not a robot' above and click Send OTP again.";
-          } else {
-            errorMsg = "Security check failed. Please complete the reCAPTCHA box above or add test phone number in Firebase Console.";
-          }
+          setTimeout(() => {
+            try {
+              setupRecaptcha("signup-recaptcha-container", true);
+            } catch {}
+          }, 100);
+          errorMsg = "Security check: Please complete the verification box above or add test phone number in Firebase Console.";
         }
         setErrors({ phoneOtp: errorMsg });
       }
@@ -943,8 +970,15 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     const newErrors: FormErrors = {};
 
     if (mode === "signin") {
-      const idErr = validateField("identifier", identifier);
-      if (idErr) newErrors.identifier = idErr;
+      if (loginMethod === "phone") {
+        const cleanDigits = phoneLogin.replace(/\D/g, "");
+        if (!cleanDigits || cleanDigits.length < 10) {
+          newErrors.identifier = "Please enter a valid 10-digit mobile number.";
+        }
+      } else {
+        const idErr = validateField("identifier", identifier);
+        if (idErr) newErrors.identifier = idErr;
+      }
       const passErr = validateField("password", password);
       if (passErr) newErrors.password = passErr;
     } else {
@@ -992,10 +1026,19 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     setSuccessMessage("");
 
     if (rememberMe && typeof window !== "undefined") {
-      localStorage.setItem("userIdentifier", (mode === "signin" ? identifier : email).trim());
+      if (mode === "signin") {
+        if (loginMethod === "phone") {
+          localStorage.setItem("userPhone", phoneLogin.trim());
+        } else {
+          localStorage.setItem("userIdentifier", identifier.trim());
+        }
+      } else {
+        localStorage.setItem("userIdentifier", email.trim());
+      }
       localStorage.setItem("rememberMe", "true");
     } else if (typeof window !== "undefined") {
       localStorage.removeItem("userIdentifier");
+      localStorage.removeItem("userPhone");
       localStorage.removeItem("rememberMe");
     }
 
@@ -1044,7 +1087,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     } else {
       // Email / Identifier password login
       try {
-        let resolvedEmail = identifier.trim();
+        let resolvedEmail = (loginMethod === "phone" ? phoneLogin : identifier).trim();
 
         const resolveRes = await fetch("/api/auth/resolve-identifier", {
           method: "POST",
@@ -1389,9 +1432,6 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
             </div>
           )}
 
-          {/* Permanent reCAPTCHA container for Firebase Phone Auth */}
-          <div id="recaptcha-container" className="flex justify-center my-3" />
-
           {/* Global Alerts */}
           {successMessage && (
             <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-none flex items-center gap-2 text-xs font-medium text-emerald-700 dark:text-emerald-400 animate-in fade-in text-left">
@@ -1413,7 +1453,10 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                       type="button"
                       onClick={() => {
                         setMode("signup");
-                        setPhone(identifier.replace(/^\+91\s*/, ""));
+                        const pVal = phoneLogin.replace(/^\+91\s*/, "") || identifier.replace(/^\+91\s*/, "");
+                        if (!pVal.includes("@")) {
+                          setPhone(pVal);
+                        }
                         setErrors({});
                         setSuccessMessage("");
                         setPhoneUserNotFound(false);
@@ -1508,12 +1551,14 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                       </div>
                       <input
                         type="tel"
-                        value={identifier.replace(/^\+91\s*/, "")}
+                        inputMode="numeric"
+                        autoComplete="tel-national"
+                        value={phoneLogin.replace(/^\+91\s*/, "")}
                         onChange={(e) => {
                           const val = e.target.value.replace(/\D/g, "").slice(0, 10);
-                          setIdentifier(val ? `+91${val}` : "");
+                          setPhoneLogin(val ? `+91${val}` : "");
                           if (phoneUserNotFound) setPhoneUserNotFound(false);
-                          if (errors.general) setErrors({});
+                          if (errors.general || errors.phoneLogin || errors.identifier) setErrors({});
                         }}
                         placeholder="98765 43210"
                         autoFocus
@@ -1521,10 +1566,10 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                         className="h-11 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] px-3 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81] tracking-wider"
                       />
                     </div>
-                    {errors.identifier && (
+                    {(errors.phoneLogin || errors.identifier) && (
                       <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
                         <AlertTriangle className="size-3 shrink-0" />
-                        {errors.identifier}
+                        {errors.phoneLogin || errors.identifier}
                       </p>
                     )}
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">
@@ -1532,10 +1577,26 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                     </p>
                   </div>
 
+                  {/* Dedicated reCAPTCHA verification container */}
+                  <div className="my-2 p-2.5 bg-slate-50 dark:bg-[#161b22] border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center">
+                    <div id="recaptcha-container" className="flex justify-center min-h-[78px] items-center" />
+                    {!isRecaptchaSolved ? (
+                      <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1.5 flex items-center gap-1 font-medium">
+                        <ShieldCheck className="size-3.5 text-amber-600 shrink-0" />
+                        Please tick "I'm not a robot" above to continue
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1.5 flex items-center gap-1 font-semibold">
+                        <CheckCircle2 className="size-3.5 text-emerald-600 shrink-0" />
+                        Security verified. You can now request your code.
+                      </p>
+                    )}
+                  </div>
+
                   {/* Send OTP CTA */}
                   <button
                     type="submit"
-                    disabled={isSendingOtp || !identifier || identifier.replace(/\D/g, "").length < 10}
+                    disabled={isSendingOtp || !phoneLogin || phoneLogin.replace(/\D/g, "").length < 10 || !isRecaptchaSolved}
                     className="w-full inline-flex items-center justify-center gap-2 rounded-none bg-[#0f4c81] dark:bg-[#14559b] py-3 text-sm font-bold text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition disabled:opacity-50 cursor-pointer active:scale-98"
                   >
                     {isSendingOtp ? (
@@ -1543,6 +1604,11 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                         <Loader2 className="size-4 animate-spin" />
                         Checking account & sending code...
                       </span>
+                    ) : !isRecaptchaSolved ? (
+                      <>
+                        <ShieldCheck className="size-4" />
+                        <span>Verify reCAPTCHA to Continue</span>
+                      </>
                     ) : (
                       <>
                         <span>Get Verification Code</span>
@@ -1814,6 +1880,9 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                           </button>
                         )}
                       </div>
+
+                      {/* Container for Signup Phone reCAPTCHA */}
+                      <div id="signup-recaptcha-container" className="flex justify-center my-1" />
                     </>
                   ) : (
                     <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
@@ -1982,22 +2051,36 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                     )}
                     <input
                       type={loginMethod === "email" ? "text" : "tel"}
-                      value={identifier}
-                      onChange={(e) => handleInputChange("identifier", e.target.value)}
-                      onBlur={() => handleFieldBlur("identifier", identifier)}
+                      inputMode={loginMethod === "email" ? "text" : "numeric"}
+                      autoComplete={loginMethod === "email" ? "username" : "tel-national"}
+                      value={loginMethod === "phone" ? phoneLogin.replace(/^\+91\s*/, "") : identifier}
+                      onChange={(e) => {
+                        if (loginMethod === "phone") {
+                          const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                          setPhoneLogin(val ? `+91${val}` : "");
+                          if (errors.identifier || errors.phoneLogin) setErrors({});
+                        } else {
+                          handleInputChange("identifier", e.target.value);
+                        }
+                      }}
+                      onBlur={() => {
+                        if (loginMethod === "email") {
+                          handleFieldBlur("identifier", identifier);
+                        }
+                      }}
                       placeholder={
                         loginMethod === "email"
                           ? "doctor@hospital.org or @username"
-                          : "+91 Enter mobile number"
+                          : "Enter 10-digit mobile number"
                       }
                       required
                       className="h-11 w-full rounded-none border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] pl-10 pr-3.5 text-xs sm:text-sm text-[#171717] dark:text-white placeholder:text-slate-400 focus:border-[#0f4c81] dark:focus:border-[#58a6ff] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
                     />
                   </div>
-                  {errors.identifier && (
+                  {(errors.identifier || errors.phoneLogin) && (
                     <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-normal">
                       <AlertTriangle className="size-3 shrink-0" />
-                      {errors.identifier}
+                      {errors.phoneLogin || errors.identifier}
                     </p>
                   )}
                 </div>

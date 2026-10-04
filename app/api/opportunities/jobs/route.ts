@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { database } from "@/lib/auth";
 import { sql } from "kysely";
+import { consumeCreationQuota, refundCreationQuota } from "@/lib/creation-quota";
 
 let dummyJobsCleaned = false;
 
@@ -261,36 +262,71 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const slug = `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now().toString(36)}`;
+    // Quota Enforcement: 1 free per category, pay per post thereafter
+    const paymentOrderId = body.payment_order_id || body.order_id || req.headers.get("x-payment-order-id") || undefined;
+    const ownerType = organization_id ? "organization" : "individual";
+    const ownerId = organization_id || currentUserId;
+    const quota = await consumeCreationQuota({
+      ownerType,
+      ownerId,
+      category: "jobs",
+      paymentOrderId,
+    });
 
-    const insertResult: any = await sql`
-      INSERT INTO jobs (
-        organization_id, recruiter_id, title, slug, opportunity_type, employment_type,
-        work_mode, location, city, state, country, salary_min, salary_max, salary_currency,
-        salary_period, is_salary_negotiable, is_salary_visible, profession, specialization,
-        experience_min, experience_max, skills, qualifications, description, responsibilities,
-        requirements, benefits, application_questions, application_deadline, status
-      ) VALUES (
-        ${organization_id}, ${currentUserId}, ${title}, ${slug}, ${opportunity_type}, ${employment_type},
-        ${work_mode}, ${location || null}, ${city || null}, ${state || null}, ${country},
-        ${salary_min || null}, ${salary_max || null}, ${salary_currency}, ${salary_period},
-        ${is_salary_negotiable}, ${is_salary_visible}, ${profession || null}, ${specialization || null},
-        ${experience_min}, ${experience_max || null}, ${skills}, ${qualifications}, ${description},
-        ${responsibilities || null}, ${requirements || null}, ${benefits},
-        ${JSON.stringify(application_questions)}::JSONB,
-        ${application_deadline ? new Date(application_deadline) : null},
-        ${status}
-      )
-      RETURNING id, slug
-    `.execute(database);
+    if (!quota.allowed) {
+      return NextResponse.json(
+        {
+          error: quota.reason || "Payment required to publish. Free upload already used.",
+          requiresPayment: true,
+          price: quota.price,
+          currency: quota.currency,
+          category: quota.category,
+        },
+        { status: 402 }
+      );
+    }
 
-    const createdJob = insertResult.rows[0];
+    try {
+      const slug = `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now().toString(36)}`;
 
-    return NextResponse.json({
-      success: true,
-      jobId: createdJob.id,
-      slug: createdJob.slug,
-    }, { status: 201 });
+      const insertResult: any = await sql`
+        INSERT INTO jobs (
+          organization_id, recruiter_id, title, slug, opportunity_type, employment_type,
+          work_mode, location, city, state, country, salary_min, salary_max, salary_currency,
+          salary_period, is_salary_negotiable, is_salary_visible, profession, specialization,
+          experience_min, experience_max, skills, qualifications, description, responsibilities,
+          requirements, benefits, application_questions, application_deadline, status
+        ) VALUES (
+          ${organization_id}, ${currentUserId}, ${title}, ${slug}, ${opportunity_type}, ${employment_type},
+          ${work_mode}, ${location || null}, ${city || null}, ${state || null}, ${country},
+          ${salary_min || null}, ${salary_max || null}, ${salary_currency}, ${salary_period},
+          ${is_salary_negotiable}, ${is_salary_visible}, ${profession || null}, ${specialization || null},
+          ${experience_min}, ${experience_max || null}, ${skills}, ${qualifications}, ${description},
+          ${responsibilities || null}, ${requirements || null}, ${benefits},
+          ${JSON.stringify(application_questions)}::JSONB,
+          ${application_deadline ? new Date(application_deadline) : null},
+          ${status}
+        )
+        RETURNING id, slug
+      `.execute(database);
+
+      const createdJob = insertResult.rows[0];
+
+      return NextResponse.json({
+        success: true,
+        jobId: createdJob.id,
+        slug: createdJob.slug,
+      }, { status: 201 });
+    } catch (insertErr: any) {
+      await refundCreationQuota({
+        ownerType,
+        ownerId,
+        category: "jobs",
+        isFree: quota.isFree,
+        orderId: quota.orderId,
+      });
+      throw insertErr;
+    }
   } catch (error: any) {
     console.error("Failed to create job:", error);
     return NextResponse.json({ error: error.message || "Failed to create job" }, { status: 500 });

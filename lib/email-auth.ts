@@ -75,17 +75,7 @@ export async function sendEmailOtp(
     }
   }
 
-  // Rate limit: Check if OTP was sent in the last 30 seconds for this email
-  const recentRes = await pool.query(
-    `SELECT created_at FROM email_verifications 
-     WHERE LOWER(email) = LOWER($1) AND created_at > NOW() - INTERVAL '30 seconds'
-     ORDER BY created_at DESC LIMIT 1`,
-    [email]
-  );
-
-  if (recentRes.rows.length > 0) {
-    throw new Error("Please wait 30 seconds before requesting a new email verification code.");
-  }
+  // Rate limit check removed to prevent deadlock when reCAPTCHA verification is required
 
   // Generate cryptographically random 6-digit OTP
   const otpNumber = Math.floor(100000 + Math.random() * 900000).toString();

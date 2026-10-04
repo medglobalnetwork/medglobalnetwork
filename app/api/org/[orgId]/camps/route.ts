@@ -5,6 +5,7 @@ import { OrganizationService } from "@/modules/organizations/lib/org-service";
 import { OrgEntitlementService } from "@/modules/organizations/lib/org-entitlements";
 import { hasOrgPermission } from "@/modules/organizations/lib/org-permissions";
 import { generateOrgId, ensureOrgTables } from "@/modules/organizations/lib/org-db";
+import { consumeCreationQuota, refundCreationQuota } from "@/lib/creation-quota";
 import { sql } from "kysely";
 
 const db = database as any;
@@ -54,6 +55,8 @@ export async function POST(
   }
 
   const { orgId } = await params;
+  let quotaConsumed = false;
+  let quotaResult: any = null;
 
   try {
     const { member } = await OrganizationService.getOrganizationById(orgId, session.user.id);
@@ -68,38 +71,74 @@ export async function POST(
     }
 
     const body = await request.json();
-    const id = generateOrgId();
-    const slug = (body.title || "camp")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") + "-" + Date.now().toString(36);
-
-    await sql`
-      INSERT INTO camps (
-        id, slug, title, camp_type, description, organizer_type, organizer_id,
-        organization_id, start_date, end_date, address, city, target_population,
-        capacity, status, created_at, updated_at
-      ) VALUES (
-        ${id}, ${slug}, ${body.title}, ${body.camp_type || "Health Screening Camp"},
-        ${body.description}, 'organization', ${session.user.id}, ${orgId},
-        ${new Date(body.start_date)}, ${new Date(body.end_date)},
-        ${body.address || null}, ${body.city || null}, ${body.target_population || null},
-        ${body.capacity || 200}, 'published', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
-      )
-    `.execute(db);
-
-    await OrganizationService.logAudit({
-      organization_id: orgId,
-      user_id: session.user.id,
-      user_name: session.user.name || "Camp Manager",
-      user_email: session.user.email || "",
-      action: "CAMP_CREATED",
-      entity_type: "CAMP",
-      entity_id: id,
-      details: { title: body.title, type: body.camp_type },
+    const paymentOrderId = body.payment_order_id || body.order_id || request.headers.get("x-payment-order-id") || undefined;
+    quotaResult = await consumeCreationQuota({
+      ownerType: "organization",
+      ownerId: orgId,
+      category: "camps",
+      paymentOrderId,
     });
 
-    return Response.json({ success: true, id }, { status: 201 });
+    if (!quotaResult.allowed) {
+      return Response.json(
+        {
+          error: quotaResult.reason || "Payment required to publish. Free upload already used.",
+          requiresPayment: true,
+          price: quotaResult.price,
+          currency: quotaResult.currency,
+          category: quotaResult.category,
+        },
+        { status: 402 }
+      );
+    }
+
+    quotaConsumed = true;
+
+    try {
+      const id = generateOrgId();
+      const slug = (body.title || "camp")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") + "-" + Date.now().toString(36);
+
+      await sql`
+        INSERT INTO camps (
+          id, slug, title, camp_type, description, organizer_type, organizer_id,
+          organization_id, start_date, end_date, address, city, target_population,
+          capacity, status, created_at, updated_at
+        ) VALUES (
+          ${id}, ${slug}, ${body.title}, ${body.camp_type || "Health Screening Camp"},
+          ${body.description}, 'organization', ${session.user.id}, ${orgId},
+          ${new Date(body.start_date)}, ${new Date(body.end_date)},
+          ${body.address || null}, ${body.city || null}, ${body.target_population || null},
+          ${body.capacity || 200}, 'published', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        )
+      `.execute(db);
+
+      await OrganizationService.logAudit({
+        organization_id: orgId,
+        user_id: session.user.id,
+        user_name: session.user.name || "Camp Manager",
+        user_email: session.user.email || "",
+        action: "CAMP_CREATED",
+        entity_type: "CAMP",
+        entity_id: id,
+        details: { title: body.title, type: body.camp_type },
+      });
+
+      return Response.json({ success: true, id }, { status: 201 });
+    } catch (createErr: any) {
+      if (quotaConsumed && quotaResult) {
+        await refundCreationQuota({
+          ownerType: "organization",
+          ownerId: orgId,
+          category: "camps",
+          isFree: quotaResult.isFree,
+          orderId: quotaResult.orderId,
+        });
+      }
+      throw createErr;
+    }
   } catch (err: any) {
     console.error(`POST /api/org/${orgId}/camps error:`, err);
     return Response.json({ error: err.message || "Failed to create camp" }, { status: 500 });

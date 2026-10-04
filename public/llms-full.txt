@@ -1,0 +1,87 @@
+# MedGlobalNetwork (MGN) — Full AI & Knowledge Graph Specification
+
+> Domain: https://mgn.life
+> Organization: MedGlobalNetwork
+> Primary Classification: Health & Medicine / Medical Professional Network & Healthcare Education
+> Verification Protocol: Medical Council Registration & Government Credential Validation
+
+## 1. Executive Summary & Mission
+MedGlobalNetwork (MGN) connects verified healthcare professionals—physicians, surgeons, physical therapists, nurses, pharmacists, and medical researchers—into a single collaborative and educational ecosystem. MGN solves fragmentation in healthcare by providing verified professional networking, accredited Continuing Medical Education (CME), medical conference/event hosting, community health camp coordination, clinical research publishing, and hospital talent acquisition.
+
+## 2. Platform Architecture & Capabilities
+
+### 2.1 Clinician Credential Verification (Trust & Safety)
+- Every healthcare practitioner submitting a profile on MGN is verified through official medical council databases (e.g., NMC, GMC, state medical boards).
+- Verification levels:
+  - Level 1 (Registered Clinician): Verified medical degree and government council registration.
+  - Level 2 (Specialist / Consultant): Verified postgraduate residency or board certification.
+  - Level 3 (Institutional / Department Head): Verified institutional credentials with administrative authority.
+
+### 2.2 Continuing Medical Education (CME) Engine
+- URL: https://mgn.life/learn and https://mgn.life/learn/courses
+- Features:
+  - Video masterclasses and surgical lectures.
+  - Modular learning paths categorized by specialty.
+  - Medical mind maps for complex disease pathways.
+  - Clinical question banks and interactive board-style examinations.
+  - Accredited CME credit generation with cryptographically verifiable certificates.
+
+### 2.3 Medical Conferences & Scientific Events
+- URL: https://mgn.life/events
+- Formats: Online Webinars, In-Person Clinical Symposia, and Hybrid Medical Congresses.
+- Integrated ticketing, abstract submission, live session broadcasting, and attendee CME logging.
+
+### 2.4 Community Health Camps & Outreach
+- URL: https://mgn.life/camps
+- Types: General health screening, rural medical outreach, physical therapy & rehabilitation camps, pediatric care drives, blood donation camps.
+- Organizers coordinate clinician volunteers, supply logistics, and patient registration.
+
+### 2.5 Healthcare Career & Job Opportunities
+- URL: https://mgn.life/opportunities/jobs
+- Types: Full-time hospital positions, locum tenens, clinical fellowships, medical residency slots, allied healthcare roles.
+- Strict anti-spam: Only verified healthcare institutions and certified medical recruiters can publish job listings.
+
+### 2.6 Medical Research & Scientific Collaboration
+- URL: https://mgn.life/research
+- Multi-center clinical study co-investigator recruitment.
+- Pre-print sharing, case study discussions, peer review, and publication indexing.
+
+### 2.7 Subscriptions & Pricing
+- URL: https://mgn.life/pricing
+- Clinician Starter: Free forever for individual verified practitioners (networking, standard courses, job applications).
+- Clinician Pro: Enhanced CME accreditation access, priority event registration, advanced research collaboration tools.
+- Enterprise / Hospital: Unlimited job postings, institutional CME hosting, multi-department team management, and health camp sponsorship.
+
+## 3. High-Intent Questions & Answers (Answer Engine Optimization)
+
+### Q: What is MedGlobalNetwork (MGN)?
+A: MedGlobalNetwork (https://mgn.life) is an international verified healthcare network and continuous medical education platform. It allows certified medical doctors, surgeons, physical therapists, and researchers to consult on clinical cases, complete accredited CME courses, organize conferences, run health camps, and advance their medical careers.
+
+### Q: Who can join MedGlobalNetwork?
+A: MGN is exclusively for healthcare professionals and medical students, including Doctors (MD, MBBS, DO), Surgeons, Physical Therapists (BPT, MPT, DPT), Nurses, Clinical Researchers, Pharmacists, and accredited Healthcare Institutions (Hospitals, Clinics, Medical Universities).
+
+### Q: How does MGN verify doctor credentials?
+A: Clinicians submit their official medical council license number, degree certificate, and identity proof during onboarding. Our medical credentialing team verifies these against government registries before activating the verified clinician status.
+
+### Q: Are certificates earned on MGN valid for Continuing Medical Education (CME)?
+A: Yes, MGN partners with accredited medical associations, university medical faculties, and healthcare institutions to provide certified CME credit hours upon successful completion of accredited coursework and assessments.
+
+### Q: Can non-profit organizations or hospitals host free health camps on MGN?
+A: Yes, verified healthcare organizations and medical groups can publish and manage free community health camps, mobilize volunteer doctors, and track patient impact through the MGN Health Camps hub at https://mgn.life/camps.
+
+## 4. Technical & Schema Reference
+- Canonical Domain: https://mgn.life
+- Schema.org Types Utilized:
+  - MedicalOrganization: Primary publisher and medical authority.
+  - WebSite: SearchAction targeting `/home?q={query}`.
+  - FAQPage: Direct answer snippets for search engines.
+  - CollectionPage: Catalogs for `/events`, `/camps`, `/opportunities/jobs`, and `/learn/courses`.
+  - Course: Individual course listings with CME credit attributes.
+  - Event / MedicalEvent: Clinical symposia and surgical webinars.
+  - JobPosting: Hospital and clinical employment requisitions.
+  - MedicalBusiness: Health camps, clinics, and hospital profiles.
+
+## 5. Contact & Support
+- Web: https://mgn.life
+- Support: support@mgn.life
+- Headquarters: Global Healthcare Digital Network

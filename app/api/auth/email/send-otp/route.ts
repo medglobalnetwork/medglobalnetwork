@@ -42,8 +42,8 @@ export async function POST(request: Request) {
       }
     }
 
-    // Email-based rate limit: max 3 per 2 minutes
-    const emailLimit = checkRateLimit(`email-otp:addr:${rawEmail}`, 3, 120000);
+    // Email-based rate limit: relaxed to allow retries
+    const emailLimit = checkRateLimit(`email-otp:addr:${rawEmail}`, 10, 120000);
     if (!emailLimit.allowed) {
       return NextResponse.json(
         { success: false, error: "Too many verification codes requested for this email. Please wait a moment." },

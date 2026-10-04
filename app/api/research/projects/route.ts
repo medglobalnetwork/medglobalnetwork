@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { ResearchService } from "@/modules/research/services/research-service";
 import { validateCreateProjectInput } from "@/modules/research/validation/research-validation";
+import { consumeCreationQuota, refundCreationQuota } from "@/lib/creation-quota";
 
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -32,6 +33,11 @@ export async function POST(request: Request) {
     return Response.json({ error: "Authentication required" }, { status: 401 });
   }
 
+  let quotaConsumed = false;
+  let quotaResult: any = null;
+  let ownerType: "individual" | "organization" = "individual";
+  let ownerId = session.user.id;
+
   try {
     const body = await request.json();
     const validation = validateCreateProjectInput(body);
@@ -39,10 +45,51 @@ export async function POST(request: Request) {
       return Response.json({ error: validation.errors[0], errors: validation.errors }, { status: 400 });
     }
 
-    const project = await ResearchService.createProject(body, session.user.id);
-    return Response.json({ success: true, project }, { status: 201 });
+    const isOrg = Boolean(body.organization_id || body.orgId);
+    ownerType = isOrg ? "organization" : "individual";
+    ownerId = (isOrg ? (body.organization_id || body.orgId) : session.user.id) as string;
+
+    const paymentOrderId = body.payment_order_id || body.order_id || request.headers.get("x-payment-order-id") || undefined;
+    quotaResult = await consumeCreationQuota({
+      ownerType,
+      ownerId,
+      category: "research",
+      paymentOrderId,
+    });
+
+    if (!quotaResult.allowed) {
+      return Response.json(
+        {
+          error: quotaResult.reason || "Payment required to publish. Free upload already used.",
+          requiresPayment: true,
+          price: quotaResult.price,
+          currency: quotaResult.currency,
+          category: quotaResult.category,
+        },
+        { status: 402 }
+      );
+    }
+
+    quotaConsumed = true;
+
+    try {
+      const project = await ResearchService.createProject(body, session.user.id);
+      return Response.json({ success: true, project }, { status: 201 });
+    } catch (createErr: any) {
+      if (quotaConsumed && quotaResult) {
+        await refundCreationQuota({
+          ownerType,
+          ownerId,
+          category: "research",
+          isFree: quotaResult.isFree,
+          orderId: quotaResult.orderId,
+        });
+      }
+      throw createErr;
+    }
   } catch (err: any) {
     console.error("POST /api/research/projects error:", err);
     return Response.json({ error: err.message || "Failed to create research project" }, { status: 400 });
   }
 }
+

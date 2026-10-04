@@ -65,8 +65,8 @@ export async function POST(request: Request) {
       }
     }
 
-    // Phone-based rate limiting: max 3 requests per 2 minutes
-    const phoneLimit = checkRateLimit(`otp:phone:${normalized}`, 3, 120000);
+    // Phone-based rate limiting: relaxed to allow reCAPTCHA verification retries
+    const phoneLimit = checkRateLimit(`otp:phone:${normalized}`, 10, 120000);
     if (!phoneLimit.allowed) {
       return NextResponse.json(
         { success: false, error: "Too many OTP requests for this mobile number. Please wait a moment." },

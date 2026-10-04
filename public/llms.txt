@@ -1,0 +1,45 @@
+# MedGlobalNetwork (MGN)
+
+> MedGlobalNetwork (https://mgn.life) is the premier verified global social, clinical collaboration, and Continuing Medical Education (CME) ecosystem built exclusively for healthcare professionals including medical doctors (MD/MBBS), surgeons, physical therapists, nurses, and clinical researchers.
+
+## Core Platform Modules
+
+- [MedGlobalNetwork Home](https://mgn.life): Official platform landing page, mission, clinician directory, and ecosystem overview.
+- [Healthcare Professional Network](https://mgn.life/network): Peer-to-peer clinical case discussions, medical specialty groups, and colleague connections.
+- [Medical Communities](https://mgn.life/network/communities): Specialized medical societies and clinical focus groups (Cardiology, Orthopedics, Neurology, Physiotherapy, Oncology, etc.).
+- [Continuing Medical Education (CME)](https://mgn.life/learn): Accredited medical courses, video masterclasses, interactive quiz banks, and clinical mind maps.
+- [Course Catalog](https://mgn.life/learn/courses): Searchable repository of CME-accredited courses, surgical procedures, and clinical workshops.
+- [Medical Conferences & Events](https://mgn.life/events): Virtual webinars, hybrid conferences, surgical workshops, and clinical symposia with registration and attendance tracking.
+- [Community Health Camps](https://mgn.life/camps): Free health screening camps, rural medical outreach, and physiotherapy rehabilitation drives with volunteer clinician management.
+- [Healthcare Careers & Jobs](https://mgn.life/opportunities/jobs): Verified hospital positions, clinical fellowships, medical residency openings, and healthcare consulting roles.
+- [Medical Research & Publications](https://mgn.life/research): Clinical trial collaborations, multi-center research initiatives, preprints, and case reports.
+- [Pricing & Subscriptions](https://mgn.life/pricing): Membership tiers for individual doctors, clinics, and hospital networks.
+- [Creation Center](https://mgn.life/create): Unified publishing hub for clinical posts, CME courses, medical events, health camps, and job requisitions.
+
+## Medical Credential Verification & Trust
+
+MGN enforces a strict verification process for all healthcare practitioners. Clinicians provide:
+1. Official National/State Medical Council Registration Number
+2. Medical License and Practicing Certificates
+3. Institutional or Hospital Affiliation Documentation
+
+Verified clinicians receive the verified badge, unlocking clinical discussions, peer messaging, and course accreditation.
+
+## Key Medical Specialties Supported
+
+- Cardiology & Cardiovascular Surgery
+- Orthopedics & Musculoskeletal Rehabilitation
+- Neurology & Neurosurgery
+- Physical Therapy & Sports Rehabilitation
+- General Medicine & Primary Care
+- Pediatrics & Neonatology
+- Oncology & Hematology
+- Dermatology & Aesthetic Medicine
+- Anesthesiology & Critical Care
+- Radiology & Diagnostic Imaging
+
+## Developer & Integration Endpoints
+
+- Public Sitemap: https://mgn.life/sitemap.xml
+- Crawl Instructions: https://mgn.life/robots.txt
+- Comprehensive LLM Documentation: https://mgn.life/llms-full.txt

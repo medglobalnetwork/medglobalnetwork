@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { searchCourses, createCourse } from "@/modules/learn/lib/learn-db";
 import { getRecommendedCourses } from "@/modules/learn/lib/learn-recommendations";
 import { CreateCourseInput } from "@/modules/learn/types";
+import { consumeCreationQuota, refundCreationQuota } from "@/lib/creation-quota";
 import { headers } from "next/headers";
 
 export async function GET(request: Request) {
@@ -58,8 +59,14 @@ export async function POST(request: Request) {
     return Response.json({ error: "Authentication required" }, { status: 401 });
   }
 
+  let quotaConsumed = false;
+  let quotaResult: any = null;
+  let ownerType: "individual" | "organization" = "individual";
+  let ownerId = session.user.id;
+
   try {
-    const body = (await request.json()) as CreateCourseInput;
+    const rawBody = await request.json();
+    const body = rawBody as CreateCourseInput & { payment_order_id?: string; order_id?: string; orgId?: string; organization_id?: string };
 
     if (!body.title?.trim()) {
       return Response.json({ error: "Course title is required" }, { status: 400 });
@@ -68,10 +75,51 @@ export async function POST(request: Request) {
       return Response.json({ error: "Course category is required" }, { status: 400 });
     }
 
-    const courseId = await createCourse(session.user.id, body);
-    return Response.json({ success: true, courseId });
+    const isOrg = Boolean(body.organization_id || body.orgId);
+    ownerType = isOrg ? "organization" : "individual";
+    ownerId = (isOrg ? (body.organization_id || body.orgId) : session.user.id) as string;
+
+    const paymentOrderId = body.payment_order_id || body.order_id || request.headers.get("x-payment-order-id") || undefined;
+    quotaResult = await consumeCreationQuota({
+      ownerType,
+      ownerId,
+      category: "courses",
+      paymentOrderId,
+    });
+
+    if (!quotaResult.allowed) {
+      return Response.json(
+        {
+          error: quotaResult.reason || "Payment required to publish. Free upload already used.",
+          requiresPayment: true,
+          price: quotaResult.price,
+          currency: quotaResult.currency,
+          category: quotaResult.category,
+        },
+        { status: 402 }
+      );
+    }
+
+    quotaConsumed = true;
+
+    try {
+      const courseId = await createCourse(session.user.id, body);
+      return Response.json({ success: true, courseId });
+    } catch (createErr: any) {
+      if (quotaConsumed && quotaResult) {
+        await refundCreationQuota({
+          ownerType,
+          ownerId,
+          category: "courses",
+          isFree: quotaResult.isFree,
+          orderId: quotaResult.orderId,
+        });
+      }
+      throw createErr;
+    }
   } catch (err) {
     console.error("POST /api/learn/courses error:", err);
     return Response.json({ error: "Failed to create course" }, { status: 500 });
   }
 }
+

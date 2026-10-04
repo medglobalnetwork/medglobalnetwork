@@ -5,6 +5,7 @@ import { OrganizationService } from "@/modules/organizations/lib/org-service";
 import { OrgEntitlementService } from "@/modules/organizations/lib/org-entitlements";
 import { hasOrgPermission } from "@/modules/organizations/lib/org-permissions";
 import { generateOrgId } from "@/modules/organizations/lib/org-db";
+import { consumeCreationQuota, refundCreationQuota } from "@/lib/creation-quota";
 import { sql } from "kysely";
 
 const db = database as any;
@@ -58,6 +59,8 @@ export async function POST(
   }
 
   const { orgId } = await params;
+  let quotaConsumed = false;
+  let quotaResult: any = null;
 
   try {
     const { member } = await OrganizationService.getOrganizationById(orgId, session.user.id);
@@ -72,42 +75,78 @@ export async function POST(
     }
 
     const body = await request.json();
-    const id = generateOrgId();
-    const slug = (body.title || "job")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") + "-" + Date.now().toString(36);
-
-    await sql`
-      INSERT INTO jobs (
-        id, organization_id, recruiter_id, title, slug, employment_type, work_mode,
-        city, state, experience_min, experience_max, specialization,
-        salary_min, salary_max, salary_currency, description, responsibilities,
-        requirements, skills, application_deadline, status, created_at, updated_at
-      ) VALUES (
-        ${id}, ${orgId}, ${session.user.id}, ${body.title}, ${slug},
-        ${body.employment_type || "full_time"}, ${body.work_mode || "onsite"},
-        ${body.city || null}, ${body.state || null}, ${body.experience_min || 0},
-        ${body.experience_max || null}, ${body.specialization || null},
-        ${body.salary_min || null}, ${body.salary_max || null}, ${body.salary_currency || "INR"},
-        ${body.description}, ${body.responsibilities || null}, ${body.requirements || null},
-        ${body.skills || []}, ${body.application_deadline ? new Date(body.application_deadline) : null},
-        ${body.status || "published"}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
-      )
-    `.execute(db);
-
-    await OrganizationService.logAudit({
-      organization_id: orgId,
-      user_id: session.user.id,
-      user_name: session.user.name || "Admin",
-      user_email: session.user.email || "",
-      action: "JOB_CREATED",
-      entity_type: "JOB",
-      entity_id: id,
-      details: { title: body.title },
+    const paymentOrderId = body.payment_order_id || body.order_id || request.headers.get("x-payment-order-id") || undefined;
+    quotaResult = await consumeCreationQuota({
+      ownerType: "organization",
+      ownerId: orgId,
+      category: "jobs",
+      paymentOrderId,
     });
 
-    return Response.json({ success: true, id }, { status: 201 });
+    if (!quotaResult.allowed) {
+      return Response.json(
+        {
+          error: quotaResult.reason || "Payment required to publish. Free upload already used.",
+          requiresPayment: true,
+          price: quotaResult.price,
+          currency: quotaResult.currency,
+          category: quotaResult.category,
+        },
+        { status: 402 }
+      );
+    }
+
+    quotaConsumed = true;
+
+    try {
+      const id = generateOrgId();
+      const slug = (body.title || "job")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") + "-" + Date.now().toString(36);
+
+      await sql`
+        INSERT INTO jobs (
+          id, organization_id, recruiter_id, title, slug, employment_type, work_mode,
+          city, state, experience_min, experience_max, specialization,
+          salary_min, salary_max, salary_currency, description, responsibilities,
+          requirements, skills, application_deadline, status, created_at, updated_at
+        ) VALUES (
+          ${id}, ${orgId}, ${session.user.id}, ${body.title}, ${slug},
+          ${body.employment_type || "full_time"}, ${body.work_mode || "onsite"},
+          ${body.city || null}, ${body.state || null}, ${body.experience_min || 0},
+          ${body.experience_max || null}, ${body.specialization || null},
+          ${body.salary_min || null}, ${body.salary_max || null}, ${body.salary_currency || "INR"},
+          ${body.description}, ${body.responsibilities || null}, ${body.requirements || null},
+          ${body.skills || []}, ${body.application_deadline ? new Date(body.application_deadline) : null},
+          ${body.status || "published"}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        )
+      `.execute(db);
+
+      await OrganizationService.logAudit({
+        organization_id: orgId,
+        user_id: session.user.id,
+        user_name: session.user.name || "Admin",
+        user_email: session.user.email || "",
+        action: "JOB_CREATED",
+        entity_type: "JOB",
+        entity_id: id,
+        details: { title: body.title },
+      });
+
+      return Response.json({ success: true, id }, { status: 201 });
+    } catch (createErr: any) {
+      if (quotaConsumed && quotaResult) {
+        await refundCreationQuota({
+          ownerType: "organization",
+          ownerId: orgId,
+          category: "jobs",
+          isFree: quotaResult.isFree,
+          orderId: quotaResult.orderId,
+        });
+      }
+      throw createErr;
+    }
   } catch (err: any) {
     console.error(`POST /api/org/${orgId}/jobs error:`, err);
     return Response.json({ error: err.message || "Failed to post job" }, { status: 500 });
