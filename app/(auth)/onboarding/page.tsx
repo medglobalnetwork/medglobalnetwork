@@ -953,6 +953,26 @@ export default function OnboardingPage() {
                   type="text"
                   value={legalFirstName}
                   onChange={(e) => setLegalFirstName(e.target.value)}
+                  onBlur={() => {
+                    if (accountType === "INDIVIDUAL" && legalFirstName.trim()) {
+                      const hasPrefix = /^(dr\.|dr|prof\.|prof|pt\.|pt|rn\.|rn|mr\.|mr|ms\.|ms|mrs\.|mrs)\s+/i.test(legalFirstName.trim());
+                      const hasMultipleWords = legalFirstName.trim().includes(" ");
+                      if (hasPrefix || (!legalLastName && hasMultipleWords)) {
+                        const parsed = parseFullName(legalFirstName);
+                        setLegalFirstName(
+                          parsed.legalMiddleName
+                            ? `${parsed.legalFirstName} ${parsed.legalMiddleName}`.trim()
+                            : parsed.legalFirstName
+                        );
+                        if (parsed.legalLastName && !legalLastName) {
+                          setLegalLastName(parsed.legalLastName);
+                        }
+                        if (hasPrefix && parsed.claimedTitle) {
+                          setClaimedTitle(parsed.claimedTitle);
+                        }
+                      }
+                    }
+                  }}
                   placeholder={accountType === "ORGANISATION" ? "e.g. Apex Multispeciality Hospital Pvt Ltd" : "e.g. Rajesh Kumar"}
                   required
                   className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] placeholder:text-[#8a8784] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"

@@ -109,3 +109,7 @@ export async function POST(request: Request) {
     return Response.json({ error: err.message || "Failed to save onboarding details" }, { status: 500 });
   }
 }
+
+export async function PUT(request: Request) {
+  return POST(request);
+}
