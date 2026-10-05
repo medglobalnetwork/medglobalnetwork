@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Inter, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { OfflineScreen } from "@/components/OfflineScreen";
+import { PwaRegister } from "@/components/PwaRegister";
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -169,6 +170,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col font-sans bg-[#faf9f8] dark:bg-[#0d1117] text-[#171717] dark:text-[#f0f6fc] antialiased selection:bg-[#0f4c81]/15 selection:text-[#0f4c81]">
         <ThemeProvider>
           <OfflineScreen />
+          <PwaRegister />
           {children}
         </ThemeProvider>
       </body>

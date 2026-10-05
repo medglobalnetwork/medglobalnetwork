@@ -2,10 +2,12 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "MedGlobalNetwork",
+    id: "/",
+    name: "Med Global Network",
     short_name: "MGN",
     description: "Healthcare Professional Social, Learning & Opportunity Ecosystem",
-    start_url: "/home",
+    start_url: "/",
+    scope: "/",
     display: "standalone",
     background_color: "#faf9f8",
     theme_color: "#0f4c81",

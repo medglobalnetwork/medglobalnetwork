@@ -51,6 +51,7 @@ import {
   type ProfessionSchema,
   type RequirementLevel,
 } from "@/modules/onboarding/config/schemas";
+import { parseFullName } from "@/lib/name-parser";
 
 const DRAFT_STORAGE_KEY = "mgn_onboarding_form_draft";
 
@@ -117,7 +118,20 @@ export default function OnboardingPage() {
           if (p.category) setCategory(p.category);
           if (p.professionOrType) setProfessionOrType(p.professionOrType);
           if (p.studentStage) setStudentStage(p.studentStage);
-          if (p.legalFirstName) setLegalFirstName(p.legalFirstName);
+          if (p.legalFirstName) {
+            if (!p.legalLastName && p.legalFirstName.trim().includes(" ")) {
+              const parsed = parseFullName(p.legalFirstName);
+              setLegalFirstName(
+                parsed.legalMiddleName
+                  ? `${parsed.legalFirstName} ${parsed.legalMiddleName}`.trim()
+                  : parsed.legalFirstName
+              );
+              if (parsed.legalLastName) setLegalLastName(parsed.legalLastName);
+              if (parsed.claimedTitle) setClaimedTitle(parsed.claimedTitle);
+            } else {
+              setLegalFirstName(p.legalFirstName);
+            }
+          }
           if (p.legalMiddleName) setLegalMiddleName(p.legalMiddleName);
           if (p.legalLastName) setLegalLastName(p.legalLastName);
           if (p.displayName) setDisplayName(p.displayName);
@@ -168,7 +182,21 @@ export default function OnboardingPage() {
           if (id.account_type) setAccountType(id.account_type);
           if (id.category) setCategory(id.category);
           if (id.profession_or_type) setProfessionOrType(id.profession_or_type);
-          if (id.legal_first_name) setLegalFirstName(id.legal_first_name);
+          
+          if (id.legal_first_name) {
+            if (!id.legal_last_name && id.legal_first_name.trim().includes(" ")) {
+              const parsed = parseFullName(id.legal_first_name);
+              setLegalFirstName(
+                parsed.legalMiddleName
+                  ? `${parsed.legalFirstName} ${parsed.legalMiddleName}`.trim()
+                  : parsed.legalFirstName
+              );
+              if (parsed.legalLastName) setLegalLastName(parsed.legalLastName);
+              if (parsed.claimedTitle) setClaimedTitle(parsed.claimedTitle);
+            } else {
+              setLegalFirstName(id.legal_first_name);
+            }
+          }
           if (id.legal_middle_name) setLegalMiddleName(id.legal_middle_name);
           if (id.legal_last_name) setLegalLastName(id.legal_last_name);
           if (id.display_name) setDisplayName(id.display_name);

@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import CodeSlots from "@/components/ui/CodeSlots";
 import { getFirebaseAuth, RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from "@/lib/firebase";
+import { parseFullName } from "@/lib/name-parser";
 
 interface PasswordStrength {
   score: number;
@@ -918,9 +919,15 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         };
 
         if (accountType === "INDIVIDUAL") {
+          const parsed = parseFullName(fullName);
           draftPayload.category = "healthcare_professional";
           draftPayload.professionOrType = "doctor";
-          draftPayload.legalFirstName = fullName.trim();
+          draftPayload.claimedTitle = parsed.claimedTitle;
+          draftPayload.legalFirstName = parsed.legalMiddleName
+            ? `${parsed.legalFirstName} ${parsed.legalMiddleName}`.trim()
+            : parsed.legalFirstName;
+          draftPayload.legalMiddleName = parsed.legalMiddleName || "";
+          draftPayload.legalLastName = parsed.legalLastName || "";
         } else {
           draftPayload.category = orgType;
           draftPayload.professionOrType = orgType;

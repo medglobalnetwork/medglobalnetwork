@@ -65,59 +65,85 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Conflict Checks: Ensure email and phone are not already taken
+    // 2. Conflict Checks: Check if email is already taken or is completing an existing signup
     const emailTaken = await checkEmailRegistered(email);
-    if (emailTaken) {
-      return NextResponse.json(
-        { success: false, error: "An account with this email address already exists. Please log in." },
-        { status: 409 }
-      );
-    }
 
-    const phoneUser = await findUserByPhone(phone);
-    if (phoneUser) {
-      return NextResponse.json(
-        { success: false, error: "An account with this mobile number already exists. Please log in." },
-        { status: 409 }
-      );
-    }
-
-    // 3. Mandatory Email Verification Check (Phone OTP verification is bypassed; phone is added directly):
+    // 3. Mandatory Email Verification Check
     let isEmailVerified = await isEmailVerifiedRecently(email);
     if (!isEmailVerified && emailOtp) {
       isEmailVerified = await verifyEmailOtp(email, emailOtp);
     }
     if (!isEmailVerified) {
+      if (emailTaken) {
+        return NextResponse.json(
+          { success: false, error: "An account with this email address already exists. Please log in." },
+          { status: 409 }
+        );
+      }
       return NextResponse.json(
         {
           success: false,
-          error: "Email address has not been verified. Please verify email verification code before creating account.",
+          error: "Email address has not been verified. Please enter the verification code sent to your email.",
           unverifiedField: "email",
         },
         { status: 400 }
       );
     }
 
-    // 5. Create user via Better Auth API
-    let authUserResult: any = null;
-    try {
-      authUserResult = await auth.api.signUpEmail({
-        body: {
-          email,
-          password,
-          name,
-        },
-        headers: reqHeaders,
-      });
-    } catch (authErr: any) {
-      console.error("Better Auth signUpEmail error:", authErr);
+    const phoneUser = await findUserByPhone(phone);
+    if (phoneUser && (!emailTaken || phoneUser.email?.toLowerCase() !== email)) {
       return NextResponse.json(
-        { success: false, error: authErr.message || "Failed to create user credentials." },
-        { status: 400 }
+        { success: false, error: "An account with this mobile number already exists. Please log in." },
+        { status: 409 }
       );
     }
 
-    const createdUser = authUserResult?.user;
+    // 5. Create user via Better Auth API, or reuse existing uncompleted record if email OTP is verified
+    let createdUser: { id: string; email: string; name?: string } | null = null;
+    
+    if (emailTaken) {
+      const existingUserRes = await pool.query(
+        `SELECT id, email, name FROM "user" WHERE LOWER(email) = LOWER($1) LIMIT 1`,
+        [email]
+      );
+      if (existingUserRes.rows.length > 0) {
+        createdUser = existingUserRes.rows[0];
+      }
+    }
+
+    if (!createdUser) {
+      try {
+        const authUserResult = await auth.api.signUpEmail({
+          body: {
+            email,
+            password,
+            name,
+          },
+          headers: reqHeaders,
+        });
+        createdUser = authUserResult?.user || null;
+      } catch (authErr: any) {
+        // If Better Auth says user already exists, fetch the user record
+        if (authErr?.message?.toLowerCase().includes("exists") || authErr?.code === "USER_ALREADY_EXISTS") {
+          const fallbackRes = await pool.query(
+            `SELECT id, email, name FROM "user" WHERE LOWER(email) = LOWER($1) LIMIT 1`,
+            [email]
+          );
+          if (fallbackRes.rows.length > 0) {
+            createdUser = fallbackRes.rows[0];
+          }
+        }
+        
+        if (!createdUser) {
+          console.error("Better Auth signUpEmail error:", authErr);
+          return NextResponse.json(
+            { success: false, error: authErr.message || "Failed to create user credentials." },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     if (!createdUser?.id) {
       return NextResponse.json(
         { success: false, error: "Account creation failed. Please try again." },
@@ -126,28 +152,29 @@ export async function POST(request: Request) {
     }
 
     // 6. Update user in PostgreSQL with verified phone and email status
-    await pool.query(
-      `UPDATE "user" 
-       SET phone = $1, "emailVerified" = TRUE, username = COALESCE(NULLIF($2, ''), username), "updatedAt" = NOW()
-       WHERE id = $3`,
-      [phone, customUsername || null, createdUser.id]
-    );
+    try {
+      await pool.query(
+        `UPDATE "user" 
+         SET phone = $1, "emailVerified" = TRUE, username = COALESCE(NULLIF($2, ''), username), name = COALESCE(NULLIF($3, ''), name), "updatedAt" = NOW()
+         WHERE id = $4`,
+        [phone, customUsername || null, name, createdUser.id]
+      );
+    } catch (userUpErr) {
+      console.warn("Failed to update user phone/emailVerified status:", userUpErr);
+    }
 
     // 7. Update professional_profiles if custom username was provided
     if (customUsername) {
-      await pool.query(
-        `UPDATE professional_profiles 
-         SET username = $1, phone = $2, updated_at = NOW()
-         WHERE user_id = $3`,
-        [customUsername, phone, createdUser.id]
-      );
-    } else {
-      await pool.query(
-        `UPDATE professional_profiles 
-         SET phone = $1, updated_at = NOW()
-         WHERE user_id = $2`,
-        [phone, createdUser.id]
-      );
+      try {
+        await pool.query(
+          `UPDATE professional_profiles 
+           SET username = $1, updated_at = NOW()
+           WHERE user_id = $2`,
+          [customUsername, createdUser.id]
+        );
+      } catch (profErr) {
+        console.warn("Could not update professional profile username:", profErr);
+      }
     }
 
     // 8. Create session in PostgreSQL & prepare response with session cookies
