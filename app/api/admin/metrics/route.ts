@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
       const uRes: any = await sql`SELECT COUNT(*) as count FROM "user"`.execute(database);
       totalUsers = parseInt(uRes?.rows?.[0]?.count || "0", 10);
     } catch {
-      totalUsers = 1;
+      totalUsers = 0;
     }
 
     // 2. Professional Profiles & Verification stats
@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
     try {
       const jRes: any = await sql`
         SELECT 
-          (SELECT COUNT(*) FROM jobs WHERE status = 'active') as jobs_count,
+          (SELECT COUNT(*) FROM jobs WHERE status IN ('active', 'published')) as jobs_count,
           (SELECT COUNT(*) FROM job_applications) as applications_count
       `.execute(database);
       if (jRes?.rows?.[0]) {
@@ -76,7 +76,16 @@ export async function GET(req: NextRequest) {
       // fallback
     }
 
-    // 5. Moderation Reports
+    // 5. Network Posts
+    let totalPosts = 0;
+    try {
+      const npRes: any = await sql`SELECT COUNT(*) as count FROM network_posts`.execute(database);
+      totalPosts = parseInt(npRes?.rows?.[0]?.count || "0", 10);
+    } catch {
+      totalPosts = 0;
+    }
+
+    // 6. Moderation Reports
     let openReports = 0;
     try {
       const mRes: any = await sql`
@@ -87,7 +96,7 @@ export async function GET(req: NextRequest) {
       // fallback
     }
 
-    // 6. Recent Audit Activity
+    // 7. Recent Audit Activity
     let recentAudits = [];
     try {
       const aRes: any = await sql`
@@ -108,6 +117,7 @@ export async function GET(req: NextRequest) {
         totalEnrollments,
         totalJobs,
         totalApplications,
+        totalPosts,
         openReports,
       },
       recentAudits,

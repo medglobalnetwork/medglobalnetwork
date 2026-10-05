@@ -114,8 +114,8 @@ export default function AdminOpportunitiesPage() {
       sortable: true,
       render: (row) => (
         <div>
-          <span className="font-bold text-white leading-tight block">{row.title}</span>
-          <span className="text-[11px] text-slate-400">
+          <span className="font-bold text-slate-900 leading-tight block">{row.title}</span>
+          <span className="text-[11px] text-slate-500">
             {row.organization_name || "Healthcare Institution"} • {row.city || "India"}
           </span>
         </div>
@@ -127,8 +127,8 @@ export default function AdminOpportunitiesPage() {
       sortable: true,
       render: (row) => (
         <div>
-          <span className="text-slate-200 font-medium capitalize">{row.opportunity_type}</span>
-          <p className="text-[11px] text-slate-400">{row.profession} - {row.specialization}</p>
+          <span className="text-slate-800 font-semibold capitalize">{row.opportunity_type}</span>
+          <p className="text-[11px] text-slate-500">{row.profession} - {row.specialization}</p>
         </div>
       ),
     },
@@ -138,7 +138,7 @@ export default function AdminOpportunitiesPage() {
       sortable: true,
       align: "center",
       render: (row) => (
-        <span className="font-bold text-blue-400">{row.applications_count || 0}</span>
+        <span className="font-bold text-blue-600">{row.applications_count || 0}</span>
       ),
     },
     {
@@ -146,13 +146,15 @@ export default function AdminOpportunitiesPage() {
       header: "Status",
       render: (row) => (
         <span
-          className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+          className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
             row.status === "active"
-              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-              : "bg-slate-800 text-slate-400 border border-slate-700"
+              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+              : row.status === "closed"
+              ? "bg-rose-50 text-rose-700 border-rose-200"
+              : "bg-slate-100 text-slate-600 border-slate-200"
           }`}
         >
-          {row.status === "active" ? "Active" : "Closed"}
+          {row.status.toUpperCase()}
         </span>
       ),
     },
@@ -164,13 +166,13 @@ export default function AdminOpportunitiesPage() {
         <button
           type="button"
           onClick={() => handleToggleJobStatus(row.id, row.status)}
-          className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${
+          className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-colors shadow-2xs ${
             row.status === "active"
-              ? "border border-slate-700 bg-slate-800 text-slate-300 hover:text-white"
-              : "bg-blue-600 text-white hover:bg-blue-500"
+              ? "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+              : "bg-blue-600 text-white hover:bg-blue-700 shadow-xs"
           }`}
         >
-          {row.status === "active" ? "Close Job" : "Activate"}
+          {row.status === "active" ? "Close Listing" : "Reopen Job"}
         </button>
       ),
     },
@@ -179,20 +181,22 @@ export default function AdminOpportunitiesPage() {
   const orgColumns: ColumnDef<OrgRecord>[] = [
     {
       key: "name",
-      header: "Hospital / Institution",
+      header: "Organization Name",
       sortable: true,
       render: (row) => (
         <div>
-          <span className="font-bold text-white block">{row.name}</span>
-          <span className="text-[11px] text-slate-400">{row.organization_type}</span>
+          <span className="font-bold text-slate-900 block">{row.name}</span>
+          <span className="text-[11px] text-slate-500 capitalize">{row.organization_type}</span>
         </div>
       ),
     },
     {
-      key: "city",
+      key: "location",
       header: "Location",
       render: (row) => (
-        <span className="text-slate-300">{[row.city, row.state].filter(Boolean).join(", ") || "India"}</span>
+        <span className="text-slate-600">
+          {[row.city, row.state].filter(Boolean).join(", ") || "India"}
+        </span>
       ),
     },
     {
@@ -200,10 +204,10 @@ export default function AdminOpportunitiesPage() {
       header: "Verification",
       render: (row) => (
         <span
-          className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+          className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
             row.verification_status === "verified"
-              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-              : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+              : "bg-amber-50 text-amber-700 border-amber-200"
           }`}
         >
           {row.verification_status === "verified" ? "Verified Hospital ✓" : "Pending Verification"}
@@ -220,7 +224,7 @@ export default function AdminOpportunitiesPage() {
             <button
               type="button"
               onClick={() => handleVerifyOrg(row.id, "verified")}
-              className="rounded-lg bg-blue-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-blue-500"
+              className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-700 shadow-xs"
             >
               Verify Org
             </button>
@@ -228,7 +232,7 @@ export default function AdminOpportunitiesPage() {
             <button
               type="button"
               onClick={() => handleVerifyOrg(row.id, "pending")}
-              className="rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-300 hover:text-white"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-2xs"
             >
               Revoke
             </button>
@@ -239,26 +243,26 @@ export default function AdminOpportunitiesPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-150">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl">
+        <h1 className="text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
           Opportunities & Recruitment Control Plane
         </h1>
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs text-slate-500">
           Manage clinical job postings, internships, candidate pipelines, and verify recruiter organizations.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-800 pb-3">
+      <div className="flex gap-2 border-b border-slate-200 pb-3">
         <button
           type="button"
           onClick={() => setActiveTab("jobs")}
-          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
+          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
             activeTab === "jobs"
-              ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
-              : "text-slate-400 hover:bg-slate-900 hover:text-white"
+              ? "bg-blue-600 text-white shadow-xs"
+              : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
           }`}
         >
           <Briefcase className="h-4 w-4" />
@@ -268,10 +272,10 @@ export default function AdminOpportunitiesPage() {
         <button
           type="button"
           onClick={() => setActiveTab("orgs")}
-          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
+          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
             activeTab === "orgs"
-              ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
-              : "text-slate-400 hover:bg-slate-900 hover:text-white"
+              ? "bg-blue-600 text-white shadow-xs"
+              : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
           }`}
         >
           <Building className="h-4 w-4" />

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   AdminDataTable,
   ColumnDef,
@@ -21,6 +22,7 @@ import {
   Eye,
   CheckCircle,
   XCircle,
+  Folder,
 } from "lucide-react";
 
 import { MemberBadge } from "@/modules/network/components/MemberBadge";
@@ -97,12 +99,14 @@ export default function AdminUsersPage() {
     reason?: string
   ) => {
     try {
-      const res = await fetch(`/api/admin/users/${userId}`, {
-        method: "PATCH",
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "toggle_verification",
-          updates: { type, value },
+          action: "update_verification",
+          userId,
+          type,
+          value,
           reason,
         }),
       });
@@ -113,11 +117,9 @@ export default function AdminUsersPage() {
             prev
               ? {
                   ...prev,
-                  [type === "identity"
-                    ? "identityVerified"
-                    : type === "registration"
-                    ? "registrationVerified"
-                    : "educationVerified"]: value,
+                  ...(type === "registration" && { registrationVerified: value }),
+                  ...(type === "identity" && { identityVerified: value }),
+                  ...(type === "education" && { educationVerified: value }),
                 }
               : null
           );
@@ -128,23 +130,22 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleToggleFounding = async (userId: string, isFounder: boolean, reason?: string) => {
+  const handleToggleFounding = async (userId: string, isFounding: boolean) => {
     try {
       const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "toggle_founding_member",
+          action: "update_founding_status",
           userId,
-          isFoundingMember: isFounder,
-          reason,
+          isFounding,
         }),
       });
       if (res.ok) {
         fetchUsers();
         if (selectedUser && selectedUser.id === userId) {
           setSelectedUser((prev) =>
-            prev ? { ...prev, isFoundingMember: isFounder, membershipTier: isFounder ? "FOUNDING_MEMBER" : "MEMBER" } : null
+            prev ? { ...prev, isFoundingMember: isFounding } : null
           );
         }
         setConfirmDialog((p) => ({ ...p, isOpen: false }));
@@ -212,23 +213,23 @@ export default function AdminUsersPage() {
             <img
               src={row.image}
               alt={row.name}
-              className="h-9 w-9 rounded-full object-cover border border-slate-700 ring-1 ring-slate-800"
+              className="h-9 w-9 rounded-full object-cover border border-slate-200 ring-2 ring-blue-500/20"
             />
           ) : (
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 font-bold text-white text-xs">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 font-bold text-white text-xs shadow-xs">
               {row.name.charAt(0).toUpperCase()}
             </div>
           )}
           <div>
-            <div className="flex items-center gap-1.5 font-bold text-white flex-wrap">
+            <div className="flex items-center gap-1.5 font-bold text-slate-900 flex-wrap">
               <span>{row.name}</span>
               {row.registrationVerified && (
                 <span title="Council Verified">
-                  <ShieldCheck className="h-3.5 w-3.5 text-blue-400" />
+                  <ShieldCheck className="h-3.5 w-3.5 text-blue-600" />
                 </span>
               )}
             </div>
-            <span className="text-[11px] text-slate-400">{row.email}</span>
+            <span className="text-[11px] text-slate-500">{row.email}</span>
           </div>
         </div>
       ),
@@ -252,8 +253,8 @@ export default function AdminUsersPage() {
       sortable: true,
       render: (row) => (
         <div>
-          <span className="font-semibold text-slate-200">{row.profession}</span>
-          <p className="text-[11px] text-slate-400">{row.specialization}</p>
+          <span className="font-semibold text-slate-800">{row.profession}</span>
+          <p className="text-[11px] text-slate-500">{row.specialization}</p>
         </div>
       ),
     },
@@ -263,15 +264,15 @@ export default function AdminUsersPage() {
       render: (row) =>
         row.registrationNumber ? (
           <div>
-            <span className="font-mono text-xs text-blue-300 font-medium">
+            <span className="font-mono text-xs text-blue-600 font-bold">
               {row.registrationNumber}
             </span>
-            <p className="text-[10px] text-slate-400 truncate max-w-[140px]">
+            <p className="text-[10px] text-slate-500 truncate max-w-[140px]">
               {row.medicalCouncil || "State Council"}
             </p>
           </div>
         ) : (
-          <span className="text-slate-500 italic">Not Provided</span>
+          <span className="text-slate-400 italic">Not Provided</span>
         ),
     },
     {
@@ -280,22 +281,22 @@ export default function AdminUsersPage() {
       render: (row) => (
         <div className="flex flex-wrap gap-1">
           {row.registrationVerified ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
-              <CheckCircle className="h-3 w-3" />
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+              <CheckCircle className="h-3 w-3 text-emerald-600" />
               Verified
             </span>
           ) : row.registrationNumber ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400">
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-700">
               Pending KYC
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[10px] font-medium text-slate-400">
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] font-medium text-slate-600">
               Unverified
             </span>
           )}
 
           {row.adminRoles.length > 0 && (
-            <span className="inline-flex items-center rounded-full bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 text-[10px] font-bold text-purple-400">
+            <span className="inline-flex items-center rounded-full bg-purple-50 border border-purple-200 px-2 py-0.5 text-[10px] font-bold text-purple-700">
               {row.adminRoles[0]}
             </span>
           )}
@@ -314,9 +315,9 @@ export default function AdminUsersPage() {
             setSelectedUser(row);
             setDrawerOpen(true);
           }}
-          className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-800/80 px-2.5 py-1.5 text-xs font-semibold text-slate-200 hover:border-slate-700 hover:text-white transition-colors"
+          className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-2xs"
         >
-          <Eye className="h-3.5 w-3.5" />
+          <Eye className="h-3.5 w-3.5 text-slate-500" />
           <span>Inspect</span>
         </button>
       ),
@@ -338,15 +339,24 @@ export default function AdminUsersPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl">
-          Clinicians & User Directory
-        </h1>
-        <p className="mt-1 text-xs text-slate-400">
-          Search, inspect, and manage verified healthcare professionals, credentials, and access roles.
-        </p>
+    <div className="space-y-6 animate-in fade-in duration-150">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
+            Clinicians & User Directory Control Plane
+          </h1>
+          <p className="mt-1 text-xs text-slate-500">
+            Search, inspect, and manage verified healthcare professionals, credentials, and access roles.
+          </p>
+        </div>
+        <Link
+          href="/admin/files"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs rounded-xl w-fit"
+        >
+          <Folder className="size-4 text-amber-300" />
+          <span>Open User File Manager</span>
+        </Link>
       </div>
 
       {/* Main Data Table */}
@@ -374,13 +384,21 @@ export default function AdminUsersPage() {
         footer={
           selectedUser && (
             <>
+              <Link
+                href={`/admin/files?userId=${encodeURIComponent(selectedUser.id)}`}
+                className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100 shadow-2xs inline-flex items-center gap-1.5"
+              >
+                <Folder className="size-3.5 text-amber-500" />
+                <span>Open Folder Explorer</span>
+              </Link>
+
               {selectedUser.registrationVerified ? (
                 <button
                   type="button"
                   onClick={() =>
                     handleToggleVerification(selectedUser.id, "registration", false, "Admin revocation")
                   }
-                  className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-400 hover:bg-rose-500/20"
+                  className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-100 shadow-2xs"
                 >
                   Revoke Verification Badge
                 </button>
@@ -390,7 +408,7 @@ export default function AdminUsersPage() {
                   onClick={() =>
                     handleToggleVerification(selectedUser.id, "registration", true, "Verified by Admin")
                   }
-                  className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-500 shadow-md"
+                  className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 shadow-xs"
                 >
                   Approve & Issue Verification Badge
                 </button>
@@ -400,39 +418,39 @@ export default function AdminUsersPage() {
         }
       >
         {selectedUser && (
-          <div className="space-y-6 text-xs text-slate-300">
+          <div className="space-y-6 text-xs text-slate-700">
             {/* User Profile Card */}
-            <div className="flex items-center gap-4 rounded-2xl border border-slate-800 bg-slate-950 p-4">
+            <div className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
               {selectedUser.image ? (
                 <img
                   src={selectedUser.image}
                   alt={selectedUser.name}
-                  className="h-16 w-16 rounded-2xl object-cover border border-slate-700 ring-2 ring-blue-500/20"
+                  className="h-16 w-16 rounded-2xl object-cover border border-slate-200 ring-2 ring-blue-500/20 shadow-xs"
                 />
               ) : (
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 font-black text-white text-xl">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 font-black text-white text-xl shadow-xs">
                   {selectedUser.name.charAt(0).toUpperCase()}
                 </div>
               )}
 
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base font-bold text-white">{selectedUser.name}</h3>
+                  <h3 className="text-base font-bold text-slate-900">{selectedUser.name}</h3>
                   {selectedUser.registrationVerified && (
-                    <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+                    <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
                       Council Verified ✓
                     </span>
                   )}
                 </div>
-                <p className="text-slate-400">{selectedUser.email}</p>
-                <p className="mt-1 font-medium text-blue-400">
+                <p className="text-slate-500">{selectedUser.email}</p>
+                <p className="mt-1 font-semibold text-blue-600">
                   {selectedUser.profession} • {selectedUser.specialization}
                 </p>
               </div>
             </div>
 
             {/* Member ID & Founding Tier */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-3">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3 shadow-xs">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
                   MGN Member Identity & Tier
@@ -446,16 +464,16 @@ export default function AdminUsersPage() {
                 )}
               </div>
 
-              <div className="flex items-center justify-between rounded-xl border border-slate-800/80 bg-slate-900/60 p-3">
+              <div className="flex items-center justify-between rounded-xl border border-slate-200/90 bg-slate-50/70 p-3">
                 <div>
-                  <span className="font-semibold text-white">Member ID</span>
+                  <span className="font-bold text-slate-900">Member ID</span>
                   {editingMemberId ? (
                     <div className="mt-1 flex items-center gap-2">
                       <input
                         type="text"
                         value={customMemberIdInput}
                         onChange={(e) => setCustomMemberIdInput(e.target.value)}
-                        className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-1 font-mono text-xs text-white uppercase focus:border-blue-500 focus:outline-none"
+                        className="rounded-lg border border-slate-300 bg-white px-2 py-1 font-mono text-xs text-slate-900 uppercase focus:border-blue-500 focus:outline-none shadow-2xs"
                         placeholder="e.g. MGN-FOUNDER-001"
                       />
                       <button
@@ -463,20 +481,20 @@ export default function AdminUsersPage() {
                         onClick={() => {
                           handleUpdateMemberId(selectedUser.id, customMemberIdInput);
                         }}
-                        className="rounded-lg bg-blue-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-blue-500"
+                        className="rounded-lg bg-blue-600 px-2.5 py-1 text-xs font-bold text-white hover:bg-blue-700 shadow-2xs"
                       >
                         Save
                       </button>
                       <button
                         type="button"
                         onClick={() => setEditingMemberId(false)}
-                        className="rounded-lg bg-slate-700 px-2 py-1 text-xs text-slate-300 hover:text-white"
+                        className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50"
                       >
                         Cancel
                       </button>
                     </div>
                   ) : (
-                    <p className="font-mono text-sm font-bold text-blue-400">
+                    <p className="font-mono text-sm font-bold text-blue-600">
                       {selectedUser.memberId || "Pending Allocation"}
                     </p>
                   )}
@@ -488,17 +506,17 @@ export default function AdminUsersPage() {
                       setCustomMemberIdInput(selectedUser.memberId || "");
                       setEditingMemberId(true);
                     }}
-                    className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white"
+                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-2xs"
                   >
                     Edit ID
                   </button>
                 )}
               </div>
 
-              <div className="flex items-center justify-between rounded-xl border border-slate-800/80 bg-slate-900/60 p-3">
+              <div className="flex items-center justify-between rounded-xl border border-slate-200/90 bg-slate-50/70 p-3">
                 <div>
-                  <span className="font-semibold text-white">Founding Member Status</span>
-                  <p className="text-[11px] text-slate-400">
+                  <span className="font-bold text-slate-900">Founding Member Status</span>
+                  <p className="text-[11px] text-slate-500">
                     {selectedUser.isFoundingMember
                       ? "Designated Founding Member with exclusive crown identity"
                       : "Regular Verified Member"}
@@ -518,10 +536,10 @@ export default function AdminUsersPage() {
                       action: () => handleToggleFounding(selectedUser.id, !selectedUser.isFoundingMember),
                     });
                   }}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all shadow-2xs ${
                     selectedUser.isFoundingMember
-                      ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                      : "bg-slate-800 text-slate-400 hover:text-white"
+                      ? "bg-amber-50 text-amber-800 border border-amber-300"
+                      : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   {selectedUser.isFoundingMember ? "👑 Founding Member (Active)" : "Make Founding Member"}
@@ -530,33 +548,33 @@ export default function AdminUsersPage() {
             </div>
 
             {/* Credential Details */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-3">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3 shadow-xs">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Medical Council & Credentials
               </h4>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-[11px] text-slate-500">Medical Council</span>
-                  <p className="font-semibold text-white">
+                  <span className="text-[11px] font-semibold text-slate-400">Medical Council</span>
+                  <p className="font-bold text-slate-900">
                     {selectedUser.medicalCouncil || "Not specified"}
                   </p>
                 </div>
                 <div>
-                  <span className="text-[11px] text-slate-500">Registration Number</span>
-                  <p className="font-mono font-semibold text-blue-300">
+                  <span className="text-[11px] font-semibold text-slate-400">Registration Number</span>
+                  <p className="font-mono font-bold text-blue-600">
                     {selectedUser.registrationNumber || "Not provided"}
                   </p>
                 </div>
                 <div>
-                  <span className="text-[11px] text-slate-500">Hospital / Organization</span>
-                  <p className="font-semibold text-white">
+                  <span className="text-[11px] font-semibold text-slate-400">Hospital / Organization</span>
+                  <p className="font-bold text-slate-900">
                     {selectedUser.organization || "Independent Practice"}
                   </p>
                 </div>
                 <div>
-                  <span className="text-[11px] text-slate-500">Location</span>
-                  <p className="font-semibold text-white">
+                  <span className="text-[11px] font-semibold text-slate-400">Location</span>
+                  <p className="font-bold text-slate-900">
                     {[selectedUser.city, selectedUser.state].filter(Boolean).join(", ") || "India"}
                   </p>
                 </div>
@@ -564,16 +582,16 @@ export default function AdminUsersPage() {
             </div>
 
             {/* Granular Verification Toggles */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-3">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3 shadow-xs">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Verification Checkpoints
               </h4>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between rounded-xl border border-slate-800/80 bg-slate-900/60 p-3">
+                <div className="flex items-center justify-between rounded-xl border border-slate-200/90 bg-slate-50/70 p-3">
                   <div>
-                    <span className="font-semibold text-white">Medical Council Registration</span>
-                    <p className="text-[11px] text-slate-400">NMC / State Council registry matching</p>
+                    <span className="font-bold text-slate-900">Medical Council Registration</span>
+                    <p className="text-[11px] text-slate-500">NMC / State Council registry matching</p>
                   </div>
                   <button
                     type="button"
@@ -584,20 +602,20 @@ export default function AdminUsersPage() {
                         !selectedUser.registrationVerified
                       )
                     }
-                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
+                    className={`rounded-xl px-3 py-1.5 text-xs font-bold shadow-2xs ${
                       selectedUser.registrationVerified
-                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                        : "bg-slate-800 text-slate-400 hover:text-white"
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
                     }`}
                   >
                     {selectedUser.registrationVerified ? "Verified ✓" : "Mark Verified"}
                   </button>
                 </div>
 
-                <div className="flex items-center justify-between rounded-xl border border-slate-800/80 bg-slate-900/60 p-3">
+                <div className="flex items-center justify-between rounded-xl border border-slate-200/90 bg-slate-50/70 p-3">
                   <div>
-                    <span className="font-semibold text-white">Identity Verification</span>
-                    <p className="text-[11px] text-slate-400">Government ID & Photo match</p>
+                    <span className="font-bold text-slate-900">Identity Verification</span>
+                    <p className="text-[11px] text-slate-500">Government ID & Photo match</p>
                   </div>
                   <button
                     type="button"
@@ -608,10 +626,10 @@ export default function AdminUsersPage() {
                         !selectedUser.identityVerified
                       )
                     }
-                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
+                    className={`rounded-xl px-3 py-1.5 text-xs font-bold shadow-2xs ${
                       selectedUser.identityVerified
-                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                        : "bg-slate-800 text-slate-400 hover:text-white"
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
                     }`}
                   >
                     {selectedUser.identityVerified ? "Verified ✓" : "Mark Verified"}
@@ -621,7 +639,7 @@ export default function AdminUsersPage() {
             </div>
 
             {/* Administrative Roles (RBAC) */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-3">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3 shadow-xs">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Administrative Roles
               </h4>
@@ -651,10 +669,10 @@ export default function AdminUsersPage() {
                           action: () => handleAssignRole(selectedUser.id, role),
                         });
                       }}
-                      className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
+                      className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition-all shadow-2xs ${
                         hasRole
-                          ? "bg-purple-500/20 border-purple-500/40 text-purple-300"
-                          : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-white"
+                          ? "bg-purple-50 border-purple-200 text-purple-700"
+                          : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
                       }`}
                     >
                       {hasRole ? `✓ ${role}` : `+ ${role}`}

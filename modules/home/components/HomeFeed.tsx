@@ -10,12 +10,16 @@ import {
   ShieldCheck,
   Sparkles,
   Users,
+  MapPin,
+  RefreshCw,
 } from "lucide-react";
 import { PostCard } from "@/modules/network/components/PostCard";
 import { CreatePost } from "@/modules/network/components/CreatePost";
 import { EmptyState } from "@/modules/network/components/EmptyState";
 import { PostCardSkeleton } from "@/modules/network/components/SkeletonLoader";
 import type { NetworkPost } from "@/modules/network/types";
+import { useLocationTracking } from "@/lib/use-location-tracking";
+import { CitySelectorModal } from "@/components/location/CitySelectorModal";
 
 interface HomeFeedProps {
   currentUserId?: string;
@@ -29,7 +33,7 @@ export function HomeFeed({
   currentUserName = "You",
 }: HomeFeedProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = React.useState<"for_you" | "following" | "communities">("for_you");
+  const [activeTab, setActiveTab] = React.useState<"for_you" | "nearby" | "following" | "communities">("for_you");
   const [filterType, setFilterType] = React.useState("All Content");
   const [posts, setPosts] = React.useState<NetworkPost[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -37,11 +41,27 @@ export function HomeFeed({
   const [hasMore, setHasMore] = React.useState(false);
   const [recommendedConnected, setRecommendedConnected] = React.useState(false);
 
+  const {
+    location,
+    isLoading: isLocationLoading,
+    requestLocation,
+    setManualCity,
+  } = useLocationTracking();
+  const [isCityModalOpen, setIsCityModalOpen] = React.useState(false);
+
   const fetchPosts = React.useCallback(
     async (targetPage = 1, append = false, tab = activeTab) => {
       setIsLoading(true);
       try {
-        const feedParam = tab === "following" ? "&feed=following" : "";
+        let feedParam = "";
+        if (tab === "following") {
+          feedParam = "&feed=following";
+        } else if (tab === "nearby") {
+          feedParam = "&feed=nearby";
+          if (location?.city) feedParam += `&city=${encodeURIComponent(location.city)}`;
+          if (location?.state) feedParam += `&state=${encodeURIComponent(location.state)}`;
+          if (location?.lat && location?.lng) feedParam += `&lat=${location.lat}&lng=${location.lng}`;
+        }
         const res = await fetch(`/api/network/posts?page=${targetPage}&pageSize=15${feedParam}`);
         if (!res.ok) {
           setIsLoading(false);
@@ -68,7 +88,7 @@ export function HomeFeed({
         setIsLoading(false);
       }
     },
-    [activeTab]
+    [activeTab, location?.city, location?.state, location?.lat, location?.lng]
   );
 
   React.useEffect(() => {
@@ -92,6 +112,7 @@ export function HomeFeed({
       {/* 1. SOCIAL POST COMPOSER */}
       <CreatePost
         onPosted={handlePostCreated}
+        userId={currentUserId}
         userImage={currentUserAvatar || undefined}
         userName={currentUserName}
         borderless={true}
@@ -111,6 +132,21 @@ export function HomeFeed({
           >
             For You
             {activeTab === "for_you" && (
+              <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#0f4c81]" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("nearby")}
+            className={`relative pb-3 text-sm font-bold transition flex items-center gap-1 ${
+              activeTab === "nearby"
+                ? "text-[#0f4c81]"
+                : "text-[#77716b] hover:text-[#171717]"
+            }`}
+          >
+            <span>📍 Nearby</span>
+            {activeTab === "nearby" && (
               <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#0f4c81]" />
             )}
           </button>
@@ -168,7 +204,7 @@ export function HomeFeed({
               <span className="text-[11px] text-white/80 font-medium">Healthcare Innovation Summit</span>
             </div>
             <h3 className="font-extrabold text-sm sm:text-base text-white tracking-tight leading-snug">
-              Expand Your Medical Network with 50,000+ Verified Clinicians
+              Expand Your Medical Network with Verified Clinicians
             </h3>
             <p className="text-xs text-white/85 line-clamp-2 max-w-xl">
               Connect with leading healthcare specialists, participate in accredited CME webinars, and explore cutting-edge clinical opportunities.
@@ -185,6 +221,60 @@ export function HomeFeed({
           </div>
         </div>
       </div>
+
+      {/* NEARBY LOCATION BAR (WHEN NEARBY TAB IS ACTIVE) */}
+      {activeTab === "nearby" && (
+        <div className="rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#0f4c81]/10 text-[#0f4c81] dark:bg-[#0f4c81]/25 dark:text-blue-400">
+              <MapPin className="size-4.5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs sm:text-sm font-bold text-[#171717] dark:text-[#f0f6fc] truncate">
+                  {location?.city ? `Local Posts in ${location.city}` : "Detecting local medical feed..."}
+                </span>
+                {location?.source === "gps" && (
+                  <span className="rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-1.5 py-0.2 text-[9px] font-bold">
+                    GPS
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-[#77716b] dark:text-[#8b949e] truncate">
+                {location?.state
+                  ? `Clinical updates from healthcare practitioners in ${location.city}, ${location.state}`
+                  : "Personalized based on your detected location"}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+            <button
+              type="button"
+              onClick={() => setIsCityModalOpen(true)}
+              className="rounded-lg px-2.5 py-1 text-xs font-semibold text-[#0f4c81] dark:text-blue-400 hover:bg-[#0f4c81]/10 transition"
+            >
+              Change City
+            </button>
+            <button
+              type="button"
+              onClick={() => requestLocation()}
+              disabled={isLocationLoading}
+              title="Refresh GPS"
+              className="rounded-lg p-1.5 text-[#77716b] hover:bg-black/5 dark:hover:bg-white/5 transition"
+            >
+              <RefreshCw className={`size-3.5 ${isLocationLoading ? "animate-spin" : ""}`} />
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/suggestions")}
+              className="rounded-xl bg-[#0f4c81] px-3 py-1.5 text-xs font-bold text-white shadow-2xs hover:bg-[#0c3c66] transition inline-flex items-center gap-1"
+            >
+              Hub <ArrowRight className="size-3" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {isLoading && posts.length === 0 ? (
         <div className="space-y-4">
@@ -218,6 +308,15 @@ export function HomeFeed({
           )}
         </div>
       )}
+
+      <CitySelectorModal
+        isOpen={isCityModalOpen}
+        onClose={() => setIsCityModalOpen(false)}
+        currentCity={location?.city}
+        onSelectCity={(city) => {
+          setManualCity(city.name, city.state, city.lat, city.lng);
+        }}
+      />
     </div>
   );
 }

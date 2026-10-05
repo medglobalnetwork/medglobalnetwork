@@ -46,7 +46,7 @@ export default function AdminAuditLogsPage() {
       header: "Timestamp",
       sortable: true,
       render: (row) => (
-        <div className="font-mono text-xs text-slate-300">
+        <div className="font-mono text-xs text-slate-500 font-medium">
           {new Date(row.created_at).toLocaleString()}
         </div>
       ),
@@ -57,8 +57,8 @@ export default function AdminAuditLogsPage() {
       sortable: true,
       render: (row) => (
         <div>
-          <span className="font-semibold text-white">{row.admin_email}</span>
-          <span className="text-[10px] text-blue-400 block font-mono">
+          <span className="font-bold text-slate-900">{row.admin_email}</span>
+          <span className="text-[10px] text-blue-600 block font-mono font-bold mt-0.5">
             {row.admin_role}
           </span>
         </div>
@@ -69,7 +69,7 @@ export default function AdminAuditLogsPage() {
       header: "Action Executed",
       sortable: true,
       render: (row) => (
-        <span className="font-mono text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
+        <span className="font-mono text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-md font-bold">
           {row.action}
         </span>
       ),
@@ -80,8 +80,8 @@ export default function AdminAuditLogsPage() {
       sortable: true,
       render: (row) => (
         <div>
-          <span className="capitalize text-slate-200 font-medium">{row.entity_type}</span>
-          <span className="text-[10px] text-slate-500 block font-mono">
+          <span className="capitalize text-slate-800 font-bold">{row.entity_type}</span>
+          <span className="text-[10px] text-slate-400 block font-mono">
             ID: {row.entity_id}
           </span>
         </div>
@@ -91,7 +91,7 @@ export default function AdminAuditLogsPage() {
       key: "reason",
       header: "Administrative Rationale",
       render: (row) => (
-        <span className="text-slate-400 text-xs truncate max-w-xs block">
+        <span className="text-slate-600 text-xs truncate max-w-xs block font-medium">
           {row.reason || "Standard system operation"}
         </span>
       ),
@@ -113,13 +113,13 @@ export default function AdminAuditLogsPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-150">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl">
+        <h1 className="text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
           Immutable Audit Ledger & Compliance Trail
         </h1>
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs text-slate-500">
           Tamper-proof record of all administrative state modifications, verification decisions, and role grants.
         </p>
       </div>

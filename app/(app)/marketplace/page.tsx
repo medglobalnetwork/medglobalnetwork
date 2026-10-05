@@ -165,7 +165,7 @@ export default function MarketplacePage() {
           <div>
             <h4 className="text-xs font-bold text-[#171717]">Are you a verified medical manufacturer or distributor?</h4>
             <p className="text-[11px] text-[#77716b] mt-0.5">
-              Partner with MGN to showcase certified clinical products to over 50,000+ verified healthcare professionals.
+              Partner with MGN to showcase certified clinical products to verified healthcare professionals across India.
             </p>
           </div>
           <button

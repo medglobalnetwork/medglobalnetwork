@@ -148,7 +148,7 @@ export async function generateCandidates(
     if (candidateMap.size >= 10) return Array.from(candidateMap.values());
   }
 
-  if (category === "location-based" && (userProfile?.city || userProfile?.state)) {
+  if (category === "location-based") {
     const locCandidates = await getLocationCandidates(userId, userProfile, excludedUserIds);
     locCandidates.forEach((c) => addCandidate(c, "location"));
     if (candidateMap.size >= 10) return Array.from(candidateMap.values());
@@ -236,7 +236,7 @@ export async function generateCandidates(
   }
 
   // Source G: Location & Regional Relevance
-  if (sourceConfig.enable_location && (userProfile?.city || userProfile?.state)) {
+  if (sourceConfig.enable_location) {
     tasks.push(
       getLocationCandidates(userId, userProfile, excludedUserIds)
         .then((list) => {
@@ -902,9 +902,33 @@ async function getLocationCandidates(
   userProfile: any,
   excludedIds: Set<string>
 ): Promise<RecommendationCandidate[]> {
-  const city = userProfile?.city || null;
-  const state = userProfile?.state || null;
-  if (!city && !state) return [];
+  let city = userProfile?.city || null;
+  let state = userProfile?.state || null;
+  let lat: number | null = userProfile?.latitude ? Number(userProfile.latitude) : null;
+  let lng: number | null = userProfile?.longitude ? Number(userProfile.longitude) : null;
+
+  // If user profile is missing location, query tracked user_locations table
+  if (!city && !state && userId && userId !== "guest") {
+    try {
+      const locRaw: any = await sql`
+        SELECT city, state, latitude, longitude
+        FROM user_locations
+        WHERE user_id = ${userId} AND is_active = true
+        ORDER BY updated_at DESC
+        LIMIT 1;
+      `.execute(networkDb);
+      if (locRaw?.rows?.[0]) {
+        city = locRaw.rows[0].city || null;
+        state = locRaw.rows[0].state || null;
+        lat = locRaw.rows[0].latitude ? Number(locRaw.rows[0].latitude) : null;
+        lng = locRaw.rows[0].longitude ? Number(locRaw.rows[0].longitude) : null;
+      }
+    } catch {
+      // Non-fatal if query fails
+    }
+  }
+
+  if (!city && !state && (lat == null || lng == null)) return [];
 
   const raw: any = await sql`
     SELECT 
@@ -936,8 +960,15 @@ async function getLocationCandidates(
     JOIN "user" u ON u.id = pp.user_id
     WHERE pp.user_id <> ${userId}
       AND (
-        (${city} IS NOT NULL AND pp.city ILIKE ${city})
-        OR (${state} IS NOT NULL AND pp.state ILIKE ${state})
+        (${city} IS NOT NULL AND pp.city ILIKE ${'%' + city + '%'})
+        OR (${state} IS NOT NULL AND pp.state ILIKE ${'%' + state + '%'})
+        OR (
+          ${lat != null && lng != null ? sql`
+            pp.latitude IS NOT NULL AND pp.longitude IS NOT NULL
+            AND ABS(pp.latitude - ${lat}) <= 0.6
+            AND ABS(pp.longitude - ${lng}) <= 0.6
+          ` : sql`1=0`}
+        )
       )
       AND (pp.profile_visibility IS NULL OR pp.profile_visibility <> 'private')
     ORDER BY pp.identity_verified DESC, pp.created_at DESC

@@ -20,6 +20,9 @@ export async function getRecommendationAnalytics(
       feedbackStats,
       categoryStats,
       sourceStats,
+      categoryFeedbackStats,
+      coldStartImpStats,
+      coldStartFbStats,
     ] = await Promise.all([
       // 1. Total Impressions
       recDb
@@ -51,6 +54,31 @@ export async function getRecommendationAnalytics(
         .where("created_at", ">=", since)
         .groupBy("source")
         .execute(),
+
+      // 5. Positive feedback by category
+      recDb
+        .selectFrom("recommendation_feedback")
+        .select(["category", sql<string>`count(*)`.as("count")])
+        .where("created_at", ">=", since)
+        .where("feedback_type", "in", ["profile_open", "connect_request", "connect_accept", "follow"])
+        .groupBy("category")
+        .execute(),
+
+      // 6. Cold start impressions
+      recDb
+        .selectFrom("recommendation_impressions")
+        .select(sql<string>`count(*)`.as("count"))
+        .where("created_at", ">=", since)
+        .where(sql<boolean>`reasons::text ILIKE '%cold_start%'`)
+        .executeTakeFirst(),
+
+      // 7. Cold start positive feedback
+      recDb
+        .selectFrom("recommendation_feedback")
+        .select(sql<string>`count(*)`.as("count"))
+        .where("created_at", ">=", since)
+        .where("reason", "=", "cold_start")
+        .executeTakeFirst(),
     ]);
 
     const totalImpressions = parseInt(impressionStats?.count || "0", 10);
@@ -60,19 +88,24 @@ export async function getRecommendationAnalytics(
       feedbackMap.set(f.feedback_type, parseInt(f.count, 10) || 0);
     }
 
-    const totalProfileOpens = feedbackMap.get("profile_open") || Math.round(totalImpressions * 0.18);
-    const totalConnectRequests = feedbackMap.get("connect_request") || Math.round(totalImpressions * 0.08);
-    const totalConnectAccepts = feedbackMap.get("connect_accept") || Math.round(totalConnectRequests * 0.65);
-    const totalFollows = feedbackMap.get("follow") || Math.round(totalImpressions * 0.05);
-    const totalDismissals = feedbackMap.get("dismiss") || 0;
-    const totalNotInterested = feedbackMap.get("not_interested") || 0;
+    const categoryConvMap = new Map<string, number>();
+    for (const cf of categoryFeedbackStats) {
+      if (cf.category) {
+        categoryConvMap.set(cf.category, parseInt(cf.count, 10) || 0);
+      }
+    }
 
-    const baseImp = Math.max(1, totalImpressions);
+    const totalProfileOpens = feedbackMap.get("profile_open") ?? 0;
+    const totalConnectRequests = feedbackMap.get("connect_request") ?? 0;
+    const totalConnectAccepts = feedbackMap.get("connect_accept") ?? 0;
+    const totalFollows = feedbackMap.get("follow") ?? 0;
+    const totalDismissals = feedbackMap.get("dismiss") ?? 0;
+    const totalNotInterested = feedbackMap.get("not_interested") ?? 0;
 
     const categoryBreakdown: Record<string, { impressions: number; conversions: number; rate: number }> = {};
     for (const c of categoryStats) {
       const imp = parseInt(c.count, 10) || 0;
-      const conv = Math.round(imp * 0.12);
+      const conv = categoryConvMap.get(c.recommendation_type) ?? 0;
       categoryBreakdown[c.recommendation_type] = {
         impressions: imp,
         conversions: conv,
@@ -80,16 +113,21 @@ export async function getRecommendationAnalytics(
       };
     }
 
+    const totalConversions = totalProfileOpens + totalConnectRequests + totalFollows;
     const sourceBreakdown: Record<string, { impressions: number; conversions: number; rate: number }> = {};
     for (const s of sourceStats) {
       const imp = parseInt(s.count, 10) || 0;
-      const conv = Math.round(imp * 0.14);
+      // Proportional conversion allocation if source feedback is not directly tagged with source column
+      const conv = totalImpressions > 0 ? Math.round((imp / totalImpressions) * totalConversions) : 0;
       sourceBreakdown[s.source] = {
         impressions: imp,
         conversions: conv,
         rate: imp > 0 ? Math.round((conv / imp) * 1000) / 10 : 0,
       };
     }
+
+    const coldStartImpressions = parseInt(coldStartImpStats?.count || "0", 10);
+    const coldStartConversions = parseInt(coldStartFbStats?.count || "0", 10);
 
     return {
       totalImpressions,
@@ -99,18 +137,18 @@ export async function getRecommendationAnalytics(
       totalFollows,
       totalDismissals,
       totalNotInterested,
-      ctr: Math.round((totalProfileOpens / baseImp) * 1000) / 10,
-      connectRequestRate: Math.round((totalConnectRequests / baseImp) * 1000) / 10,
+      ctr: totalImpressions > 0 ? Math.round((totalProfileOpens / totalImpressions) * 1000) / 10 : 0,
+      connectRequestRate: totalImpressions > 0 ? Math.round((totalConnectRequests / totalImpressions) * 1000) / 10 : 0,
       connectAcceptRate: totalConnectRequests > 0 ? Math.round((totalConnectAccepts / totalConnectRequests) * 1000) / 10 : 0,
-      followRate: Math.round((totalFollows / baseImp) * 1000) / 10,
-      dismissRate: Math.round((totalDismissals / baseImp) * 1000) / 10,
-      notInterestedRate: Math.round((totalNotInterested / baseImp) * 1000) / 10,
+      followRate: totalImpressions > 0 ? Math.round((totalFollows / totalImpressions) * 1000) / 10 : 0,
+      dismissRate: totalImpressions > 0 ? Math.round((totalDismissals / totalImpressions) * 1000) / 10 : 0,
+      notInterestedRate: totalImpressions > 0 ? Math.round((totalNotInterested / totalImpressions) * 1000) / 10 : 0,
       categoryBreakdown,
       sourceBreakdown,
       coldStartMetrics: {
-        impressions: Math.round(totalImpressions * 0.25),
-        conversions: Math.round(totalImpressions * 0.25 * 0.09),
-        rate: 9.0,
+        impressions: coldStartImpressions,
+        conversions: coldStartConversions,
+        rate: coldStartImpressions > 0 ? Math.round((coldStartConversions / coldStartImpressions) * 1000) / 10 : 0,
       },
     };
   } catch (err) {

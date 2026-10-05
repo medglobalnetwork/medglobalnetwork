@@ -12,6 +12,7 @@ import { IncomingCallListener } from "@/modules/communication/components/Incomin
 import { initNativeApp, syncPushToken } from "@/lib/native-mobile";
 import { AskAIModal } from "@/modules/learn/components/AskAIModal";
 import { AskAIContext } from "@/modules/learn/types";
+import { LocationTracker } from "@/components/location/LocationTracker";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -141,6 +142,9 @@ export function AppShell({ children }: AppShellProps) {
 
       {/* Incoming 1:1 calls — push driven, with a polling fallback */}
       <IncomingCallListener />
+
+      {/* Global Location Auto-Tracker & Geospatial Sync */}
+      <LocationTracker />
 
       {/* 1. SIDEBAR (Desktop fixed side-nav + Mobile slide-over drawer) */}
       <AppSidebar

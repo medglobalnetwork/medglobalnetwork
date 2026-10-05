@@ -14,6 +14,7 @@ import { StoriesBar } from "@/modules/home/components/StoriesBar";
 import { QuickLinksBar } from "@/modules/home/components/QuickLinksBar";
 import { HomeFeed } from "@/modules/home/components/HomeFeed";
 import { PeopleYouMayKnow } from "@/modules/network/components/PeopleYouMayKnow";
+import { LocationSuggestionsWidget } from "@/components/location/LocationSuggestionsWidget";
 import { AppPageSkeleton } from "@/components/AppPageSkeleton";
 
 export default function HomePage() {
@@ -184,7 +185,7 @@ export default function HomePage() {
                   </p>
                 </div>
                 <h5 className="font-bold text-xs text-[#171717] mb-1 text-balance">
-                  Reach 50,000+ Medical Professionals
+                  Reach Verified Medical Professionals
                 </h5>
                 <p className="text-[11px] text-[#77716b] mb-3.5 leading-relaxed text-pretty">
                   Showcase your medical devices, pharmaceuticals, or hospital programs directly to clinicians.
@@ -199,7 +200,10 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* 2. DYNAMIC PEOPLE YOU MAY KNOW WIDGET (BORDERLESS) */}
+            {/* 2. LOCATION SUGGESTIONS WIDGET (NEARBY LOG, CAMPS, JOBS, POSTS) */}
+            <LocationSuggestionsWidget currentUserId={session.user.id} limit={3} />
+
+            {/* 3. DYNAMIC PEOPLE YOU MAY KNOW WIDGET (BORDERLESS) */}
             <PeopleYouMayKnow currentUserId={session.user.id} limit={4} borderless={true} />
 
             {/* 4. UPGRADE TO MGN PRO CARD */}

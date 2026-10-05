@@ -5,6 +5,7 @@ import { StoryGroup } from "../types";
 import { CreateStoryModal } from "./CreateStoryModal";
 import { StoryViewerModal } from "./StoryViewerModal";
 import { Plus } from "lucide-react";
+import { UserAvatar } from "@/components/UserAvatar";
 
 interface StoriesBarProps {
   currentUserId?: string;
@@ -111,16 +112,13 @@ export function StoriesBar({
                   : "bg-slate-100"
               }`}
             >
-              <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-white bg-[#f0efee] text-xs font-bold text-[#0f4c81]">
-                {currentUserAvatar ? (
-                  <img
-                    src={currentUserAvatar}
-                    alt={currentUserName}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  currentUserName.slice(0, 2).toUpperCase()
-                )}
+              <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-white text-xs font-bold">
+                <UserAvatar
+                  src={currentUserAvatar}
+                  name={currentUserName}
+                  userId={currentUserId}
+                  className="h-full w-full"
+                />
               </div>
             </button>
 

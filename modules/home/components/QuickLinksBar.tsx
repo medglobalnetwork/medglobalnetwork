@@ -158,14 +158,18 @@ export function QuickLinksBar() {
       fallbackIcon: <ShoppingBag className="size-full stroke-[1.9]" />,
     },
     {
-      id: "ai-assistant",
-      title: "AI Assistant",
-      href: "#ai-assistant-section",
-      iconId: "YxCw7An8DYqf",
+      id: "nearby",
+      title: "Nearby",
+      href: "/suggestions",
       colorHex: "000000",
       fallbackClass: "text-black dark:text-white",
       hoverClass: "group-hover:text-black dark:group-hover:text-white",
-      fallbackIcon: <Sparkles className="size-full stroke-[1.9]" />,
+      fallbackIcon: (
+        <svg viewBox="0 0 24 24" className="size-full" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+        </svg>
+      ),
     },
   ];
 

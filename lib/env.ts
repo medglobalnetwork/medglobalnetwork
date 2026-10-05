@@ -81,12 +81,13 @@ export const serverConfig = {
   // Admin Config
   adminEmails: (process.env.ADMIN_EMAILS || "")
     .split(",")
+    .concat(["patreshubham141@gmail.com", "patresweeti@gmail.com"])
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean),
 
-  adminPhones: (process.env.ADMIN_PHONES || "6263585180")
+  adminPhones: (process.env.ADMIN_PHONES || "")
     .split(",")
-    .concat(["6263585180"])
+    .concat(["6263585180", "7987522275"])
     .map((p) => p.trim().replace(/\D/g, ""))
     .filter(Boolean),
 

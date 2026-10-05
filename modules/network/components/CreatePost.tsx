@@ -16,8 +16,10 @@ import type { PostType } from "../types";
 import { useMediaUpload } from "@/lib/use-media-upload";
 import CallChip from "@/components/ui/CallChip";
 import ProgressBar from "@/components/ProgressBar";
+import { UserAvatar } from "@/components/UserAvatar";
 
 interface CreatePostProps {
+  userId?: string;
   userImage?: string;
   userName?: string;
   onPosted?: () => void;
@@ -26,6 +28,7 @@ interface CreatePostProps {
 }
 
 export function CreatePost({
+  userId,
   userImage,
   userName,
   onPosted,
@@ -56,13 +59,6 @@ export function CreatePost({
       setCallStatus("error");
     },
   });
-
-  const initials = (userName || "U")
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
 
   const handleTriggerFileInput = (type: "image" | "video" | "document") => {
     setExpanded(true);
@@ -177,17 +173,12 @@ export function CreatePost({
 
       <div className="flex items-start gap-3">
         {/* User Avatar */}
-        <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#eef5fc] dark:bg-[#1f2d42] text-xs sm:text-sm font-bold text-[#0f4c81] dark:text-[#58a6ff] border border-[#ded8d1] dark:border-[#30363d]">
-          {userImage ? (
-            <img
-              src={userImage}
-              alt={userName ?? "You"}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            initials
-          )}
-        </div>
+        <UserAvatar
+          src={userImage}
+          name={userName}
+          userId={userId}
+          className="size-10 sm:size-11 shrink-0 border border-[#ded8d1] dark:border-[#30363d]"
+        />
 
         {/* Input area */}
         <div className="flex-1">

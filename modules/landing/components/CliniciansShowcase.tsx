@@ -81,7 +81,7 @@ export function CliniciansShowcase({ onOpenAuth }: CliniciansShowcaseProps) {
             onClick={() => onOpenAuth("signup")}
             className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-[#0f4c81] hover:text-[#0c3c66] transition cursor-pointer self-start md:self-auto"
           >
-            <span>Explore All 50,000+ Profiles</span>
+            <span>Explore Verified Profiles</span>
             <ArrowRight className="size-4" />
           </button>
         </div>

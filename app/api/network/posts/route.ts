@@ -1,7 +1,8 @@
 // app/api/network/posts/route.ts
 import { auth } from "@/lib/auth";
 import { networkDb, generateId } from "@/modules/network/lib/network-db";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
+import { getLatestUserLocation } from "@/lib/location-tracking";
 
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -50,6 +51,52 @@ export async function GET(request: Request) {
 
     if (authorId) {
       q = q.where("np.author_id", "=", authorId);
+    }
+
+    const feed = searchParams.get("feed");
+    if (feed === "nearby") {
+      const cookieStore = await cookies();
+      let targetCity = searchParams.get("city") || "";
+      let targetState = searchParams.get("state") || "";
+
+      if (!targetCity) {
+        const cityCookie = cookieStore.get("mgn_city")?.value;
+        const stateCookie = cookieStore.get("mgn_state")?.value;
+        if (cityCookie) targetCity = decodeURIComponent(cityCookie);
+        if (stateCookie) targetState = decodeURIComponent(stateCookie);
+      }
+
+      if (!targetCity && session?.user?.id) {
+        const sessionId = cookieStore.get("mgn_session_id")?.value || null;
+        const lastLoc = await getLatestUserLocation(session.user.id, sessionId).catch(() => null);
+        if (lastLoc?.city) {
+          targetCity = lastLoc.city;
+          targetState = lastLoc.state || targetState;
+        } else {
+          const userProf: any = await networkDb
+            .selectFrom("professional_profiles")
+            .select(["city", "state"])
+            .where("user_id", "=", session.user.id)
+            .executeTakeFirst()
+            .catch(() => null);
+          if (userProf?.city) {
+            targetCity = userProf.city;
+            targetState = userProf.state || targetState;
+          }
+        }
+      }
+
+      if (!targetCity) {
+        targetCity = "Mumbai";
+        targetState = "Maharashtra";
+      }
+
+      q = q.where((eb: any) =>
+        eb.or([
+          eb("pp.city", "ilike", `%${targetCity}%`),
+          targetState ? eb("pp.state", "ilike", `%${targetState}%`) : eb("pp.city", "is not", null),
+        ])
+      );
     }
 
     const posts = await q.limit(pageSize).offset(offset).execute();

@@ -2,7 +2,19 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Moon, Sun, Laptop } from "lucide-react";
+import {
+  ChevronDown,
+  Moon,
+  Sun,
+  LayoutDashboard,
+  User,
+  Award,
+  CreditCard,
+  Users,
+  Shield,
+  Settings as SettingsIcon,
+  LogOut,
+} from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl } from "@/lib/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -12,7 +24,7 @@ import { useTheme } from "@/components/ThemeProvider";
 function Icons8MenuIcon({
   iconId,
   colorHex = "77716B",
-  fallback: FallbackIcon,
+  fallback,
   className = "h-[19px] w-[19px]",
 }: {
   iconId: string;
@@ -21,8 +33,8 @@ function Icons8MenuIcon({
   className?: string;
 }) {
   const [error, setError] = React.useState(false);
-  if (error && FallbackIcon) {
-    return <>{FallbackIcon}</>;
+  if (error || !iconId) {
+    return fallback ? <>{fallback}</> : null;
   }
   const url = `https://img.icons8.com/?id=${iconId}&format=png&size=48&color=${colorHex}`;
   return (
@@ -39,7 +51,7 @@ function Icons8MenuIcon({
 export default function UserMenu() {
   const router = useRouter();
   const { data: session } = authClient.useSession();
-  const { theme, resolvedTheme, toggleTheme } = useTheme();
+  const { resolvedTheme, toggleTheme } = useTheme();
   const [open, setOpen] = React.useState(false);
   const [avatarUrl, setAvatarUrl] = React.useState<string>(DEFAULT_BLANK_AVATAR);
   const [memberId, setMemberId] = React.useState<string | null>(null);
@@ -181,8 +193,9 @@ export default function UserMenu() {
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium text-[#4f4b48] dark:text-[#8b949e] transition hover:bg-[#f7f6f5] dark:hover:bg-[#21262d] hover:text-[#171717] dark:hover:text-[#f0f6fc] group cursor-pointer"
               >
                 <Icons8MenuIcon
-                  iconId="v9L1K1EeV6Y7"
+                  iconId="i6fZC6wuprSu"
                   colorHex="0F4C81"
+                  fallback={<LayoutDashboard className="h-[19px] w-[19px] text-[#0f4c81] shrink-0" />}
                   className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
                 />
                 Dashboard
@@ -197,6 +210,7 @@ export default function UserMenu() {
                 <Icons8MenuIcon
                   iconId="zxB19VPoVLjK"
                   colorHex="77716B"
+                  fallback={<User className="h-[19px] w-[19px] text-[#77716B] shrink-0" />}
                   className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
                 />
                 My Profile
@@ -211,6 +225,7 @@ export default function UserMenu() {
                 <Icons8MenuIcon
                   iconId="20520"
                   colorHex="16804D"
+                  fallback={<Award className="h-[19px] w-[19px] text-[#16804D] shrink-0" />}
                   className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
                 />
                 <span className="flex-1 text-left">Membership</span>
@@ -230,6 +245,7 @@ export default function UserMenu() {
                 <Icons8MenuIcon
                   iconId="JYQrEM0EyitQ"
                   colorHex="D97706"
+                  fallback={<CreditCard className="h-[19px] w-[19px] text-[#D97706] shrink-0" />}
                   className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
                 />
                 My Subscriptions
@@ -244,6 +260,7 @@ export default function UserMenu() {
                 <Icons8MenuIcon
                   iconId="gf7HkPc5t1hF"
                   colorHex="77716B"
+                  fallback={<Users className="h-[19px] w-[19px] text-[#77716B] shrink-0" />}
                   className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
                 />
                 My Network
@@ -288,6 +305,7 @@ export default function UserMenu() {
                   <Icons8MenuIcon
                     iconId="vy6OvJYHSJ8I"
                     colorHex="0F4C81"
+                    fallback={<Shield className="h-[19px] w-[19px] text-[#0f4c81] shrink-0" />}
                     className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
                   />
                   Admin Console
@@ -307,6 +325,7 @@ export default function UserMenu() {
               <Icons8MenuIcon
                 iconId="4511GGVppfIx"
                 colorHex="77716B"
+                fallback={<SettingsIcon className="h-[19px] w-[19px] text-[#77716B] shrink-0" />}
                 className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
               />
               Settings
@@ -325,6 +344,7 @@ export default function UserMenu() {
               <Icons8MenuIcon
                 iconId="Q1xkcFuVON39"
                 colorHex="EF4444"
+                fallback={<LogOut className="h-[19px] w-[19px] text-[#EF4444] shrink-0" />}
                 className="h-[19px] w-[19px] group-hover:scale-105 transition-transform"
               />
               Log out

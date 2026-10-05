@@ -3,31 +3,69 @@
 import * as React from "react";
 import { Users, Briefcase, GraduationCap, ShieldCheck } from "lucide-react";
 
+interface PublicStats {
+  professionals: number;
+  jobs: number;
+  courses: number;
+  verifiedClinicians: number;
+}
+
 export function StatsBanner() {
+  const [statsData, setStatsData] = React.useState<PublicStats | null>(null);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    fetch("/api/public/stats")
+      .then((res) => {
+        if (!res.ok) throw new Error("Stats fetch failed");
+        return res.json();
+      })
+      .then((data: PublicStats) => {
+        if (!cancelled) setStatsData(data);
+      })
+      .catch((err) => {
+        console.warn("Could not load real-time platform statistics:", err);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const formatStatValue = (count: number, suffix = "+") => {
+    if (count <= 0) return "0";
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}k+`;
+    return `${count}${suffix}`;
+  };
+
   const stats = [
     {
       id: "professionals",
       icon: Users,
-      value: "10,000+",
+      value: statsData !== null ? formatStatValue(statsData.professionals) : "...",
       label: "Healthcare Professionals Onboarded",
     },
     {
       id: "jobs",
       icon: Briefcase,
-      value: "2,000+",
-      label: "Job Opportunities Posted",
+      value: statsData !== null ? formatStatValue(statsData.jobs) : "...",
+      label: "Clinical Opportunities & Jobs",
     },
     {
       id: "courses",
       icon: GraduationCap,
-      value: "500+",
-      label: "Courses & Learning Resources",
+      value: statsData !== null ? formatStatValue(statsData.courses) : "...",
+      label: "Accredited CME & Courses",
     },
     {
       id: "trust",
       icon: ShieldCheck,
-      value: "100%",
-      label: "Verified & Trusted Community",
+      value: statsData?.verifiedClinicians && statsData.verifiedClinicians > 0
+        ? `${statsData.verifiedClinicians}+`
+        : "100%",
+      label: statsData?.verifiedClinicians && statsData.verifiedClinicians > 0
+        ? "Council-Verified Clinicians"
+        : "Verified & Trusted Community",
     },
   ];
 

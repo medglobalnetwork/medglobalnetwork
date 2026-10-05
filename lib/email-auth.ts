@@ -1,6 +1,7 @@
 import { pool } from "@/lib/auth";
 import crypto from "node:crypto";
 import { isProduction } from "./env";
+import { sendOtpEmail } from "./mail";
 
 let emailTableEnsured = false;
 
@@ -88,6 +89,13 @@ export async function sendEmailOtp(
      VALUES ($1, $2, $3, $4, NOW() + INTERVAL '10 minutes')`,
     [id, email, otpHash, !isProduction ? otpNumber : null]
   );
+
+  // Send real email via Nodemailer
+  try {
+    await sendOtpEmail(email, otpNumber);
+  } catch (mailErr) {
+    console.warn("[EMAIL_AUTH] Failed to dispatch OTP email:", mailErr);
+  }
 
   // Log in development / test
   if (!isProduction) {

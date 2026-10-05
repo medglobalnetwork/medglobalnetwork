@@ -68,14 +68,11 @@ export default function AdminLearnPage() {
         body: JSON.stringify({
           courseId,
           status: newStatus,
-          reason: `Admin updated status to ${newStatus}`,
         }),
       });
-      if (res.ok) {
-        fetchLearnData();
-      }
+      if (res.ok) fetchLearnData();
     } catch (err) {
-      console.error("Error updating course status:", err);
+      console.error("Error toggling course status:", err);
     }
   };
 
@@ -86,8 +83,8 @@ export default function AdminLearnPage() {
       sortable: true,
       render: (row) => (
         <div>
-          <span className="font-bold text-white leading-tight block">{row.title}</span>
-          <span className="text-[11px] text-slate-400">
+          <span className="font-bold text-slate-900 leading-tight block">{row.title}</span>
+          <span className="text-[11px] text-slate-500">
             Instructor: {row.instructor_name || "MGN Faculty"}
           </span>
         </div>
@@ -99,8 +96,8 @@ export default function AdminLearnPage() {
       sortable: true,
       render: (row) => (
         <div>
-          <span className="text-slate-200 font-semibold">{row.category}</span>
-          <p className="text-[11px] text-slate-400">{row.level || "All Levels"}</p>
+          <span className="text-slate-800 font-semibold">{row.category}</span>
+          <p className="text-[11px] text-slate-500">{row.level || "All Levels"}</p>
         </div>
       ),
     },
@@ -110,7 +107,7 @@ export default function AdminLearnPage() {
       sortable: true,
       align: "center",
       render: (row) => (
-        <span className="font-bold text-blue-400">{row.enrollment_count || 0}</span>
+        <span className="font-bold text-blue-600">{row.enrollment_count || 0}</span>
       ),
     },
     {
@@ -118,10 +115,10 @@ export default function AdminLearnPage() {
       header: "Status",
       render: (row) => (
         <span
-          className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+          className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
             row.status === "published"
-              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-              : "bg-slate-800 text-slate-400 border border-slate-700"
+              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+              : "bg-slate-100 text-slate-600 border-slate-200"
           }`}
         >
           {row.status === "published" ? "Published ✓" : "Draft"}
@@ -136,10 +133,10 @@ export default function AdminLearnPage() {
         <button
           type="button"
           onClick={() => handleTogglePublish(row.id, row.status)}
-          className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${
+          className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-colors shadow-2xs ${
             row.status === "published"
-              ? "border border-slate-700 bg-slate-800 text-slate-300 hover:text-white"
-              : "bg-blue-600 text-white hover:bg-blue-500"
+              ? "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+              : "bg-blue-600 text-white hover:bg-blue-700 shadow-xs"
           }`}
         >
           {row.status === "published" ? "Unpublish" : "Publish Live"}
@@ -149,13 +146,13 @@ export default function AdminLearnPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-150">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl">
+        <h1 className="text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
           Learn & LMS Ecosystem Management
         </h1>
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs text-slate-500">
           Supervise clinical courses, instructor certifications, quizzes, and issued credentials.
         </p>
       </div>
@@ -166,6 +163,7 @@ export default function AdminLearnPage() {
           title="Total Courses"
           value={stats.total_courses || courses.length}
           icon={<BookOpen className="h-5 w-5" />}
+          badgeColor="blue"
         />
         <AdminMetricCard
           title="Published Courses"
@@ -177,13 +175,13 @@ export default function AdminLearnPage() {
           title="Total Enrollments"
           value={stats.total_enrollments || 0}
           icon={<Users className="h-5 w-5" />}
-          badgeColor="blue"
+          badgeColor="purple"
         />
         <AdminMetricCard
           title="Certificates Issued"
           value={stats.total_certificates || 0}
           icon={<Award className="h-5 w-5" />}
-          badgeColor="purple"
+          badgeColor="amber"
         />
       </div>
 

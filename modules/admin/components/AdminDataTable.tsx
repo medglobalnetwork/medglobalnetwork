@@ -9,11 +9,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
-  Filter,
   CheckSquare,
   Square,
   RefreshCw,
-  MoreVertical,
+  Inbox,
 } from "lucide-react";
 
 export interface ColumnDef<T> {
@@ -196,13 +195,13 @@ export function AdminDataTable<T extends { id: string }>({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/90 shadow-xl backdrop-blur-sm overflow-hidden">
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
       {/* Table Header Section */}
-      <div className="border-b border-slate-800/80 p-5">
+      <div className="border-b border-slate-100 p-5 bg-white">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            {title && <h2 className="text-base font-bold text-white tracking-tight">{title}</h2>}
-            {subtitle && <p className="mt-1 text-xs text-slate-400">{subtitle}</p>}
+            {title && <h2 className="text-base font-bold text-slate-900 tracking-tight">{title}</h2>}
+            {subtitle && <p className="mt-1 text-xs text-slate-500">{subtitle}</p>}
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -210,19 +209,19 @@ export function AdminDataTable<T extends { id: string }>({
               <button
                 type="button"
                 onClick={onRefresh}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-white transition-colors"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-2xs"
                 title="Refresh Table"
               >
-                <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin text-blue-400" : ""}`} />
+                <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin text-blue-600" : ""}`} />
               </button>
             )}
 
             <button
               type="button"
               onClick={exportCSV}
-              className="flex h-9 items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900 px-3 text-xs font-semibold text-slate-300 hover:border-slate-700 hover:text-white transition-colors"
+              className="flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-2xs"
             >
-              <Download className="h-3.5 w-3.5" />
+              <Download className="h-3.5 w-3.5 text-slate-500" />
               <span>Export CSV</span>
             </button>
 
@@ -233,7 +232,7 @@ export function AdminDataTable<T extends { id: string }>({
         {/* Search & Filter Bar */}
         <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
               type="search"
               value={search}
@@ -242,7 +241,7 @@ export function AdminDataTable<T extends { id: string }>({
                 setCurrentPage(1);
               }}
               placeholder={searchPlaceholder}
-              className="h-10 w-full rounded-xl border border-slate-800 bg-slate-950/80 pl-9 pr-4 text-xs text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
+              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/80 pl-9 pr-4 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:outline-none transition-colors shadow-2xs"
             />
           </div>
 
@@ -260,7 +259,7 @@ export function AdminDataTable<T extends { id: string }>({
                       }));
                       setCurrentPage(1);
                     }}
-                    className="h-9 appearance-none rounded-xl border border-slate-800 bg-slate-950/80 px-3 pr-8 text-xs font-medium text-slate-300 focus:border-blue-500 focus:outline-none"
+                    className="h-9 appearance-none rounded-xl border border-slate-200 bg-slate-50/80 px-3 pr-8 text-xs font-medium text-slate-700 focus:bg-white focus:border-blue-500 focus:outline-none transition-colors shadow-2xs"
                   >
                     <option value="all">All {filter.label}</option>
                     {filter.options.map((opt) => (
@@ -269,7 +268,7 @@ export function AdminDataTable<T extends { id: string }>({
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+                  <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                 </div>
               ))}
             </div>
@@ -278,9 +277,9 @@ export function AdminDataTable<T extends { id: string }>({
 
         {/* Bulk Actions Banner */}
         {selectedIds.size > 0 && bulkActions.length > 0 && (
-          <div className="mt-4 flex items-center justify-between rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-2.5">
-            <div className="flex items-center gap-2 text-xs font-semibold text-blue-300">
-              <CheckSquare className="h-4 w-4" />
+          <div className="mt-4 flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50/90 px-4 py-2.5 shadow-2xs">
+            <div className="flex items-center gap-2 text-xs font-bold text-blue-900">
+              <CheckSquare className="h-4 w-4 text-blue-600" />
               <span>{selectedIds.size} records selected</span>
             </div>
 
@@ -290,12 +289,12 @@ export function AdminDataTable<T extends { id: string }>({
                   key={idx}
                   type="button"
                   onClick={() => action.onClick(selectedRows)}
-                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors shadow-2xs ${
                     action.variant === "danger"
-                      ? "bg-rose-600 text-white hover:bg-rose-500"
+                      ? "bg-rose-600 text-white hover:bg-rose-700"
                       : action.variant === "success"
-                      ? "bg-emerald-600 text-white hover:bg-emerald-500"
-                      : "bg-blue-600 text-white hover:bg-blue-500"
+                      ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                      : "bg-blue-600 text-white hover:bg-blue-700"
                   }`}
                 >
                   {action.icon}
@@ -309,18 +308,18 @@ export function AdminDataTable<T extends { id: string }>({
 
       {/* Table Content */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs text-slate-200">
+        <table className="w-full text-left text-xs text-slate-700">
           <thead>
-            <tr className="border-b border-slate-800 bg-slate-950/40 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <tr className="border-b border-slate-200 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
               {bulkActions.length > 0 && (
                 <th className="py-3 px-4 w-10">
                   <button
                     type="button"
                     onClick={handleSelectAll}
-                    className="flex items-center text-slate-400 hover:text-white"
+                    className="flex items-center text-slate-400 hover:text-slate-700"
                   >
                     {selectedIds.size > 0 && selectedIds.size === paginatedData.length ? (
-                      <CheckSquare className="h-4 w-4 text-blue-400" />
+                      <CheckSquare className="h-4 w-4 text-blue-600" />
                     ) : (
                       <Square className="h-4 w-4" />
                     )}
@@ -340,7 +339,7 @@ export function AdminDataTable<T extends { id: string }>({
                         : col.align === "center"
                         ? "text-center"
                         : "text-left"
-                    } ${col.sortable ? "cursor-pointer hover:text-white" : ""}`}
+                    } ${col.sortable ? "cursor-pointer hover:text-slate-900" : ""}`}
                     onClick={() => col.sortable && handleSort(col.key)}
                   >
                     <div
@@ -353,12 +352,12 @@ export function AdminDataTable<T extends { id: string }>({
                         <span>
                           {isSorted ? (
                             sortDirection === "asc" ? (
-                              <ChevronUp className="h-3.5 w-3.5 text-blue-400" />
+                              <ChevronUp className="h-3.5 w-3.5 text-blue-600 font-bold" />
                             ) : (
-                              <ChevronDown className="h-3.5 w-3.5 text-blue-400" />
+                              <ChevronDown className="h-3.5 w-3.5 text-blue-600 font-bold" />
                             )
                           ) : (
-                            <ChevronsUpDown className="h-3.5 w-3.5 text-slate-600" />
+                            <ChevronsUpDown className="h-3.5 w-3.5 text-slate-400" />
                           )}
                         </span>
                       )}
@@ -369,14 +368,14 @@ export function AdminDataTable<T extends { id: string }>({
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-slate-800/60">
+          <tbody className="divide-y divide-slate-100">
             {isLoading ? (
               Array.from({ length: pageSize }).map((_, rIdx) => (
                 <tr key={rIdx} className="animate-pulse">
-                  {bulkActions.length > 0 && <td className="py-4 px-4"><div className="h-4 w-4 bg-slate-800 rounded"></div></td>}
+                  {bulkActions.length > 0 && <td className="py-4 px-4"><div className="h-4 w-4 bg-slate-200 rounded"></div></td>}
                   {columns.map((col, cIdx) => (
                     <td key={cIdx} className="py-4 px-4">
-                      <div className="h-4 bg-slate-800 rounded w-3/4"></div>
+                      <div className="h-4 bg-slate-200 rounded w-3/4"></div>
                     </td>
                   ))}
                 </tr>
@@ -385,11 +384,14 @@ export function AdminDataTable<T extends { id: string }>({
               <tr>
                 <td
                   colSpan={columns.length + (bulkActions.length > 0 ? 1 : 0)}
-                  className="py-12 text-center text-slate-500"
+                  className="py-14 text-center text-slate-500"
                 >
                   <div className="flex flex-col items-center justify-center">
-                    <p className="text-sm font-semibold text-slate-400">No matching records found</p>
-                    <p className="mt-1 text-xs text-slate-500">Try adjusting your search or filters</p>
+                    <div className="size-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 mb-2">
+                      <Inbox className="size-5" />
+                    </div>
+                    <p className="text-sm font-bold text-slate-800">No matching records found</p>
+                    <p className="mt-1 text-xs text-slate-500">Try adjusting your search query or filters</p>
                   </div>
                 </td>
               </tr>
@@ -401,7 +403,7 @@ export function AdminDataTable<T extends { id: string }>({
                     key={row.id}
                     onClick={() => onRowClick && onRowClick(row)}
                     className={`group transition-colors ${
-                      isSelected ? "bg-blue-500/5" : "hover:bg-slate-800/40"
+                      isSelected ? "bg-blue-50/60" : "hover:bg-slate-50/80"
                     } ${onRowClick ? "cursor-pointer" : ""}`}
                   >
                     {bulkActions.length > 0 && (
@@ -409,10 +411,10 @@ export function AdminDataTable<T extends { id: string }>({
                         <button
                           type="button"
                           onClick={(e) => toggleSelectRow(row.id, e)}
-                          className="flex items-center text-slate-500 group-hover:text-slate-300"
+                          className="flex items-center text-slate-400 group-hover:text-slate-600"
                         >
                           {isSelected ? (
-                            <CheckSquare className="h-4 w-4 text-blue-400" />
+                            <CheckSquare className="h-4 w-4 text-blue-600" />
                           ) : (
                             <Square className="h-4 w-4" />
                           )}
@@ -451,12 +453,12 @@ export function AdminDataTable<T extends { id: string }>({
       </div>
 
       {/* Pagination Bar */}
-      <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-800/80 px-4 py-3 sm:flex-row sm:px-6">
-        <div className="flex items-center gap-2 text-xs text-slate-400">
+      <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/50 px-4 py-3 sm:flex-row sm:px-6">
+        <div className="flex items-center gap-2 text-xs text-slate-500">
           <span>
-            Showing <strong className="text-slate-200">{sortedData.length > 0 ? (currentPage - 1) * pageSize + 1 : 0}</strong> to{" "}
-            <strong className="text-slate-200">{Math.min(currentPage * pageSize, sortedData.length)}</strong> of{" "}
-            <strong className="text-slate-200">{sortedData.length}</strong> records
+            Showing <strong className="text-slate-900 font-bold">{sortedData.length > 0 ? (currentPage - 1) * pageSize + 1 : 0}</strong> to{" "}
+            <strong className="text-slate-900 font-bold">{Math.min(currentPage * pageSize, sortedData.length)}</strong> of{" "}
+            <strong className="text-slate-900 font-bold">{sortedData.length}</strong> records
           </span>
 
           <div className="hidden sm:flex items-center gap-1.5 ml-4">
@@ -467,7 +469,7 @@ export function AdminDataTable<T extends { id: string }>({
                 setPageSize(Number(e.target.value));
                 setCurrentPage(1);
               }}
-              className="h-7 rounded-lg border border-slate-800 bg-slate-950 px-2 text-xs text-slate-300 focus:outline-none"
+              className="h-7 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700 shadow-2xs focus:outline-none"
             >
               {[10, 20, 50, 100].map((size) => (
                 <option key={size} value={size}>
@@ -483,12 +485,12 @@ export function AdminDataTable<T extends { id: string }>({
             type="button"
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-white disabled:opacity-40 disabled:hover:border-slate-800 disabled:hover:text-slate-400 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 transition-colors shadow-2xs"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
 
-          <span className="px-3 text-xs font-medium text-slate-300">
+          <span className="px-3 text-xs font-semibold text-slate-700">
             Page {currentPage} of {totalPages}
           </span>
 
@@ -496,7 +498,7 @@ export function AdminDataTable<T extends { id: string }>({
             type="button"
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-white disabled:opacity-40 disabled:hover:border-slate-800 disabled:hover:text-slate-400 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 transition-colors shadow-2xs"
           >
             <ChevronRight className="h-4 w-4" />
           </button>

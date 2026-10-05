@@ -218,11 +218,11 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
   // Signup Multi-Step Verification States
   const [signupPhase, setSignupPhase] = React.useState<"details" | "verification">("details");
-  const [activeVerifyTab, setActiveVerifyTab] = React.useState<"phone" | "email">("phone");
+  const [activeVerifyTab, setActiveVerifyTab] = React.useState<"phone" | "email">("email");
 
-  // Phone Verification (Signup)
+  // Phone (Signup: direct addition without OTP verification)
   const [phoneOtpCode, setPhoneOtpCode] = React.useState("");
-  const [isPhoneVerified, setIsPhoneVerified] = React.useState(false);
+  const [isPhoneVerified, setIsPhoneVerified] = React.useState(true);
   const [phoneOtpStatus, setPhoneOtpStatus] = React.useState<"idle" | "error" | "success">("idle");
   const [phoneDevOtp, setPhoneDevOtp] = React.useState<string | undefined>(undefined);
   const [phoneOtpCountdown, setPhoneOtpCountdown] = React.useState(0);
@@ -890,13 +890,8 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     }
   }
 
-  // Finalize Registration after Both Verifications
+  // Finalize Registration after Email Verification (Phone number is added directly)
   async function finalizeRegistration() {
-    if (!isPhoneVerified) {
-      setErrors({ general: "Please verify your mobile number before completing registration." });
-      setActiveVerifyTab("phone");
-      return;
-    }
     if (!isEmailVerified) {
       setErrors({ general: "Please verify your email address before completing registration." });
       setActiveVerifyTab("email");
@@ -1074,12 +1069,13 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           return;
         }
 
-        // Transition to Dual Verification Phase
+        // Transition to Verification Phase (Email OTP; phone number is added directly)
         setSignupPhase("verification");
+        setIsPhoneVerified(true);
+        setActiveVerifyTab("email");
         setIsSubmitting(false);
 
-        // Auto trigger initial OTPs
-        sendSignupPhoneOtp();
+        // Auto trigger email OTP
         sendSignupEmailOtp();
       } catch {
         setErrors({ general: "Failed to initialize verification. Please try again." });
@@ -1731,28 +1727,18 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                CASE C: SIGNUP DUAL VERIFICATION (EMAIL & PHONE OTP)
                ═══════════════════════════════════════════ */
             <div className="space-y-4 text-left animate-in fade-in">
-              {/* Dual Verification Header & Progress */}
+              {/* Verification Header & Progress */}
               <div className="p-3 bg-slate-50 dark:bg-[#161b22] border border-slate-200 dark:border-slate-800 rounded-none mb-2">
                 <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                  <span>Verification Status</span>
+                  <span>Registration Status</span>
                   <span className="font-bold text-[#0f4c81] dark:text-[#58a6ff]">
-                    {(isPhoneVerified ? 1 : 0) + (isEmailVerified ? 1 : 0)} of 2 Verified
+                    {isEmailVerified ? "Ready to Complete" : "Email Verification Required"}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <div
-                    className={`p-2 border flex items-center gap-2 text-[11px] font-semibold transition ${
-                      isPhoneVerified
-                        ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400"
-                        : "bg-white dark:bg-[#0d1117] border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
-                    }`}
-                  >
-                    {isPhoneVerified ? (
-                      <CheckCircle2 className="size-3.5 text-emerald-600 shrink-0" />
-                    ) : (
-                      <Phone className="size-3.5 text-slate-400 shrink-0" />
-                    )}
-                    <span className="truncate">Phone: {isPhoneVerified ? "Verified" : "Pending"}</span>
+                  <div className="p-2 border flex items-center gap-2 text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400">
+                    <CheckCircle2 className="size-3.5 text-emerald-600 shrink-0" />
+                    <span className="truncate">Phone: Added</span>
                   </div>
 
                   <div
@@ -1767,136 +1753,13 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                     ) : (
                       <Mail className="size-3.5 text-slate-400 shrink-0" />
                     )}
-                    <span className="truncate">Email: {isEmailVerified ? "Verified" : "Pending"}</span>
+                    <span className="truncate">Email: {isEmailVerified ? "Verified" : "Pending OTP"}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Selector Tabs for Phone vs Email OTP */}
-              <div className="grid grid-cols-2 gap-2 p-1 rounded-none bg-[#f0f4f8] dark:bg-[#161b22] border border-slate-200/80 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setActiveVerifyTab("phone")}
-                  className={`flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-none transition cursor-pointer ${
-                    activeVerifyTab === "phone"
-                      ? "bg-white dark:bg-[#21262d] text-[#0f4c81] dark:text-[#58a6ff] shadow-xs border border-[#0f4c81]/30 dark:border-[#58a6ff]/30"
-                      : "text-[#6b7280] dark:text-[#8b949e]"
-                  }`}
-                >
-                  <Phone className="size-3.5" />
-                  <span>Phone OTP</span>
-                  {isPhoneVerified && <Check className="size-3 text-emerald-600" />}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveVerifyTab("email")}
-                  className={`flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-none transition cursor-pointer ${
-                    activeVerifyTab === "email"
-                      ? "bg-white dark:bg-[#21262d] text-[#0f4c81] dark:text-[#58a6ff] shadow-xs border border-[#0f4c81]/30 dark:border-[#58a6ff]/30"
-                      : "text-[#6b7280] dark:text-[#8b949e]"
-                  }`}
-                >
-                  <Mail className="size-3.5" />
-                  <span>Email OTP</span>
-                  {isEmailVerified && <Check className="size-3 text-emerald-600" />}
-                </button>
-              </div>
-
-              {/* Tab 1: Phone Verification */}
-              {activeVerifyTab === "phone" && (
-                <div className="p-4 border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-xs font-bold text-[#0c2b4e] dark:text-slate-200">
-                        Verify Mobile Number
-                      </div>
-                      <div className="text-[11px] text-slate-500 font-mono">{phone}</div>
-                    </div>
-                    {isPhoneVerified ? (
-                      <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold inline-flex items-center gap-1">
-                        <Check className="size-3" /> Verified
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 text-[11px] font-bold">
-                        Pending OTP
-                      </span>
-                    )}
-                  </div>
-
-                  {!isPhoneVerified ? (
-                    <>
-                      <div className="flex justify-center my-2">
-                        <CodeSlots
-                          length={6}
-                          value={phoneOtpCode}
-                          status={phoneOtpStatus}
-                          onChange={(code) => {
-                            setPhoneOtpCode(code);
-                            if (phoneOtpStatus !== "idle") setPhoneOtpStatus("idle");
-                            if (errors.phoneOtp) setErrors({});
-                          }}
-                          onComplete={(code) => {
-                            verifySignupPhoneOtp(code);
-                          }}
-                          accentColor="#0f4c81"
-                          inkColor="#0f4c81"
-                          slotColor="#f0efee"
-                          digitColor="#ffffff"
-                          dangerColor="#e11d48"
-                          slotSize={42}
-                          gap={6}
-                          radius={8}
-                          autoFocus={true}
-                        />
-                      </div>
-
-                      {errors.phoneOtp && (
-                        <p className="text-xs text-rose-600 dark:text-rose-400 flex items-center gap-1">
-                          <AlertTriangle className="size-3 shrink-0" />
-                          {errors.phoneOtp}
-                        </p>
-                      )}
-
-                      <div className="flex items-center justify-between pt-1 text-xs">
-                        <button
-                          type="button"
-                          onClick={() => verifySignupPhoneOtp(phoneOtpCode)}
-                          disabled={isVerifyingPhoneOtp || phoneOtpCode.length < 4}
-                          className="px-4 py-2 bg-[#0f4c81] text-white font-bold rounded-none hover:bg-[#0c3c66] transition disabled:opacity-50 cursor-pointer"
-                        >
-                          {isVerifyingPhoneOtp ? "Verifying..." : "Verify Mobile OTP"}
-                        </button>
-
-                        {phoneOtpCountdown > 0 ? (
-                          <span className="text-slate-400 text-[11px]">Resend in {phoneOtpCountdown}s</span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={sendSignupPhoneOtp}
-                            disabled={isSendingPhoneOtp}
-                            className="text-[11px] font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
-                          >
-                            Resend Code
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Container for Signup Phone reCAPTCHA */}
-                      <div id="signup-recaptcha-container" className="flex justify-center my-1" />
-                    </>
-                  ) : (
-                    <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
-                      <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
-                      <span>Phone number verified. Proceed to email verification or complete registration.</span>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Tab 2: Email Verification */}
-              {activeVerifyTab === "email" && (
-                <div className="p-4 border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] space-y-3">
+              {/* Email Verification Card */}
+              <div className="p-4 border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0d1117] space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-xs font-bold text-[#0c2b4e] dark:text-slate-200">
@@ -1980,14 +1843,13 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                     </div>
                   )}
                 </div>
-              )}
 
               {/* Complete Registration Action */}
               <div className="pt-2 space-y-2">
                 <button
                   type="button"
                   onClick={finalizeRegistration}
-                  disabled={isSubmitting || !isPhoneVerified || !isEmailVerified}
+                  disabled={isSubmitting || !isEmailVerified}
                   className="w-full inline-flex items-center justify-center gap-2 rounded-none bg-[#16804d] dark:bg-[#2ea043] py-3 text-sm font-bold text-white shadow-xs hover:bg-[#12663d] transition disabled:opacity-50 cursor-pointer active:scale-98"
                 >
                   {isSubmitting ? (
@@ -2219,8 +2081,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               {mode === "signup" && (
                 <div>
                   <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200 mb-1.5">
-                    Mobile Number <span className="text-rose-500">*</span>{" "}
-                    <span className="text-[11px] font-normal text-slate-400">(will be verified with OTP)</span>
+                    Mobile Number <span className="text-rose-500">*</span>
                   </label>
                   <div className="flex items-center">
                     <div className="h-11 px-3 bg-slate-100 dark:bg-[#1c2128] border border-r-0 border-slate-200 dark:border-slate-700 flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 select-none">

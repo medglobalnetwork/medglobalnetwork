@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { pool, auth } from "@/lib/auth";
-import { normalizePhoneNumber, isPhoneVerifiedRecently, verifyPhoneOtp, findUserByPhone, createPhoneSession } from "@/lib/phone-auth";
+import { normalizePhoneNumber, findUserByPhone, createPhoneSession } from "@/lib/phone-auth";
 import { isEmailVerifiedRecently, verifyEmailOtp, checkEmailRegistered } from "@/lib/email-auth";
 import { checkRateLimit, getClientIp } from "@/lib/security";
 
@@ -26,7 +26,6 @@ export async function POST(request: Request) {
     const accountType = body.accountType || "INDIVIDUAL";
     const customUsername = (body.username || "").trim().toLowerCase();
     const emailOtp = (body.emailOtp || "").trim();
-    const phoneOtp = (body.phoneOtp || "").trim();
 
     // 1. Basic Fields Validation
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -38,7 +37,7 @@ export async function POST(request: Request) {
 
     if (!rawPhone) {
       return NextResponse.json(
-        { success: false, error: "Mobile number is required for verified registration." },
+        { success: false, error: "Mobile number is required for registration." },
         { status: 400 }
       );
     }
@@ -83,23 +82,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Mandatory Phone Verification Check:
-    let isPhoneVerified = await isPhoneVerifiedRecently(phone);
-    if (!isPhoneVerified && phoneOtp) {
-      isPhoneVerified = await verifyPhoneOtp(phone, phoneOtp);
-    }
-    if (!isPhoneVerified) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Mobile number has not been verified. Please verify phone OTP before creating account.",
-          unverifiedField: "phone",
-        },
-        { status: 400 }
-      );
-    }
-
-    // 4. Mandatory Email Verification Check:
+    // 3. Mandatory Email Verification Check (Phone OTP verification is bypassed; phone is added directly):
     let isEmailVerified = await isEmailVerifiedRecently(email);
     if (!isEmailVerified && emailOtp) {
       isEmailVerified = await verifyEmailOtp(email, emailOtp);
