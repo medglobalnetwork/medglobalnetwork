@@ -176,7 +176,8 @@ export async function getAdminSession(reqHeaders?: Headers): Promise<AdminSessio
     }
 
     const userId = session.user.id;
-    const email = (session.user.email || "").toLowerCase();
+    const email = (session.user.email || "").toLowerCase().trim();
+    const sessionPhone = ((session.user as any)?.phone || "").toString().trim();
     let isSuperAdminFallback =
       superAdminEmails.has(email) ||
       email === "patreshubham141@gmail.com" ||
@@ -188,24 +189,29 @@ export async function getAdminSession(reqHeaders?: Headers): Promise<AdminSessio
       const digits = raw.replace(/\D/g, "");
       if (!digits) return false;
       if (digits === "6263585180" || digits === "7987522275") return true;
+      if (digits.endsWith("6263585180") || digits.endsWith("7987522275")) return true;
       if (superAdminPhones.has(digits) || superAdminPhones.has(digits.slice(-10))) return true;
       for (const p of superAdminPhones) {
-        if (p.slice(-10) === digits.slice(-10)) return true;
+        if (p.slice(-10) === digits.slice(-10) || digits.endsWith(p)) return true;
       }
       return false;
     };
 
+    if (matchesAdminPhone(sessionPhone)) {
+      isSuperAdminFallback = true;
+    }
+
     // Also check phone numbers or phone emails (phone_9876543210@mgn.life)
-    if (email.startsWith("phone_")) {
+    if (email.startsWith("phone_") || email.includes("@mgn.life")) {
       if (matchesAdminPhone(email)) {
         isSuperAdminFallback = true;
       }
     }
 
-    // Check user table and identities for phone and admin role
+    // Check user table and identities for phone and admin role safely
     try {
       const uRes: any = await sql`
-        SELECT u.email, u.phone as u_phone, mi.phone as mi_phone, u.role as u_role
+        SELECT u.id, u.email, u.phone as u_phone, mi.phone as mi_phone
         FROM "user" u
         LEFT JOIN mgn_identities mi ON mi.user_id = u.id
         WHERE u.id = ${userId} LIMIT 1
@@ -224,18 +230,23 @@ export async function getAdminSession(reqHeaders?: Headers): Promise<AdminSessio
         ) {
           isSuperAdminFallback = true;
         }
-        if (
-          row.u_role &&
-          (row.u_role.toLowerCase() === "admin" ||
-            row.u_role.toLowerCase() === "superadmin" ||
-            row.u_role.toLowerCase() === "super_admin")
-        ) {
+      }
+    } catch {}
+
+    // Check role column separately if present
+    try {
+      const roleColRes: any = await sql`
+        SELECT role FROM "user" WHERE id = ${userId} LIMIT 1
+      `.execute(database);
+      if (roleColRes?.rows?.[0]?.role) {
+        const r = String(roleColRes.rows[0].role).toLowerCase();
+        if (r === "admin" || r === "superadmin" || r === "super_admin") {
           isSuperAdminFallback = true;
         }
       }
     } catch {}
 
-    // Fetch roles from database
+    // Fetch roles from admin_user_roles table
     let dbRoles: AdminRole[] = [];
     try {
       const rolesRes: any = await sql`
@@ -251,6 +262,14 @@ export async function getAdminSession(reqHeaders?: Headers): Promise<AdminSessio
 
     if (isSuperAdminFallback && !dbRoles.includes("SUPER_ADMIN")) {
       dbRoles.push("SUPER_ADMIN");
+      // Auto persist in admin_user_roles table for consistent RBAC queries
+      try {
+        await sql`
+          INSERT INTO admin_user_roles (id, user_id, user_email, role, granted_by, notes)
+          VALUES (gen_random_uuid()::text, ${userId}, ${email || `${userId}@mgn.life`}, 'SUPER_ADMIN', 'SYSTEM_SUPERADMIN', 'System designated Super Admin')
+          ON CONFLICT (user_id, role) DO NOTHING
+        `.execute(database);
+      } catch {}
     }
 
     if (dbRoles.length === 0) {

@@ -21,8 +21,10 @@ import {
   Sparkles,
   MessageSquare,
   HardDrive,
+  LogOut,
 } from "lucide-react";
 import { AdminIcon } from "./AdminIcon";
+import { signOutUser } from "@/lib/auth-client";
 
 interface AdminSidebarProps {
   badgeCounts?: {
@@ -288,8 +290,8 @@ export function AdminSidebar({ badgeCounts = {}, isOpen, onClose }: AdminSidebar
           ))}
         </div>
 
-        {/* Footer Admin Info */}
-        <div className="border-t border-slate-200 bg-slate-50/80 p-3.5">
+        {/* Footer Admin Info & Sign Out */}
+        <div className="border-t border-slate-200 bg-slate-50/80 p-3.5 space-y-2">
           <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
             <div className="flex items-center gap-2.5">
               <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
@@ -299,6 +301,15 @@ export function AdminSidebar({ badgeCounts = {}, isOpen, onClose }: AdminSidebar
               Session secured with Server-Side RBAC & immutable audit trail.
             </p>
           </div>
+
+          <button
+            type="button"
+            onClick={() => signOutUser("/login")}
+            className="w-full flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50/80 px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-100 transition-colors shadow-2xs cursor-pointer"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            <span>Sign Out of Admin</span>
+          </button>
         </div>
       </aside>
     </>

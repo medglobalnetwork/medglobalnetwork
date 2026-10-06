@@ -9,8 +9,9 @@ import {
   Shield,
   ExternalLink,
   ChevronRight,
+  LogOut,
 } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
+import { authClient, signOutUser } from "@/lib/auth-client";
 
 interface AdminHeaderProps {
   onToggleSidebar: () => void;
@@ -89,7 +90,7 @@ export function AdminHeader({ onToggleSidebar, onOpenSearch }: AdminHeaderProps)
       </div>
 
       {/* Right: Identity & Role Badge */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5 sm:gap-3">
         <div className="hidden sm:flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50/80 px-3 py-1 text-xs shadow-2xs">
           <Shield className="h-3.5 w-3.5 text-blue-600" />
           <span className="font-bold text-blue-900">Super Admin</span>
@@ -121,11 +122,21 @@ export function AdminHeader({ onToggleSidebar, onOpenSearch }: AdminHeaderProps)
 
         <Link
           href="/home"
-          className="flex h-9 items-center gap-1.5 rounded-xl bg-blue-600 px-3 text-xs font-bold text-white shadow-xs hover:bg-blue-700 transition-colors"
+          className="flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors"
         >
-          <ExternalLink className="h-3.5 w-3.5" />
+          <ExternalLink className="h-3.5 w-3.5 text-slate-500" />
           <span className="hidden sm:inline">Main App</span>
         </Link>
+
+        <button
+          type="button"
+          onClick={() => signOutUser("/login")}
+          title="Sign out of Admin Session"
+          className="flex h-9 items-center gap-1.5 rounded-xl bg-rose-50 border border-rose-200 px-3 text-xs font-bold text-rose-600 shadow-2xs hover:bg-rose-100 transition-colors cursor-pointer"
+        >
+          <LogOut className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Sign Out</span>
+        </button>
       </div>
     </header>
   );

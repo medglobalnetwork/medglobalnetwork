@@ -35,7 +35,7 @@ import {
   BookOpen,
   Building2,
 } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
+import { authClient, signOutUser, isSuperAdminUser } from "@/lib/auth-client";
 import { getUserAvatarUrl } from "@/lib/avatar";
 import { MemberBadge } from "@/modules/network/components/MemberBadge";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -718,6 +718,22 @@ export function AppSidebar({
             <div className="p-3 border-t border-[#f0efee] dark:border-[#21262d] bg-[#faf9f8] dark:bg-[#161b22] space-y-1">
               <ThemeToggle collapsed={false} />
 
+              {isSuperAdminUser(session?.user) && (
+                <Link
+                  href="/admin"
+                  onClick={onCloseMobileDrawer}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-[#0f4c81] dark:text-[#58a6ff] bg-[#eef5fc] dark:bg-[#1f2d42] hover:bg-[#dbeafe] dark:hover:bg-[#263852] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c81] transition"
+                >
+                  <Icons8NavIcon
+                    iconId="vy6OvJYHSJ8I"
+                    active={isLinkActive("/admin")}
+                    fallback={ShieldCheck}
+                    className="size-6 text-[#0f4c81] dark:text-[#58a6ff]"
+                  />
+                  <span>Admin Console</span>
+                </Link>
+              )}
+
               <Link
                 href="/settings"
                 onClick={onCloseMobileDrawer}
@@ -735,13 +751,7 @@ export function AppSidebar({
                 type="button"
                 onClick={() => {
                   onCloseMobileDrawer();
-                  authClient.signOut({
-                    fetchOptions: {
-                      onSuccess: () => {
-                        window.location.href = "/";
-                      },
-                    },
-                  });
+                  signOutUser("/login");
                 }}
                 className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 transition cursor-pointer"
               >

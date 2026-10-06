@@ -347,12 +347,14 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
     }
   }, [searchParams]);
 
+  const redirectTarget = searchParams?.get("redirect") || "/home";
+
   // Redirect if already logged in
   React.useEffect(() => {
     if (!isSessionPending && session?.user) {
-      router.replace("/home");
+      router.replace(redirectTarget);
     }
-  }, [isSessionPending, session, router]);
+  }, [isSessionPending, session, router, redirectTarget]);
 
   // Auto-generate username suggestion on name input
   const handleNameChange = (val: string) => {
@@ -660,7 +662,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         setOtpStatus("success");
         setSuccessMessage("Login successful! Redirecting...");
         setTimeout(() => {
-          router.push("/home");
+          router.push(redirectTarget);
         }, 500);
       }
     } catch {
@@ -1120,7 +1122,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           setIsSubmitting(false);
         } else {
           setSuccessMessage("Sign in successful! Redirecting...");
-          setTimeout(() => router.push("/home"), 500);
+          setTimeout(() => router.push(redirectTarget), 500);
         }
       } catch {
         setErrors({ general: "An unexpected error occurred. Please try again." });

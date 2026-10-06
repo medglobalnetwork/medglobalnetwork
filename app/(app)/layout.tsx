@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { VerificationService } from "@/modules/onboarding/lib/verification-service";
 import GracePeriodBanner from "@/components/GracePeriodBanner";
 import { AppShell } from "@/components/AppShell";
+import { isSuperAdminUser } from "@/lib/auth-client";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -13,7 +14,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   // Super admin bypass
-  const isSuperAdmin = session.user.email?.toLowerCase() === "patreshubham141@gmail.com";
+  const isSuperAdmin = isSuperAdminUser(session.user);
 
   if (!isSuperAdmin) {
     const identity = await VerificationService.getIdentity(session.user.id);

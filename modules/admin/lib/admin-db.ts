@@ -147,6 +147,15 @@ export async function ensureAdminTables(): Promise<void> {
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `.execute(database);
+
+    // Ensure role & phone columns exist on user table
+    try {
+      await sql`
+        ALTER TABLE "user" ADD COLUMN IF NOT EXISTS role VARCHAR(50);
+        ALTER TABLE "user" ADD COLUMN IF NOT EXISTS phone VARCHAR(32);
+      `.execute(database);
+    } catch {}
+
     isInitialized = true;
   } catch (err) {
     console.warn("ensureAdminTables warning (might be offline or read-only):", err);

@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
+import { authClient, signOutUser } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 
 function cn(...inputs: Array<string | false | null | undefined>) {
@@ -61,13 +61,7 @@ export default function SettingsLayout({
 
   const handleSignOut = async () => {
     setIsLoggingOut(true);
-    try {
-      await authClient.signOut();
-    } catch {}
-    try {
-      localStorage.removeItem("better-auth.session_token");
-    } catch {}
-    window.location.href = "/";
+    await signOutUser("/login");
   };
 
   React.useEffect(() => {

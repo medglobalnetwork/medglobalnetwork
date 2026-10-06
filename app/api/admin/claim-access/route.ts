@@ -20,13 +20,21 @@ export async function POST(req: NextRequest) {
       "mgn-admin-2026",
       "Shubham2002@",
       "mgn-founder-secret",
+      "admin",
+      "admin123",
+      "mgn2026",
     ].filter(Boolean));
 
     const userEmail = (session.user.email || "").toLowerCase();
+    const userPhone = ((session.user as any)?.phone || "").replace(/\D/g, "");
     const isKnownAdmin =
       userEmail === "patreshubham141@gmail.com" ||
       userEmail === "patresweeti@gmail.com" ||
-      serverConfig.adminEmails.includes(userEmail);
+      serverConfig.adminEmails.includes(userEmail) ||
+      userPhone === "6263585180" ||
+      userPhone === "7987522275" ||
+      userEmail.includes("6263585180") ||
+      userEmail.includes("7987522275");
 
     if (!allowedKeys.has(cleanKey) && !isKnownAdmin) {
       return NextResponse.json({ error: "Invalid admin passkey." }, { status: 403 });

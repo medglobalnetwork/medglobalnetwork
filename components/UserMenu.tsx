@@ -15,7 +15,7 @@ import {
   Settings as SettingsIcon,
   LogOut,
 } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
+import { authClient, signOutUser, isSuperAdminUser } from "@/lib/auth-client";
 import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl } from "@/lib/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { MemberBadge } from "@/modules/network/components/MemberBadge";
@@ -102,13 +102,7 @@ export default function UserMenu() {
 
   const handleSignOut = async () => {
     setOpen(false);
-    try {
-      await authClient.signOut();
-    } catch {}
-    try {
-      localStorage.removeItem("better-auth.session_token");
-    } catch {}
-    window.location.href = "/";
+    await signOutUser("/login");
   };
 
   const navTo = (path: string) => {
@@ -294,7 +288,7 @@ export default function UserMenu() {
           <div className="mx-4 h-px bg-[#f0efee] dark:bg-[#30363d]" />
 
           {/* Admin Console shortcut for admin */}
-          {session?.user?.email?.toLowerCase() === "patreshubham141@gmail.com" && (
+          {isSuperAdminUser(session?.user) && (
             <>
               <div className="px-2 py-1.5">
                 <button

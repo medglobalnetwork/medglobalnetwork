@@ -5,6 +5,7 @@ import { verifDb } from "@/modules/onboarding/lib/verification-db";
 import { getR2ObjectBuffer, isR2Configured } from "@/lib/r2";
 import { readFile } from "fs/promises";
 import { existsSync } from "fs";
+import { isSuperAdminUser } from "@/lib/auth-client";
 
 export async function GET(
   request: Request,
@@ -30,7 +31,7 @@ export async function GET(
 
     // Authorization: User must be owner OR Admin
     const isAdmin =
-      session.user.email?.toLowerCase() === "patreshubham141@gmail.com" ||
+      isSuperAdminUser(session.user) ||
       (session.user as any).role === "SUPER_ADMIN" ||
       (session.user as any).role === "ADMIN" ||
       (session.user as any).role === "VERIFICATION_ADMIN";
@@ -99,7 +100,7 @@ export async function DELETE(
     }
 
     const isAdmin =
-      session.user.email?.toLowerCase() === "patreshubham141@gmail.com" ||
+      isSuperAdminUser(session.user) ||
       (session.user as any).role === "SUPER_ADMIN" ||
       (session.user as any).role === "ADMIN" ||
       (session.user as any).role === "VERIFICATION_ADMIN";

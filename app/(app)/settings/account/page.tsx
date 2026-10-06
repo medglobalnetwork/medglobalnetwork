@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { authClient } from "@/lib/auth-client";
+import { authClient, signOutUser } from "@/lib/auth-client";
 import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl, setUserCustomAvatar } from "@/lib/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Trash2, User, Camera, Check, ExternalLink, Loader2, Sparkles, ShieldCheck, LogOut, Sun, Moon, Laptop } from "lucide-react";
@@ -25,13 +25,7 @@ export default function AccountSettingsPage() {
 
   const handleSignOut = async () => {
     setIsLoggingOut(true);
-    try {
-      await authClient.signOut();
-    } catch {}
-    try {
-      localStorage.removeItem("better-auth.session_token");
-    } catch {}
-    window.location.href = "/";
+    await signOutUser("/login");
   };
   
   // Name & Avatar & Username & Member ID
@@ -258,8 +252,7 @@ export default function AccountSettingsPage() {
         throw new Error(errorData.error || "Failed to delete account");
       }
 
-      await authClient.signOut();
-      router.replace("/");
+      await signOutUser("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete account");
     } finally {

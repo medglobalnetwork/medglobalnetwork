@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { ShieldAlert, ArrowLeft, LogOut, KeyRound, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
+import { authClient, signOutUser } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 
 interface AdminAccessDeniedProps {
@@ -23,12 +23,7 @@ export function AdminAccessDenied({ user }: AdminAccessDeniedProps) {
   const [successMsg, setSuccessMsg] = useState("");
 
   const handleSignOut = async () => {
-    try {
-      await authClient.signOut();
-      router.push("/login?redirect=/admin");
-    } catch {
-      router.push("/login?redirect=/admin");
-    }
+    await signOutUser("/login?redirect=/admin");
   };
 
   const handleClaimAdmin = async (e: React.FormEvent) => {

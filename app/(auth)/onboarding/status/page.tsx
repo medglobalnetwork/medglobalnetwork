@@ -15,7 +15,7 @@ import {
   RefreshCw,
   LogOut,
 } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
+import { authClient, signOutUser } from "@/lib/auth-client";
 
 export default function OnboardingStatusPage() {
   const router = useRouter();
@@ -62,8 +62,7 @@ export default function OnboardingStatusPage() {
   }, [data?.identity?.verification_deadline]);
 
   const handleSignOut = async () => {
-    await authClient.signOut();
-    router.replace("/");
+    await signOutUser("/login");
   };
 
   if (loading) {
