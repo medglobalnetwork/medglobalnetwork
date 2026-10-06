@@ -20,6 +20,7 @@ import { PostCardSkeleton } from "@/modules/network/components/SkeletonLoader";
 import type { NetworkPost } from "@/modules/network/types";
 import { useLocationTracking } from "@/lib/use-location-tracking";
 import { CitySelectorModal } from "@/components/location/CitySelectorModal";
+import { SponsoredBanner } from "@/components/ads/SponsoredBanner";
 
 interface HomeFeedProps {
   currentUserId?: string;
@@ -193,34 +194,8 @@ export function HomeFeed({
       </div>
 
       {/* 3. FEED CONTENT */}
-      {/* CTA BANNER AD AT START OF FEED */}
-      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-[#ded8d1] bg-gradient-to-r from-[#0a2f52] via-[#0f4c81] to-[#16804d] p-4.5 sm:p-5 text-white shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1.5 flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="rounded-md bg-white/20 backdrop-blur-xs px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase text-white">
-                Featured · Sponsored
-              </span>
-              <span className="text-[11px] text-white/80 font-medium">Healthcare Innovation Summit</span>
-            </div>
-            <h3 className="font-extrabold text-sm sm:text-base text-white tracking-tight leading-snug">
-              Expand Your Medical Network with Verified Clinicians
-            </h3>
-            <p className="text-xs text-white/85 line-clamp-2 max-w-xl">
-              Connect with leading healthcare specialists, participate in accredited CME webinars, and explore cutting-edge clinical opportunities.
-            </p>
-          </div>
-          <div className="shrink-0 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => router.push("/opportunities")}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-xs font-bold text-[#0f4c81] shadow-sm hover:bg-[#f8f7f6] transition active:scale-95"
-            >
-              Explore Now <ArrowRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* DYNAMIC SPONSORED BANNER AD CONFIGURED IN /admin/ads */}
+      <SponsoredBanner slot="feed_hero" />
 
       {/* NEARBY LOCATION BAR (WHEN NEARBY TAB IS ACTIVE) */}
       {activeTab === "nearby" && (

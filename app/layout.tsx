@@ -38,6 +38,7 @@ import {
   medicalOrganizationSchema,
   webSiteSchema,
   globalFaqSchema,
+  howToVerificationSchema,
   SITE_URL,
 } from "@/lib/seo";
 
@@ -48,7 +49,7 @@ export const metadata: Metadata = {
     template: "%s | Med Global Network (MGN)",
   },
   description:
-    "Official Med Global Network (MGN - mgn.life) platform. Connect with verified doctors, surgeons, physical therapists, and researchers. Access accredited CME courses, clinical case studies, medical conferences, health camps, and healthcare jobs.",
+    "Official Med Global Network (MGN). Verified network connecting doctors, surgeons, and therapists for accredited CME, clinical case discussions, and medical jobs.",
   keywords: [
     "Med Global Network",
     "MedGlobalNetwork",
@@ -160,7 +161,7 @@ export default function RootLayout({
       className={`${inter.variable} ${plusJakartaSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        <JsonLd schema={[medicalOrganizationSchema, webSiteSchema, globalFaqSchema]} />
+        <JsonLd schema={[medicalOrganizationSchema, webSiteSchema, globalFaqSchema, howToVerificationSchema]} />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var s=localStorage.getItem('mgn_theme');var t=s||'light';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';}else{document.documentElement.classList.remove('dark');document.documentElement.style.colorScheme='light';}}catch(e){}})();`,

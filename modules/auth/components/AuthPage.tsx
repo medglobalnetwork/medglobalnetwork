@@ -150,6 +150,9 @@ interface FormErrors {
   emailOtp?: string;
   phoneOtp?: string;
   agreeToTerms?: string;
+  guardianName?: string;
+  guardianContact?: string;
+  guardianConsent?: string;
   general?: string;
 }
 
@@ -256,6 +259,10 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
   // Individual Fields
   const [fullName, setFullName] = React.useState("");
+  const [ageCategory, setAgeCategory] = React.useState<"adult" | "minor">("adult");
+  const [guardianName, setGuardianName] = React.useState("");
+  const [guardianContact, setGuardianContact] = React.useState("");
+  const [guardianConsent, setGuardianConsent] = React.useState(false);
 
   // Organisation Fields
   const [orgName, setOrgName] = React.useState("");
@@ -924,14 +931,19 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
         if (accountType === "INDIVIDUAL") {
           const parsed = parseFullName(fullName);
-          draftPayload.category = "healthcare_professional";
-          draftPayload.professionOrType = "doctor";
+          draftPayload.category = ageCategory === "minor" ? "medical_student" : "healthcare_professional";
+          draftPayload.professionOrType = ageCategory === "minor" ? "student" : "doctor";
           draftPayload.claimedTitle = parsed.claimedTitle;
           draftPayload.legalFirstName = parsed.legalMiddleName
             ? `${parsed.legalFirstName} ${parsed.legalMiddleName}`.trim()
             : parsed.legalFirstName;
           draftPayload.legalMiddleName = parsed.legalMiddleName || "";
           draftPayload.legalLastName = parsed.legalLastName || "";
+          draftPayload.isMinor = ageCategory === "minor";
+          if (ageCategory === "minor") {
+            draftPayload.guardianName = guardianName.trim();
+            draftPayload.guardianContact = guardianContact.trim();
+          }
         } else {
           draftPayload.category = orgType;
           draftPayload.professionOrType = orgType;
@@ -954,6 +966,10 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
           name: registeredName,
           accountType,
           username: username.trim().toLowerCase(),
+          isMinor: accountType === "INDIVIDUAL" && ageCategory === "minor",
+          guardianName: accountType === "INDIVIDUAL" && ageCategory === "minor" ? guardianName.trim() : undefined,
+          guardianContact: accountType === "INDIVIDUAL" && ageCategory === "minor" ? guardianContact.trim() : undefined,
+          guardianConsent: accountType === "INDIVIDUAL" && ageCategory === "minor" ? guardianConsent : undefined,
         }),
       });
 
@@ -1018,6 +1034,18 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
       const termsErr = validateField("agreeToTerms", agreedToTerms);
       if (termsErr) newErrors.agreeToTerms = termsErr;
+
+      if (accountType === "INDIVIDUAL" && ageCategory === "minor") {
+        if (!guardianName.trim() || guardianName.trim().length < 2) {
+          newErrors.guardianName = "Parent or legal guardian full name is required for students under 18.";
+        }
+        if (!guardianContact.trim() || guardianContact.trim().length < 5) {
+          newErrors.guardianContact = "Parent / Guardian email or mobile number is required.";
+        }
+        if (!guardianConsent) {
+          newErrors.guardianConsent = "Verifiable parental consent is mandatory under DPDP Section 9.";
+        }
+      }
     }
 
     setErrors(newErrors);
@@ -2269,6 +2297,111 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                 </div>
               )}
 
+              {/* Age Category Selector & DPDP Guardian Flow (Sign Up Mode for Individuals) */}
+              {mode === "signup" && accountType === "INDIVIDUAL" && (
+                <div className="space-y-3 pt-1 border-t border-slate-200/80 dark:border-slate-800">
+                  <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-slate-200">
+                    Age & Eligibility Declaration (DPDP Act)
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAgeCategory("adult");
+                        setErrors((prev) => ({ ...prev, guardianName: undefined, guardianContact: undefined, guardianConsent: undefined }));
+                      }}
+                      className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
+                        ageCategory === "adult"
+                          ? "border-[#0f4c81] dark:border-[#388bfd] bg-[#f0f6fc] dark:bg-[#162030] text-[#0f4c81] dark:text-[#58a6ff] ring-1 ring-[#0f4c81]/20"
+                          : "border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0c1829] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                      }`}
+                    >
+                      <p className="text-xs font-bold">18+ Years Old</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">Doctor / Practitioner / Student</p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setAgeCategory("minor")}
+                      className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
+                        ageCategory === "minor"
+                          ? "border-purple-600 dark:border-purple-400 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 ring-1 ring-purple-600/20"
+                          : "border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0c1829] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                      }`}
+                    >
+                      <p className="text-xs font-bold">Under 18 Student</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">Pre-Med / 1st Year (Guardian Consent)</p>
+                    </button>
+                  </div>
+
+                  {/* Guardian Inputs if Under 18 */}
+                  {ageCategory === "minor" && (
+                    <div className="rounded-2xl border border-purple-200 dark:border-purple-900/60 bg-purple-50/50 dark:bg-purple-950/20 p-3.5 space-y-3 animate-in fade-in-50 duration-200">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-purple-900 dark:text-purple-300">
+                        <ShieldCheck className="size-4 text-purple-600 dark:text-purple-400" />
+                        <span>Verifiable Parental / Guardian Consent (DPDP Sec 9)</span>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                          Parent / Legal Guardian Full Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={guardianName}
+                          onChange={(e) => {
+                            setGuardianName(e.target.value);
+                            if (errors.guardianName) setErrors((prev) => ({ ...prev, guardianName: undefined }));
+                          }}
+                          placeholder="e.g. Dr. Rajesh Sharma"
+                          className="w-full rounded-xl border border-purple-200 dark:border-purple-800 bg-white dark:bg-[#0d1117] p-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-600"
+                        />
+                        {errors.guardianName && (
+                          <p className="text-[11px] text-rose-600 dark:text-rose-400 mt-1">{errors.guardianName}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                          Parent / Guardian Email or Mobile Number *
+                        </label>
+                        <input
+                          type="text"
+                          value={guardianContact}
+                          onChange={(e) => {
+                            setGuardianContact(e.target.value);
+                            if (errors.guardianContact) setErrors((prev) => ({ ...prev, guardianContact: undefined }));
+                          }}
+                          placeholder="guardian@example.com or +91 98765 43210"
+                          className="w-full rounded-xl border border-purple-200 dark:border-purple-800 bg-white dark:bg-[#0d1117] p-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-600"
+                        />
+                        {errors.guardianContact && (
+                          <p className="text-[11px] text-rose-600 dark:text-rose-400 mt-1">{errors.guardianContact}</p>
+                        )}
+                      </div>
+
+                      <label className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={guardianConsent}
+                          onChange={(e) => {
+                            setGuardianConsent(e.target.checked);
+                            if (errors.guardianConsent) setErrors((prev) => ({ ...prev, guardianConsent: undefined }));
+                          }}
+                          className="mt-0.5 size-4 rounded text-purple-600 focus:ring-purple-500"
+                        />
+                        <span className="text-[11px] leading-tight">
+                          I confirm that my parent / legal guardian has authorized my educational registration and Continuing Medical Education use on MGN.
+                        </span>
+                      </label>
+                      {errors.guardianConsent && (
+                        <p className="text-[11px] text-rose-600 dark:text-rose-400">{errors.guardianConsent}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Terms Checkbox (Sign Up Mode) */}
               {mode === "signup" && (
                 <div>
@@ -2281,12 +2414,16 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                     />
                     <span>
                       I agree to the{" "}
-                      <a href="/terms" className="font-semibold text-[#0f4c81] dark:text-[#58a6ff] underline">
+                      <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#0f4c81] dark:text-[#58a6ff] underline">
                         Terms of Service
-                      </a>{" "}
-                      and{" "}
-                      <a href="/privacy" className="font-semibold text-[#0f4c81] dark:text-[#58a6ff] underline">
+                      </a>
+                      ,{" "}
+                      <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#0f4c81] dark:text-[#58a6ff] underline">
                         Privacy Policy
+                      </a>
+                      , and{" "}
+                      <a href="/dpdp" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#0f4c81] dark:text-[#58a6ff] underline">
+                        DPDP Consent Terms
                       </a>
                       .
                     </span>

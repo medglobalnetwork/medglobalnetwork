@@ -20,6 +20,16 @@ export const SOCIAL_LINKS = {
   github: "https://github.com/medglobalnetwork",
 };
 
+export const DPDP_OFFICER_INFO = {
+  officerName: "Data Protection & Grievance Officer",
+  organization: "MedGlobalNetwork (MGN)",
+  email: "grievance@mgn.life",
+  supportEmail: "support@mgn.life",
+  address: "MedGlobalNetwork Compliance Desk, Mumbai & New Delhi, India",
+  responseWindowDays: 30,
+  actReference: "Digital Personal Data Protection Act, 2023 (DPDP Act) & DPDP Rules 2025",
+};
+
 /**
  * 1. MedicalOrganization Schema
  * Establishes MedGlobalNetwork as an authoritative entity in the medical knowledge graph.
@@ -163,6 +173,68 @@ export const globalFaqSchema = {
         "@type": "Answer",
         text: "Yes, medical researchers and clinicians can initiate multi-center research projects, recruit qualified co-investigators, publish peer-reviewed clinical findings, and share preprints and clinical case studies with an international network of verified medical peers.",
       },
+    },
+  ],
+};
+
+/**
+ * 4. HowTo Schema (Clinician Verification Workflow for AEO / Rich Snippets)
+ */
+export const howToVerificationSchema = {
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  name: "How Doctors & Healthcare Professionals Get Verified on MedGlobalNetwork",
+  description:
+    "Step-by-step credentialing and registry verification process for medical doctors, surgeons, physical therapists, and researchers on MedGlobalNetwork (MGN).",
+  image: `${SITE_URL}/auth-hero-3d.jpg`,
+  totalTime: "P1D",
+  estimatedCost: {
+    "@type": "MonetaryAmount",
+    currency: "USD",
+    value: "0",
+  },
+  step: [
+    {
+      "@type": "HowToStep",
+      position: 1,
+      name: "Create Professional Profile",
+      text: "Sign up at mgn.life/signup with your official professional email and basic details.",
+      url: `${SITE_URL}/signup`,
+    },
+    {
+      "@type": "HowToStep",
+      position: 2,
+      name: "Select Medical Discipline & Specialty",
+      text: "Specify your profession (Doctor, Surgeon, Physical Therapist, Nurse, or Researcher) and clinical specialty.",
+      url: `${SITE_URL}/onboarding`,
+    },
+    {
+      "@type": "HowToStep",
+      position: 3,
+      name: "Enter Medical Council Registration",
+      text: "Provide your national or state medical council registration number, issuing board, and hospital affiliation.",
+      url: `${SITE_URL}/onboarding`,
+    },
+    {
+      "@type": "HowToStep",
+      position: 4,
+      name: "Upload Credential Documents",
+      text: "Upload digital copies of your medical degree/diploma certificate, active practice license, and government ID.",
+      url: `${SITE_URL}/onboarding`,
+    },
+    {
+      "@type": "HowToStep",
+      position: 5,
+      name: "Clinical Registry Cross-Validation",
+      text: "MGN credentialing specialists cross-validate records against government and medical board registries.",
+      url: `${SITE_URL}/verify`,
+    },
+    {
+      "@type": "HowToStep",
+      position: 6,
+      name: "Receive Verified Clinician Badge",
+      text: "Upon approval, the Verified Clinician badge is awarded, unlocking accredited CME courses and peer consultations.",
+      url: `${SITE_URL}/feed`,
     },
   ],
 };

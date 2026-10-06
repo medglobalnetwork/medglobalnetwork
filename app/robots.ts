@@ -1,49 +1,51 @@
 import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = "https://mgn.life";
-
   return {
     rules: [
       {
         userAgent: "*",
         allow: "/",
         disallow: [
-          "/api/",
           "/admin/",
+          "/api/",
           "/settings/",
-          "/messages/",
-          "/notifications/",
-          "/calls/",
+          "/reset-password/",
+          "/onboarding/status",
         ],
       },
       {
-        userAgent: [
-          "Googlebot",
-          "Bingbot",
-          "Applebot",
-          "GPTBot",
-          "ChatGPT-User",
-          "PerplexityBot",
-          "ClaudeBot",
-          "anthropic-ai",
-          "Google-Extended",
-          "cohere-ai",
-          "meta-externalagent",
-          "Bytespider",
-        ],
+        userAgent: "Googlebot",
         allow: "/",
-        disallow: [
-          "/api/",
-          "/admin/",
-          "/settings/",
-          "/messages/",
-          "/notifications/",
-          "/calls/",
+        disallow: ["/admin/", "/api/", "/settings/"],
+      },
+      {
+        userAgent: "Bingbot",
+        allow: "/",
+        disallow: ["/admin/", "/api/", "/settings/"],
+      },
+      {
+        userAgent: "GPTBot",
+        allow: [
+          "/",
+          "/events",
+          "/camps",
+          "/learn/courses",
+          "/opportunities/jobs",
+          "/dpdp",
+          "/privacy",
+          "/terms",
+          "/disclaimer",
+          "/guidelines",
         ],
+        disallow: ["/admin/", "/api/", "/settings/"],
+      },
+      {
+        userAgent: "PerplexityBot",
+        allow: "/",
+        disallow: ["/admin/", "/api/", "/settings/"],
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
-    host: baseUrl,
+    sitemap: "https://mgn.life/sitemap.xml",
   };
 }

@@ -35,6 +35,16 @@ const settingsNav = [
         ),
       },
       {
+        label: "Privacy & DPDP",
+        href: "/settings/privacy",
+        icon: (
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+        ),
+      },
+      {
         label: "Plans & Billing",
         href: "/pricing",
         icon: (

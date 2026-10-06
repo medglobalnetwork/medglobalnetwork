@@ -182,12 +182,53 @@ export async function POST(request: Request) {
     try {
       await VerificationService.startOrEnroll(createdUser.id, {
         account_type: accountType,
-        category: accountType === "INDIVIDUAL" ? "clinical_practitioner" : "hospital",
-        profession_or_type: accountType === "INDIVIDUAL" ? "general_physician" : "hospital",
+        category: accountType === "INDIVIDUAL" ? (body.isMinor ? "medical_student" : "clinical_practitioner") : "hospital",
+        profession_or_type: accountType === "INDIVIDUAL" ? (body.isMinor ? "student" : "general_physician") : "hospital",
         step: 1,
       });
     } catch (verifInitErr) {
       console.warn("Could not pre-initialize identity record during signup:", verifInitErr);
+    }
+
+    // 8.1 Record DPDP Under-18 Parental/Guardian Consent (Section 9)
+    const isMinor = Boolean(body.isMinor);
+    const guardianName = (body.guardianName || "").trim();
+    const guardianContact = (body.guardianContact || "").trim();
+    if (isMinor && guardianName) {
+      try {
+        const guardianEmail = guardianContact.includes("@")
+          ? guardianContact.toLowerCase()
+          : `guardian.${createdUser.id.slice(0, 8)}@mgn.life`;
+        const guardianPhone = guardianContact.replace(/\D/g, "").length >= 10 ? guardianContact : null;
+
+        await pool.query(
+          `INSERT INTO user_nominees (user_id, full_name, relationship, email, phone, notes, updated_at)
+           VALUES ($1, $2, 'Parent / Legal Guardian', $3, $4, 'DPDP Sec 9 Verifiable Guardian Consent Recorded during Student Signup', NOW())
+           ON CONFLICT (user_id) DO UPDATE SET
+             full_name = EXCLUDED.full_name,
+             relationship = EXCLUDED.relationship,
+             email = EXCLUDED.email,
+             phone = EXCLUDED.phone,
+             notes = EXCLUDED.notes,
+             updated_at = NOW()`,
+          [createdUser.id, guardianName, guardianEmail, guardianPhone]
+        );
+
+        // Under DPDP Section 9, disable profiling and public recruiter discovery by default for minors
+        await pool.query(
+          `INSERT INTO user_privacy_consents (user_id, consent_key, granted, granted_at)
+           VALUES 
+             ($1, 'public_search_indexing', FALSE, NOW()),
+             ($1, 'recruiter_inquiries', FALSE, NOW()),
+             ($1, 'research_collaboration', FALSE, NOW()),
+             ($1, 'cme_accreditation_sharing', TRUE, NOW()),
+             ($1, 'clinical_newsletter', TRUE, NOW())
+           ON CONFLICT (user_id, consent_key) DO UPDATE SET granted = EXCLUDED.granted, granted_at = NOW()`,
+          [createdUser.id]
+        );
+      } catch (minorConsentErr) {
+        console.warn("Failed to record DPDP minor guardian consent:", minorConsentErr);
+      }
     }
 
     // 9. Create session in PostgreSQL & prepare response with session cookies

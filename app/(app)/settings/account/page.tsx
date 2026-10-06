@@ -6,7 +6,7 @@ import Link from "next/link";
 import { authClient, signOutUser } from "@/lib/auth-client";
 import { DEFAULT_BLANK_AVATAR, getUserAvatarUrl, setUserCustomAvatar } from "@/lib/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
-import { Trash2, User, Camera, Check, ExternalLink, Loader2, Sparkles, ShieldCheck, LogOut, Sun, Moon, Laptop } from "lucide-react";
+import { Trash2, User, Camera, Check, ExternalLink, Loader2, Sparkles, ShieldCheck, LogOut, Sun, Moon, Laptop, Download, UserCheck, Lock } from "lucide-react";
 import { ImageSelectorModal } from "@/components/media/ImageSelectorModal";
 import { MemberBadge } from "@/modules/network/components/MemberBadge";
 import { useTheme } from "@/components/ThemeProvider";
@@ -581,6 +581,43 @@ export default function AccountSettingsPage() {
             {isLoggingOut ? <Loader2 className="size-4 animate-spin" /> : <LogOut className="size-4" />}
             <span>{isLoggingOut ? "Signing out..." : "Log Out of MGN"}</span>
           </button>
+        </div>
+      </div>
+
+      {/* DPDP Privacy, Nominee & Data Export section */}
+      <div className="rounded-2xl border border-[#ded8d1] bg-white p-5 sm:p-6 mb-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-[#171717]">Privacy, Nominee & Data Rights (DPDP 2023)</h2>
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                <ShieldCheck className="size-3" />
+                Active
+              </span>
+            </div>
+            <p className="mt-0.5 text-xs text-[#77716b]">
+              Manage itemized consent, designate a legal nominee, or download a full machine-readable archive of your personal records.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/settings/privacy"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-white px-3.5 py-2 text-xs font-semibold text-[#0f4c81] hover:bg-[#faf9f8] transition shadow-2xs"
+            >
+              <UserCheck className="size-3.5" />
+              <span>Nominee & Consents</span>
+            </Link>
+
+            <a
+              href="/api/user/export-data"
+              download
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] px-3.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0c3c66] transition"
+            >
+              <Download className="size-3.5" />
+              <span>Download My Data (JSON)</span>
+            </a>
+          </div>
         </div>
       </div>
 

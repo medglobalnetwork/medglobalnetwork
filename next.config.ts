@@ -45,7 +45,15 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  reactStrictMode: true,
+  async redirects() {
+    return [
+      {
+        source: "/admin/recommandations",
+        destination: "/admin/recommendations",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

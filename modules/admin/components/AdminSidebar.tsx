@@ -22,6 +22,7 @@ import {
   MessageSquare,
   HardDrive,
   LogOut,
+  Megaphone,
 } from "lucide-react";
 import { AdminIcon } from "./AdminIcon";
 import { signOutUser } from "@/lib/auth-client";
@@ -147,6 +148,11 @@ export function AdminSidebar({ badgeCounts = {}, isOpen, onClose }: AdminSidebar
           href: "/admin/communication",
           icon: MessageSquare,
           icons8Id: "d7iUgF8ZrDaO",
+        },
+        {
+          name: "Ads & Campaigns",
+          href: "/admin/ads",
+          icon: Megaphone,
         },
       ],
     },
