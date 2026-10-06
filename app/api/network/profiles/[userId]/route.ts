@@ -1,5 +1,5 @@
 // app/api/network/profiles/[userId]/route.ts
-import { auth } from "@/lib/auth";
+import { getSafeSession } from "@/lib/auth";
 import { networkDb, ensureNetworkingTables, slugifyUsername, generateId } from "@/modules/network/lib/network-db";
 import { generateRegularMemberId, generateFoundingMemberId, isDesignatedFounderEmail } from "@/modules/network/lib/member-id";
 import { headers } from "next/headers";
@@ -9,26 +9,26 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ userId: string }> }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    return Response.json({ error: "Authentication required" }, { status: 401 });
-  }
-
-  const { userId } = await params;
-  const normalizedId = userId.toLowerCase().trim();
-  const strippedId = normalizedId.replace(/[^a-z0-9]/g, "");
-
-  const isSelf =
-    userId === "me" ||
-    userId === "self" ||
-    userId === session.user.id ||
-    normalizedId === (session.user.name || "").toLowerCase().trim() ||
-    strippedId === (session.user.name || "").toLowerCase().replace(/[^a-z0-9]/g, "") ||
-    normalizedId === (session.user.email || "").split("@")[0].toLowerCase().trim() ||
-    strippedId === (session.user.email || "").split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "");
-
   try {
-    await ensureNetworkingTables();
+    const session = await getSafeSession(await headers());
+    if (!session?.user) {
+      return Response.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    const { userId } = await params;
+    const normalizedId = userId.toLowerCase().trim();
+    const strippedId = normalizedId.replace(/[^a-z0-9]/g, "");
+
+    const isSelf =
+      userId === "me" ||
+      userId === "self" ||
+      userId === session.user.id ||
+      normalizedId === (session.user.name || "").toLowerCase().trim() ||
+      strippedId === (session.user.name || "").toLowerCase().replace(/[^a-z0-9]/g, "") ||
+      normalizedId === (session.user.email || "").split("@")[0].toLowerCase().trim() ||
+      strippedId === (session.user.email || "").split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    await ensureNetworkingTables().catch(() => {});
 
     let profile = await networkDb
       .selectFrom("professional_profiles as pp")
@@ -340,7 +340,7 @@ export async function GET(
       },
     });
   } catch (err: any) {
-    console.error(`GET /api/network/profiles/${userId} error:`, err);
+    console.error("GET /api/network/profiles/[userId] error:", err);
     return Response.json({ error: err.message || "Failed to fetch profile" }, { status: 500 });
   }
 }

@@ -1,23 +1,24 @@
 // app/api/network/posts/route.ts
-import { auth } from "@/lib/auth";
-import { networkDb, generateId } from "@/modules/network/lib/network-db";
+import { getSafeSession } from "@/lib/auth";
+import { networkDb, generateId, ensureNetworkingTables } from "@/modules/network/lib/network-db";
 import { headers, cookies } from "next/headers";
 import { getLatestUserLocation } from "@/lib/location-tracking";
 
 export async function GET(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    return Response.json({ error: "Authentication required" }, { status: 401 });
-  }
-
-  const { searchParams } = new URL(request.url);
-  const page = parseInt(searchParams.get("page") ?? "1", 10);
-  const pageSize = Math.min(parseInt(searchParams.get("pageSize") ?? "20", 10), 50);
-  const offset = (page - 1) * pageSize;
-  const communityId = searchParams.get("communityId");
-  const authorId = searchParams.get("userId") || searchParams.get("authorId");
-
   try {
+    await ensureNetworkingTables().catch(() => {});
+    const session = await getSafeSession(await headers());
+    if (!session?.user) {
+      return Response.json({ data: [], page: 1, pageSize: 20, hasMore: false, error: "Authentication required" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") ?? "1", 10);
+    const pageSize = Math.min(parseInt(searchParams.get("pageSize") ?? "20", 10), 50);
+    const offset = (page - 1) * pageSize;
+    const communityId = searchParams.get("communityId");
+    const authorId = searchParams.get("userId") || searchParams.get("authorId");
+
     let q = networkDb
       .selectFrom("network_posts as np")
       .innerJoin("user as u", "u.id", "np.author_id")
@@ -170,21 +171,20 @@ export async function GET(request: Request) {
 import { sanitizeText, isSafeUrl, checkRateLimit } from "@/lib/security";
 
 export async function POST(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    return Response.json({ error: "Authentication required" }, { status: 401 });
-  }
-
-  // Rate limit: max 20 posts per minute
-  const rateLimit = checkRateLimit(`post:${session.user.id}`, 20, 60000);
-  if (!rateLimit.allowed) {
-    return Response.json(
-      { error: "Posting rate limit reached. Please wait a moment." },
-      { status: 429 }
-    );
-  }
-
   try {
+    const session = await getSafeSession(await headers());
+    if (!session?.user) {
+      return Response.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    // Rate limit: max 20 posts per minute
+    const rateLimit = checkRateLimit(`post:${session.user.id}`, 20, 60000);
+    if (!rateLimit.allowed) {
+      return Response.json(
+        { error: "Posting rate limit reached. Please wait a moment." },
+        { status: 429 }
+      );
+    }
     const { content, postType, communityId, visibility, mediaUrls } = await request.json() as {
       content: string;
       postType?: string;

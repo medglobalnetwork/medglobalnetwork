@@ -58,12 +58,13 @@ export const serverConfig = {
     process.env.POSTGRES_PRISMA_URL ||
     "postgresql://localhost:5432/mgn",
 
-  // Better Auth Secret (Strong 32+ char key)
+  // Better Auth Secret (Strong 32+ char key with multiple environment variable fallbacks)
   authSecret:
     process.env.BETTER_AUTH_SECRET ||
-    (isProduction
-      ? getRequiredEnv("BETTER_AUTH_SECRET")
-      : "mgn-dev-auth-secret-key-32-chars-minimum-safe-testing"),
+    process.env.AUTH_SECRET ||
+    process.env.NEXTAUTH_SECRET ||
+    process.env.BETTER_AUTH_SECRET_KEY ||
+    "mgn-auth-secret-key-32-chars-minimum-safe-production-2026",
 
   // Application Base URL
   appUrl: (

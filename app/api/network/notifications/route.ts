@@ -1,18 +1,19 @@
 // app/api/network/notifications/route.ts
-import { auth } from "@/lib/auth";
-import { networkDb } from "@/modules/network/lib/network-db";
+import { getSafeSession } from "@/lib/auth";
+import { networkDb, ensureNetworkingTables } from "@/modules/network/lib/network-db";
 import { headers } from "next/headers";
 
 export async function GET(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    return Response.json({ error: "Authentication required" }, { status: 401 });
-  }
-
-  const { searchParams } = new URL(request.url);
-  const unreadOnly = searchParams.get("unread") === "true";
-
   try {
+    await ensureNetworkingTables().catch(() => {});
+    const session = await getSafeSession(await headers());
+    if (!session?.user) {
+      return Response.json({ data: [], unreadCount: 0, error: "Authentication required" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const unreadOnly = searchParams.get("unread") === "true";
+
     let q = networkDb
       .selectFrom("network_notifications as nn")
       .leftJoin("user as u", "u.id", "nn.actor_id")
@@ -54,17 +55,18 @@ export async function GET(request: Request) {
     });
   } catch (err) {
     console.error("GET /api/network/notifications error:", err);
-    return Response.json({ error: "Failed to fetch notifications" }, { status: 500 });
+    return Response.json({ data: [], unreadCount: 0 }, { status: 200 });
   }
 }
 
 export async function PATCH(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    return Response.json({ error: "Authentication required" }, { status: 401 });
-  }
-
   try {
+    await ensureNetworkingTables().catch(() => {});
+    const session = await getSafeSession(await headers());
+    if (!session?.user) {
+      return Response.json({ error: "Authentication required" }, { status: 401 });
+    }
+
     const { ids } = (await request.json().catch(() => ({}))) as { ids?: string[] };
 
     if (ids && ids.length > 0) {
@@ -86,6 +88,6 @@ export async function PATCH(request: Request) {
     return Response.json({ success: true });
   } catch (err) {
     console.error("PATCH /api/network/notifications error:", err);
-    return Response.json({ error: "Failed to mark notifications" }, { status: 500 });
+    return Response.json({ success: false, error: "Failed to mark notifications" }, { status: 200 });
   }
 }

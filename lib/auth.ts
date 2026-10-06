@@ -5,6 +5,7 @@ import { betterAuth } from "better-auth";
 import { dash } from "@better-auth/infra";
 import { Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
+import { headers } from "next/headers";
 import { serverConfig, isProduction } from "./env";
 
 const databaseUrl = serverConfig.databaseUrl;
@@ -33,11 +34,18 @@ if (
 
 const baseURL = cleanBaseUrl;
 
+const isSslDisabled = databaseUrl.includes("sslmode=disable") || databaseUrl.includes("localhost") || databaseUrl.includes("127.0.0.1");
+
 const isRemoteDb =
-  databaseUrl.includes("supabase") ||
-  databaseUrl.includes("pooler") ||
-  databaseUrl.includes("aws") ||
-  isProduction;
+  !isSslDisabled &&
+  (databaseUrl.includes("supabase") ||
+    databaseUrl.includes("pooler") ||
+    databaseUrl.includes("aws") ||
+    databaseUrl.includes("neon") ||
+    databaseUrl.includes("render") ||
+    databaseUrl.includes("railway") ||
+    databaseUrl.includes("sslmode=require") ||
+    isProduction);
 
 const globalForAuth = globalThis as typeof globalThis & {
   mgnAuthPool?: Pool;
@@ -55,6 +63,12 @@ export const pool =
     keepAlive: true,
   });
 
+if (!globalForAuth.mgnAuthPool) {
+  pool.on("error", (err) => {
+    console.error("[PostgreSQL Pool Error]:", err?.message || err);
+  });
+}
+
 export const database =
   globalForAuth.mgnAuthDatabase ??
   new Kysely({
@@ -63,6 +77,17 @@ export const database =
 
 globalForAuth.mgnAuthPool = pool;
 globalForAuth.mgnAuthDatabase = database;
+
+export async function getSafeSession(customHeaders?: Headers) {
+  try {
+    const reqHeaders = customHeaders || (await headers());
+    const session = await auth.api.getSession({ headers: reqHeaders });
+    return session;
+  } catch (err: any) {
+    console.warn("[Auth] getSafeSession non-fatal error:", err?.message || err);
+    return null;
+  }
+}
 
 export const auth = betterAuth({
   baseURL,
@@ -172,12 +197,17 @@ export const auth = betterAuth({
       maxAge: 5 * 60,
     },
   },
-  plugins: process.env.BETTER_AUTH_API_KEY ? [dash()] : [],
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, url }) => {
+      try {
+        const { sendPasswordResetEmail } = await import("./mail");
+        await sendPasswordResetEmail(user.email, url, user.name);
+      } catch (mailErr) {
+        console.error("[AUTH] Failed to send password reset email:", mailErr);
+      }
       if (!isProduction) {
-        console.info(`Password reset requested for ${user.email}: ${url}`);
+        console.info(`[DEV PASSWORD RESET] ${user.email} -> ${url}`);
       }
     },
   },
