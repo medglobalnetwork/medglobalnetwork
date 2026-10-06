@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
+import { authClient, signOutUser } from "@/lib/auth-client";
 import {
   Mail,
   Lock,
@@ -28,6 +28,7 @@ import {
   ChevronLeft,
   Check,
   UserPlus,
+  LogOut,
 } from "lucide-react";
 import CodeSlots from "@/components/ui/CodeSlots";
 import { getFirebaseAuth, RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from "@/lib/firebase";
@@ -348,13 +349,14 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   }, [searchParams]);
 
   const redirectTarget = searchParams?.get("redirect") || "/home";
+  const isSwitchOrLogout = searchParams?.get("switch") === "true" || searchParams?.get("logout") === "true";
 
-  // Redirect if already logged in
+  // Handle explicit switch/logout query parameter
   React.useEffect(() => {
-    if (!isSessionPending && session?.user) {
-      router.replace(redirectTarget);
+    if (isSwitchOrLogout && session?.user) {
+      signOutUser("/login");
     }
-  }, [isSessionPending, session, router, redirectTarget]);
+  }, [isSwitchOrLogout, session]);
 
   // Auto-generate username suggestion on name input
   const handleNameChange = (val: string) => {
@@ -1316,6 +1318,42 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                 : "Login to continue to your account"}
             </p>
           </div>
+
+          {/* Active Session Notice & Switcher */}
+          {session?.user && !isSwitchOrLogout && (
+            <div className="mb-5 p-4 rounded-2xl bg-[#eef5fc] dark:bg-[#161b22] border border-[#0f4c81]/25 dark:border-[#58a6ff]/25 text-left shadow-xs animate-in fade-in">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="size-9 rounded-xl bg-[#0f4c81] text-white flex items-center justify-center font-bold text-sm shrink-0">
+                  {(session.user.name || session.user.email || "U")[0].toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-[#171717] dark:text-[#f0f6fc] truncate">
+                    Currently signed in as <span className="text-[#0f4c81] dark:text-[#58a6ff]">{session.user.name || session.user.email}</span>
+                  </p>
+                  <p className="text-[11px] text-[#5d5854] dark:text-[#8b949e]">
+                    You have an active session on this device.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => router.push(redirectTarget)}
+                  className="flex-1 py-2 px-3 rounded-xl bg-[#0f4c81] dark:bg-[#14559b] text-white text-xs font-semibold hover:bg-[#0c3c66] transition cursor-pointer text-center"
+                >
+                  Continue Session
+                </button>
+                <button
+                  type="button"
+                  onClick={() => signOutUser("/login")}
+                  className="py-2 px-3 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-white dark:bg-[#21262d] text-rose-600 dark:text-rose-400 text-xs font-semibold hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <LogOut className="size-3.5" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Segmented Email vs Phone Tabs (Sign In Mode) */}
           {!isForgotPassword && mode === "signin" && (

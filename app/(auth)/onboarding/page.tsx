@@ -35,6 +35,7 @@ import {
   Briefcase,
   Layers,
   ChevronRight,
+  LogOut,
 } from "lucide-react";
 import {
   INDIVIDUAL_CATEGORIES,
@@ -52,6 +53,7 @@ import {
   type RequirementLevel,
 } from "@/modules/onboarding/config/schemas";
 import { parseFullName } from "@/lib/name-parser";
+import { signOutUser } from "@/lib/auth-client";
 
 const DRAFT_STORAGE_KEY = "mgn_onboarding_form_draft";
 
@@ -100,6 +102,7 @@ export default function OnboardingPage() {
   const [confirmedDeclaration, setConfirmedDeclaration] = React.useState<boolean>(false);
 
   // Status & Correction States
+  const [verificationStatus, setVerificationStatus] = React.useState<string>("DRAFT");
   const [correctionNote, setCorrectionNote] = React.useState<string | null>(null);
   const [rejectedDocTypes, setRejectedDocTypes] = React.useState<string[]>([]);
   const [skippedDocuments, setSkippedDocuments] = React.useState<boolean>(false);
@@ -158,9 +161,21 @@ export default function OnboardingPage() {
     fetch("/api/onboarding", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
+        if (data.isApproved || data.identity?.verification_status === "APPROVED") {
+          if (typeof window !== "undefined") {
+            localStorage.removeItem(DRAFT_STORAGE_KEY);
+          }
+          router.replace("/home");
+          return;
+        }
+
         if (data.identity) {
           const id = data.identity;
+          setVerificationStatus(id.verification_status || "DRAFT");
           if (id.verification_status === "APPROVED") {
+            if (typeof window !== "undefined") {
+              localStorage.removeItem(DRAFT_STORAGE_KEY);
+            }
             router.replace("/home");
             return;
           }
@@ -168,7 +183,10 @@ export default function OnboardingPage() {
             id.verification_status === "UNDER_REVIEW" ||
             id.verification_status === "VERIFICATION_INCOMPLETE" ||
             id.verification_status === "REJECTED" ||
-            id.verification_status === "SUSPENDED"
+            id.verification_status === "SUSPENDED" ||
+            id.verification_status === "BANNED" ||
+            id.verification_status === "ON_HOLD" ||
+            id.verification_status === "RESTRICTED"
           ) {
             router.replace("/onboarding/status");
             return;
@@ -177,6 +195,14 @@ export default function OnboardingPage() {
           if (id.verification_status === "CORRECTION_REQUIRED") {
             setCorrectionNote(id.correction_reason || "Reviewer requested corrections to your uploaded KYC documents.");
             setStep(5); // Jump directly to document upload step for correction
+          } else if (id.verification_status === "ENROLLED") {
+            // User in 72h grace window visiting onboarding -> go to document upload step directly
+            setStep(5);
+          } else if (id.onboarding_step && id.onboarding_step >= 1 && id.onboarding_step <= 6) {
+            // Resume from authoritative server step
+            setStep(id.onboarding_step);
+          } else if (savedLocalStep && savedLocalStep >= 1 && savedLocalStep <= 6) {
+            setStep(savedLocalStep);
           }
 
           if (id.account_type) setAccountType(id.account_type);
@@ -331,32 +357,72 @@ export default function OnboardingPage() {
   // ─────────────────────────────────────────────
   // Step Navigation & Validation
   // ─────────────────────────────────────────────
-  const handleSkipDocuments = () => {
+  const handleSkipDocuments = async () => {
     setSkippedDocuments(true);
     setError(null);
+    try {
+      await fetch("/api/onboarding", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ step: 6 }),
+      });
+    } catch {}
     setStep(6);
+  };
+
+  const handleBackStep = async () => {
+    setError(null);
+    const prev = Math.max(1, step - 1);
+    setStep(prev);
+    try {
+      await fetch("/api/onboarding", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ step: prev }),
+      });
+    } catch {}
   };
 
   const handleNextStep = async () => {
     setError(null);
 
     if (step === 1) {
-      // Step 1: Account Type chosen -> proceed
-      setStep(2);
-      return;
-    }
-
-    if (step === 2) {
-      // Step 2: Category & Role chosen -> initialize server session
+      // Step 1: Account Type chosen -> proceed & persist
       try {
         await fetch("/api/onboarding", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({
+            action: "START",
             account_type: accountType,
             category,
             profession_or_type: professionOrType,
+            step: 2,
+          }),
+        });
+      } catch (e) {
+        console.warn("Could not sync category to server:", e);
+      }
+      setStep(2);
+      return;
+    }
+
+    if (step === 2) {
+      // Step 2: Category & Role chosen -> initialize server session & persist
+      try {
+        await fetch("/api/onboarding", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            action: "START",
+            account_type: accountType,
+            category,
+            profession_or_type: professionOrType,
+            step: 3,
           }),
         });
       } catch (e) {
@@ -376,6 +442,33 @@ export default function OnboardingPage() {
         setError("City and State are required.");
         return;
       }
+
+      // Persist step 3 details to server
+      try {
+        await fetch("/api/onboarding", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            legal_first_name: legalFirstName,
+            legal_middle_name: legalMiddleName,
+            legal_last_name: legalLastName,
+            display_name: displayName || `${legalFirstName} ${legalLastName}`.trim(),
+            dob,
+            gender,
+            country,
+            state,
+            city,
+            phone,
+            claimed_title: claimedTitle,
+            title_type: titleType,
+            step: 4,
+          }),
+        });
+      } catch (e) {
+        console.warn("Could not save step 3 details to server:", e);
+      }
+
       setStep(4);
       return;
     }
@@ -408,6 +501,7 @@ export default function OnboardingPage() {
             phone,
             claimed_title: claimedTitle,
             title_type: titleType,
+            step: 5,
             ...dynamicValues,
           }),
         });
@@ -434,6 +528,14 @@ export default function OnboardingPage() {
       }
 
       setSkippedDocuments(false);
+      try {
+        await fetch("/api/onboarding", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ step: 6 }),
+        });
+      } catch {}
       setStep(6);
       return;
     }
@@ -515,6 +617,7 @@ export default function OnboardingPage() {
           phone,
           claimed_title: claimedTitle,
           title_type: titleType,
+          step: 6,
           ...dynamicValues,
         }),
       });
@@ -526,10 +629,14 @@ export default function OnboardingPage() {
 
       if (missingMandatory.length > 0 || skippedDocuments) {
         // Defer document upload and enter 72h grace period
-        await fetch("/api/onboarding/skip", {
+        const res = await fetch("/api/onboarding/skip", {
           method: "POST",
           credentials: "include",
         });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to complete setup in grace period");
+        }
       } else {
         // Full documents submitted -> Move to UNDER_REVIEW
         const res = await fetch("/api/onboarding/submit-review", {
@@ -620,12 +727,26 @@ export default function OnboardingPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Link
-            href="/login"
-            className="text-xs font-semibold text-[#5d5854] dark:text-[#8b949e] hover:text-[#0f4c81] dark:hover:text-[#58a6ff] transition"
+          {verificationStatus === "ENROLLED" && (
+            <Link
+              href="/home"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[#0f4c81]/30 dark:border-[#58a6ff]/30 bg-[#eef5fc] dark:bg-[#161b22] px-3 py-1.5 text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:bg-[#0f4c81]/10 transition shadow-2xs"
+            >
+              <span>Go to Home Feed</span>
+              <ArrowRight className="size-3.5" />
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={async () => {
+              await signOutUser("/login");
+            }}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3 py-1.5 text-xs font-semibold text-[#5d5854] dark:text-[#8b949e] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-[#f0efee] dark:hover:bg-[#21262d] transition cursor-pointer shadow-2xs"
+            title="Sign out of your session and return to login"
           >
-            Exit to Login
-          </Link>
+            <LogOut className="size-3.5" />
+            <span>Sign Out</span>
+          </button>
         </div>
       </header>
 
@@ -1176,7 +1297,7 @@ export default function OnboardingPage() {
               </p>
             </div>
 
-            {/* Skip for now Banner */}
+            {/* Skip for now / Grace Period Banner */}
             <div className="p-4 rounded-2xl bg-[#eef5fc] dark:bg-[#161b22] border border-[#0f4c81]/20 dark:border-[#58a6ff]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
               <div className="flex items-center gap-3">
                 <div className="size-9 rounded-xl bg-[#0f4c81]/10 dark:bg-[#58a6ff]/10 text-[#0f4c81] dark:text-[#58a6ff] flex items-center justify-center shrink-0">
@@ -1184,21 +1305,35 @@ export default function OnboardingPage() {
                 </div>
                 <div className="text-left">
                   <h4 className="text-xs sm:text-sm font-semibold text-[#171717] dark:text-[#f0f6fc]">
-                    Don't have your documents ready right now?
+                    {verificationStatus === "ENROLLED"
+                      ? "72-Hour Grace Period Active"
+                      : "Don't have your documents ready right now?"}
                   </h4>
                   <p className="text-[11px] text-[#5d5854] dark:text-[#8b949e] mt-0.5">
-                    You can skip this step and upload your certificates anytime within your 72-hour grace period.
+                    {verificationStatus === "ENROLLED"
+                      ? "You have full platform access. You can upload documents here anytime before your window expires."
+                      : "You can skip this step and upload your certificates anytime within your 72-hour grace period."}
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={handleSkipDocuments}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-[#21262d] border border-[#0f4c81]/40 dark:border-[#58a6ff]/40 text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:bg-[#0f4c81]/5 transition shrink-0 cursor-pointer self-start sm:self-auto shadow-2xs"
-              >
-                <span>Skip for now</span>
-                <ArrowRight className="size-3.5" />
-              </button>
+              {verificationStatus === "ENROLLED" ? (
+                <Link
+                  href="/home"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0f4c81] dark:bg-[#14559b] text-xs font-semibold text-white hover:bg-[#0c3c66] transition shrink-0 cursor-pointer self-start sm:self-auto shadow-2xs"
+                >
+                  <span>Explore App</span>
+                  <ArrowRight className="size-3.5" />
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSkipDocuments}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-[#21262d] border border-[#0f4c81]/40 dark:border-[#58a6ff]/40 text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:bg-[#0f4c81]/5 transition shrink-0 cursor-pointer self-start sm:self-auto shadow-2xs"
+                >
+                  <span>Skip for now</span>
+                  <ArrowRight className="size-3.5" />
+                </button>
+              )}
             </div>
 
             {/* Document Cards List */}
@@ -1488,17 +1623,22 @@ export default function OnboardingPage() {
           {step > 1 ? (
             <button
               type="button"
-              onClick={() => {
-                setError(null);
-                setStep((prev) => Math.max(1, prev - 1));
-              }}
+              onClick={handleBackStep}
               className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-medium text-[#5d5854] dark:text-[#8b949e] hover:bg-[#f0efee] dark:hover:bg-[#21262d] transition cursor-pointer"
             >
               <ArrowLeft className="size-4" />
               <span>Back</span>
             </button>
           ) : (
-            <div />
+            <button
+              type="button"
+              onClick={() => signOutUser("/login")}
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-medium text-[#5d5854] dark:text-[#8b949e] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-[#f0efee] dark:hover:bg-[#21262d] transition cursor-pointer"
+              title="Sign out and return to the login page"
+            >
+              <ArrowLeft className="size-4" />
+              <span>Exit to Login</span>
+            </button>
           )}
 
           <div className="flex items-center gap-3">

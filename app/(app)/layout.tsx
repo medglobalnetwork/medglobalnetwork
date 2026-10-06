@@ -23,11 +23,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       redirect("/onboarding");
     }
 
-    // Lockout only if 3-day deadline passed (VERIFICATION_INCOMPLETE), or SUSPENDED / REJECTED
+    // Lockout if 3-day deadline passed (VERIFICATION_INCOMPLETE), or SUSPENDED / REJECTED / BANNED / ON_HOLD / RESTRICTED
     if (
       identity.verification_status === "VERIFICATION_INCOMPLETE" ||
       identity.verification_status === "REJECTED" ||
-      identity.verification_status === "SUSPENDED"
+      identity.verification_status === "SUSPENDED" ||
+      identity.verification_status === "BANNED" ||
+      identity.verification_status === "ON_HOLD" ||
+      identity.verification_status === "RESTRICTED"
     ) {
       redirect("/onboarding/status");
     }

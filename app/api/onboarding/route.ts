@@ -61,11 +61,12 @@ export async function GET() {
     const uploadedTypes = new Set(docs.map((d) => d.document_type));
     const uploadedMandatoryCount = mandatoryDocs.filter((d) => uploadedTypes.has(d.id)).length;
     completedItems += uploadedMandatoryCount;
-
     const progressPercent = Math.min(100, Math.round((completedItems / totalItems) * 100));
+    const isApproved = identity.verification_status === "APPROVED";
 
     return Response.json({
       identity,
+      isApproved,
       documents: docs,
       titles,
       qualifications,
@@ -95,8 +96,9 @@ export async function POST(request: Request) {
     if (action === "START") {
       const identity = await VerificationService.startOrEnroll(session.user.id, {
         account_type: payload.account_type || "INDIVIDUAL",
-        category: payload.category || "healthcare_professional",
-        profession_or_type: payload.profession_or_type || "doctor",
+        category: payload.category || "clinical_practitioner",
+        profession_or_type: payload.profession_or_type || "general_physician",
+        step: payload.step || 2,
       });
       return Response.json({ success: true, identity });
     }

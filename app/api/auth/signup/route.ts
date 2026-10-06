@@ -4,6 +4,7 @@ import { pool, auth } from "@/lib/auth";
 import { normalizePhoneNumber, findUserByPhone, createPhoneSession } from "@/lib/phone-auth";
 import { isEmailVerifiedRecently, verifyEmailOtp, checkEmailRegistered } from "@/lib/email-auth";
 import { checkRateLimit, getClientIp } from "@/lib/security";
+import { VerificationService } from "@/modules/onboarding/lib/verification-service";
 
 export async function POST(request: Request) {
   try {
@@ -177,7 +178,19 @@ export async function POST(request: Request) {
       }
     }
 
-    // 8. Create session in PostgreSQL & prepare response with session cookies
+    // 8. Pre-initialize identity record for step tracking
+    try {
+      await VerificationService.startOrEnroll(createdUser.id, {
+        account_type: accountType,
+        category: accountType === "INDIVIDUAL" ? "clinical_practitioner" : "hospital",
+        profession_or_type: accountType === "INDIVIDUAL" ? "general_physician" : "hospital",
+        step: 1,
+      });
+    } catch (verifInitErr) {
+      console.warn("Could not pre-initialize identity record during signup:", verifInitErr);
+    }
+
+    // 9. Create session in PostgreSQL & prepare response with session cookies
     const userAgent = reqHeaders.get("user-agent");
     const ipAddress =
       reqHeaders.get("x-forwarded-for")?.split(",")[0].trim() ||

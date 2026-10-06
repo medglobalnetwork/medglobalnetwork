@@ -58,3 +58,5 @@ keystore.properties
 android/keystore.properties
 android/app/google-services.json
 
+# Local user storage & dossiers
+private_storage/

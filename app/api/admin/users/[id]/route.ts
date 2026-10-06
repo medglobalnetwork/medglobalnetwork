@@ -3,6 +3,13 @@ import { database } from "@/lib/auth";
 import { sql } from "kysely";
 import { getAdminSession, hasPermission } from "@/modules/admin/lib/rbac";
 import { recordAuditLog } from "@/modules/admin/lib/audit";
+import {
+  banUserAccount,
+  suspendUserAccount,
+  holdUserAccount,
+  activateUserAccount,
+  deleteUserAccountPermanently,
+} from "@/modules/admin/lib/user-management";
 
 export async function GET(
   req: NextRequest,
@@ -19,9 +26,15 @@ export async function GET(
     const userRes: any = await sql`
       SELECT 
         u.id, u.name, u.email, u."emailVerified", u.image, u."createdAt",
+        COALESCE(u.status, 'active') as user_status,
+        u.status_reason,
+        COALESCE(u.banned, FALSE) as is_banned,
+        mi.verification_status,
+        mi.rejection_reason,
         pp.*
       FROM "user" u
       LEFT JOIN professional_profiles pp ON pp.user_id = u.id
+      LEFT JOIN mgn_identities mi ON mi.user_id = u.id
       WHERE u.id = ${id}
       LIMIT 1
     `.execute(database);
@@ -36,7 +49,7 @@ export async function GET(
     const auditRes: any = await sql`
       SELECT * FROM admin_audit_logs 
       WHERE entity_type = 'user' AND entity_id = ${id}
-      ORDER BY created_at DESC LIMIT 20
+      ORDER BY created_at DESC LIMIT 25
     `.execute(database);
 
     return NextResponse.json({
@@ -55,7 +68,7 @@ export async function PATCH(
 ) {
   try {
     const admin = await getAdminSession(req.headers);
-    if (!admin || !hasPermission(admin, "users.write")) {
+    if (!admin || (!hasPermission(admin, "users.write") && !hasPermission(admin, "users.suspend"))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -63,8 +76,38 @@ export async function PATCH(
     const body = await req.json();
     const { action, reason, updates } = body;
 
-    if (action === "toggle_verification") {
-      const { type, value } = updates; // type: 'identity' | 'registration' | 'education'
+    // 1. Account Moderation Actions
+    if (action === "ban_user" || action === "ban") {
+      const result = await banUserAccount(admin, id, reason || "Banned by administrator");
+      return NextResponse.json(result);
+    }
+
+    if (action === "suspend_user" || action === "restrict_user" || action === "suspend") {
+      const result = await suspendUserAccount(admin, id, reason || "Suspended by administrator");
+      return NextResponse.json(result);
+    }
+
+    if (action === "hold_user" || action === "hold") {
+      const result = await holdUserAccount(admin, id, reason || "Placed on administrative hold");
+      return NextResponse.json(result);
+    }
+
+    if (action === "activate_user" || action === "unban_user" || action === "activate") {
+      const result = await activateUserAccount(admin, id, reason || "Re-activated by administrator");
+      return NextResponse.json(result);
+    }
+
+    if (action === "delete_user") {
+      if (!admin.isSuperAdmin && !hasPermission(admin, "users.delete")) {
+        return NextResponse.json({ error: "Forbidden. users.delete permission required." }, { status: 403 });
+      }
+      const result = await deleteUserAccountPermanently(admin, id, reason || "Deleted by administrator");
+      return NextResponse.json(result);
+    }
+
+    // 2. Profile & Verification Actions
+    if (action === "toggle_verification" || action === "update_verification") {
+      const { type, value } = updates || body; // type: 'identity' | 'registration' | 'education'
       const col =
         type === "identity"
           ? "identity_verified"
@@ -77,6 +120,34 @@ export async function PATCH(
         SET ${sql.raw(col)} = ${Boolean(value)}, updated_at = NOW()
         WHERE user_id = ${id}
       `.execute(database);
+
+      if (value) {
+        // Synchronize canonical mgn_identities and user status to APPROVED
+        await sql`
+          INSERT INTO mgn_identities (id, user_id, account_type, category, profession_or_type, verification_status, onboarding_step, created_at, updated_at)
+          VALUES (gen_random_uuid()::text, ${id}, 'INDIVIDUAL', 'clinical_practitioner', 'general_physician', 'APPROVED', 6, NOW(), NOW())
+          ON CONFLICT (user_id) DO UPDATE
+          SET verification_status = 'APPROVED', onboarding_step = 6, rejection_reason = NULL, correction_reason = NULL, updated_at = NOW()
+        `.execute(database);
+
+        await sql`
+          UPDATE "user"
+          SET status = 'active', banned = FALSE, "updatedAt" = NOW()
+          WHERE id = ${id}
+        `.execute(database);
+      } else {
+        const checkRes: any = await sql`
+          SELECT registration_verified, identity_verified FROM professional_profiles WHERE user_id = ${id}
+        `.execute(database);
+        const hasOtherVerif = Boolean(checkRes?.rows?.[0]?.registration_verified || checkRes?.rows?.[0]?.identity_verified);
+        if (!hasOtherVerif) {
+          await sql`
+            UPDATE mgn_identities
+            SET verification_status = 'ENROLLED', updated_at = NOW()
+            WHERE user_id = ${id}
+          `.execute(database);
+        }
+      }
 
       await recordAuditLog({
         admin,
@@ -91,7 +162,7 @@ export async function PATCH(
     }
 
     if (action === "update_member_id") {
-      const cleanMemberId = String(updates?.memberId || updates?.member_id || "").trim().toUpperCase();
+      const cleanMemberId = String(updates?.memberId || updates?.member_id || body.memberId || "").trim().toUpperCase();
       if (!cleanMemberId) {
         return NextResponse.json({ error: "Member ID cannot be empty" }, { status: 400 });
       }
@@ -115,8 +186,8 @@ export async function PATCH(
       return NextResponse.json({ success: true, message: `Member ID updated to ${cleanMemberId}` });
     }
 
-    if (action === "toggle_founding_member") {
-      const isFounder = Boolean(updates?.isFoundingMember ?? updates?.is_founding_member);
+    if (action === "toggle_founding_member" || action === "update_founding_status") {
+      const isFounder = Boolean(updates?.isFoundingMember ?? updates?.is_founding_member ?? body.isFounding ?? body.isFoundingMember);
       const tier = isFounder ? "FOUNDING_MEMBER" : "MEMBER";
 
       await sql`
@@ -144,5 +215,32 @@ export async function PATCH(
   } catch (error: any) {
     console.error("Error updating user:", error);
     return NextResponse.json({ error: error.message || "Failed to update user" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const admin = await getAdminSession(req.headers);
+    if (!admin || (!admin.isSuperAdmin && !hasPermission(admin, "users.delete"))) {
+      return NextResponse.json({ error: "Forbidden. users.delete permission required." }, { status: 403 });
+    }
+
+    const { id } = await params;
+    const { searchParams } = new URL(req.url);
+    let reason = searchParams.get("reason") || "Deleted by Platform Administrator";
+
+    try {
+      const body = await req.json();
+      if (body?.reason) reason = body.reason;
+    } catch {}
+
+    const result = await deleteUserAccountPermanently(admin, id, reason);
+    return NextResponse.json(result);
+  } catch (error: any) {
+    console.error("Error deleting user:", error);
+    return NextResponse.json({ error: error.message || "Failed to delete user" }, { status: 500 });
   }
 }

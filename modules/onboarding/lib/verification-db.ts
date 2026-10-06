@@ -33,6 +33,7 @@ export interface MgnIdentityTable {
   specialization: OptionalColumn<string | null>;
   sub_specialization: OptionalColumn<string | null>;
   verification_status: string;
+  onboarding_step?: OptionalColumn<number | null>;
   verification_deadline: OptionalColumn<Date | null>;
   enrolled_at: OptionalColumn<Date | null>;
   submitted_at: OptionalColumn<Date | null>;
@@ -177,6 +178,7 @@ export async function ensureVerificationTables(): Promise<void> {
         specialization VARCHAR(150),
         sub_specialization VARCHAR(150),
         verification_status VARCHAR(32) NOT NULL DEFAULT 'DRAFT',
+        onboarding_step INT DEFAULT 1,
         verification_deadline TIMESTAMP WITH TIME ZONE,
         enrolled_at TIMESTAMP WITH TIME ZONE,
         submitted_at TIMESTAMP WITH TIME ZONE,
@@ -190,6 +192,7 @@ export async function ensureVerificationTables(): Promise<void> {
       );
       CREATE INDEX IF NOT EXISTS idx_mgn_identities_user ON mgn_identities(user_id);
       CREATE INDEX IF NOT EXISTS idx_mgn_identities_status ON mgn_identities(verification_status);
+      ALTER TABLE mgn_identities ADD COLUMN IF NOT EXISTS onboarding_step INT DEFAULT 1;
 
       CREATE TABLE IF NOT EXISTS mgn_professional_titles (
         id VARCHAR(64) PRIMARY KEY,

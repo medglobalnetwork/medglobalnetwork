@@ -77,7 +77,10 @@ export default function OnboardingStatusPage() {
   }
 
   const identity = data?.identity;
-  const status = identity?.verification_status || "ENROLLED";
+  const status = (identity?.verification_status || "ENROLLED").toUpperCase();
+  const isBanned = status === "BANNED";
+  const isSuspended = status === "SUSPENDED" || status === "RESTRICTED";
+  const isOnHold = status === "ON_HOLD";
   const isApproved = status === "APPROVED";
   const isUnderReview = status === "UNDER_REVIEW";
   const isCorrection = status === "CORRECTION_REQUIRED";
@@ -105,6 +108,128 @@ export default function OnboardingStatusPage() {
       <main className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
         {/* STATUS BANNER CARD */}
         <div className="rounded-3xl border border-[#e8e6e3] bg-white p-6 sm:p-8 shadow-xs mb-6">
+          {/* BANNED STATE */}
+          {isBanned && (
+            <div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 mb-4">
+                <XCircle className="h-7 w-7 stroke-[2.2]" />
+              </div>
+              <div className="flex items-center gap-2 mb-1">
+                <h1 className="text-xl sm:text-2xl font-black text-rose-950 tracking-tight">
+                  Account Permanently Banned
+                </h1>
+                <span className="rounded-full bg-rose-100 border border-rose-300 px-2.5 py-0.5 text-[11px] font-black text-rose-800">
+                  Access Terminated
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-[#5d5854] leading-relaxed mb-4">
+                Your MGN account has been permanently banned by platform administration.
+              </p>
+              <div className="my-4 rounded-2xl bg-rose-50 border border-rose-200 p-4 text-xs font-medium text-rose-900">
+                <p className="font-bold mb-1">Reason for Ban:</p>
+                <p>{identity?.rejection_reason || identity?.status_reason || "Violation of Med Global Network terms of service or clinical safety protocols."}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-6 py-2.5 text-xs font-bold text-white shadow hover:bg-rose-700 transition"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  <span>Sign Out</span>
+                </button>
+                <a
+                  href="mailto:support@medglobalnetwork.com"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-5 py-2.5 text-xs font-semibold text-[#5d5854] hover:bg-[#eae8e5]"
+                >
+                  <HelpCircle className="h-3.5 w-3.5" />
+                  <span>Contact Support</span>
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* SUSPENDED STATE */}
+          {isSuspended && (
+            <div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-100 text-orange-600 mb-4">
+                <AlertTriangle className="h-7 w-7 stroke-[2.2]" />
+              </div>
+              <div className="flex items-center gap-2 mb-1">
+                <h1 className="text-xl sm:text-2xl font-black text-orange-950 tracking-tight">
+                  Account Temporarily Suspended
+                </h1>
+                <span className="rounded-full bg-orange-100 border border-orange-300 px-2.5 py-0.5 text-[11px] font-black text-orange-900">
+                  Suspension Active
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-[#5d5854] leading-relaxed mb-4">
+                Your account access has been temporarily restricted by the administration pending compliance verification.
+              </p>
+              <div className="my-4 rounded-2xl bg-orange-50 border border-orange-200 p-4 text-xs font-medium text-orange-900">
+                <p className="font-bold mb-1">Administrative Note:</p>
+                <p>{identity?.rejection_reason || identity?.status_reason || "Account is temporarily suspended pending review."}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-6 py-2.5 text-xs font-bold text-white shadow hover:bg-orange-700 transition"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  <span>Sign Out</span>
+                </button>
+                <a
+                  href="mailto:support@medglobalnetwork.com"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-5 py-2.5 text-xs font-semibold text-[#5d5854] hover:bg-[#eae8e5]"
+                >
+                  <HelpCircle className="h-3.5 w-3.5" />
+                  <span>Contact Support</span>
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* ON HOLD STATE */}
+          {isOnHold && (
+            <div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 mb-4">
+                <Clock className="h-7 w-7 stroke-[2.2]" />
+              </div>
+              <div className="flex items-center gap-2 mb-1">
+                <h1 className="text-xl sm:text-2xl font-black text-amber-950 tracking-tight">
+                  Account on Administrative Hold
+                </h1>
+                <span className="rounded-full bg-amber-100 border border-amber-300 px-2.5 py-0.5 text-[11px] font-black text-amber-900">
+                  On Hold
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-[#5d5854] leading-relaxed mb-4">
+                Your account is on administrative hold pending verification audit. Platform activity is paused until review is completed.
+              </p>
+              <div className="my-4 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-xs font-medium text-amber-900">
+                <p className="font-bold mb-1">Reason for Hold:</p>
+                <p>{identity?.rejection_reason || identity?.status_reason || "Account placed on hold by platform administrator."}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-6 py-2.5 text-xs font-bold text-white shadow hover:bg-amber-700 transition"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  <span>Sign Out</span>
+                </button>
+                <a
+                  href="mailto:support@medglobalnetwork.com"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-5 py-2.5 text-xs font-semibold text-[#5d5854] hover:bg-[#eae8e5]"
+                >
+                  <HelpCircle className="h-3.5 w-3.5" />
+                  <span>Contact Support</span>
+                </a>
+              </div>
+            </div>
+          )}
           {/* UNDER REVIEW STATE */}
           {isUnderReview && (
             <div>

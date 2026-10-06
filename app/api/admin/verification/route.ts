@@ -99,6 +99,19 @@ export async function POST(req: NextRequest) {
         WHERE user_id = ${userId}
       `.execute(database);
 
+      await sql`
+        INSERT INTO mgn_identities (id, user_id, account_type, category, profession_or_type, verification_status, onboarding_step, created_at, updated_at)
+        VALUES (gen_random_uuid()::text, ${userId}, 'INDIVIDUAL', 'clinical_practitioner', 'general_physician', 'APPROVED', 6, NOW(), NOW())
+        ON CONFLICT (user_id) DO UPDATE
+        SET verification_status = 'APPROVED', onboarding_step = 6, rejection_reason = NULL, correction_reason = NULL, updated_at = NOW()
+      `.execute(database);
+
+      await sql`
+        UPDATE "user"
+        SET status = 'active', banned = FALSE, "updatedAt" = NOW()
+        WHERE id = ${userId}
+      `.execute(database);
+
       await recordAuditLog({
         admin,
         action: "verification.doctor_approved",
@@ -126,6 +139,12 @@ export async function POST(req: NextRequest) {
           registration_verified = false,
           identity_verified = false,
           updated_at = NOW()
+        WHERE user_id = ${userId}
+      `.execute(database);
+
+      await sql`
+        UPDATE mgn_identities
+        SET verification_status = 'REJECTED', rejection_reason = ${reason || 'Credentials rejected'}, updated_at = NOW()
         WHERE user_id = ${userId}
       `.execute(database);
 

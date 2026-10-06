@@ -23,6 +23,11 @@ import {
   CheckCircle,
   XCircle,
   Folder,
+  PauseCircle,
+  Trash2,
+  Lock,
+  Unlock,
+  AlertOctagon,
 } from "lucide-react";
 
 import { MemberBadge } from "@/modules/network/components/MemberBadge";
@@ -50,6 +55,9 @@ interface UserRecord {
   educationVerified: boolean;
   adminRoles: string[];
   status: string;
+  accountStatus?: string;
+  statusReason?: string | null;
+  banned?: boolean;
 }
 
 export default function AdminUsersPage() {
@@ -63,9 +71,10 @@ export default function AdminUsersPage() {
     isOpen: boolean;
     title: string;
     description: string;
-    action: () => void;
+    action: (reason?: string) => void;
     requireReason?: boolean;
     variant?: "danger" | "warning" | "success" | "primary";
+    confirmLabel?: string;
   }>({
     isOpen: false,
     title: "",
@@ -202,6 +211,61 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleModerationAction = async (
+    userId: string,
+    action: "ban_user" | "suspend_user" | "hold_user" | "activate_user" | "delete_user",
+    reason?: string
+  ) => {
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, userId, reason }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Action failed");
+        return;
+      }
+      setConfirmDialog((p) => ({ ...p, isOpen: false }));
+      if (action === "delete_user") {
+        setDrawerOpen(false);
+        setSelectedUser(null);
+      }
+      await fetchUsers();
+      if (selectedUser && selectedUser.id === userId && action !== "delete_user") {
+        setSelectedUser((prev) =>
+          prev
+            ? {
+                ...prev,
+                accountStatus:
+                  action === "ban_user"
+                    ? "BANNED"
+                    : action === "suspend_user"
+                    ? "SUSPENDED"
+                    : action === "hold_user"
+                    ? "ON_HOLD"
+                    : "ACTIVE",
+                status:
+                  action === "ban_user"
+                    ? "banned"
+                    : action === "suspend_user"
+                    ? "suspended"
+                    : action === "hold_user"
+                    ? "on_hold"
+                    : "active",
+                banned: action === "ban_user",
+                statusReason: reason || null,
+              }
+            : null
+        );
+      }
+    } catch (err: any) {
+      console.error("Error executing moderation action:", err);
+      alert("Network error: " + err.message);
+    }
+  };
+
   const columns: ColumnDef<UserRecord>[] = [
     {
       key: "name",
@@ -277,31 +341,54 @@ export default function AdminUsersPage() {
     },
     {
       key: "status",
-      header: "Verification",
-      render: (row) => (
-        <div className="flex flex-wrap gap-1">
-          {row.registrationVerified ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-              <CheckCircle className="h-3 w-3 text-emerald-600" />
-              Verified
-            </span>
-          ) : row.registrationNumber ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-700">
-              Pending KYC
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] font-medium text-slate-600">
-              Unverified
-            </span>
-          )}
+      header: "Governance & Status",
+      render: (row) => {
+        const accStatus = (row.accountStatus || row.status || "").toUpperCase();
+        return (
+          <div className="flex flex-wrap items-center gap-1">
+            {accStatus === "BANNED" || row.banned ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 border border-rose-300 px-2 py-0.5 text-[10px] font-black text-rose-800">
+                <ShieldAlert className="h-3 w-3 text-rose-600" />
+                BANNED
+              </span>
+            ) : accStatus === "SUSPENDED" || accStatus === "RESTRICTED" ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 border border-orange-300 px-2 py-0.5 text-[10px] font-bold text-orange-900">
+                <Lock className="h-3 w-3 text-orange-600" />
+                SUSPENDED
+              </span>
+            ) : accStatus === "ON_HOLD" ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-bold text-amber-900">
+                <PauseCircle className="h-3 w-3 text-amber-600" />
+                ON HOLD
+              </span>
+            ) : accStatus === "REJECTED" ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 border border-rose-200 px-2 py-0.5 text-[10px] font-bold text-rose-700">
+                <XCircle className="h-3 w-3 text-rose-600" />
+                Rejected
+              </span>
+            ) : row.registrationVerified ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                <CheckCircle className="h-3 w-3 text-emerald-600" />
+                Verified
+              </span>
+            ) : row.registrationNumber ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                Pending KYC
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] font-medium text-slate-600">
+                Active
+              </span>
+            )}
 
-          {row.adminRoles.length > 0 && (
-            <span className="inline-flex items-center rounded-full bg-purple-50 border border-purple-200 px-2 py-0.5 text-[10px] font-bold text-purple-700">
-              {row.adminRoles[0]}
-            </span>
-          )}
-        </div>
-      ),
+            {row.adminRoles && row.adminRoles.length > 0 && (
+              <span className="inline-flex items-center rounded-full bg-purple-50 border border-purple-200 px-2 py-0.5 text-[10px] font-bold text-purple-700">
+                {row.adminRoles[0]}
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: "actions",
@@ -681,6 +768,151 @@ export default function AdminUsersPage() {
                 })}
               </div>
             </div>
+            {/* Account Governance & Moderation Controls */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3 shadow-xs">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Account Governance & Safety
+                </h4>
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${
+                    selectedUser.accountStatus === "BANNED" || selectedUser.status === "banned"
+                      ? "bg-rose-100 text-rose-800 border border-rose-300"
+                      : selectedUser.accountStatus === "SUSPENDED" || selectedUser.status === "suspended"
+                      ? "bg-amber-100 text-amber-900 border border-amber-300"
+                      : selectedUser.accountStatus === "ON_HOLD" || selectedUser.status === "on_hold"
+                      ? "bg-yellow-100 text-yellow-900 border border-yellow-300"
+                      : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  }`}
+                >
+                  Status: {selectedUser.accountStatus || selectedUser.status || "ACTIVE"}
+                </span>
+              </div>
+
+              {selectedUser.statusReason && (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-[11px] text-slate-600">
+                  <span className="font-bold text-slate-800 block mb-0.5">Administrative Reason:</span>
+                  <p className="italic">{selectedUser.statusReason}</p>
+                </div>
+              )}
+
+              <p className="text-[11px] text-slate-500">
+                Enforce platform access controls, place temporary holds, revoke accounts, or execute permanent GDPR-compliant deletions.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                {/* Activate / Restore Button (if restricted/banned/hold) */}
+                {selectedUser.accountStatus === "BANNED" ||
+                selectedUser.status === "banned" ||
+                selectedUser.accountStatus === "SUSPENDED" ||
+                selectedUser.status === "suspended" ||
+                selectedUser.accountStatus === "ON_HOLD" ||
+                selectedUser.status === "on_hold" ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfirmDialog({
+                        isOpen: true,
+                        title: "Re-activate User Account",
+                        description: `Restore full access for ${selectedUser.name} (${selectedUser.email}).`,
+                        variant: "success",
+                        requireReason: true,
+                        confirmLabel: "Re-Activate Account",
+                        action: (reason) => handleModerationAction(selectedUser.id, "activate_user", reason),
+                      });
+                    }}
+                    className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 text-xs font-bold transition shadow-xs"
+                  >
+                    <CheckCircle className="size-3.5" />
+                    <span>Re-Activate Account</span>
+                  </button>
+                ) : (
+                  <>
+                    {/* Suspend Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setConfirmDialog({
+                          isOpen: true,
+                          title: "Suspend / Restrict Account",
+                          description: `Temporarily restrict ${selectedUser.name} from accessing platform features and invalidate active sessions.`,
+                          variant: "warning",
+                          requireReason: true,
+                          confirmLabel: "Suspend Account",
+                          action: (reason) => handleModerationAction(selectedUser.id, "suspend_user", reason),
+                        });
+                      }}
+                      className="flex items-center justify-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800 px-3 py-2 text-xs font-bold transition shadow-2xs"
+                    >
+                      <PauseCircle className="size-3.5 text-amber-600" />
+                      <span>Suspend Account</span>
+                    </button>
+
+                    {/* Hold Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setConfirmDialog({
+                          isOpen: true,
+                          title: "Place User on Hold",
+                          description: `Place ${selectedUser.name}'s account on administrative hold pending verification review.`,
+                          variant: "warning",
+                          requireReason: true,
+                          confirmLabel: "Put on Hold",
+                          action: (reason) => handleModerationAction(selectedUser.id, "hold_user", reason),
+                        });
+                      }}
+                      className="flex items-center justify-center gap-1.5 rounded-xl border border-yellow-300 bg-yellow-50 hover:bg-yellow-100 text-yellow-800 px-3 py-2 text-xs font-bold transition shadow-2xs"
+                    >
+                      <PauseCircle className="size-3.5 text-yellow-600" />
+                      <span>Put on Hold</span>
+                    </button>
+                  </>
+                )}
+
+                {/* Ban Account Button */}
+                {selectedUser.accountStatus !== "BANNED" && selectedUser.status !== "banned" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfirmDialog({
+                        isOpen: true,
+                        title: "Ban User Account",
+                        description: `Permanently lock out ${selectedUser.name} (${selectedUser.email}). Active sessions will be terminated immediately.`,
+                        variant: "danger",
+                        requireReason: true,
+                        confirmLabel: "Ban User Account",
+                        action: (reason) => handleModerationAction(selectedUser.id, "ban_user", reason),
+                      });
+                    }}
+                    className="flex items-center justify-center gap-1.5 rounded-xl border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-800 px-3 py-2 text-xs font-bold transition shadow-2xs"
+                  >
+                    <ShieldAlert className="size-3.5 text-rose-600" />
+                    <span>Ban User</span>
+                  </button>
+                )}
+
+                {/* Permanent Delete Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmDialog({
+                      isOpen: true,
+                      title: "PERMANENTLY Delete Account",
+                      description: `Are you sure you want to permanently delete ${selectedUser.name} (${selectedUser.email})? All profile data, KYC dossiers, and sessions will be permanently purged. This action CANNOT be undone.`,
+                      variant: "danger",
+                      requireReason: true,
+                      confirmLabel: "Permanently Delete",
+                      action: (reason) => handleModerationAction(selectedUser.id, "delete_user", reason),
+                    });
+                  }}
+                  className="flex items-center justify-center gap-1.5 rounded-xl border border-rose-600 bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 text-xs font-bold transition shadow-xs sm:col-span-2"
+                >
+                  <Trash2 className="size-3.5" />
+                  <span>Delete Account Permanently</span>
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </AdminDrawer>
@@ -689,11 +921,12 @@ export default function AdminUsersPage() {
       <AdminConfirmDialog
         isOpen={confirmDialog.isOpen}
         onClose={() => setConfirmDialog((p) => ({ ...p, isOpen: false }))}
-        onConfirm={() => confirmDialog.action()}
+        onConfirm={(reason) => confirmDialog.action(reason)}
         title={confirmDialog.title}
         description={confirmDialog.description}
         variant={confirmDialog.variant}
         requireReason={confirmDialog.requireReason}
+        confirmLabel={confirmDialog.confirmLabel}
       />
     </div>
   );

@@ -19,11 +19,77 @@ export class VerificationService {
     try {
       await ensureVerificationTables();
 
-      const identity = await verifDb
+      let identity = await verifDb
         .selectFrom("mgn_identities")
         .selectAll()
         .where("user_id", "=", userId)
         .executeTakeFirst();
+
+      // Check user governance status and professional profile verification in database
+      const userRes: any = await verifDb.selectFrom("user" as any)
+        .leftJoin("professional_profiles as pp", "pp.user_id", "user.id")
+        .select([
+          "user.id as id",
+          "user.email as email",
+          "user.status as account_status",
+          "user.banned as is_banned",
+          "pp.registration_verified as registration_verified",
+          "pp.identity_verified as identity_verified",
+          "pp.education_verified as education_verified",
+          "pp.profession as profession",
+          "pp.specialization as specialization",
+        ])
+        .where("user.id", "=", userId)
+        .executeTakeFirst();
+
+      if (userRes) {
+        if (userRes.is_banned || userRes.account_status === "banned") {
+          return { ...(identity || {}), user_id: userId, verification_status: "BANNED" };
+        }
+        if (userRes.account_status === "suspended") {
+          return { ...(identity || {}), user_id: userId, verification_status: "SUSPENDED" };
+        }
+        if (userRes.account_status === "on_hold") {
+          return { ...(identity || {}), user_id: userId, verification_status: "ON_HOLD" };
+        }
+
+        const isProfileApproved = Boolean(userRes.registration_verified || userRes.identity_verified);
+        if (isProfileApproved) {
+          const now = new Date();
+          if (!identity) {
+            const newId = nanoid();
+            await verifDb
+              .insertInto("mgn_identities" as any)
+              .values({
+                id: newId,
+                user_id: userId,
+                account_type: "INDIVIDUAL",
+                category: "clinical_practitioner",
+                profession_or_type: userRes.profession || "general_physician",
+                verification_status: "APPROVED",
+                onboarding_step: 6,
+                created_at: now,
+                updated_at: now,
+              })
+              .execute();
+
+            identity = await verifDb
+              .selectFrom("mgn_identities")
+              .selectAll()
+              .where("user_id", "=", userId)
+              .executeTakeFirst();
+          } else if (identity.verification_status !== "APPROVED") {
+            await verifDb
+              .updateTable("mgn_identities")
+              .set({ verification_status: "APPROVED", onboarding_step: 6, updated_at: now })
+              .where("user_id", "=", userId)
+              .execute();
+
+            identity = { ...identity, verification_status: "APPROVED", onboarding_step: 6 };
+          }
+          return identity;
+        }
+      }
 
       if (!identity) return null;
 
@@ -74,6 +140,7 @@ export class VerificationService {
     account_type: "INDIVIDUAL" | "ORGANISATION";
     category: string;
     profession_or_type: string;
+    step?: number;
   }) {
     await ensureVerificationTables();
 
@@ -85,6 +152,7 @@ export class VerificationService {
 
     const now = new Date();
     const deadline = new Date(now.getTime() + 72 * 60 * 60 * 1000); // 72 Hours Server-Side Deadline
+    const stepToSave = data.step || (existing as any)?.onboarding_step || 2;
 
     if (existing) {
       await verifDb
@@ -93,6 +161,7 @@ export class VerificationService {
           account_type: data.account_type,
           category: data.category,
           profession_or_type: data.profession_or_type,
+          onboarding_step: stepToSave,
           verification_deadline: existing.verification_deadline || deadline,
           enrolled_at: existing.enrolled_at || now,
           updated_at: now,
@@ -109,6 +178,7 @@ export class VerificationService {
           category: data.category,
           profession_or_type: data.profession_or_type,
           verification_status: "DRAFT",
+          onboarding_step: stepToSave,
           verification_deadline: deadline,
           enrolled_at: now,
           created_at: now,
@@ -138,44 +208,93 @@ export class VerificationService {
 
   /**
    * Saves dynamic basic & professional / organisation fields.
+   * Auto-creates the identity record if not yet initialized.
    */
   static async saveDraftDetails(userId: string, payload: any) {
-    const identity = await this.getIdentity(userId);
-    if (!identity) throw new Error("Identity not found. Start enrollment first.");
-
-    if (
-      identity.verification_status === "UNDER_REVIEW" ||
-      identity.verification_status === "APPROVED"
-    ) {
-      throw new Error("Cannot edit details while under review or approved.");
-    }
+    await ensureVerificationTables();
+    let identity = await this.getIdentity(userId);
 
     const now = new Date();
-    await verifDb
-      .updateTable("mgn_identities")
-      .set({
-        legal_first_name: payload.legal_first_name ?? identity.legal_first_name,
-        legal_middle_name: payload.legal_middle_name ?? identity.legal_middle_name,
-        legal_last_name: payload.legal_last_name ?? identity.legal_last_name,
-        display_name: payload.display_name ?? identity.display_name,
-        dob: payload.dob ?? identity.dob,
-        gender: payload.gender ?? identity.gender,
-        country: payload.country ?? identity.country,
-        state: payload.state ?? identity.state,
-        city: payload.city ?? identity.city,
-        address: payload.address ?? identity.address,
-        phone: payload.phone ?? identity.phone,
-        official_email: payload.official_email ?? identity.official_email,
-        website: payload.website ?? identity.website,
-        current_organization: payload.current_organization ?? identity.current_organization,
-        specialization: payload.specialization ?? identity.specialization,
-        sub_specialization: payload.sub_specialization ?? identity.sub_specialization,
-        experience_years: payload.experience_years ? Number(payload.experience_years) : identity.experience_years,
-        verification_status: identity.verification_status === "DRAFT" ? "ENROLLED" : identity.verification_status,
+    const deadline = new Date(now.getTime() + 72 * 60 * 60 * 1000);
+    const stepToSave = payload.step ?? payload.onboarding_step ?? (identity as any)?.onboarding_step ?? 1;
+
+    if (!identity) {
+      // Auto-create initial draft identity
+      await verifDb
+        .insertInto("mgn_identities" as any)
+        .values({
+          id: nanoid(),
+          user_id: userId,
+          account_type: payload.account_type || "INDIVIDUAL",
+          category: payload.category || "clinical_practitioner",
+          profession_or_type: payload.profession_or_type || "general_physician",
+          legal_first_name: payload.legal_first_name || null,
+          legal_middle_name: payload.legal_middle_name || null,
+          legal_last_name: payload.legal_last_name || null,
+          display_name: payload.display_name || null,
+          dob: payload.dob || null,
+          gender: payload.gender || "male",
+          country: payload.country || "India",
+          state: payload.state || null,
+          city: payload.city || null,
+          address: payload.address || null,
+          phone: payload.phone || null,
+          official_email: payload.official_email || null,
+          website: payload.website || null,
+          current_organization: payload.current_organization || null,
+          specialization: payload.specialization || null,
+          sub_specialization: payload.sub_specialization || null,
+          experience_years: payload.experience_years ? Number(payload.experience_years) : 0,
+          verification_status: "DRAFT",
+          onboarding_step: stepToSave,
+          verification_deadline: deadline,
+          enrolled_at: now,
+          created_at: now,
+          updated_at: now,
+        })
+        .execute();
+
+      identity = await this.getIdentity(userId);
+    } else {
+      if (
+        identity.verification_status === "UNDER_REVIEW" ||
+        identity.verification_status === "APPROVED"
+      ) {
+        throw new Error("Cannot edit details while under review or approved.");
+      }
+
+      const updateData: any = {
         updated_at: now,
-      })
-      .where("user_id", "=", userId)
-      .execute();
+        onboarding_step: stepToSave,
+      };
+
+      if (payload.account_type !== undefined) updateData.account_type = payload.account_type;
+      if (payload.category !== undefined) updateData.category = payload.category;
+      if (payload.profession_or_type !== undefined) updateData.profession_or_type = payload.profession_or_type;
+      if (payload.legal_first_name !== undefined) updateData.legal_first_name = payload.legal_first_name;
+      if (payload.legal_middle_name !== undefined) updateData.legal_middle_name = payload.legal_middle_name;
+      if (payload.legal_last_name !== undefined) updateData.legal_last_name = payload.legal_last_name;
+      if (payload.display_name !== undefined) updateData.display_name = payload.display_name;
+      if (payload.dob !== undefined) updateData.dob = payload.dob;
+      if (payload.gender !== undefined) updateData.gender = payload.gender;
+      if (payload.country !== undefined) updateData.country = payload.country;
+      if (payload.state !== undefined) updateData.state = payload.state;
+      if (payload.city !== undefined) updateData.city = payload.city;
+      if (payload.address !== undefined) updateData.address = payload.address;
+      if (payload.phone !== undefined) updateData.phone = payload.phone;
+      if (payload.official_email !== undefined) updateData.official_email = payload.official_email;
+      if (payload.website !== undefined) updateData.website = payload.website;
+      if (payload.current_organization !== undefined) updateData.current_organization = payload.current_organization;
+      if (payload.specialization !== undefined) updateData.specialization = payload.specialization;
+      if (payload.sub_specialization !== undefined) updateData.sub_specialization = payload.sub_specialization;
+      if (payload.experience_years !== undefined) updateData.experience_years = Number(payload.experience_years);
+
+      await verifDb
+        .updateTable("mgn_identities")
+        .set(updateData)
+        .where("user_id", "=", userId)
+        .execute();
+    }
 
     // If professional title was claimed (e.g. Dr., PT, RN)
     if (payload.claimed_title) {
@@ -293,7 +412,8 @@ export class VerificationService {
    * Validates mandatory documents against schema before setting UNDER_REVIEW.
    */
   static async submitAndRequestReview(userId: string) {
-    const identity = await this.getIdentity(userId);
+    await ensureVerificationTables();
+    let identity = await this.getIdentity(userId);
     if (!identity) throw new Error("Identity record not found");
 
     if (identity.verification_status === "UNDER_REVIEW") {
@@ -328,6 +448,7 @@ export class VerificationService {
       .updateTable("mgn_identities")
       .set({
         verification_status: "UNDER_REVIEW",
+        onboarding_step: 6,
         submitted_at: now,
         updated_at: now,
       })
@@ -357,21 +478,41 @@ export class VerificationService {
    * Allows user to skip document upload for now and enter the 72-hour grace period (ENROLLED).
    */
   static async skipDocumentsAndEnroll(userId: string) {
-    const identity = await this.getIdentity(userId);
-    if (!identity) throw new Error("Identity record not found");
+    await ensureVerificationTables();
+    let identity = await this.getIdentity(userId);
 
     const now = new Date();
-    const deadline = identity.verification_deadline || new Date(now.getTime() + 72 * 60 * 60 * 1000);
+    const deadline = identity?.verification_deadline || new Date(now.getTime() + 72 * 60 * 60 * 1000);
 
-    await verifDb
-      .updateTable("mgn_identities")
-      .set({
-        verification_status: "ENROLLED",
-        verification_deadline: deadline,
-        updated_at: now,
-      })
-      .where("user_id", "=", userId)
-      .execute();
+    if (!identity) {
+      await verifDb
+        .insertInto("mgn_identities" as any)
+        .values({
+          id: nanoid(),
+          user_id: userId,
+          account_type: "INDIVIDUAL",
+          category: "clinical_practitioner",
+          profession_or_type: "general_physician",
+          verification_status: "ENROLLED",
+          onboarding_step: 5,
+          verification_deadline: deadline,
+          enrolled_at: now,
+          created_at: now,
+          updated_at: now,
+        })
+        .execute();
+    } else {
+      await verifDb
+        .updateTable("mgn_identities")
+        .set({
+          verification_status: "ENROLLED",
+          verification_deadline: deadline,
+          onboarding_step: 5,
+          updated_at: now,
+        })
+        .where("user_id", "=", userId)
+        .execute();
+    }
 
     await verifDb
       .insertInto("mgn_verification_audit_logs" as any)
@@ -381,7 +522,7 @@ export class VerificationService {
         actor_id: userId,
         action: "onboarding.skipped_documents",
         reason: "User deferred document upload to 72-hour grace window",
-        previous_state: identity.verification_status,
+        previous_state: identity?.verification_status || "NONE",
         new_state: "ENROLLED",
         metadata: JSON.stringify({ deadline }),
         created_at: now,
@@ -404,7 +545,16 @@ export class VerificationService {
       correctionFields?: any;
     }
   ) {
-    const identity = await this.getIdentity(targetUserId);
+    let identity = await this.getIdentity(targetUserId);
+    if (!identity) {
+      await this.startOrEnroll(targetUserId, {
+        account_type: "INDIVIDUAL",
+        category: "clinical_practitioner",
+        profession_or_type: "general_physician",
+        step: 6,
+      });
+      identity = await this.getIdentity(targetUserId);
+    }
     if (!identity) throw new Error("Target user identity not found");
 
     const now = new Date();
@@ -477,6 +627,13 @@ export class VerificationService {
           .where("user_id", "=", targetUserId)
           .execute();
       }
+
+      // 4. Update user account status
+      await verifDb
+        .updateTable("user" as any)
+        .set({ status: "active", banned: false, updatedAt: now } as any)
+        .where("id", "=", targetUserId)
+        .execute();
     } else if (action === "REQUEST_CORRECTION") {
       newStatus = "CORRECTION_REQUIRED";
     } else if (action === "REJECT") {
