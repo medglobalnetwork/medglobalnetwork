@@ -581,8 +581,8 @@ export function PdfViewer({
           </div>
         )}
 
-        {/* ── TARGETED AREA QUICK ACTION TOOLBAR (Bottom Right Floating Pill) ── */}
-        <div className="absolute bottom-4 right-4 z-30 flex items-center gap-1.5 p-1.5 rounded-2xl bg-[#161b22]/95 backdrop-blur-md border border-[#30363d] shadow-2xl select-none">
+        {/* ── TARGETED AREA QUICK ACTION TOOLBAR (Vertical Floating Dock) ── */}
+        <div className="absolute bottom-6 right-4 z-30 flex flex-col items-stretch gap-1.5 p-1.5 rounded-2xl bg-[#161b22]/95 backdrop-blur-md border border-[#30363d] shadow-2xl select-none min-w-[116px]">
           {/* Magnifier Loupe Tool */}
           <button
             type="button"
@@ -591,14 +591,14 @@ export function PdfViewer({
               setIsPanActive(false);
             }}
             title="Targeted Magnifier Loupe (Hover over anatomical diagrams for 2.5x zoom)"
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer w-full ${
               isLoupeActive
                 ? "bg-[#58a6ff] text-black shadow-md"
                 : "bg-[#21262d] text-white/80 hover:text-white hover:bg-[#30363d]"
             }`}
           >
-            <Focus className="size-3.5" />
-            <span className="text-[11px]">Area Loupe</span>
+            <Focus className="size-3.5 shrink-0" />
+            <span className="text-[11px] whitespace-nowrap">Area Loupe</span>
           </button>
 
           {/* Drag-to-Pan Hand Tool */}
@@ -609,14 +609,14 @@ export function PdfViewer({
               setIsLoupeActive(false);
             }}
             title="Pan / Hand Tool (Click & drag to move across zoomed diagrams)"
-            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer w-full ${
               isPanActive || currentZoom > 100
                 ? "bg-[#0f4c81] text-white shadow-md"
                 : "bg-[#21262d] text-white/80 hover:text-white hover:bg-[#30363d]"
             }`}
           >
-            <Hand className="size-3.5" />
-            <span className="text-[11px] hidden sm:inline">Pan</span>
+            <Hand className="size-3.5 shrink-0" />
+            <span className="text-[11px] whitespace-nowrap">Pan Tool</span>
           </button>
 
           {/* Quick 200% Area Focus / Reset */}
@@ -630,9 +630,10 @@ export function PdfViewer({
               }
             }}
             title={currentZoom > 120 ? "Reset to Fit" : "Zoom to 200% Area Detail"}
-            className="px-2.5 py-1.5 rounded-xl bg-[#21262d] hover:bg-[#30363d] text-white/90 text-[11px] font-mono font-bold transition cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#21262d] hover:bg-[#30363d] text-white/90 text-[11px] font-mono font-bold transition cursor-pointer w-full"
           >
-            {currentZoom > 120 ? "Reset Fit" : "200% Focus"}
+            <ZoomIn className="size-3.5 shrink-0" />
+            <span className="whitespace-nowrap">{currentZoom > 120 ? "Reset Fit" : "200% Focus"}</span>
           </button>
         </div>
       </div>
