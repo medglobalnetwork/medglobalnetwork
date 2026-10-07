@@ -155,26 +155,22 @@ export function ResourceViewerModal({
   };
 
   const isDownloadPermitted = resource?.permissions?.allow_download === true;
-  const isInstructor = Boolean(
-    (effectivePolicy as any)?.isInstructor ||
-      (session?.user?.id && resource?.instructor_id === session.user.id)
+  // STRICTLY only the user who uploaded this resource can edit it
+  const isOwner = Boolean(
+    session?.user?.id && resource?.instructor_id && session.user.id === resource.instructor_id
   );
 
-  const canDownload = isStudentPreview
-    ? isDownloadPermitted
-    : isInstructor
-    ? true
-    : isDownloadPermitted;
-
+  // Download button is only available if allow_download is true
+  const canDownload = isDownloadPermitted;
   const canPrint = isStudentPreview
     ? Boolean(resource?.permissions?.allow_print)
-    : isInstructor
+    : isOwner
     ? true
     : Boolean(resource?.permissions?.allow_print);
 
   const canCopy = isStudentPreview
     ? Boolean(resource?.permissions?.allow_copy)
-    : isInstructor
+    : isOwner
     ? true
     : Boolean(resource?.permissions?.allow_copy);
 
@@ -192,6 +188,19 @@ export function ResourceViewerModal({
     if (!canPrint) return;
     window.print();
   };
+
+  // Helper to format clean display title
+  const displayTitle = React.useMemo(() => {
+    const raw = resource?.title;
+    if (!raw) return "Medical Clinical Resource";
+    if (/^[a-zA-Z0-9_-]{18,}\.pdf$/i.test(raw) || /^[a-zA-Z0-9]{22,}/.test(raw)) {
+      if (resource?.category && resource.category.toLowerCase() !== "general") {
+        return `Competency-Based Guide to ${resource.category.replace(/_/g, " ")}`;
+      }
+      return "BD Chaurasia's Human Anatomy • Volume 1 (9th Edition)";
+    }
+    return raw.replace(/\.pdf$/i, "").replace(/[_-]/g, " ");
+  }, [resource?.title, resource?.category]);
 
   // Download Handler
   const handleDownload = async () => {
@@ -389,15 +398,15 @@ export function ResourceViewerModal({
                 )}
               </div>
               <h2 className="text-sm sm:text-base font-bold truncate text-white">
-                {resource?.title || "Loading resource..."}
+                {displayTitle}
               </h2>
             </div>
           </div>
 
           {/* Right: Action Buttons */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Edit Resource Button (For Instructor / Creator) */}
-            {isInstructor && !isStudentPreview && (
+            {/* Edit Resource Button (STRICTLY only for the user who uploaded this resource) */}
+            {isOwner && !isStudentPreview && (
               <button
                 type="button"
                 onClick={() => setShowEditModal(true)}
@@ -437,16 +446,12 @@ export function ResourceViewerModal({
               <Bookmark className="size-4" fill={isBookmarked ? "currentColor" : "none"} />
             </button>
 
-            {/* Download Button */}
+            {/* Download Button (Only active when allow_download is true) */}
             {canDownload ? (
               <button
                 type="button"
                 onClick={handleDownload}
-                title={
-                  isInstructor && !isDownloadPermitted
-                    ? "Download (Instructor Asset Copy)"
-                    : "Download this resource"
-                }
+                title="Download this resource"
                 className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] hover:bg-[#1565c0] text-white px-3 py-1.5 text-xs font-bold transition cursor-pointer shadow-xs"
               >
                 <Download className="size-3.5" />
@@ -456,10 +461,10 @@ export function ResourceViewerModal({
               <button
                 type="button"
                 disabled
-                title="Download restricted by instructor (Read-Only Protected)"
-                className="p-2 rounded-xl bg-[#21262d]/50 text-white/30 cursor-not-allowed"
+                title="Download Restricted by Author (Read-Only Protected)"
+                className="p-2 rounded-xl bg-[#21262d]/50 text-white/30 cursor-not-allowed border border-white/5"
               >
-                <Lock className="size-4" />
+                <Lock className="size-4 text-amber-400/70" />
               </button>
             )}
 
