@@ -31,7 +31,7 @@ function isAllowedOrigin(origin: string): boolean {
   return false;
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const origin = request.headers.get("origin") || "";
   const sessionCookie =
@@ -105,3 +105,6 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
+
+export { proxy as middleware };
+export default proxy;
