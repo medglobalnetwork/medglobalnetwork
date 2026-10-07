@@ -33,7 +33,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' blob: data: https: http:",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "connect-src 'self' https: http://localhost:* ws://localhost:* wss: capacitor://localhost https://*.cloudflareinsights.com https://api.razorpay.com https://lumberjack.razorpay.com",
+      "connect-src 'self' https: http: ws: wss: capacitor://localhost https://*.cloudflareinsights.com https://api.razorpay.com https://lumberjack.razorpay.com",
       "worker-src 'self' blob: data: https: capacitor:",
       "frame-src 'self' https://accounts.google.com https://www.google.com https://recaptcha.google.com https://www.recaptcha.net https://*.firebaseapp.com https://api.razorpay.com https://checkout.razorpay.com",
       "object-src 'none'",
