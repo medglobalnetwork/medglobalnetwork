@@ -31,6 +31,139 @@ export async function ensureInstructorTables(): Promise<void> {
   try {
     const dbAny = database as any;
 
+    // 0. Base Courses
+    await dbAny.schema
+      .createTable("courses")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("instructor_id", "text", (col: any) => col.notNull())
+      .addColumn("organization_id", "text")
+      .addColumn("title", "varchar(255)", (col: any) => col.notNull())
+      .addColumn("slug", "varchar(255)", (col: any) => col.notNull().unique())
+      .addColumn("short_description", "varchar(500)")
+      .addColumn("description", "text")
+      .addColumn("thumbnail", "text")
+      .addColumn("category", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("subcategory", "varchar(64)")
+      .addColumn("profession", "varchar(64)")
+      .addColumn("specialization", "varchar(64)")
+      .addColumn("level", "varchar(32)", (col: any) => col.defaultTo("all_levels"))
+      .addColumn("language", "varchar(16)", (col: any) => col.defaultTo("en"))
+      .addColumn("duration_minutes", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("price", "numeric(10,2)", (col: any) => col.defaultTo(0))
+      .addColumn("discount_price", "numeric(10,2)")
+      .addColumn("currency", "varchar(8)", (col: any) => col.defaultTo("INR"))
+      .addColumn("is_free", "boolean", (col: any) => col.defaultTo(false))
+      .addColumn("certificate_enabled", "boolean", (col: any) => col.defaultTo(true))
+      .addColumn("accreditation", "varchar(128)")
+      .addColumn("subscription_tier", "varchar(32)")
+      .addColumn("bundle_access", "boolean", (col: any) => col.defaultTo(false))
+      .addColumn("status", "varchar(32)", (col: any) => col.defaultTo("draft"))
+      .addColumn("enrollment_count", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("rating_avg", "numeric(3,2)", (col: any) => col.defaultTo(0))
+      .addColumn("rating_count", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("published_at", "timestamptz")
+      .addColumn("created_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .addColumn("updated_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .execute();
+
+    // 0.1 Course Modules
+    await dbAny.schema
+      .createTable("course_modules")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("course_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("title", "varchar(255)", (col: any) => col.notNull())
+      .addColumn("description", "text")
+      .addColumn("order_index", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("created_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .addColumn("updated_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .execute();
+
+    // 0.2 Course Lessons
+    await dbAny.schema
+      .createTable("course_lessons")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("module_id", "varchar(64)")
+      .addColumn("course_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("title", "varchar(255)", (col: any) => col.notNull())
+      .addColumn("description", "text")
+      .addColumn("lesson_type", "varchar(32)", (col: any) => col.defaultTo("video"))
+      .addColumn("content", "text")
+      .addColumn("media_url", "text")
+      .addColumn("duration_seconds", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("order_index", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("is_preview", "boolean", (col: any) => col.defaultTo(false))
+      .addColumn("created_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .addColumn("updated_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .execute();
+
+    // 0.3 Quizzes Table
+    await dbAny.schema
+      .createTable("quizzes")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("course_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("lesson_id", "varchar(64)")
+      .addColumn("title", "varchar(255)", (col: any) => col.notNull())
+      .addColumn("description", "text")
+      .addColumn("test_type", "varchar(64)", (col: any) => col.defaultTo("quiz"))
+      .addColumn("passing_score", "integer", (col: any) => col.defaultTo(70))
+      .addColumn("time_limit_minutes", "integer", (col: any) => col.defaultTo(30))
+      .addColumn("max_attempts", "integer", (col: any) => col.defaultTo(3))
+      .addColumn("status", "varchar(32)", (col: any) => col.defaultTo("published"))
+      .addColumn("created_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .addColumn("updated_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .execute();
+
+    // 0.4 Quiz Questions Table
+    await dbAny.schema
+      .createTable("quiz_questions")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("quiz_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("question", "text", (col: any) => col.notNull())
+      .addColumn("question_type", "varchar(32)", (col: any) => col.defaultTo("single"))
+      .addColumn("case_vignette", "text")
+      .addColumn("explanation", "text")
+      .addColumn("points", "numeric(5,2)", (col: any) => col.defaultTo(1))
+      .addColumn("order_index", "integer", (col: any) => col.defaultTo(0))
+      .execute();
+
+    // 0.5 Quiz Options Table
+    await dbAny.schema
+      .createTable("quiz_options")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("question_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("option_text", "text", (col: any) => col.notNull())
+      .addColumn("is_correct", "boolean", (col: any) => col.defaultTo(false))
+      .addColumn("order_index", "integer", (col: any) => col.defaultTo(0))
+      .execute();
+
+    // 0.6 Quiz Attempts Table
+    await dbAny.schema
+      .createTable("quiz_attempts")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("quiz_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("user_id", "text", (col: any) => col.notNull())
+      .addColumn("score", "numeric(5,2)", (col: any) => col.defaultTo(0))
+      .addColumn("percentage", "numeric(5,2)", (col: any) => col.defaultTo(0))
+      .addColumn("passed", "boolean", (col: any) => col.defaultTo(false))
+      .addColumn("total_questions", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("correct_answers", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("incorrect_answers", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("attempt_number", "integer", (col: any) => col.defaultTo(1))
+      .addColumn("time_taken_seconds", "integer")
+      .addColumn("submitted_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .addColumn("evaluated_at", "timestamptz")
+      .addColumn("evaluated_by", "text")
+      .addColumn("instructor_feedback", "text")
+      .addColumn("status", "varchar(32)", (col: any) => col.defaultTo("evaluated"))
+      .execute();
+
     // 1. Batches Table
     await dbAny.schema
       .createTable("learn_batches")
@@ -292,55 +425,60 @@ export async function getInstructorBatches(
   instructorId: string,
   courseId?: string
 ): Promise<Batch[]> {
-  await ensureInstructorTables();
+  try {
+    await ensureInstructorTables();
 
-  let query = db
-    .selectFrom("learn_batches as b")
-    .innerJoin("courses as c", "c.id", "b.course_id")
-    .select([
-      "b.id",
-      "b.course_id",
-      "b.instructor_id",
-      "b.name",
-      "b.code",
-      "b.description",
-      "b.max_capacity",
-      "b.enrolled_count",
-      "b.start_date",
-      "b.end_date",
-      "b.schedule_info",
-      "b.meeting_url",
-      "b.status",
-      "b.created_at",
-      "b.updated_at",
-      "c.title as course_title",
-    ])
-    .where("b.instructor_id", "=", instructorId);
+    let query = db
+      .selectFrom("learn_batches as b")
+      .innerJoin("courses as c", "c.id", "b.course_id")
+      .select([
+        "b.id",
+        "b.course_id",
+        "b.instructor_id",
+        "b.name",
+        "b.code",
+        "b.description",
+        "b.max_capacity",
+        "b.enrolled_count",
+        "b.start_date",
+        "b.end_date",
+        "b.schedule_info",
+        "b.meeting_url",
+        "b.status",
+        "b.created_at",
+        "b.updated_at",
+        "c.title as course_title",
+      ])
+      .where("b.instructor_id", "=", instructorId);
 
-  if (courseId) {
-    query = query.where("b.course_id", "=", courseId);
+    if (courseId) {
+      query = query.where("b.course_id", "=", courseId);
+    }
+
+    const rows = await query.orderBy("b.created_at", "desc").execute();
+
+    return rows.map((r) => ({
+      id: r.id,
+      course_id: r.course_id,
+      course_title: r.course_title,
+      instructor_id: r.instructor_id,
+      name: r.name,
+      code: r.code,
+      description: r.description,
+      max_capacity: Number(r.max_capacity) || 50,
+      enrolled_count: Number(r.enrolled_count) || 0,
+      start_date: r.start_date ? new Date(r.start_date).toISOString() : null,
+      end_date: r.end_date ? new Date(r.end_date).toISOString() : null,
+      schedule_info: r.schedule_info,
+      meeting_url: r.meeting_url,
+      status: (r.status as any) || "upcoming",
+      created_at: new Date(r.created_at).toISOString(),
+      updated_at: new Date(r.updated_at).toISOString(),
+    }));
+  } catch (err) {
+    console.error("getInstructorBatches safe fallback error:", err);
+    return [];
   }
-
-  const rows = await query.orderBy("b.created_at", "desc").execute();
-
-  return rows.map((r) => ({
-    id: r.id,
-    course_id: r.course_id,
-    course_title: r.course_title,
-    instructor_id: r.instructor_id,
-    name: r.name,
-    code: r.code,
-    description: r.description,
-    max_capacity: Number(r.max_capacity) || 50,
-    enrolled_count: Number(r.enrolled_count) || 0,
-    start_date: r.start_date ? new Date(r.start_date).toISOString() : null,
-    end_date: r.end_date ? new Date(r.end_date).toISOString() : null,
-    schedule_info: r.schedule_info,
-    meeting_url: r.meeting_url,
-    status: (r.status as any) || "upcoming",
-    created_at: new Date(r.created_at).toISOString(),
-    updated_at: new Date(r.updated_at).toISOString(),
-  }));
 }
 
 export async function getBatchDetails(
@@ -741,73 +879,86 @@ export async function getInstructorQuizzes(
   instructorId: string,
   courseId?: string
 ): Promise<any[]> {
-  await ensureInstructorTables();
+  try {
+    await ensureInstructorTables();
 
-  let query = db
-    .selectFrom("quizzes as q")
-    .innerJoin("courses as c", "c.id", "q.course_id")
-    .leftJoin("course_lessons as l", "l.id", "q.lesson_id")
-    .select([
-      "q.id",
-      "q.course_id",
-      "q.lesson_id",
-      "q.title",
-      "q.description",
-      "q.passing_score",
-      "q.time_limit_minutes",
-      "q.max_attempts",
-      "q.status",
-      "q.test_type",
-      "q.created_at",
-      "q.updated_at",
-      "c.title as course_title",
-      "l.title as lesson_title",
-    ])
-    .where("c.instructor_id", "=", instructorId);
+    let query = db
+      .selectFrom("quizzes as q")
+      .innerJoin("courses as c", "c.id", "q.course_id")
+      .leftJoin("course_lessons as l", "l.id", "q.lesson_id")
+      .select([
+        "q.id",
+        "q.course_id",
+        "q.lesson_id",
+        "q.title",
+        "q.description",
+        "q.passing_score",
+        "q.time_limit_minutes",
+        "q.max_attempts",
+        "q.status",
+        "q.test_type",
+        "q.created_at",
+        "q.updated_at",
+        "c.title as course_title",
+        "l.title as lesson_title",
+      ])
+      .where("c.instructor_id", "=", instructorId);
 
-  if (courseId) {
-    query = query.where("q.course_id", "=", courseId);
+    if (courseId) {
+      query = query.where("q.course_id", "=", courseId);
+    }
+
+    const quizzes = await query.orderBy("q.created_at", "desc").execute();
+
+    // For each quiz, get question count and attempt count
+    const results = await Promise.all(
+      quizzes.map(async (q) => {
+        let questionCount = 0;
+        let attemptCount = 0;
+        try {
+          const qCountRes = await db
+            .selectFrom("quiz_questions")
+            .select(sql<string>`count(*)`.as("count"))
+            .where("quiz_id", "=", q.id)
+            .executeTakeFirst();
+          questionCount = parseInt(qCountRes?.count || "0", 10);
+        } catch {}
+
+        try {
+          const aCountRes = await db
+            .selectFrom("quiz_attempts")
+            .select(sql<string>`count(*)`.as("count"))
+            .where("quiz_id", "=", q.id)
+            .executeTakeFirst();
+          attemptCount = parseInt(aCountRes?.count || "0", 10);
+        } catch {}
+
+        return {
+          id: q.id,
+          course_id: q.course_id,
+          course_title: q.course_title,
+          lesson_id: q.lesson_id,
+          lesson_title: q.lesson_title,
+          title: q.title,
+          description: q.description,
+          test_type: q.test_type || "quiz",
+          passing_score: Number(q.passing_score) || 70,
+          time_limit_minutes: Number(q.time_limit_minutes) || 30,
+          max_attempts: Number(q.max_attempts) || 3,
+          status: q.status || "published",
+          question_count: questionCount,
+          attempt_count: attemptCount,
+          created_at: new Date(q.created_at).toISOString(),
+          updated_at: new Date(q.updated_at).toISOString(),
+        };
+      })
+    );
+
+    return results;
+  } catch (err) {
+    console.error("getInstructorQuizzes safe fallback error:", err);
+    return [];
   }
-
-  const quizzes = await query.orderBy("q.created_at", "desc").execute();
-
-  // For each quiz, get question count and attempt count
-  const results = await Promise.all(
-    quizzes.map(async (q) => {
-      const qCountRes = await db
-        .selectFrom("quiz_questions")
-        .select(sql<string>`count(*)`.as("count"))
-        .where("quiz_id", "=", q.id)
-        .executeTakeFirst();
-
-      const aCountRes = await db
-        .selectFrom("quiz_attempts")
-        .select(sql<string>`count(*)`.as("count"))
-        .where("quiz_id", "=", q.id)
-        .executeTakeFirst();
-
-      return {
-        id: q.id,
-        course_id: q.course_id,
-        course_title: q.course_title,
-        lesson_id: q.lesson_id,
-        lesson_title: q.lesson_title,
-        title: q.title,
-        description: q.description,
-        test_type: q.test_type || "quiz",
-        passing_score: Number(q.passing_score) || 70,
-        time_limit_minutes: Number(q.time_limit_minutes) || 30,
-        max_attempts: Number(q.max_attempts) || 3,
-        status: q.status || "published",
-        question_count: parseInt(qCountRes?.count || "0", 10),
-        attempt_count: parseInt(aCountRes?.count || "0", 10),
-        created_at: new Date(q.created_at).toISOString(),
-        updated_at: new Date(q.updated_at).toISOString(),
-      };
-    })
-  );
-
-  return results;
 }
 
 export async function getQuizWithFullQuestions(
@@ -1155,85 +1306,90 @@ export async function getInstructorSubmissions(
   instructorId: string,
   filters?: { courseId?: string; quizId?: string; status?: string; search?: string }
 ): Promise<TestPaperSubmission[]> {
-  await ensureInstructorTables();
+  try {
+    await ensureInstructorTables();
 
-  let query = db
-    .selectFrom("quiz_attempts as qa")
-    .innerJoin("quizzes as q", "q.id", "qa.quiz_id")
-    .innerJoin("courses as c", "c.id", "q.course_id")
-    .innerJoin("user as u", "u.id", "qa.user_id")
-    .select([
-      "qa.id",
-      "qa.quiz_id",
-      "qa.user_id",
-      "qa.score",
-      "qa.percentage",
-      "qa.passed",
-      "qa.total_questions",
-      "qa.correct_answers",
-      "qa.incorrect_answers",
-      "qa.attempt_number",
-      "qa.time_taken_seconds",
-      "qa.submitted_at",
-      "qa.evaluated_at",
-      "qa.evaluated_by",
-      "qa.instructor_feedback",
-      "qa.status",
-      "q.title as quiz_title",
-      "c.id as course_id",
-      "c.title as course_title",
-      "u.name as student_name",
-      "u.email as student_email",
-      "u.image as student_image",
-    ])
-    .where("c.instructor_id", "=", instructorId);
-
-  if (filters?.courseId) {
-    query = query.where("c.id", "=", filters.courseId);
-  }
-  if (filters?.quizId) {
-    query = query.where("q.id", "=", filters.quizId);
-  }
-  if (filters?.status) {
-    query = query.where("qa.status", "=", filters.status);
-  }
-  if (filters?.search?.trim()) {
-    const s = `%${filters.search.trim()}%`;
-    query = query.where((eb: any) =>
-      eb.or([
-        eb("u.name", "ilike", s),
-        eb("u.email", "ilike", s),
-        eb("q.title", "ilike", s),
+    let query = db
+      .selectFrom("quiz_attempts as qa")
+      .innerJoin("quizzes as q", "q.id", "qa.quiz_id")
+      .innerJoin("courses as c", "c.id", "q.course_id")
+      .innerJoin("user as u", "u.id", "qa.user_id")
+      .select([
+        "qa.id",
+        "qa.quiz_id",
+        "qa.user_id",
+        "qa.score",
+        "qa.percentage",
+        "qa.passed",
+        "qa.total_questions",
+        "qa.correct_answers",
+        "qa.incorrect_answers",
+        "qa.attempt_number",
+        "qa.time_taken_seconds",
+        "qa.submitted_at",
+        "qa.evaluated_at",
+        "qa.evaluated_by",
+        "qa.instructor_feedback",
+        "qa.status",
+        "q.title as quiz_title",
+        "c.id as course_id",
+        "c.title as course_title",
+        "u.name as student_name",
+        "u.email as student_email",
+        "u.image as student_image",
       ])
-    );
+      .where("c.instructor_id", "=", instructorId);
+
+    if (filters?.courseId) {
+      query = query.where("c.id", "=", filters.courseId);
+    }
+    if (filters?.quizId) {
+      query = query.where("q.id", "=", filters.quizId);
+    }
+    if (filters?.status) {
+      query = query.where("qa.status", "=", filters.status);
+    }
+    if (filters?.search?.trim()) {
+      const s = `%${filters.search.trim()}%`;
+      query = query.where((eb: any) =>
+        eb.or([
+          eb("u.name", "ilike", s),
+          eb("u.email", "ilike", s),
+          eb("q.title", "ilike", s),
+        ])
+      );
+    }
+
+    const rows = await query.orderBy("qa.submitted_at", "desc").execute();
+
+    return rows.map((r) => ({
+      id: r.id,
+      quiz_id: r.quiz_id,
+      quiz_title: r.quiz_title,
+      course_id: r.course_id,
+      course_title: r.course_title,
+      user_id: r.user_id,
+      student_name: r.student_name || "Healthcare Learner",
+      student_email: r.student_email || "",
+      student_image: r.student_image || null,
+      score: Number(r.score) || 0,
+      percentage: Number(r.percentage) || 0,
+      passed: Boolean(r.passed),
+      total_questions: Number(r.total_questions) || 0,
+      correct_answers: Number(r.correct_answers) || 0,
+      incorrect_answers: Number(r.incorrect_answers) || 0,
+      attempt_number: Number(r.attempt_number) || 1,
+      time_taken_seconds: r.time_taken_seconds ? Number(r.time_taken_seconds) : null,
+      submitted_at: new Date(r.submitted_at).toISOString(),
+      evaluated_at: r.evaluated_at ? new Date(r.evaluated_at).toISOString() : null,
+      evaluated_by: r.evaluated_by || null,
+      instructor_feedback: r.instructor_feedback || null,
+      status: (r.status as any) || "evaluated",
+    }));
+  } catch (err) {
+    console.error("getInstructorSubmissions safe fallback error:", err);
+    return [];
   }
-
-  const rows = await query.orderBy("qa.submitted_at", "desc").execute();
-
-  return rows.map((r) => ({
-    id: r.id,
-    quiz_id: r.quiz_id,
-    quiz_title: r.quiz_title,
-    course_id: r.course_id,
-    course_title: r.course_title,
-    user_id: r.user_id,
-    student_name: r.student_name || "Healthcare Learner",
-    student_email: r.student_email || "",
-    student_image: r.student_image || null,
-    score: Number(r.score) || 0,
-    percentage: Number(r.percentage) || 0,
-    passed: Boolean(r.passed),
-    total_questions: Number(r.total_questions) || 0,
-    correct_answers: Number(r.correct_answers) || 0,
-    incorrect_answers: Number(r.incorrect_answers) || 0,
-    attempt_number: Number(r.attempt_number) || 1,
-    time_taken_seconds: r.time_taken_seconds ? Number(r.time_taken_seconds) : null,
-    submitted_at: new Date(r.submitted_at).toISOString(),
-    evaluated_at: r.evaluated_at ? new Date(r.evaluated_at).toISOString() : null,
-    evaluated_by: r.evaluated_by || null,
-    instructor_feedback: r.instructor_feedback || null,
-    status: (r.status as any) || "evaluated",
-  }));
 }
 
 export async function getSubmissionDetail(

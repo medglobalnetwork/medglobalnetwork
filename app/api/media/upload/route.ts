@@ -12,17 +12,58 @@ const ALLOWED_MIME_TYPES = [
   "image/webp",
   "image/gif",
   "image/svg+xml",
+  "image/avif",
   // Videos
   "video/mp4",
   "video/webm",
   "video/quicktime",
+  "video/x-matroska",
+  "video/avi",
+  "video/mpeg",
+  // Audio
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/wav",
+  "audio/ogg",
+  "audio/aac",
+  "audio/webm",
+  "audio/x-m4a",
+  "audio/flac",
   // Documents & Books
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "application/msword",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/epub+zip",
+  "application/json",
+  "application/rtf",
+  "text/plain",
+  "text/csv",
+  "text/markdown",
+  "application/zip",
+  "application/x-zip-compressed",
 ];
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB maximum
+const ALLOWED_EXTENSIONS = [
+  ".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg", ".avif",
+  ".mp4", ".webm", ".mov", ".mkv", ".avi",
+  ".mp3", ".wav", ".ogg", ".aac", ".m4a", ".flac",
+  ".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx",
+  ".epub", ".json", ".rtf", ".txt", ".csv", ".md", ".zip"
+];
+
+function isFileTypeAllowed(file: File): boolean {
+  if (file.type && ALLOWED_MIME_TYPES.includes(file.type.toLowerCase())) {
+    return true;
+  }
+  const name = file.name ? file.name.toLowerCase() : "";
+  return ALLOWED_EXTENSIONS.some((ext) => name.endsWith(ext));
+}
+
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB maximum
 
 export async function POST(request: Request) {
   try {
@@ -31,8 +72,8 @@ export async function POST(request: Request) {
       return Response.json({ error: "Authentication required" }, { status: 401 });
     }
 
-    // Rate limit per user: max 60 uploads per minute
-    const rateLimit = checkRateLimit(`upload:${session.user.id}`, 60, 60000);
+    // Rate limit per user: max 120 uploads per minute
+    const rateLimit = checkRateLimit(`upload:${session.user.id}`, 120, 60000);
     if (!rateLimit.allowed) {
       return Response.json(
         { error: "Upload rate limit exceeded. Please wait a moment." },
@@ -50,14 +91,14 @@ export async function POST(request: Request) {
 
     if (file.size > MAX_FILE_SIZE) {
       return Response.json(
-        { error: `File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds the 50MB limit.` },
+        { error: `File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds the 100MB limit.` },
         { status: 400 }
       );
     }
 
-    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    if (!isFileTypeAllowed(file)) {
       return Response.json(
-        { error: `Unsupported file type (${file.type}). Allowed: images, videos, and PDF books.` },
+        { error: `Unsupported file type (${file.type || "unknown"}). Allowed: PDF, Word, PPT, Excel, Images, Audio, Video, and Books.` },
         { status: 400 }
       );
     }
