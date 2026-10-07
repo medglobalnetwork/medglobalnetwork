@@ -1,21 +1,23 @@
 // app/api/network/connections/[connectionId]/route.ts
-import { auth } from "@/lib/auth";
-import { networkDb, generateId, createNotification } from "@/modules/network/lib/network-db";
-import { headers } from "next/headers";
+import { getSafeSession } from "@/lib/auth";
+import { networkDb, generateId, createNotification, ensureNetworkingTables } from "@/modules/network/lib/network-db";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ connectionId: string }> }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSafeSession();
   if (!session?.user) {
     return Response.json({ error: "Authentication required" }, { status: 401 });
   }
 
   const { connectionId } = await params;
-  const { action } = await request.json() as { action: string };
+  const body = await request.json().catch(() => ({}));
+  const { action } = body as { action: string };
 
   try {
+    await ensureNetworkingTables();
+
     const req = await networkDb
       .selectFrom("connection_requests")
       .where("id", "=", connectionId)
@@ -104,7 +106,7 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ connectionId: string }> }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSafeSession();
   if (!session?.user) {
     return Response.json({ error: "Authentication required" }, { status: 401 });
   }
@@ -112,6 +114,8 @@ export async function DELETE(
   const { connectionId } = await params;
 
   try {
+    await ensureNetworkingTables();
+
     // Can be a connection ID or a connection request ID
     // Try connections table first
     const conn = await networkDb

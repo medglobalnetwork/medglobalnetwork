@@ -3,14 +3,13 @@
 // app/api/recommendations/people/route.ts
 // ============================================================
 
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getSafeSession } from "@/lib/auth";
 import { getPersonalizedRecommendations } from "@/modules/recommendations/lib/engine";
 import type { RecommendationCategory, RecommendationSource } from "@/modules/recommendations/types";
 
 export async function GET(request: Request) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await getSafeSession();
     const { searchParams } = new URL(request.url);
 
     const category = (searchParams.get("category") as RecommendationCategory) || "people-you-may-know";

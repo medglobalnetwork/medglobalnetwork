@@ -160,6 +160,35 @@ export function PeopleYouMayKnow({
     }
   };
 
+  // Handle Direct Connect with instant feedback
+  const handleDirectConnect = async (person: RecommendedUser) => {
+    if (sentIds.has(person.user_id)) return;
+    setSentIds((prev) => new Set(prev).add(person.user_id));
+
+    try {
+      const res = await fetch("/api/network/connections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ receiverId: person.user_id }),
+      });
+      const data = await res.json();
+      if (!res.ok && !data.success) {
+        setSentIds((prev) => {
+          const next = new Set(prev);
+          next.delete(person.user_id);
+          return next;
+        });
+      }
+    } catch {
+      setSentIds((prev) => {
+        const next = new Set(prev);
+        next.delete(person.user_id);
+        return next;
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Card variant={effectiveVariant} className={className}>
@@ -296,20 +325,17 @@ export function PeopleYouMayKnow({
                   <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
                     <button
                       type="button"
-                      onClick={() => {
-                        if (isSent) return;
-                        setModalTarget(person);
-                      }}
+                      onClick={() => handleDirectConnect(person)}
                       disabled={isSent}
-                      className={`inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-bold transition disabled:opacity-70 ${
+                      className={`inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-bold transition disabled:opacity-70 cursor-pointer ${
                         isSent
                           ? "border border-[#ded8d1] bg-[#faf9f8] text-[#8a8784]"
-                          : "border border-[#0f4c81] bg-[#0f4c81] text-white hover:bg-[#0c3c66] shadow-2xs"
+                          : "border border-[#0f4c81] bg-[#0f4c81] text-white hover:bg-[#0c3c66] shadow-2xs active:scale-98"
                       }`}
                     >
                       {isSent ? (
                         <>
-                          <Check className="h-3.5 w-3.5" />
+                          <Check className="h-3.5 w-3.5 text-emerald-600" />
                           <span>Sent</span>
                         </>
                       ) : (
@@ -339,6 +365,17 @@ export function PeopleYouMayKnow({
                           className="absolute right-0 top-7 z-30 w-48 rounded-2xl border border-[#e8e6e3] bg-white p-1.5 shadow-xl text-left animate-in fade-in zoom-in duration-100"
                           onClick={(e) => e.stopPropagation()}
                         >
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveMenuId(null);
+                              setModalTarget(person);
+                            }}
+                            className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#5d5854] hover:bg-[#f5f4f3] hover:text-[#171717]"
+                          >
+                            <UserPlus className="h-3.5 w-3.5 text-[#0f4c81]" />
+                            Add a personal note...
+                          </button>
                           <button
                             type="button"
                             onClick={() => {

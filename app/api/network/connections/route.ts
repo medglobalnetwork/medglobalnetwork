@@ -1,10 +1,9 @@
-import { auth } from "@/lib/auth";
+import { getSafeSession } from "@/lib/auth";
 import { networkDb, generateId, createNotification, ensureNetworkingTables } from "@/modules/network/lib/network-db";
-import { headers } from "next/headers";
 import { sql } from "kysely";
 
 export async function GET(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSafeSession();
   if (!session?.user) {
     return Response.json({ error: "Authentication required", data: [] }, { status: 401 });
   }
@@ -125,13 +124,16 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSafeSession();
   if (!session?.user) {
     return Response.json({ error: "Authentication required" }, { status: 401 });
   }
 
   try {
-    const { receiverId, message } = await request.json() as {
+    await ensureNetworkingTables();
+
+    const body = await request.json().catch(() => ({}));
+    const { receiverId, message } = body as {
       receiverId: string;
       message?: string;
     };
@@ -158,7 +160,7 @@ export async function POST(request: Request) {
       .executeTakeFirst();
 
     if (existingConn) {
-      return Response.json({ error: "Already connected" }, { status: 409 });
+      return Response.json({ success: true, status: "connected", message: "Already connected" });
     }
 
     // Check for duplicate pending request
@@ -175,7 +177,12 @@ export async function POST(request: Request) {
       .executeTakeFirst();
 
     if (existingReq) {
-      return Response.json({ error: "Connection request already exists" }, { status: 409 });
+      return Response.json({
+        success: true,
+        status: "pending",
+        requestId: existingReq.id,
+        message: "Connection request already pending",
+      });
     }
 
     const now = new Date();
@@ -204,7 +211,7 @@ export async function POST(request: Request) {
       message: `${session.user.name ?? "Someone"} sent you a connection request`,
     });
 
-    return Response.json({ success: true, requestId: id });
+    return Response.json({ success: true, status: "pending", requestId: id });
   } catch (err) {
     console.error("POST /api/network/connections error:", err);
     return Response.json({ error: "Failed to send connection request" }, { status: 500 });

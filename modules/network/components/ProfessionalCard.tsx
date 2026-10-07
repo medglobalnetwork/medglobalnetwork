@@ -237,7 +237,6 @@ export function ProfessionalCard({
             targetUserId={profile.user_id}
             initialStatus={connectionStatus}
             onStatusChange={handleStatusChange}
-            onConnectClick={() => setShowModal(true)}
             size="sm"
           />
 
@@ -415,7 +414,6 @@ export function ProfessionalCard({
           targetUserId={profile.user_id}
           initialStatus={connectionStatus}
           onStatusChange={handleStatusChange}
-          onConnectClick={() => setShowModal(true)}
           size="sm"
           className="flex-1 justify-center rounded-xl !py-1.5 !text-xs font-bold"
         />

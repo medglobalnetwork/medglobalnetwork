@@ -1,6 +1,7 @@
 "use client";
 // modules/network/components/ConnectionButton.tsx
 import * as React from "react";
+import { UserPlus, Clock, Check, Loader2, UserCheck, X } from "lucide-react";
 import type { ConnectionStatus } from "../types";
 
 interface ConnectionButtonProps {
@@ -8,7 +9,7 @@ interface ConnectionButtonProps {
   initialStatus: ConnectionStatus;
   requestId?: string;
   onStatusChange?: (newStatus: ConnectionStatus) => void;
-  onConnectClick?: () => void; // opens the modal instead of direct send
+  onConnectClick?: () => void; // opens the optional modal
   size?: "sm" | "md";
   className?: string;
 }
@@ -25,12 +26,19 @@ export function ConnectionButton({
   const [status, setStatus] = React.useState<ConnectionStatus>(initialStatus);
   const [loading, setLoading] = React.useState(false);
 
+  // Sync internal state if initialStatus prop changes from parent
+  React.useEffect(() => {
+    setStatus(initialStatus);
+  }, [initialStatus]);
+
   const baseSize =
     size === "sm"
-      ? "px-3 py-1.5 text-xs font-semibold"
-      : "px-3.5 py-2 text-xs sm:text-sm font-bold";
+      ? "px-3 py-1.5 text-xs font-bold"
+      : "px-4 py-2 text-xs sm:text-sm font-bold";
 
   const handleAction = async (action: string) => {
+    if (loading) return;
+
     if (action === "connect" && onConnectClick) {
       onConnectClick();
       return;
@@ -59,7 +67,12 @@ export function ConnectionButton({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ receiverId: targetUserId }),
         });
-        if (!res.ok) throw new Error("Failed to send request");
+        const data = await res.json();
+        if (!res.ok && !data.success) {
+          throw new Error(data.error || "Failed to send request");
+        }
+        setStatus("pending");
+        onStatusChange?.("pending");
       } else if (action === "withdraw" && requestId) {
         const res = await fetch(`/api/network/connections/${requestId}`, {
           method: "PATCH",
@@ -93,7 +106,7 @@ export function ConnectionButton({
       }
     } catch (err) {
       console.error("Connection action failed:", err);
-      // Revert on error
+      // Revert on real failure
       setStatus(previousStatus);
       onStatusChange?.(previousStatus);
     } finally {
@@ -107,11 +120,21 @@ export function ConnectionButton({
         type="button"
         onClick={() => handleAction("connect")}
         disabled={loading}
-        className={`inline-flex items-center justify-center rounded-xl bg-[#0f4c81] font-bold text-white shadow-2xs hover:bg-[#0c3c66] transition active:scale-98 disabled:opacity-50 cursor-pointer ${baseSize} ${
+        className={`inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#0f4c81] text-white shadow-xs hover:bg-[#0c3c66] transition active:scale-98 disabled:opacity-50 cursor-pointer ${baseSize} ${
           className ?? "w-full"
         }`}
       >
-        {loading ? "…" : "+ Connect"}
+        {loading ? (
+          <>
+            <Loader2 className="size-3.5 animate-spin shrink-0" />
+            <span>Connecting...</span>
+          </>
+        ) : (
+          <>
+            <UserPlus className="size-3.5 shrink-0" />
+            <span>Connect</span>
+          </>
+        )}
       </button>
     );
   }
@@ -122,12 +145,17 @@ export function ConnectionButton({
         type="button"
         onClick={() => handleAction("withdraw")}
         disabled={loading}
-        title="Click to withdraw request"
-        className={`inline-flex items-center justify-center rounded-xl border border-[#ded8d1] bg-[#f8f7f6] font-semibold text-[#5d5854] transition hover:border-red-300 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 cursor-pointer ${baseSize} ${
+        title="Request sent. Click to withdraw."
+        className={`inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-[#f8f7f6] dark:bg-[#161b22] text-[#5d5854] dark:text-[#8b949e] transition hover:border-red-300 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 cursor-pointer ${baseSize} ${
           className ?? "w-full"
         }`}
       >
-        {loading ? "…" : "Pending"}
+        {loading ? (
+          <Loader2 className="size-3.5 animate-spin shrink-0" />
+        ) : (
+          <Clock className="size-3.5 text-amber-600 shrink-0" />
+        )}
+        <span>Pending</span>
       </button>
     );
   }
@@ -139,17 +167,19 @@ export function ConnectionButton({
           type="button"
           onClick={() => handleAction("accept")}
           disabled={loading}
-          className={`flex-1 text-center justify-center rounded-xl bg-[#1769c2] font-semibold text-white transition hover:bg-[#12569f] disabled:opacity-50 ${baseSize}`}
+          className={`flex-1 inline-flex items-center justify-center gap-1 rounded-xl bg-[#16804d] text-white hover:bg-[#136c41] transition disabled:opacity-50 cursor-pointer ${baseSize}`}
         >
-          {loading ? "…" : "Accept"}
+          {loading ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
+          <span>Accept</span>
         </button>
         <button
           type="button"
           onClick={() => handleAction("ignore")}
           disabled={loading}
-          className={`flex-1 text-center justify-center rounded-xl border border-[#ded8d1] bg-[#f8f7f6] font-medium text-[#5d5854] transition hover:bg-[#f0efee] disabled:opacity-50 ${baseSize}`}
+          className={`flex-1 inline-flex items-center justify-center gap-1 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] text-[#5d5854] hover:bg-[#f0efee] transition disabled:opacity-50 cursor-pointer ${baseSize}`}
         >
-          Ignore
+          <X className="size-3.5" />
+          <span>Ignore</span>
         </button>
       </div>
     );
@@ -160,17 +190,11 @@ export function ConnectionButton({
       <span
         className={
           className ??
-          `inline-flex w-full items-center justify-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50 font-semibold text-[#15803d] ${baseSize}`
+          `inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 text-[#15803d] ${baseSize}`
         }
       >
-        <svg className="h-3.5 w-3.5 fill-[#15803d]" viewBox="0 0 20 20">
-          <path
-            fillRule="evenodd"
-            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-            clipRule="evenodd"
-          />
-        </svg>
-        Connected
+        <UserCheck className="size-3.5 text-emerald-600 shrink-0" />
+        <span>Connected</span>
       </span>
     );
   }
