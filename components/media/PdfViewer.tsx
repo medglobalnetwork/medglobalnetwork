@@ -52,6 +52,8 @@ export function PdfViewer({
   const [thumbnails, setThumbnails] = React.useState<string[]>([]);
   const renderTaskRef = React.useRef<any>(null);
 
+  const loadingTaskRef = React.useRef<any>(null);
+
   // Initialize PDF.js
   React.useEffect(() => {
     let isCancelled = false;
@@ -70,17 +72,25 @@ export function PdfViewer({
         // Dynamically import pdfjs-dist on client side
         const pdfjsLib = await import("pdfjs-dist");
         
-        // Configure Worker
-        if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-          pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version || "3.11.174"}/pdf.worker.min.js`;
+        // Configure Worker to use local bundled worker (avoids CSP and cross-origin worker restrictions)
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdfjs/pdf.worker.min.js";
+
+        // Cancel previous loading task if any
+        if (loadingTaskRef.current) {
+          try {
+            loadingTaskRef.current.destroy();
+          } catch {
+            // ignore
+          }
         }
 
         const loadingTask = pdfjsLib.getDocument({
           url,
-          cMapUrl: "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/",
+          cMapUrl: "/pdfjs/cmaps/",
           cMapPacked: true,
           enableXfa: true,
         });
+        loadingTaskRef.current = loadingTask;
 
         const doc = await loadingTask.promise;
         if (!isCancelled) {
@@ -91,6 +101,10 @@ export function PdfViewer({
           setLoading(false);
         }
       } catch (err: any) {
+        // If aborted/cancelled during React StrictMode mount/unmount cycle, silently ignore
+        if (isCancelled || err?.name === "AbortException" || err?.name === "WorkerTransportClosedException") {
+          return;
+        }
         console.error("PDF.js loading failed:", err);
         if (!isCancelled) {
           setError(err.message || "Failed to load PDF with PDF.js engine");
@@ -103,6 +117,13 @@ export function PdfViewer({
 
     return () => {
       isCancelled = true;
+      if (loadingTaskRef.current) {
+        try {
+          loadingTaskRef.current.destroy();
+        } catch {
+          // ignore
+        }
+      }
     };
   }, [url, initialPage, onPageChange]);
 
