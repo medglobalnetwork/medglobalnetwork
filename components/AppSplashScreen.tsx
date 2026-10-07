@@ -3,10 +3,12 @@
 import * as React from "react";
 
 export function AppSplashScreen() {
+  const [mounted, setMounted] = React.useState(false);
   const [visible, setVisible] = React.useState(true);
   const [animatingOut, setAnimatingOut] = React.useState(false);
 
   React.useEffect(() => {
+    setMounted(true);
     // Show splash on cold start/initial load, then smoothly dismiss
     const timer = setTimeout(() => {
       setAnimatingOut(true);
@@ -19,7 +21,7 @@ export function AppSplashScreen() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (!visible) return null;
+  if (!mounted || !visible) return null;
 
   return (
     <div
@@ -31,10 +33,10 @@ export function AppSplashScreen() {
       <div className="flex flex-col items-center justify-center space-y-5 px-6">
         {/* Blinking / Heartbeat Pulsing Logo */}
         <div className="relative flex items-center justify-center">
-          {/* Subtle glowing radial pulse backdrop */}
           <div className="absolute -inset-4 rounded-full bg-[#0f4c81]/10 blur-xl animate-pulse" />
           
           <div className="relative flex items-center justify-center animate-bounce duration-1000">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo.png"
               alt="MedGlobalNetwork"
@@ -55,7 +57,7 @@ export function AppSplashScreen() {
 
         {/* Sleek Medical Progress Bar */}
         <div className="w-36 sm:w-44 h-1 bg-[#e8e6e3] rounded-full overflow-hidden mt-4">
-          <div className="h-full bg-linear-to-r from-[#0f4c81] via-[#16804d] to-[#0f4c81] rounded-full animate-indeterminate" />
+          <div className="h-full bg-gradient-to-r from-[#0f4c81] via-[#16804d] to-[#0f4c81] rounded-full animate-indeterminate" />
         </div>
       </div>
     </div>

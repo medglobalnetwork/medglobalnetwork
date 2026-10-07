@@ -448,7 +448,57 @@ export async function ensureLearnExtensions(): Promise<void> {
   if (extensionsEnsured) return;
   try {
     const dbAny = database as any;
-    
+    // 0. Base Courses
+    await dbAny.schema
+      .createTable("courses")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("instructor_id", "text", (col: any) => col.notNull())
+      .addColumn("organization_id", "text")
+      .addColumn("title", "varchar(255)", (col: any) => col.notNull())
+      .addColumn("slug", "varchar(255)", (col: any) => col.notNull().unique())
+      .addColumn("short_description", "varchar(500)")
+      .addColumn("description", "text")
+      .addColumn("thumbnail", "text")
+      .addColumn("category", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("subcategory", "varchar(64)")
+      .addColumn("profession", "varchar(64)")
+      .addColumn("specialization", "varchar(64)")
+      .addColumn("level", "varchar(32)", (col: any) => col.defaultTo("all_levels"))
+      .addColumn("language", "varchar(16)", (col: any) => col.defaultTo("en"))
+      .addColumn("duration_minutes", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("price", "numeric(10,2)", (col: any) => col.defaultTo(0))
+      .addColumn("discount_price", "numeric(10,2)")
+      .addColumn("currency", "varchar(8)", (col: any) => col.defaultTo("INR"))
+      .addColumn("is_free", "boolean", (col: any) => col.defaultTo(false))
+      .addColumn("certificate_enabled", "boolean", (col: any) => col.defaultTo(true))
+      .addColumn("accreditation", "varchar(128)")
+      .addColumn("subscription_tier", "varchar(32)")
+      .addColumn("bundle_access", "boolean", (col: any) => col.defaultTo(false))
+      .addColumn("status", "varchar(32)", (col: any) => col.defaultTo("draft"))
+      .addColumn("enrollment_count", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("rating_avg", "numeric(3,2)", (col: any) => col.defaultTo(0))
+      .addColumn("rating_count", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("published_at", "timestamptz")
+      .addColumn("created_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .addColumn("updated_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .execute();
+
+    // 0.1 Course Enrollments
+    await dbAny.schema
+      .createTable("course_enrollments")
+      .ifNotExists()
+      .addColumn("id", "varchar(64)", (col: any) => col.primaryKey())
+      .addColumn("course_id", "varchar(64)", (col: any) => col.notNull())
+      .addColumn("user_id", "text", (col: any) => col.notNull())
+      .addColumn("enrolled_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .addColumn("completed_at", "timestamptz")
+      .addColumn("status", "varchar(32)", (col: any) => col.defaultTo("active"))
+      .addColumn("progress_percentage", "integer", (col: any) => col.defaultTo(0))
+      .addColumn("last_lesson_id", "varchar(64)")
+      .addColumn("last_accessed_at", "timestamptz", (col: any) => col.defaultTo(dbAny.fn("now" as any)))
+      .execute();
+
     // 1. Learning Paths
     await dbAny.schema
       .createTable("learning_paths")
@@ -730,216 +780,221 @@ export async function searchCourses(
   params: CourseFilterParams,
   currentUserId?: string
 ): Promise<{ courses: Course[]; total: number }> {
-  await ensureLearnExtensions();
-  const page = Math.max(1, params.page || 1);
-  const pageSize = Math.min(50, params.pageSize || 12);
-  const offset = (page - 1) * pageSize;
+  try {
+    await ensureLearnExtensions();
+    const page = Math.max(1, params.page || 1);
+    const pageSize = Math.min(50, params.pageSize || 12);
+    const offset = (page - 1) * pageSize;
 
-  let query = learnDb
-    .selectFrom("courses as c")
-    .innerJoin("user as u", "u.id", "c.instructor_id")
-    .leftJoin("professional_profiles as pp", "pp.user_id", "c.instructor_id")
-    .where("c.status", "=", "published");
+    let query = learnDb
+      .selectFrom("courses as c")
+      .innerJoin("user as u", "u.id", "c.instructor_id")
+      .leftJoin("professional_profiles as pp", "pp.user_id", "c.instructor_id")
+      .where("c.status", "=", "published");
 
-  if (params.query?.trim()) {
-    const q = `%${params.query.trim()}%`;
-    query = query.where((eb) =>
-      eb.or([
-        eb("c.title", "ilike", q),
-        eb("c.short_description", "ilike", q),
-        eb("c.category", "ilike", q),
-        eb("u.name", "ilike", q),
+    if (params.query?.trim()) {
+      const q = `%${params.query.trim()}%`;
+      query = query.where((eb) =>
+        eb.or([
+          eb("c.title", "ilike", q),
+          eb("c.short_description", "ilike", q),
+          eb("c.category", "ilike", q),
+          eb("u.name", "ilike", q),
+        ])
+      );
+    }
+
+    if (params.category && params.category !== "All") {
+      query = query.where("c.category", "=", params.category);
+    }
+
+    if (params.profession && params.profession !== "All") {
+      query = query.where("c.profession", "=", params.profession);
+    }
+
+    if (params.specialization && params.specialization !== "All") {
+      query = query.where("c.specialization", "=", params.specialization);
+    }
+
+    if (params.level && params.level !== "all_levels" && params.level !== "All") {
+      query = query.where("c.level", "=", params.level);
+    }
+
+    if (params.language && params.language !== "All") {
+      query = query.where("c.language", "=", params.language);
+    }
+
+    if (params.is_free !== undefined) {
+      query = query.where("c.is_free", "=", params.is_free);
+    }
+
+    if (params.certificate_enabled !== undefined) {
+      query = query.where("c.certificate_enabled", "=", params.certificate_enabled);
+    }
+
+    // Duration filtering
+    if (params.duration && params.duration !== "all") {
+      if (params.duration === "under_1h") {
+        query = query.where("c.duration_minutes", "<=", 60);
+      } else if (params.duration === "1h_3h") {
+        query = query.where("c.duration_minutes", ">", 60).where("c.duration_minutes", "<=", 180);
+      } else if (params.duration === "3h_6h") {
+        query = query.where("c.duration_minutes", ">", 180).where("c.duration_minutes", "<=", 360);
+      } else if (params.duration === "over_6h") {
+        query = query.where("c.duration_minutes", ">", 360);
+      }
+    }
+
+    // Count query
+    const countResult = await query
+      .select(sql<string>`count(*)`.as("count"))
+      .executeTakeFirst();
+    const total = parseInt(countResult?.count || "0", 10);
+
+    // Sorting
+    if (params.sort === "newest") {
+      query = query.orderBy("c.created_at", "desc");
+    } else if (params.sort === "rating") {
+      query = query.orderBy("c.rating_avg", "desc");
+    } else if (params.sort === "duration") {
+      query = query.orderBy("c.duration_minutes", "asc");
+    } else {
+      // Default popular
+      query = query.orderBy("c.enrollment_count", "desc").orderBy("c.created_at", "desc");
+    }
+
+    const rawCourses = await query
+      .select([
+        "c.id",
+        "c.instructor_id",
+        "c.organization_id",
+        "c.title",
+        "c.slug",
+        "c.short_description",
+        "c.description",
+        "c.thumbnail",
+        "c.category",
+        "c.subcategory",
+        "c.profession",
+        "c.specialization",
+        "c.level",
+        "c.language",
+        "c.duration_minutes",
+        "c.price",
+        "c.discount_price",
+        "c.currency",
+        "c.is_free",
+        "c.certificate_enabled",
+        "c.accreditation",
+        "c.subscription_tier",
+        "c.bundle_access",
+        "c.status",
+        "c.enrollment_count",
+        "c.rating_avg",
+        "c.rating_count",
+        "c.published_at",
+        "c.created_at",
+        "c.updated_at",
+        "u.name as instructor_name",
+        "u.email as instructor_email",
+        "u.image as instructor_image",
+        "pp.profession as instructor_profession",
+        "pp.specialization as instructor_specialization",
+        "pp.designation as instructor_designation",
+        "pp.organization as instructor_organization",
+        "pp.identity_verified as instructor_identity_verified",
+        "pp.education_verified as instructor_education_verified",
+        "pp.registration_verified as instructor_registration_verified",
       ])
-    );
-  }
+      .limit(pageSize)
+      .offset(offset)
+      .execute();
 
-  if (params.category && params.category !== "All") {
-    query = query.where("c.category", "=", params.category);
-  }
+    // If user is authenticated, check enrollments & bookmarks
+    let enrollmentMap = new Map<string, { progress: number }>();
+    let bookmarkSet = new Set<string>();
 
-  if (params.profession && params.profession !== "All") {
-    query = query.where("c.profession", "=", params.profession);
-  }
+    if (currentUserId && rawCourses.length > 0) {
+      const courseIds = rawCourses.map((c) => c.id);
+      try {
+        const enrollments = await learnDb
+          .selectFrom("course_enrollments")
+          .select(["course_id", "progress_percentage"])
+          .where("user_id", "=", currentUserId)
+          .where("course_id", "in", courseIds)
+          .execute();
+        for (const e of enrollments) {
+          enrollmentMap.set(e.course_id, { progress: e.progress_percentage });
+        }
 
-  if (params.specialization && params.specialization !== "All") {
-    query = query.where("c.specialization", "=", params.specialization);
-  }
-
-  if (params.level && params.level !== "all_levels" && params.level !== "All") {
-    query = query.where("c.level", "=", params.level);
-  }
-
-  if (params.language && params.language !== "All") {
-    query = query.where("c.language", "=", params.language);
-  }
-
-  if (params.is_free !== undefined) {
-    query = query.where("c.is_free", "=", params.is_free);
-  }
-
-  if (params.certificate_enabled !== undefined) {
-    query = query.where("c.certificate_enabled", "=", params.certificate_enabled);
-  }
-
-  // Duration filtering
-  if (params.duration && params.duration !== "all") {
-    if (params.duration === "under_1h") {
-      query = query.where("c.duration_minutes", "<=", 60);
-    } else if (params.duration === "1h_3h") {
-      query = query.where("c.duration_minutes", ">", 60).where("c.duration_minutes", "<=", 180);
-    } else if (params.duration === "3h_6h") {
-      query = query.where("c.duration_minutes", ">", 180).where("c.duration_minutes", "<=", 360);
-    } else if (params.duration === "over_6h") {
-      query = query.where("c.duration_minutes", ">", 360);
-    }
-  }
-
-  // Count query
-  const countResult = await query
-    .select(sql<string>`count(*)`.as("count"))
-    .executeTakeFirst();
-  const total = parseInt(countResult?.count || "0", 10);
-
-  // Sorting
-  if (params.sort === "newest") {
-    query = query.orderBy("c.created_at", "desc");
-  } else if (params.sort === "rating") {
-    query = query.orderBy("c.rating_avg", "desc");
-  } else if (params.sort === "duration") {
-    query = query.orderBy("c.duration_minutes", "asc");
-  } else {
-    // Default popular
-    query = query.orderBy("c.enrollment_count", "desc").orderBy("c.created_at", "desc");
-  }
-
-  const rawCourses = await query
-    .select([
-      "c.id",
-      "c.instructor_id",
-      "c.organization_id",
-      "c.title",
-      "c.slug",
-      "c.short_description",
-      "c.description",
-      "c.thumbnail",
-      "c.category",
-      "c.subcategory",
-      "c.profession",
-      "c.specialization",
-      "c.level",
-      "c.language",
-      "c.duration_minutes",
-      "c.price",
-      "c.discount_price",
-      "c.currency",
-      "c.is_free",
-      "c.certificate_enabled",
-      "c.accreditation",
-      "c.subscription_tier",
-      "c.bundle_access",
-      "c.status",
-      "c.enrollment_count",
-      "c.rating_avg",
-      "c.rating_count",
-      "c.published_at",
-      "c.created_at",
-      "c.updated_at",
-      "u.name as instructor_name",
-      "u.email as instructor_email",
-      "u.image as instructor_image",
-      "pp.profession as instructor_profession",
-      "pp.specialization as instructor_specialization",
-      "pp.designation as instructor_designation",
-      "pp.organization as instructor_organization",
-      "pp.identity_verified as instructor_identity_verified",
-      "pp.education_verified as instructor_education_verified",
-      "pp.registration_verified as instructor_registration_verified",
-    ])
-    .limit(pageSize)
-    .offset(offset)
-    .execute();
-
-  // If user is authenticated, check enrollments & bookmarks
-  let enrollmentMap = new Map<string, { progress: number }>();
-  let bookmarkSet = new Set<string>();
-
-  if (currentUserId && rawCourses.length > 0) {
-    const courseIds = rawCourses.map((c) => c.id);
-    try {
-      const enrollments = await learnDb
-        .selectFrom("course_enrollments")
-        .select(["course_id", "progress_percentage"])
-        .where("user_id", "=", currentUserId)
-        .where("course_id", "in", courseIds)
-        .execute();
-      for (const e of enrollments) {
-        enrollmentMap.set(e.course_id, { progress: e.progress_percentage });
+        const bookmarks = await (learnDb as any)
+          .selectFrom("learn_bookmarks")
+          .select(["course_id"])
+          .where("user_id", "=", currentUserId)
+          .where("course_id", "in", courseIds)
+          .execute();
+        for (const b of bookmarks) {
+          bookmarkSet.add(b.course_id);
+        }
+      } catch {
+        // ignore
       }
-
-      const bookmarks = await (learnDb as any)
-        .selectFrom("learn_bookmarks")
-        .select(["course_id"])
-        .where("user_id", "=", currentUserId)
-        .where("course_id", "in", courseIds)
-        .execute();
-      for (const b of bookmarks) {
-        bookmarkSet.add(b.course_id);
-      }
-    } catch {
-      // ignore
     }
+
+    const courses: Course[] = rawCourses.map((r) => ({
+      id: r.id,
+      instructor_id: r.instructor_id,
+      organization_id: r.organization_id,
+      title: r.title,
+      slug: r.slug,
+      short_description: r.short_description,
+      description: r.description,
+      thumbnail: r.thumbnail,
+      category: r.category,
+      subcategory: r.subcategory,
+      profession: r.profession,
+      specialization: r.specialization,
+      level: (r.level as any) || "all_levels",
+      language: r.language || "English",
+      duration_minutes: Number(r.duration_minutes) || 0,
+      price: Number(r.price) || 0,
+      discount_price: r.discount_price !== undefined && r.discount_price !== null ? Number(r.discount_price) : null,
+      currency: r.currency || "INR",
+      is_free: r.is_free,
+      certificate_enabled: r.certificate_enabled,
+      accreditation: r.accreditation || null,
+      subscription_tier: (r.subscription_tier as any) || null,
+      bundle_access: Boolean(r.bundle_access),
+      status: (r.status as any) || "published",
+      enrollment_count: Number(r.enrollment_count) || 0,
+      rating_avg: Number(r.rating_avg) || 0,
+      rating_count: Number(r.rating_count) || 0,
+      published_at: r.published_at ? r.published_at.toISOString() : null,
+      created_at: r.created_at.toISOString(),
+      updated_at: r.updated_at.toISOString(),
+      instructor: {
+        id: r.instructor_id,
+        name: r.instructor_name,
+        email: r.instructor_email,
+        image: r.instructor_image,
+        profession: r.instructor_profession,
+        specialization: r.instructor_specialization,
+        designation: r.instructor_designation,
+        organization: r.instructor_organization,
+        identity_verified: r.instructor_identity_verified || false,
+        education_verified: r.instructor_education_verified || false,
+        registration_verified: r.instructor_registration_verified || false,
+      },
+      user_enrolled: enrollmentMap.has(r.id),
+      user_progress: enrollmentMap.get(r.id)?.progress || 0,
+      user_bookmarked: bookmarkSet.has(r.id),
+    }));
+
+    return { courses, total };
+  } catch (err) {
+    console.error("searchCourses database error:", err);
+    return { courses: [], total: 0 };
   }
-
-  const courses: Course[] = rawCourses.map((r) => ({
-    id: r.id,
-    instructor_id: r.instructor_id,
-    organization_id: r.organization_id,
-    title: r.title,
-    slug: r.slug,
-    short_description: r.short_description,
-    description: r.description,
-    thumbnail: r.thumbnail,
-    category: r.category,
-    subcategory: r.subcategory,
-    profession: r.profession,
-    specialization: r.specialization,
-    level: (r.level as any) || "all_levels",
-    language: r.language || "English",
-    duration_minutes: Number(r.duration_minutes) || 0,
-    price: Number(r.price) || 0,
-    discount_price: r.discount_price !== undefined && r.discount_price !== null ? Number(r.discount_price) : null,
-    currency: r.currency || "INR",
-    is_free: r.is_free,
-    certificate_enabled: r.certificate_enabled,
-    accreditation: r.accreditation || null,
-    subscription_tier: (r.subscription_tier as any) || null,
-    bundle_access: Boolean(r.bundle_access),
-    status: (r.status as any) || "published",
-    enrollment_count: Number(r.enrollment_count) || 0,
-    rating_avg: Number(r.rating_avg) || 0,
-    rating_count: Number(r.rating_count) || 0,
-    published_at: r.published_at ? r.published_at.toISOString() : null,
-    created_at: r.created_at.toISOString(),
-    updated_at: r.updated_at.toISOString(),
-    instructor: {
-      id: r.instructor_id,
-      name: r.instructor_name,
-      email: r.instructor_email,
-      image: r.instructor_image,
-      profession: r.instructor_profession,
-      specialization: r.instructor_specialization,
-      designation: r.instructor_designation,
-      organization: r.instructor_organization,
-      identity_verified: r.instructor_identity_verified || false,
-      education_verified: r.instructor_education_verified || false,
-      registration_verified: r.instructor_registration_verified || false,
-    },
-    user_enrolled: enrollmentMap.has(r.id),
-    user_progress: enrollmentMap.get(r.id)?.progress || 0,
-    user_bookmarked: bookmarkSet.has(r.id),
-  }));
-
-  return { courses, total };
 }
 
 // ─────────────────────────────────────────────
