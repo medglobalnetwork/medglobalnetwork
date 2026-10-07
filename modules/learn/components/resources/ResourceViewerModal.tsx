@@ -160,13 +160,9 @@ export function ResourceViewerModal({
     session?.user?.id && resource?.instructor_id && session.user.id === resource.instructor_id
   );
 
-  // Download button is only available if allow_download is true
+  // Download and Print buttons are strictly only available if explicitly permitted
   const canDownload = isDownloadPermitted;
-  const canPrint = isStudentPreview
-    ? Boolean(resource?.permissions?.allow_print)
-    : isOwner
-    ? true
-    : Boolean(resource?.permissions?.allow_print);
+  const canPrint = resource?.permissions?.allow_print === true;
 
   const canCopy = isStudentPreview
     ? Boolean(resource?.permissions?.allow_copy)
