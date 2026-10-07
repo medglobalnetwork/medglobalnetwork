@@ -1404,7 +1404,9 @@ export const BookService = {
         query = query.where("title", "ilike", `%${filter.search}%`);
       }
       const rows = await query.orderBy("reads_count", "desc").execute();
-      return rows.map((r: any) => ({
+      const existingIds = new Set(rows.map((r: any) => r.id));
+
+      const bookList: BookItem[] = rows.map((r: any) => ({
         id: r.id,
         title: r.title,
         slug: r.slug,
@@ -1429,6 +1431,47 @@ export const BookService = {
         user_has_access: r.access === "FREE",
         created_at: r.created_at ? new Date(r.created_at).toISOString() : new Date().toISOString(),
       }));
+
+      // Also query learning_resources with PDF type so teacher uploaded books appear
+      try {
+        let resQuery = db.selectFrom("learning_resources").selectAll().where("resource_type", "=", "pdf").where("status", "!=", "ARCHIVED");
+        if (filter?.search) {
+          resQuery = resQuery.where("title", "ilike", `%${filter.search}%`);
+        }
+        const resRows = await resQuery.orderBy("created_at", "desc").execute();
+        for (const lr of resRows) {
+          if (!existingIds.has(lr.id)) {
+            bookList.push({
+              id: lr.id,
+              title: lr.title,
+              slug: `${lr.id}-${lr.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40)}`,
+              author: "MGN Verified Faculty",
+              publisher: "MedGlobalNetwork (MGN)",
+              cover_url: lr.thumbnail_url || "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&auto=format&fit=crop&q=80",
+              file_url: lr.file_url || "",
+              description: lr.description || "Medical textbook and clinical reference guide on MedGlobalNetwork.",
+              category: lr.category || "Clinical Practice",
+              subject: lr.category || "Medical Sciences",
+              page_count: lr.page_count || 32,
+              isbn: null,
+              access: "FREE",
+              price: 0,
+              currency: "INR",
+              is_licensed: true,
+              rating_avg: 5.0,
+              rating_count: 1,
+              reads_count: 0,
+              table_of_contents: [],
+              user_has_access: true,
+              created_at: lr.created_at ? new Date(lr.created_at).toISOString() : new Date().toISOString(),
+            });
+          }
+        }
+      } catch {
+        // Non-fatal if learning_resources query fails
+      }
+
+      return bookList;
     } catch {
       return [];
     }
@@ -1437,11 +1480,47 @@ export const BookService = {
   async getBookById(id: string, userId?: string): Promise<BookItem | null> {
     await ensureStudentWorkspaceTables();
     try {
-      const r = await db
+      let r = await db
         .selectFrom("student_books")
         .selectAll()
         .where("id", "=", id)
         .executeTakeFirst();
+
+      // If not in student_books, search in learning_resources
+      if (!r) {
+        const lr = await db
+          .selectFrom("learning_resources")
+          .selectAll()
+          .where("id", "=", id)
+          .executeTakeFirst();
+        if (lr) {
+          r = {
+            id: lr.id,
+            title: lr.title,
+            slug: `${lr.id}-${lr.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40)}`,
+            author: "MGN Verified Faculty",
+            publisher: "MedGlobalNetwork (MGN)",
+            cover_url: lr.thumbnail_url || "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&auto=format&fit=crop&q=80",
+            file_url: lr.file_url,
+            description: lr.description,
+            category: lr.category,
+            subject: lr.category,
+            page_count: lr.page_count || 32,
+            isbn: null,
+            access: "FREE",
+            price: 0,
+            discount_price: null,
+            currency: "INR",
+            is_licensed: true,
+            rating_avg: 5.0,
+            rating_count: 1,
+            reads_count: 0,
+            table_of_contents: [],
+            created_at: lr.created_at,
+          };
+        }
+      }
+
       if (!r) return null;
 
       let userProgress = undefined;

@@ -1,9 +1,9 @@
 // app/api/media/upload/route.ts
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getSafeSession } from "@/lib/auth";
 import { isR2Configured, uploadR2Buffer, getR2PublicUrl, slugifyFileName } from "@/lib/r2";
 import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
+import { checkRateLimit } from "@/lib/security";
 
 const ALLOWED_MIME_TYPES = [
   // Images
@@ -16,23 +16,23 @@ const ALLOWED_MIME_TYPES = [
   "video/mp4",
   "video/webm",
   "video/quicktime",
-  // Documents
+  // Documents & Books
   "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/msword",
 ];
 
-import { checkRateLimit } from "@/lib/security";
-
-const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30 MB maximum
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB maximum
 
 export async function POST(request: Request) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await getSafeSession();
     if (!session?.user) {
       return Response.json({ error: "Authentication required" }, { status: 401 });
     }
 
-    // Rate limit per user: max 30 uploads per minute
-    const rateLimit = checkRateLimit(`upload:${session.user.id}`, 30, 60000);
+    // Rate limit per user: max 60 uploads per minute
+    const rateLimit = checkRateLimit(`upload:${session.user.id}`, 60, 60000);
     if (!rateLimit.allowed) {
       return Response.json(
         { error: "Upload rate limit exceeded. Please wait a moment." },
@@ -50,14 +50,14 @@ export async function POST(request: Request) {
 
     if (file.size > MAX_FILE_SIZE) {
       return Response.json(
-        { error: `File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds the 30MB limit.` },
+        { error: `File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds the 50MB limit.` },
         { status: 400 }
       );
     }
 
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
       return Response.json(
-        { error: `Unsupported file type (${file.type}). Allowed: images, videos (mp4/webm/mov), and PDF.` },
+        { error: `Unsupported file type (${file.type}). Allowed: images, videos, and PDF books.` },
         { status: 400 }
       );
     }
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
         await uploadR2Buffer({
           key,
           buffer,
-          contentType: file.type,
+          contentType: file.type || "application/octet-stream",
         });
 
         const publicUrl = getR2PublicUrl(key);
@@ -94,32 +94,26 @@ export async function POST(request: Request) {
     }
 
     // 2. Fallback: For local development or when R2 is unavailable
-    // For images < 8MB, return data URL or local public path
-    if (file.type.startsWith("image/") && buffer.length <= 8 * 1024 * 1024) {
+    // Save to public/uploads/resources if writable
+    try {
+      const uploadsDir = path.join(process.cwd(), "public", "uploads", safeFolder);
+      await mkdir(uploadsDir, { recursive: true });
+      const localFileName = `${Date.now()}-${safeFileName}`;
+      const localPath = path.join(uploadsDir, localFileName);
+      await writeFile(localPath, buffer);
+      const localPublicUrl = `/uploads/${safeFolder}/${localFileName}`;
+      return Response.json({
+        success: true,
+        publicUrl: localPublicUrl,
+        key,
+        fileName: file.name,
+        fileSize: file.size,
+        contentType: file.type,
+      });
+    } catch {
+      // Data URL fallback for standalone environments
       const base64 = buffer.toString("base64");
-      const dataUrl = `data:${file.type};base64,${base64}`;
-
-      // Optionally save to public/uploads in dev if writeable
-      if (process.env.NODE_ENV !== "production") {
-        try {
-          const uploadsDir = path.join(process.cwd(), "public", "uploads", sanitizedFolder);
-          await mkdir(uploadsDir, { recursive: true });
-          const localPath = path.join(uploadsDir, `${Date.now()}-${safeFileName}`);
-          await writeFile(localPath, buffer);
-          const localPublicUrl = `/uploads/${sanitizedFolder}/${path.basename(localPath)}`;
-          return Response.json({
-            success: true,
-            publicUrl: localPublicUrl,
-            key,
-            fileName: file.name,
-            fileSize: file.size,
-            contentType: file.type,
-          });
-        } catch {
-          // Fallback to dataUrl
-        }
-      }
-
+      const dataUrl = `data:${file.type || "application/pdf"};base64,${base64}`;
       return Response.json({
         success: true,
         publicUrl: dataUrl,
@@ -129,16 +123,6 @@ export async function POST(request: Request) {
         contentType: file.type,
       });
     }
-
-    // For larger files or PDFs when R2 isn't configured
-    return Response.json({
-      success: true,
-      publicUrl: `data:${file.type};base64,${buffer.toString("base64")}`,
-      key,
-      fileName: file.name,
-      fileSize: file.size,
-      contentType: file.type,
-    });
   } catch (err: any) {
     console.error("POST /api/media/upload error:", err);
     return Response.json(

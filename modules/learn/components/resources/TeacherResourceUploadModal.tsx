@@ -162,42 +162,31 @@ export function TeacherResourceUploadModal({
       let finalFileSize = file?.size || null;
       let finalMimeType = file?.type || null;
 
-      // Upload file to R2 if selected
+      // Upload file via robust server-side endpoint
       if (file) {
         setIsUploading(true);
-        setUploadProgress(10);
+        setUploadProgress(20);
 
-        const presignedRes = await fetch("/api/learn/resources/upload-url", {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("folder", "learn/resources");
+
+        const uploadRes = await fetch("/api/media/upload", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            filename: file.name,
-            contentType: file.type || "application/octet-stream",
-            courseId,
-          }),
+          credentials: "include",
+          body: formData,
         });
 
-        const presignedData = await presignedRes.json();
-        if (!presignedRes.ok) {
-          throw new Error(presignedData.error || "Failed to get upload authorization");
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok || (!uploadData.publicUrl && !uploadData.key)) {
+          throw new Error(uploadData.error || "Failed to upload document");
         }
 
-        setUploadProgress(40);
-
-        // Upload directly to Cloudflare R2
-        try {
-          await fetch(presignedData.uploadUrl, {
-            method: "PUT",
-            headers: { "Content-Type": file.type || "application/octet-stream" },
-            body: file,
-          });
-          finalStorageKey = presignedData.storageKey;
-          finalFileUrl = presignedData.publicUrl;
-        } catch {
-          // If direct PUT fails in dev sandbox, fall back to storage key
-          finalStorageKey = presignedData.storageKey;
-          finalFileUrl = presignedData.publicUrl;
-        }
+        setUploadProgress(80);
+        finalStorageKey = uploadData.key || null;
+        finalFileUrl = uploadData.publicUrl || null;
+        finalFileSize = uploadData.fileSize || file.size;
+        finalMimeType = uploadData.contentType || file.type || "application/pdf";
 
         setUploadProgress(100);
         setIsUploading(false);

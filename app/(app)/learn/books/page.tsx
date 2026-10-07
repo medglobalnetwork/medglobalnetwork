@@ -338,33 +338,43 @@ export default function BooksPage() {
                   </div>
                 )}
 
-                {/* Page Content Simulator / Reader Area */}
-                <div className="flex-1 p-8 overflow-y-auto bg-[#faf9f8] dark:bg-[#0d1117] flex justify-center">
-                  <div
-                    className="max-w-2xl bg-white dark:bg-[#161b22] border border-[#e8e6e3] dark:border-[#30363d] rounded-2xl p-8 shadow-xs space-y-4 text-xs leading-relaxed"
-                    style={{ transform: `scale(${readerZoom / 100})`, transformOrigin: "top center" }}
-                  >
-                    <div className="flex items-center justify-between border-b border-[#f0efee] dark:border-[#21262d] pb-2 text-[10px] text-[#77716b]">
-                      <span>{activeReadingBook.title}</span>
-                      <span>Page {currentPage}</span>
+                {/* Page Content Simulator / Real PDF Viewer */}
+                <div className="flex-1 overflow-hidden bg-[#faf9f8] dark:bg-[#0d1117] flex items-center justify-center p-2 sm:p-4">
+                  {activeReadingBook.file_url ? (
+                    <div className="w-full h-full rounded-2xl overflow-hidden border border-[#e8e6e3] dark:border-[#30363d] bg-white dark:bg-[#161b22] shadow-sm">
+                      <iframe
+                        src={`${activeReadingBook.file_url}#toolbar=1&navpanes=0&scrollbar=1&page=${currentPage}`}
+                        title={activeReadingBook.title}
+                        className="w-full h-full border-0 rounded-2xl min-h-[500px]"
+                      />
                     </div>
+                  ) : (
+                    <div
+                      className="max-w-2xl bg-white dark:bg-[#161b22] border border-[#e8e6e3] dark:border-[#30363d] rounded-2xl p-8 shadow-xs space-y-4 text-xs leading-relaxed overflow-y-auto"
+                      style={{ transform: `scale(${readerZoom / 100})`, transformOrigin: "top center" }}
+                    >
+                      <div className="flex items-center justify-between border-b border-[#f0efee] dark:border-[#21262d] pb-2 text-[10px] text-[#77716b]">
+                        <span>{activeReadingBook.title}</span>
+                        <span>Page {currentPage}</span>
+                      </div>
 
-                    <h4 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">
-                      Section {currentPage}: Clinical Principles & Localization
-                    </h4>
+                      <h4 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">
+                        Section {currentPage}: Clinical Principles & Localization
+                      </h4>
 
-                    <p>
-                      In modern clinical medicine, systematic anatomical and physiological evaluation provides the foundation for accurate diagnostic decision-making. Comprehending structural spatial relationships allows rapid correlation between presenting neurological or orthopedic signs and the underlying lesion locus.
-                    </p>
+                      <p>
+                        In modern clinical medicine, systematic anatomical and physiological evaluation provides the foundation for accurate diagnostic decision-making. Comprehending structural spatial relationships allows rapid correlation between presenting neurological or orthopedic signs and the underlying lesion locus.
+                      </p>
 
-                    <div className="p-3.5 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-800/40 font-semibold text-[#0f4c81] dark:text-[#58a6ff]">
-                      Key Takeaway: Always synthesize motor, sensory, and autonomic findings before ordering advanced imaging.
+                      <div className="p-3.5 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-800/40 font-semibold text-[#0f4c81] dark:text-[#58a6ff]">
+                        Key Takeaway: Always synthesize motor, sensory, and autonomic findings before ordering advanced imaging.
+                      </div>
+
+                      <p>
+                        Pathways decussating in the brainstem, such as the corticospinal tract at the medullary pyramids, account for contralateral motor paresis in hemispheric strokes versus ipsilateral cranial nerve signs in alternating hemiplegia syndromes.
+                      </p>
                     </div>
-
-                    <p>
-                      Pathways decussating in the brainstem, such as the corticospinal tract at the medullary pyramids, account for contralateral motor paresis in hemispheric strokes versus ipsilateral cranial nerve signs in alternating hemiplegia syndromes.
-                    </p>
-                  </div>
+                  )}
                 </div>
               </div>
 

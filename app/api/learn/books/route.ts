@@ -1,9 +1,8 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getSafeSession } from "@/lib/auth";
 import { BookService } from "@/modules/learn/lib/student-db";
 
 export async function GET(req: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSafeSession();
   if (!session?.user) {
     return Response.json({ error: "Authentication required" }, { status: 401 });
   }
@@ -33,7 +32,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSafeSession();
   if (!session?.user) {
     return Response.json({ error: "Authentication required" }, { status: 401 });
   }

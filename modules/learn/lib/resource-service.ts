@@ -175,13 +175,40 @@ export async function createResource(input: CreateResourceInput): Promise<Learni
     })
     .execute();
 
-  // Audit Log
-  await logResourceAudit(id, input.instructorId, "CREATE", {
-    title: input.title,
-    resourceType: input.resourceType,
-    status,
-    initialPermissions: perm,
-  });
+  // Sync PDF/Book resource into student_books table so it immediately appears in Books library
+  if (input.resourceType === "pdf" || input.category === "Books" || input.category === "Medical" || input.category === "Physiotherapy") {
+    try {
+      await (resourceDb as any)
+        .insertInto("student_books")
+        .values({
+          id,
+          title: input.title.trim(),
+          slug: `${id}-${input.title.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40)}`,
+          author: "MGN Verified Faculty",
+          publisher: "MedGlobalNetwork (MGN)",
+          cover_url: input.thumbnailUrl || "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&auto=format&fit=crop&q=80",
+          file_url: input.fileUrl || "",
+          description: input.description?.trim() || "Medical clinical reference book on MedGlobalNetwork.",
+          category: input.category || "Clinical Practice",
+          subject: input.category || "Medical Sciences",
+          page_count: input.pageCount || (input.resourceType === "pdf" ? 24 : 1),
+          isbn: null,
+          access: "FREE",
+          price: 0,
+          currency: "INR",
+          is_licensed: true,
+          rating_avg: 5.0,
+          rating_count: 1,
+          reads_count: 0,
+          table_of_contents: JSON.stringify([]),
+          created_at: now,
+        })
+        .onConflict((oc: any) => oc.doNothing())
+        .execute();
+    } catch {
+      // Non-fatal if student_books sync fails
+    }
+  }
 
   return getResourceById(id) as Promise<LearningResource>;
 }

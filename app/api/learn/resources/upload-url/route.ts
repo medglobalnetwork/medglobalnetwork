@@ -1,11 +1,10 @@
 // app/api/learn/resources/upload-url/route.ts
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getSafeSession } from "@/lib/auth";
 import { generatePresignedUploadUrl, slugifyFileName } from "@/lib/r2";
 import { generateId } from "@/modules/network/lib/network-db";
 
 export async function POST(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSafeSession();
   if (!session?.user) {
     return Response.json({ error: "Authentication required" }, { status: 401 });
   }
