@@ -342,13 +342,16 @@ export default function BooksPage() {
                 {/* Page Content Simulator / Real PDF Viewer */}
                 <div className="flex-1 overflow-hidden bg-[#faf9f8] dark:bg-[#0d1117] flex items-center justify-center p-2 sm:p-4">
                   {activeReadingBook.file_url ? (
-                    <div className="w-full h-full rounded-2xl overflow-hidden shadow-sm">
+                    <div className="w-full h-full flex-1 flex flex-col min-h-[500px]">
                       <PdfViewer
                         url={activeReadingBook.file_url}
                         title={activeReadingBook.title}
-                        initialPage={currentPage}
+                        page={currentPage}
+                        zoom={readerZoom}
+                        hideToolbar={true}
+                        hideBottomControls={true}
                         onPageChange={(p) => handlePageChange(p)}
-                        className="h-full min-h-[550px]"
+                        className="w-full h-full bg-transparent border-0 shadow-none"
                       />
                     </div>
                   ) : (

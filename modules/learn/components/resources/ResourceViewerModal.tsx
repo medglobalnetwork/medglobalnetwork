@@ -474,7 +474,7 @@ export function ResourceViewerModal({
         {/* 2. MAIN VIEWER WORKSPACE */}
         <div className="relative flex-1 flex overflow-hidden bg-[#0d1117]">
           {/* Main Content Pane */}
-          <div className="flex-1 flex flex-col items-center justify-between overflow-y-auto p-4 relative select-text">
+          <div className="flex-1 flex flex-col items-center justify-between overflow-hidden relative select-text">
             {loading ? (
               <div className="flex flex-col items-center justify-center m-auto space-y-3">
                 <div className="size-10 rounded-full border-4 border-[#58a6ff] border-t-transparent animate-spin" />
@@ -503,17 +503,21 @@ export function ResourceViewerModal({
                 resource?.resource_type === "document" ||
                 resource?.resource_type === "case_study" ? (
                   resource.file_url ? (
-                    <div className="w-full max-w-5xl h-[80vh] my-auto">
+                    <div className="w-full h-full flex-1 flex flex-col min-h-0">
                       <PdfViewer
                         url={resource.file_url}
                         title={resource.title}
-                        initialPage={currentPage}
-                        allowDownload={resource.permissions?.allow_download ?? true}
+                        page={currentPage}
+                        zoom={zoom}
+                        rotation={rotation}
+                        hideToolbar={true}
+                        hideBottomControls={true}
+                        allowDownload={canDownload}
                         onPageChange={(p, t) => {
                           setCurrentPage(p);
                           setTotalPages(t);
                         }}
-                        className="h-full"
+                        className="w-full h-full bg-transparent border-0 shadow-none"
                       />
                     </div>
                   ) : (
