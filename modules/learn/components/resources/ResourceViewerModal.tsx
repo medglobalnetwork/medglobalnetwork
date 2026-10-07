@@ -347,281 +347,166 @@ export function ResourceViewerModal({
     }
   };
 
+  const isPdfResource =
+    (resource?.resource_type === "pdf" ||
+      resource?.resource_type === "presentation" ||
+      resource?.resource_type === "document" ||
+      resource?.resource_type === "case_study") &&
+    Boolean(resource?.file_url);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-2 sm:p-4 animate-in fade-in duration-200">
       <div
         className={`relative flex flex-col w-full bg-[#10141b] text-white rounded-3xl border border-[#30363d] shadow-2xl overflow-hidden transition-all duration-300 ${
-          isFullscreen ? "h-full max-h-screen" : "h-[92vh] max-w-6xl"
+          isFullscreen ? "h-full max-h-screen" : "h-[94vh] max-w-7xl"
         }`}
       >
-        {/* 1. TOP SECURE BAR */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-[#21262d] bg-[#161b22] shrink-0 gap-3">
-          {/* Left: Info & Badges */}
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="p-2 rounded-xl bg-[#0f4c81]/20 text-[#58a6ff] shrink-0">
-              {resource?.resource_type === "image" ? (
-                <ImageIcon className="size-4 sm:size-5" />
-              ) : resource?.resource_type === "notes" ? (
-                <BookOpen className="size-4 sm:size-5" />
-              ) : resource?.resource_type === "audio" ? (
-                <Volume2 className="size-4 sm:size-5" />
-              ) : (
-                <FileText className="size-4 sm:size-5" />
-              )}
-            </div>
-
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#58a6ff]">
-                  {resource?.resource_type || "Resource"}
-                </span>
-                <span className="rounded-full bg-[#21262d] px-2 py-0.5 text-[10px] font-mono text-white/70">
-                  v{resource?.current_version || 1}.0
-                </span>
-                {isDownloadPermitted ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
-                    <ShieldCheck className="size-3" /> Download Allowed
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold text-amber-400">
-                    <Lock className="size-3" /> Read Only Protected
-                  </span>
-                )}
-                {isStudentPreview && (
-                  <span className="rounded-full bg-purple-900/60 border border-purple-500/40 px-2 py-0.5 text-[10px] font-bold text-purple-300">
-                    Student Preview Mode
-                  </span>
-                )}
-              </div>
-              <h2 className="text-sm sm:text-base font-bold truncate text-white">
-                {displayTitle}
-              </h2>
-            </div>
+        {/* ── GOOGLE DRIVE STYLE FULL PDF READER ── */}
+        {isPdfResource ? (
+          <div className="w-full h-full flex-1 flex flex-col min-h-0 relative">
+            <PdfViewer
+              url={resource!.file_url!}
+              title={resource?.title}
+              category={resource?.category}
+              version={resource?.current_version || 1}
+              allowDownload={canDownload}
+              allowPrint={canPrint}
+              allowCopy={canCopy}
+              isStudentPreview={isStudentPreview}
+              isOwner={isOwner}
+              isBookmarked={isBookmarked}
+              onEditResource={() => setShowEditModal(true)}
+              onAskAI={() => setShowAIDrawer(true)}
+              onToggleBookmark={handleToggleBookmark}
+              onReport={() => setShowReportModal(true)}
+              onClose={onClose}
+              onPageChange={(p, t) => {
+                setCurrentPage(p);
+                setTotalPages(t);
+              }}
+              className="w-full h-full"
+            />
           </div>
+        ) : (
+          <div className="w-full h-full flex-1 flex flex-col min-h-0 relative">
+            {/* 1. TOP SECURE BAR FOR NON-PDF / FALLBACK RESOURCES */}
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-[#21262d] bg-[#161b22] shrink-0 gap-3">
+              {/* Left: Info & Badges */}
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2 rounded-xl bg-[#0f4c81]/20 text-[#58a6ff] shrink-0">
+                  {resource?.resource_type === "image" ? (
+                    <ImageIcon className="size-4 sm:size-5" />
+                  ) : resource?.resource_type === "notes" ? (
+                    <BookOpen className="size-4 sm:size-5" />
+                  ) : resource?.resource_type === "audio" ? (
+                    <Volume2 className="size-4 sm:size-5" />
+                  ) : (
+                    <FileText className="size-4 sm:size-5" />
+                  )}
+                </div>
 
-          {/* Right: Action Buttons */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Edit Resource Button (STRICTLY only for the user who uploaded this resource) */}
-            {isOwner && !isStudentPreview && (
-              <button
-                type="button"
-                onClick={() => setShowEditModal(true)}
-                title="Edit Resource Details & Access Policy"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#21262d] hover:bg-[#30363d] text-white px-3 py-1.5 text-xs font-bold transition cursor-pointer border border-[#30363d]"
-              >
-                <Edit className="size-3.5 text-[#58a6ff]" />
-                <span className="hidden md:inline">Edit Resource</span>
-              </button>
-            )}
-
-            {/* Ask AI Toggle */}
-            <button
-              type="button"
-              onClick={() => setShowAIDrawer(!showAIDrawer)}
-              className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
-                showAIDrawer
-                  ? "bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-lg"
-                  : "bg-[#21262d] text-amber-300 hover:bg-[#30363d]"
-              }`}
-            >
-              <Sparkles className="size-3.5" />
-              <span className="hidden sm:inline">Ask AI</span>
-            </button>
-
-            {/* Bookmark */}
-            <button
-              type="button"
-              onClick={handleToggleBookmark}
-              title={isBookmarked ? "Saved in My Box" : "Save to My Box"}
-              className={`p-2 rounded-xl transition cursor-pointer ${
-                isBookmarked
-                  ? "bg-[#0f4c81] text-white"
-                  : "bg-[#21262d] text-white/70 hover:text-white hover:bg-[#30363d]"
-              }`}
-            >
-              <Bookmark className="size-4" fill={isBookmarked ? "currentColor" : "none"} />
-            </button>
-
-            {/* Download Button (Only active when allow_download is true) */}
-            {canDownload ? (
-              <button
-                type="button"
-                onClick={handleDownload}
-                title="Download this resource"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] hover:bg-[#1565c0] text-white px-3 py-1.5 text-xs font-bold transition cursor-pointer shadow-xs"
-              >
-                <Download className="size-3.5" />
-                <span className="hidden md:inline">Download</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                disabled
-                title="Download Restricted by Author (Read-Only Protected)"
-                className="p-2 rounded-xl bg-[#21262d]/50 text-white/30 cursor-not-allowed border border-white/5"
-              >
-                <Lock className="size-4 text-amber-400/70" />
-              </button>
-            )}
-
-            {/* Print Button (if permitted) */}
-            {canPrint && (
-              <button
-                type="button"
-                onClick={handlePrint}
-                title="Print this resource"
-                className="p-2 rounded-xl bg-[#21262d] text-white/70 hover:text-white hover:bg-[#30363d] transition cursor-pointer"
-              >
-                <Printer className="size-4" />
-              </button>
-            )}
-
-            {/* Report Button */}
-            <button
-              type="button"
-              onClick={() => setShowReportModal(true)}
-              title="Report issue or copyright"
-              className="p-2 rounded-xl bg-[#21262d] text-white/70 hover:text-rose-400 hover:bg-[#30363d] transition cursor-pointer"
-            >
-              <Flag className="size-4" />
-            </button>
-
-            {/* Fullscreen */}
-            <button
-              type="button"
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-              className="p-2 rounded-xl bg-[#21262d] text-white/70 hover:text-white hover:bg-[#30363d] transition cursor-pointer hidden sm:inline-flex"
-            >
-              {isFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
-            </button>
-
-            {/* Close */}
-            <button
-              type="button"
-              onClick={onClose}
-              title="Close viewer"
-              className="p-2 rounded-xl bg-[#21262d] text-white/70 hover:text-white hover:bg-rose-900/60 transition cursor-pointer ml-1"
-            >
-              <X className="size-4 sm:size-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* 2. MAIN VIEWER WORKSPACE */}
-        <div className="relative flex-1 flex overflow-hidden bg-[#0d1117]">
-          {/* Main Content Pane */}
-          <div className="flex-1 flex flex-col items-center justify-between overflow-hidden relative select-text">
-            {loading ? (
-              <div className="flex flex-col items-center justify-center m-auto space-y-3">
-                <div className="size-10 rounded-full border-4 border-[#58a6ff] border-t-transparent animate-spin" />
-                <p className="text-xs text-white/70 font-medium">
-                  Authorizing secure session & decrypting document...
-                </p>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#58a6ff]">
+                      {resource?.resource_type || "Resource"}
+                    </span>
+                    <span className="rounded-full bg-[#21262d] px-2 py-0.5 text-[10px] font-mono text-white/70">
+                      v{resource?.current_version || 1}.0
+                    </span>
+                    {isDownloadPermitted ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+                        <ShieldCheck className="size-3" /> Download Allowed
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold text-amber-400">
+                        <Lock className="size-3" /> Read Only Protected
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="text-sm sm:text-base font-bold truncate text-white">
+                    {displayTitle}
+                  </h2>
+                </div>
               </div>
-            ) : error ? (
-              <div className="flex flex-col items-center justify-center m-auto max-w-md text-center p-6 rounded-3xl bg-[#161b22] border border-rose-500/30 space-y-3">
-                <AlertTriangle className="size-10 text-rose-400" />
-                <h3 className="text-base font-bold text-white">Access Denied</h3>
-                <p className="text-xs text-rose-300">{error}</p>
+
+              {/* Right: Action Buttons */}
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                {isOwner && !isStudentPreview && (
+                  <button
+                    type="button"
+                    onClick={() => setShowEditModal(true)}
+                    title="Edit Resource Details & Access Policy"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#21262d] hover:bg-[#30363d] text-white px-3 py-1.5 text-xs font-bold transition cursor-pointer border border-[#30363d]"
+                  >
+                    <Edit className="size-3.5 text-[#58a6ff]" />
+                    <span className="hidden md:inline">Edit Resource</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setShowAIDrawer(!showAIDrawer)}
+                  className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold bg-[#21262d] text-amber-300 hover:bg-[#30363d] transition cursor-pointer"
+                >
+                  <Sparkles className="size-3.5" />
+                  <span className="hidden sm:inline">Ask AI</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleToggleBookmark}
+                  title={isBookmarked ? "Saved in My Box" : "Save to My Box"}
+                  className={`p-2 rounded-xl transition cursor-pointer ${
+                    isBookmarked ? "bg-[#0f4c81] text-white" : "bg-[#21262d] text-white/70 hover:text-white hover:bg-[#30363d]"
+                  }`}
+                >
+                  <Bookmark className="size-4" fill={isBookmarked ? "currentColor" : "none"} />
+                </button>
+
+                {canPrint && (
+                  <button
+                    type="button"
+                    onClick={handlePrint}
+                    title="Print"
+                    className="p-2 rounded-xl bg-[#21262d] text-white/70 hover:text-white hover:bg-[#30363d] transition cursor-pointer"
+                  >
+                    <Printer className="size-4" />
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-xl bg-[#21262d] px-4 py-2 text-xs font-bold text-white hover:bg-[#30363d]"
+                  title="Close viewer"
+                  className="p-2 rounded-xl bg-[#21262d] text-white/70 hover:text-white hover:bg-rose-900/60 transition cursor-pointer ml-1"
                 >
-                  Return to Classroom
+                  <X className="size-4 sm:size-5" />
                 </button>
               </div>
-            ) : (
-              <>
-                {/* ── PDF & DOCUMENT VIEWER (PDF.JS POWERED) ── */}
-                {resource?.resource_type === "pdf" ||
-                resource?.resource_type === "presentation" ||
-                resource?.resource_type === "document" ||
-                resource?.resource_type === "case_study" ? (
-                  resource.file_url ? (
-                    <div className="w-full h-full flex-1 flex flex-col min-h-0">
-                      <PdfViewer
-                        url={resource.file_url}
-                        title={resource.title}
-                        page={currentPage}
-                        zoom={zoom}
-                        rotation={rotation}
-                        hideToolbar={true}
-                        hideBottomControls={true}
-                        allowDownload={canDownload}
-                        onPageChange={(p, t) => {
-                          setCurrentPage(p);
-                          setTotalPages(t);
-                        }}
-                        className="w-full h-full bg-transparent border-0 shadow-none"
-                      />
-                    </div>
-                  ) : (
-                    <div
-                      className="w-full max-w-4xl bg-[#161b22] rounded-2xl border border-[#30363d] shadow-2xl overflow-hidden my-auto transition-transform duration-150"
-                      style={{
-                        transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
-                        transformOrigin: "top center",
-                      }}
+            </div>
+
+            {/* MAIN WORKSPACE FOR NON-PDF */}
+            <div className="relative flex-1 flex overflow-hidden bg-[#0d1117]">
+              <div className="flex-1 flex flex-col items-center justify-center overflow-auto p-6 select-text">
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center m-auto space-y-3">
+                    <div className="size-10 rounded-full border-4 border-[#58a6ff] border-t-transparent animate-spin" />
+                    <p className="text-xs text-white/70 font-medium">Loading Resource...</p>
+                  </div>
+                ) : error ? (
+                  <div className="flex flex-col items-center justify-center m-auto max-w-md text-center p-6 rounded-3xl bg-[#161b22] border border-rose-500/30 space-y-3">
+                    <AlertTriangle className="size-10 text-rose-400" />
+                    <h3 className="text-base font-bold text-white">Access Denied</h3>
+                    <p className="text-xs text-rose-300">{error}</p>
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="rounded-xl bg-[#21262d] px-4 py-2 text-xs font-bold text-white hover:bg-[#30363d]"
                     >
-                      {/* Medical Document Details Card */}
-                      <div className="p-8 sm:p-12 space-y-6 text-[#c9d1d9] font-serif leading-relaxed">
-                        <div className="border-b border-[#30363d] pb-4 flex items-center justify-between">
-                          <div>
-                            <p className="text-[10px] font-mono uppercase tracking-widest text-[#58a6ff]">
-                              MGN Clinical Education Handout • Page {currentPage} of {totalPages}
-                            </p>
-                            <h1 className="text-xl sm:text-2xl font-bold font-sans text-white mt-1">
-                              {resource.title}
-                            </h1>
-                          </div>
-                          <div className="text-right text-[10px] font-mono text-white/50">
-                            {resource.category} • {new Date(resource.created_at).toLocaleDateString()}
-                          </div>
-                        </div>
-
-                        {resource.description && (
-                          <div className="p-4 rounded-xl bg-[#0f4c81]/15 border border-[#58a6ff]/30 text-xs text-[#a5d6ff] font-sans">
-                            <strong>Clinical Overview:</strong> {resource.description}
-                          </div>
-                        )}
-
-                        <div className="space-y-4 text-xs sm:text-sm">
-                          <h3 className="text-base font-bold font-sans text-white">
-                            Section {currentPage}.0: Pathological Mechanisms & Clinical Protocols
-                          </h3>
-                          <p>
-                            In advanced clinical evaluations, structural differentiation between upper
-                            and lower motor neuron presentations dictates initial rehabilitation
-                            approaches. Diagnostic accuracy depends on systematic evaluation of deep
-                            tendon reflexes, voluntary motor control, and sensory distribution patterns.
-                          </p>
-
-                          <div className="my-6 p-4 rounded-xl bg-[#21262d] border border-[#30363d] font-sans text-xs">
-                            <p className="font-bold text-amber-300 flex items-center gap-1.5 mb-2">
-                              <Info className="size-4" /> Diagnostic Rule of Thumb
-                            </p>
-                            <p className="text-white/80">
-                              Hyperreflexia paired with spastic hypertonia confirms corticospinal tract
-                              involvement. Monitor vital capacity and bulbar symptoms in acute phase
-                              monitoring.
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="border-t border-[#30363d] pt-4 flex items-center justify-between text-[10px] font-mono text-white/40">
-                          <span>Protected Educational Asset • MGN Learn</span>
-                          <span>Session Token: SEC-{resourceId.slice(0, 8).toUpperCase()}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                ) : null}
-
-                {/* ── HIGH-RES IMAGE & DIAGRAM VIEWER ── */}
-                {resource?.resource_type === "image" ||
-                resource?.resource_type === "infographic" ? (
+                      Return to Classroom
+                    </button>
+                  </div>
+                ) : resource?.resource_type === "image" || resource?.resource_type === "infographic" ? (
                   <div
                     className="flex items-center justify-center my-auto transition-transform duration-150"
                     style={{
@@ -639,16 +524,11 @@ export function ResourceViewerModal({
                       <div className="aspect-video w-[600px] max-w-full rounded-2xl bg-[#161b22] border border-[#30363d] flex flex-col items-center justify-center p-8 text-center space-y-3">
                         <ImageIcon className="size-16 text-[#58a6ff]/60" />
                         <h4 className="text-base font-bold text-white">{resource.title}</h4>
-                        <p className="text-xs text-white/60">
-                          High-resolution anatomical visual asset
-                        </p>
+                        <p className="text-xs text-white/60">High-resolution anatomical visual asset</p>
                       </div>
                     )}
                   </div>
-                ) : null}
-
-                {/* ── NATIVE MGN RICH NOTES VIEWER ── */}
-                {resource?.resource_type === "notes" ? (
+                ) : resource?.resource_type === "notes" ? (
                   <div
                     className="w-full max-w-4xl bg-[#161b22] rounded-2xl border border-[#30363d] shadow-2xl p-6 sm:p-10 my-auto space-y-6 text-[#c9d1d9] leading-relaxed transition-transform duration-150"
                     style={{
@@ -748,10 +628,7 @@ export function ResourceViewerModal({
                       </div>
                     )}
                   </div>
-                ) : null}
-
-                {/* ── AUDIO RESOURCE PLAYER ── */}
-                {resource?.resource_type === "audio" ? (
+                ) : resource?.resource_type === "audio" ? (
                   <div className="my-auto w-full max-w-lg bg-[#161b22] rounded-3xl border border-[#30363d] p-6 sm:p-8 space-y-6 text-center shadow-2xl">
                     <div className="size-20 rounded-full bg-gradient-to-tr from-[#0f4c81] to-[#58a6ff] mx-auto flex items-center justify-center text-white shadow-lg">
                       <Volume2 className="size-10 animate-pulse" />
@@ -795,184 +672,179 @@ export function ResourceViewerModal({
                       ))}
                     </div>
                   </div>
-                ) : null}
-              </>
-            )}
-          </div>
-
-          {/* ── AI CHAT DRAWER ── */}
-          {showAIDrawer && (
-            <div className="w-80 sm:w-96 border-l border-[#30363d] bg-[#161b22] flex flex-col shrink-0">
-              <div className="p-4 border-b border-[#30363d] flex items-center justify-between bg-[#10141b]">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="size-4 text-amber-400" />
-                  <span className="text-xs font-bold text-white">Ask AI on Resource</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowAIDrawer(false)}
-                  className="p-1 text-white/60 hover:text-white"
-                >
-                  <X className="size-4" />
-                </button>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="p-3 border-b border-[#30363d] flex flex-wrap gap-1.5 bg-[#161b22]">
-                <button
-                  type="button"
-                  onClick={() => handleAskAI("Summarize key clinical points of this resource")}
-                  className="rounded-lg bg-[#21262d] px-2.5 py-1 text-[11px] font-medium text-[#58a6ff] hover:bg-[#30363d]"
-                >
-                  ⚡ Summarize
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleAskAI("Generate 3 high-yield MCQs based on this")}
-                  className="rounded-lg bg-[#21262d] px-2.5 py-1 text-[11px] font-medium text-emerald-400 hover:bg-[#30363d]"
-                >
-                  📝 Generate MCQs
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleAskAI("Explain difficult concepts on this page")}
-                  className="rounded-lg bg-[#21262d] px-2.5 py-1 text-[11px] font-medium text-purple-400 hover:bg-[#30363d]"
-                >
-                  🔍 Explain Page
-                </button>
-              </div>
-
-              {/* Messages Container */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 text-xs">
-                {aiMessages.length === 0 ? (
-                  <p className="text-white/50 text-center mt-8">
-                    Ask any clinical question, request summaries, or generate exam practice questions
-                    from this document.
-                  </p>
                 ) : (
-                  aiMessages.map((m, idx) => (
-                    <div
-                      key={idx}
-                      className={`p-3 rounded-2xl ${
-                        m.role === "user"
-                          ? "bg-[#0f4c81] text-white ml-6"
-                          : "bg-[#21262d] text-[#c9d1d9] mr-4 border border-[#30363d]"
-                      }`}
-                    >
-                      {m.role === "assistant" && (
-                        <span className="block text-[9px] font-bold uppercase tracking-wider text-amber-400 mb-1">
-                          AI-generated explanation
-                        </span>
-                      )}
-                      <p className="whitespace-pre-wrap leading-relaxed">{m.content}</p>
-                    </div>
-                  ))
-                )}
-                {aiLoading && (
-                  <div className="flex items-center gap-2 text-amber-400 p-2">
-                    <Sparkles className="size-4 animate-spin" />
-                    <span>Analyzing clinical text...</span>
+                  <div className="p-8 space-y-6 text-white text-center m-auto">
+                    <FileText className="size-16 mx-auto text-[#58a6ff]" />
+                    <h2 className="text-xl font-bold">{resource?.title}</h2>
+                    <p className="text-sm text-white/70 max-w-md">{resource?.description || "Educational Learning Resource."}</p>
                   </div>
                 )}
               </div>
-
-              {/* Input Form */}
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleAskAI();
-                }}
-                className="p-3 border-t border-[#30363d] bg-[#10141b] flex items-center gap-2"
-              >
-                <input
-                  type="text"
-                  value={aiPrompt}
-                  onChange={(e) => setAiPrompt(e.target.value)}
-                  placeholder="Ask a question on this resource..."
-                  className="flex-1 rounded-xl bg-[#21262d] px-3 py-2 text-xs text-white border border-[#30363d] focus:outline-none focus:border-[#58a6ff]"
-                />
-                <button
-                  type="submit"
-                  disabled={aiLoading || !aiPrompt.trim()}
-                  className="rounded-xl bg-[#0f4c81] px-3 py-2 text-xs font-bold text-white hover:bg-[#1565c0] disabled:opacity-40"
-                >
-                  Ask
-                </button>
-              </form>
             </div>
-          )}
-        </div>
 
-        {/* 3. BOTTOM VIEWER TOOLBAR */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 border-t border-[#21262d] bg-[#161b22] shrink-0 text-xs">
-          {/* Left: Page Navigator */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-              disabled={currentPage <= 1}
-              className="p-1.5 rounded-lg bg-[#21262d] text-white/80 hover:text-white disabled:opacity-30 cursor-pointer"
-            >
-              <ChevronLeft className="size-4" />
-            </button>
-            <span className="text-white/80 font-mono text-[11px]">
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              type="button"
-              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-              disabled={currentPage >= totalPages}
-              className="p-1.5 rounded-lg bg-[#21262d] text-white/80 hover:text-white disabled:opacity-30 cursor-pointer"
-            >
-              <ChevronRight className="size-4" />
-            </button>
-          </div>
+            {/* 3. BOTTOM VIEWER TOOLBAR FOR NON-PDF */}
+            <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 border-t border-[#21262d] bg-[#161b22] shrink-0 text-xs">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                  disabled={currentPage <= 1}
+                  className="p-1.5 rounded-lg bg-[#21262d] text-white/80 hover:text-white disabled:opacity-30 cursor-pointer"
+                >
+                  <ChevronLeft className="size-4" />
+                </button>
+                <span className="text-white/80 font-mono text-[11px]">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                  disabled={currentPage >= totalPages}
+                  className="p-1.5 rounded-lg bg-[#21262d] text-white/80 hover:text-white disabled:opacity-30 cursor-pointer"
+                >
+                  <ChevronRight className="size-4" />
+                </button>
+              </div>
 
-          {/* Center: Zoom & Rotate */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleZoomOut}
-              className="p-1.5 rounded-lg bg-[#21262d] text-white/80 hover:text-white cursor-pointer"
-              title="Zoom out"
-            >
-              <ZoomOut className="size-4" />
-            </button>
-            <button
-              type="button"
-              onClick={handleZoomReset}
-              className="font-mono text-[11px] font-bold text-white/90 hover:text-white px-2 py-1 rounded bg-[#21262d] cursor-pointer"
-              title="Reset Zoom"
-            >
-              {zoom}%
-            </button>
-            <button
-              type="button"
-              onClick={handleZoomIn}
-              className="p-1.5 rounded-lg bg-[#21262d] text-white/80 hover:text-white cursor-pointer"
-              title="Zoom in"
-            >
-              <ZoomIn className="size-4" />
-            </button>
-            <button
-              type="button"
-              onClick={handleRotate}
-              className="p-1.5 rounded-lg bg-[#21262d] text-white/80 hover:text-white cursor-pointer hidden sm:inline-flex"
-              title="Rotate 90 degrees"
-            >
-              <RotateCw className="size-4" />
-            </button>
-          </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleZoomOut}
+                  className="p-1.5 rounded-lg bg-[#21262d] text-white/80 hover:text-white cursor-pointer"
+                  title="Zoom out"
+                >
+                  <ZoomOut className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleZoomReset}
+                  className="font-mono text-[11px] font-bold text-white/90 hover:text-white px-2 py-1 rounded bg-[#21262d] cursor-pointer"
+                  title="Reset Zoom"
+                >
+                  {zoom}%
+                </button>
+                <button
+                  type="button"
+                  onClick={handleZoomIn}
+                  className="p-1.5 rounded-lg bg-[#21262d] text-white/80 hover:text-white cursor-pointer"
+                  title="Zoom in"
+                >
+                  <ZoomIn className="size-4" />
+                </button>
+              </div>
 
-          {/* Right: Copy status or Print indicator */}
-          <div className="flex items-center gap-3 text-white/60 text-[11px]">
-            {canCopy ? (
-              <span className="hidden sm:inline text-emerald-400">Text Selection Permitted</span>
-            ) : (
-              <span className="hidden sm:inline text-amber-400">Copy Restricted</span>
-            )}
+              <div className="flex items-center gap-3 text-white/60 text-[11px]">
+                {canCopy ? (
+                  <span className="hidden sm:inline text-emerald-400">Text Selection Permitted</span>
+                ) : (
+                  <span className="hidden sm:inline text-amber-400">Copy Restricted</span>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* ── AI CHAT DRAWER (Overlay for both PDF & Non-PDF) ── */}
+        {showAIDrawer && (
+          <div className="absolute top-0 right-0 bottom-0 z-40 w-80 sm:w-96 border-l border-[#30363d] bg-[#161b22] flex flex-col shadow-2xl animate-in slide-in-from-right-4 duration-200">
+            <div className="p-4 border-b border-[#30363d] flex items-center justify-between bg-[#10141b]">
+              <div className="flex items-center gap-2">
+                <Sparkles className="size-4 text-amber-400" />
+                <span className="text-xs font-bold text-white">Ask AI on Resource</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAIDrawer(false)}
+                className="p-1 text-white/60 hover:text-white"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="p-3 border-b border-[#30363d] flex flex-wrap gap-1.5 bg-[#161b22]">
+              <button
+                type="button"
+                onClick={() => handleAskAI("Summarize key clinical points of this resource")}
+                className="rounded-lg bg-[#21262d] px-2.5 py-1 text-[11px] font-medium text-[#58a6ff] hover:bg-[#30363d]"
+              >
+                ⚡ Summarize
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAskAI("Generate 3 high-yield MCQs based on this")}
+                className="rounded-lg bg-[#21262d] px-2.5 py-1 text-[11px] font-medium text-emerald-400 hover:bg-[#30363d]"
+              >
+                📝 Generate MCQs
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAskAI("Explain difficult concepts on this page")}
+                className="rounded-lg bg-[#21262d] px-2.5 py-1 text-[11px] font-medium text-purple-400 hover:bg-[#30363d]"
+              >
+                🔍 Explain Page
+              </button>
+            </div>
+
+            {/* Messages Container */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 text-xs">
+              {aiMessages.length === 0 ? (
+                <p className="text-white/50 text-center mt-8">
+                  Ask any clinical question, request summaries, or generate exam practice questions
+                  from this document.
+                </p>
+              ) : (
+                aiMessages.map((m, idx) => (
+                  <div
+                    key={idx}
+                    className={`p-3 rounded-2xl ${
+                      m.role === "user"
+                        ? "bg-[#0f4c81] text-white ml-6"
+                        : "bg-[#21262d] text-[#c9d1d9] mr-4 border border-[#30363d]"
+                    }`}
+                  >
+                    {m.role === "assistant" && (
+                      <span className="block text-[9px] font-bold uppercase tracking-wider text-amber-400 mb-1">
+                        AI-generated explanation
+                      </span>
+                    )}
+                    <p className="whitespace-pre-wrap leading-relaxed">{m.content}</p>
+                  </div>
+                ))
+              )}
+              {aiLoading && (
+                <div className="flex items-center gap-2 text-amber-400 p-2">
+                  <Sparkles className="size-4 animate-spin" />
+                  <span>Analyzing clinical text...</span>
+                </div>
+              )}
+            </div>
+
+            {/* Input Form */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleAskAI();
+              }}
+              className="p-3 border-t border-[#30363d] bg-[#10141b] flex items-center gap-2"
+            >
+              <input
+                type="text"
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                placeholder="Ask a question on this resource..."
+                className="flex-1 rounded-xl bg-[#21262d] px-3 py-2 text-xs text-white border border-[#30363d] focus:outline-none focus:border-[#58a6ff]"
+              />
+              <button
+                type="submit"
+                disabled={aiLoading || !aiPrompt.trim()}
+                className="rounded-xl bg-[#0f4c81] px-3 py-2 text-xs font-bold text-white hover:bg-[#1565c0] disabled:opacity-40"
+              >
+                Ask
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* 4. REPORT MODERATION MODAL */}
         {showReportModal && (
