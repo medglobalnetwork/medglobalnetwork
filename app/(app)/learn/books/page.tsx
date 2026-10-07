@@ -23,6 +23,7 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { StudentNavHeader } from "@/modules/learn/components/StudentNavHeader";
 import { BookItem, BookTableOfContentsItem } from "@/modules/learn/types";
+import { PdfViewer } from "@/components/media/PdfViewer";
 
 type BookFilter = "all" | "free" | "paid" | "saved";
 
@@ -341,11 +342,13 @@ export default function BooksPage() {
                 {/* Page Content Simulator / Real PDF Viewer */}
                 <div className="flex-1 overflow-hidden bg-[#faf9f8] dark:bg-[#0d1117] flex items-center justify-center p-2 sm:p-4">
                   {activeReadingBook.file_url ? (
-                    <div className="w-full h-full rounded-2xl overflow-hidden border border-[#e8e6e3] dark:border-[#30363d] bg-white dark:bg-[#161b22] shadow-sm">
-                      <iframe
-                        src={`${activeReadingBook.file_url}#toolbar=1&navpanes=0&scrollbar=1&page=${currentPage}`}
+                    <div className="w-full h-full rounded-2xl overflow-hidden shadow-sm">
+                      <PdfViewer
+                        url={activeReadingBook.file_url}
                         title={activeReadingBook.title}
-                        className="w-full h-full border-0 rounded-2xl min-h-[500px]"
+                        initialPage={currentPage}
+                        onPageChange={(p) => handlePageChange(p)}
+                        className="h-full min-h-[550px]"
                       />
                     </div>
                   ) : (

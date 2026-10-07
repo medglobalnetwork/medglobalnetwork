@@ -37,6 +37,7 @@ import {
   ResourceNativeNotePayload,
   ResourceNativeNoteSection,
 } from "@/modules/learn/types";
+import { PdfViewer } from "@/components/media/PdfViewer";
 
 interface ResourceViewerModalProps {
   resourceId: string;
@@ -496,78 +497,85 @@ export function ResourceViewerModal({
               </div>
             ) : (
               <>
-                {/* ── PDF & DOCUMENT VIEWER ── */}
+                {/* ── PDF & DOCUMENT VIEWER (PDF.JS POWERED) ── */}
                 {resource?.resource_type === "pdf" ||
                 resource?.resource_type === "presentation" ||
                 resource?.resource_type === "document" ||
                 resource?.resource_type === "case_study" ? (
-                  <div
-                    className="w-full max-w-4xl bg-[#161b22] rounded-2xl border border-[#30363d] shadow-2xl overflow-hidden my-auto transition-transform duration-150"
-                    style={{
-                      transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
-                      transformOrigin: "top center",
-                    }}
-                  >
-                    {/* Simulated High-Resolution Medical Document Render */}
-                    <div className="p-8 sm:p-12 space-y-6 text-[#c9d1d9] font-serif leading-relaxed">
-                      <div className="border-b border-[#30363d] pb-4 flex items-center justify-between">
-                        <div>
-                          <p className="text-[10px] font-mono uppercase tracking-widest text-[#58a6ff]">
-                            MGN Clinical Education Handout • Page {currentPage} of {totalPages}
+                  resource.file_url ? (
+                    <div className="w-full max-w-5xl h-[80vh] my-auto">
+                      <PdfViewer
+                        url={resource.file_url}
+                        title={resource.title}
+                        initialPage={currentPage}
+                        allowDownload={resource.permissions?.allow_download ?? true}
+                        onPageChange={(p, t) => {
+                          setCurrentPage(p);
+                          setTotalPages(t);
+                        }}
+                        className="h-full"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="w-full max-w-4xl bg-[#161b22] rounded-2xl border border-[#30363d] shadow-2xl overflow-hidden my-auto transition-transform duration-150"
+                      style={{
+                        transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
+                        transformOrigin: "top center",
+                      }}
+                    >
+                      {/* Medical Document Details Card */}
+                      <div className="p-8 sm:p-12 space-y-6 text-[#c9d1d9] font-serif leading-relaxed">
+                        <div className="border-b border-[#30363d] pb-4 flex items-center justify-between">
+                          <div>
+                            <p className="text-[10px] font-mono uppercase tracking-widest text-[#58a6ff]">
+                              MGN Clinical Education Handout • Page {currentPage} of {totalPages}
+                            </p>
+                            <h1 className="text-xl sm:text-2xl font-bold font-sans text-white mt-1">
+                              {resource.title}
+                            </h1>
+                          </div>
+                          <div className="text-right text-[10px] font-mono text-white/50">
+                            {resource.category} • {new Date(resource.created_at).toLocaleDateString()}
+                          </div>
+                        </div>
+
+                        {resource.description && (
+                          <div className="p-4 rounded-xl bg-[#0f4c81]/15 border border-[#58a6ff]/30 text-xs text-[#a5d6ff] font-sans">
+                            <strong>Clinical Overview:</strong> {resource.description}
+                          </div>
+                        )}
+
+                        <div className="space-y-4 text-xs sm:text-sm">
+                          <h3 className="text-base font-bold font-sans text-white">
+                            Section {currentPage}.0: Pathological Mechanisms & Clinical Protocols
+                          </h3>
+                          <p>
+                            In advanced clinical evaluations, structural differentiation between upper
+                            and lower motor neuron presentations dictates initial rehabilitation
+                            approaches. Diagnostic accuracy depends on systematic evaluation of deep
+                            tendon reflexes, voluntary motor control, and sensory distribution patterns.
                           </p>
-                          <h1 className="text-xl sm:text-2xl font-bold font-sans text-white mt-1">
-                            {resource.title}
-                          </h1>
-                        </div>
-                        <div className="text-right text-[10px] font-mono text-white/50">
-                          {resource.category} • {new Date(resource.created_at).toLocaleDateString()}
-                        </div>
-                      </div>
 
-                      {resource.description && (
-                        <div className="p-4 rounded-xl bg-[#0f4c81]/15 border border-[#58a6ff]/30 text-xs text-[#a5d6ff] font-sans">
-                          <strong>Clinical Overview:</strong> {resource.description}
-                        </div>
-                      )}
-
-                      {/* Document Body Simulation */}
-                      <div className="space-y-4 text-xs sm:text-sm">
-                        <h3 className="text-base font-bold font-sans text-white">
-                          Section {currentPage}.0: Pathological Mechanisms & Clinical Protocols
-                        </h3>
-                        <p>
-                          In advanced clinical evaluations, structural differentiation between upper
-                          and lower motor neuron presentations dictates initial rehabilitation
-                          approaches. Diagnostic accuracy depends on systematic evaluation of deep
-                          tendon reflexes, voluntary motor control, and sensory distribution patterns.
-                        </p>
-
-                        <div className="my-6 p-4 rounded-xl bg-[#21262d] border border-[#30363d] font-sans text-xs">
-                          <p className="font-bold text-amber-300 flex items-center gap-1.5 mb-2">
-                            <Info className="size-4" /> Diagnostic Rule of Thumb
-                          </p>
-                          <p className="text-white/80">
-                            Hyperreflexia paired with spastic hypertonia confirms corticospinal tract
-                            involvement. Monitor vital capacity and bulbar symptoms in acute phase
-                            monitoring.
-                          </p>
+                          <div className="my-6 p-4 rounded-xl bg-[#21262d] border border-[#30363d] font-sans text-xs">
+                            <p className="font-bold text-amber-300 flex items-center gap-1.5 mb-2">
+                              <Info className="size-4" /> Diagnostic Rule of Thumb
+                            </p>
+                            <p className="text-white/80">
+                              Hyperreflexia paired with spastic hypertonia confirms corticospinal tract
+                              involvement. Monitor vital capacity and bulbar symptoms in acute phase
+                              monitoring.
+                            </p>
+                          </div>
                         </div>
 
-                        <p>
-                          Therapeutic intervention should incorporate progressive task-oriented
-                          exercises alongside targeted neuromuscular stimulation to facilitate
-                          functional neuroplastic reorganization. Refer to institutional clinical
-                          pathways for titration parameters.
-                        </p>
-                      </div>
-
-                      {/* Document Footer Watermark */}
-                      <div className="border-t border-[#30363d] pt-4 flex items-center justify-between text-[10px] font-mono text-white/40">
-                        <span>Protected Educational Asset • MGN Learn</span>
-                        <span>Session Token: SEC-{resourceId.slice(0, 8).toUpperCase()}</span>
+                        <div className="border-t border-[#30363d] pt-4 flex items-center justify-between text-[10px] font-mono text-white/40">
+                          <span>Protected Educational Asset • MGN Learn</span>
+                          <span>Session Token: SEC-{resourceId.slice(0, 8).toUpperCase()}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )
                 ) : null}
 
                 {/* ── HIGH-RES IMAGE & DIAGRAM VIEWER ── */}
