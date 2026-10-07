@@ -54,6 +54,7 @@ import {
 } from "@/modules/onboarding/config/schemas";
 import { parseFullName } from "@/lib/name-parser";
 import { signOutUser } from "@/lib/auth-client";
+import { ALL_COUNTRIES, INDIAN_STATES_AND_UTS } from "@/lib/geo";
 
 const DRAFT_STORAGE_KEY = "mgn_onboarding_form_draft";
 
@@ -85,6 +86,7 @@ export default function OnboardingPage() {
   const [country, setCountry] = React.useState<string>("India");
   const [state, setState] = React.useState<string>("");
   const [city, setCity] = React.useState<string>("");
+  const [area, setArea] = React.useState<string>("");
   const [phone, setPhone] = React.useState<string>("");
   const [claimedTitle, setClaimedTitle] = React.useState<string>("Dr.");
   const [titleType, setTitleType] = React.useState<"PREFIX" | "SUFFIX">("PREFIX");
@@ -143,6 +145,7 @@ export default function OnboardingPage() {
           if (p.country) setCountry(p.country);
           if (p.state) setState(p.state);
           if (p.city) setCity(p.city);
+          if (p.area) setArea(p.area);
           if (p.phone) setPhone(p.phone);
           if (p.claimedTitle !== undefined) setClaimedTitle(p.claimedTitle);
           if (p.titleType) setTitleType(p.titleType);
@@ -306,6 +309,7 @@ export default function OnboardingPage() {
         country,
         state,
         city,
+        area,
         phone,
         claimedTitle,
         titleType,
@@ -331,6 +335,7 @@ export default function OnboardingPage() {
     country,
     state,
     city,
+    area,
     phone,
     claimedTitle,
     titleType,
@@ -1161,30 +1166,69 @@ export default function OnboardingPage() {
                 </>
               )}
 
-              {/* Location: City, State, Country */}
+              {/* Location: Country (Select), State (Select), City (Manual), Area (Manual) */}
               <div>
                 <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                  City *
+                  Country *
                 </label>
-                <input
-                  type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="e.g. Mumbai, New Delhi, Bengaluru"
-                  required
+                <select
+                  value={country}
+                  onChange={(e) => {
+                    const newCountry = e.target.value;
+                    setCountry(newCountry);
+                    if (newCountry !== "India" && state && INDIAN_STATES_AND_UTS.includes(state)) {
+                      setState("");
+                    }
+                  }}
                   className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
-                />
+                >
+                  {ALL_COUNTRIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
                   State / Province *
                 </label>
+                {country === "India" ? (
+                  <select
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    required
+                    className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                  >
+                    <option value="">Select State / UT</option>
+                    {INDIAN_STATES_AND_UTS.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    placeholder="Enter state / province / region"
+                    required
+                    className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                  />
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
+                  City * (Enter manually)
+                </label>
                 <input
                   type="text"
-                  value={state}
-                  onChange={(e) => setState(e.target.value)}
-                  placeholder="e.g. Maharashtra, Delhi, Karnataka"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="e.g. Mumbai, Raipur, Nagpur, Delhi"
                   required
                   className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
                 />
@@ -1192,13 +1236,13 @@ export default function OnboardingPage() {
 
               <div>
                 <label className="block text-xs font-medium text-[#5d5854] dark:text-[#8b949e] mb-1.5">
-                  Country
+                  Area / Locality (Enter manually)
                 </label>
                 <input
                   type="text"
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  placeholder="India"
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  placeholder="e.g. Civil Lines, Sector 14, Bandra West"
                   className="h-11 w-full rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-3.5 text-xs sm:text-sm text-[#171717] dark:text-[#f0f6fc] focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
                 />
               </div>

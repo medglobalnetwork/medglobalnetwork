@@ -21,6 +21,7 @@ import type { ProfessionalProfile } from "@/modules/network/types";
 import { ImageSelectorModal } from "@/components/media/ImageSelectorModal";
 import { DEFAULT_BLANK_AVATAR } from "@/lib/avatar";
 import { UserAvatar } from "@/components/UserAvatar";
+import { ALL_COUNTRIES, INDIAN_STATES_AND_UTS } from "@/lib/geo";
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -455,23 +456,59 @@ export function EditProfileModal({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#5d5854] mb-1">City</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Mumbai"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm text-[#171717] focus:border-[#1769c2] focus:outline-none"
-                  />
+                  <label className="block text-xs font-bold text-[#5d5854] mb-1">Country</label>
+                  <select
+                    value={country}
+                    onChange={(e) => {
+                      const newCountry = e.target.value;
+                      setCountry(newCountry);
+                      if (newCountry !== "India" && state && INDIAN_STATES_AND_UTS.includes(state)) {
+                        setState("");
+                      }
+                    }}
+                    className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm text-[#171717] focus:border-[#1769c2] focus:outline-none bg-white"
+                  >
+                    {ALL_COUNTRIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-[#5d5854] mb-1">State / Province</label>
+                  {country === "India" ? (
+                    <select
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm text-[#171717] focus:border-[#1769c2] focus:outline-none bg-white"
+                    >
+                      <option value="">Select State / UT</option>
+                      {INDIAN_STATES_AND_UTS.map((st) => (
+                        <option key={st} value={st}>
+                          {st}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      placeholder="e.g. California, Ontario, Greater London"
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm text-[#171717] focus:border-[#1769c2] focus:outline-none"
+                    />
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#5d5854] mb-1">City (Enter manually)</label>
                   <input
                     type="text"
-                    placeholder="e.g. Maharashtra"
-                    value={state}
-                    onChange={(e) => setState(e.target.value)}
+                    placeholder="e.g. Mumbai, Raipur, Nagpur"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
                     className="w-full rounded-xl border border-[#ded8d1] px-3.5 py-2.5 text-xs sm:text-sm text-[#171717] focus:border-[#1769c2] focus:outline-none"
                   />
                 </div>
