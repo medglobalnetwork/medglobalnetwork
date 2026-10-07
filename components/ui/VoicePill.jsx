@@ -62,7 +62,7 @@ const drawWave = (s, canvas, level, color, floor) => {
     canvas.width = W;
     canvas.height = H;
   }
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) return;
   s.acc = Math.max(s.acc, level);
   s.tick = (s.tick + 1) % WAVE_EVERY;

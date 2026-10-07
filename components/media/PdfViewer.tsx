@@ -317,7 +317,7 @@ export function PdfViewer({
       const page = await pdfDoc.getPage(validPageNumber);
       const canvas = canvasRef.current;
       if (!canvas) return;
-      const ctx = canvas.getContext("2d", { alpha: false });
+      const ctx = canvas.getContext("2d", { alpha: false, willReadFrequently: true });
       if (!ctx) return;
 
       // 1. Calculate unscaled viewport
@@ -410,7 +410,7 @@ export function PdfViewer({
         const viewport = page.getViewport({ scale });
         canvasEl.width = viewport.width;
         canvasEl.height = viewport.height;
-        const ctx = canvasEl.getContext("2d");
+        const ctx = canvasEl.getContext("2d", { willReadFrequently: true });
         if (ctx) {
           ctx.fillStyle = "#ffffff";
           ctx.fillRect(0, 0, viewport.width, viewport.height);
@@ -604,7 +604,7 @@ export function PdfViewer({
           visible: true,
         });
 
-        const loupeCtx = loupeCanvasRef.current.getContext("2d");
+        const loupeCtx = loupeCanvasRef.current.getContext("2d", { willReadFrequently: true });
         if (loupeCtx) {
           const lSize = 180;
           const zoomFactor = 2.5;
