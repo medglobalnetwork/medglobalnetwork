@@ -31,13 +31,16 @@ import {
   Info,
   Layers,
   FileCheck,
+  Edit,
 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 import {
   LearningResource,
   ResourceNativeNotePayload,
   ResourceNativeNoteSection,
 } from "@/modules/learn/types";
 import { PdfViewer } from "@/components/media/PdfViewer";
+import { TeacherResourceEditModal } from "./TeacherResourceEditModal";
 
 interface ResourceViewerModalProps {
   resourceId: string;
@@ -56,10 +59,12 @@ export function ResourceViewerModal({
   courseId,
   isStudentPreview = false,
 }: ResourceViewerModalProps) {
+  const { data: session } = authClient.useSession();
   const [resource, setResource] = React.useState<LearningResource | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [signedUrl, setSignedUrl] = React.useState<string | null>(null);
+  const [showEditModal, setShowEditModal] = React.useState(false);
 
   // Viewer controls state
   const [zoom, setZoom] = React.useState<number>(100);
@@ -149,15 +154,29 @@ export function ResourceViewerModal({
     canOffline: resource?.permissions?.allow_offline ?? false,
   };
 
+  const isDownloadPermitted = resource?.permissions?.allow_download === true;
+  const isInstructor = Boolean(
+    (effectivePolicy as any)?.isInstructor ||
+      (session?.user?.id && resource?.instructor_id === session.user.id)
+  );
+
   const canDownload = isStudentPreview
-    ? resource?.permissions?.allow_download ?? false
-    : effectivePolicy.canDownload;
+    ? isDownloadPermitted
+    : isInstructor
+    ? true
+    : isDownloadPermitted;
+
   const canPrint = isStudentPreview
-    ? resource?.permissions?.allow_print ?? false
-    : effectivePolicy.canPrint;
+    ? Boolean(resource?.permissions?.allow_print)
+    : isInstructor
+    ? true
+    : Boolean(resource?.permissions?.allow_print);
+
   const canCopy = isStudentPreview
-    ? resource?.permissions?.allow_copy ?? false
-    : effectivePolicy.canCopy;
+    ? Boolean(resource?.permissions?.allow_copy)
+    : isInstructor
+    ? true
+    : Boolean(resource?.permissions?.allow_copy);
 
   // Zoom handlers
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 25, 250));
@@ -354,13 +373,13 @@ export function ResourceViewerModal({
                 <span className="rounded-full bg-[#21262d] px-2 py-0.5 text-[10px] font-mono text-white/70">
                   v{resource?.current_version || 1}.0
                 </span>
-                {canDownload ? (
+                {isDownloadPermitted ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
-                    <ShieldCheck className="size-3" /> Download Available
+                    <ShieldCheck className="size-3" /> Download Allowed
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 rounded-full bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold text-amber-400">
-                    <Lock className="size-3" /> View Only
+                    <Lock className="size-3" /> Read Only Protected
                   </span>
                 )}
                 {isStudentPreview && (
@@ -377,6 +396,19 @@ export function ResourceViewerModal({
 
           {/* Right: Action Buttons */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Edit Resource Button (For Instructor / Creator) */}
+            {isInstructor && !isStudentPreview && (
+              <button
+                type="button"
+                onClick={() => setShowEditModal(true)}
+                title="Edit Resource Details & Access Policy"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#21262d] hover:bg-[#30363d] text-white px-3 py-1.5 text-xs font-bold transition cursor-pointer border border-[#30363d]"
+              >
+                <Edit className="size-3.5 text-[#58a6ff]" />
+                <span className="hidden md:inline">Edit Resource</span>
+              </button>
+            )}
+
             {/* Ask AI Toggle */}
             <button
               type="button"
@@ -410,7 +442,11 @@ export function ResourceViewerModal({
               <button
                 type="button"
                 onClick={handleDownload}
-                title="Download this resource"
+                title={
+                  isInstructor && !isDownloadPermitted
+                    ? "Download (Instructor Asset Copy)"
+                    : "Download this resource"
+                }
                 className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] hover:bg-[#1565c0] text-white px-3 py-1.5 text-xs font-bold transition cursor-pointer shadow-xs"
               >
                 <Download className="size-3.5" />
@@ -420,7 +456,7 @@ export function ResourceViewerModal({
               <button
                 type="button"
                 disabled
-                title="Download restricted by instructor"
+                title="Download restricted by instructor (Read-Only Protected)"
                 className="p-2 rounded-xl bg-[#21262d]/50 text-white/30 cursor-not-allowed"
               >
                 <Lock className="size-4" />
@@ -1011,6 +1047,19 @@ export function ResourceViewerModal({
               )}
             </div>
           </div>
+        )}
+
+        {/* 5. TEACHER RESOURCE EDIT MODAL */}
+        {showEditModal && resource && (
+          <TeacherResourceEditModal
+            resource={resource}
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            onResourceUpdated={(updated) => {
+              setResource(updated);
+              loadResourceSession();
+            }}
+          />
         )}
       </div>
     </div>

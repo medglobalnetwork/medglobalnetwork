@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { LearningResource, ResourceType } from "@/modules/learn/types";
 import { TeacherResourceUploadModal } from "./TeacherResourceUploadModal";
+import { TeacherResourceEditModal } from "./TeacherResourceEditModal";
 import { ResourceViewerModal } from "./ResourceViewerModal";
 
 interface TeacherResourceManagerProps {
@@ -45,6 +46,9 @@ export function TeacherResourceManager({
   const [resources, setResources] = React.useState<LearningResource[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [showUploadModal, setShowUploadModal] = React.useState(false);
+
+  // Edit Modal State
+  const [editModalResource, setEditModalResource] = React.useState<LearningResource | null>(null);
 
   // Viewer Modal State
   const [selectedViewerResourceId, setSelectedViewerResourceId] = React.useState<string | null>(null);
@@ -477,6 +481,16 @@ export function TeacherResourceManager({
                   {/* Instructor Controls */}
                   {isInstructor && !studentPreviewMode && (
                     <>
+                      {/* Edit Metadata & Permissions */}
+                      <button
+                        type="button"
+                        onClick={() => setEditModalResource(res)}
+                        title="Edit Resource Details & Permissions"
+                        className="p-1.5 rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#21262d] text-[#5d5854] dark:text-[#8b949e] hover:text-[#0f4c81] hover:border-[#0f4c81] transition cursor-pointer"
+                      >
+                        <Edit className="size-4 text-[#0f4c81] dark:text-[#58a6ff]" />
+                      </button>
+
                       {/* Edit Permissions */}
                       <button
                         type="button"
@@ -488,7 +502,7 @@ export function TeacherResourceManager({
                           setEditAllowCopy(res.permissions?.allow_copy ?? false);
                           setEditAllowOffline(res.permissions?.allow_offline ?? false);
                         }}
-                        title="Edit Permissions Policy"
+                        title="Quick Security & Download Policy"
                         className="p-1.5 rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#21262d] text-[#5d5854] dark:text-[#8b949e] hover:text-[#0f4c81] transition cursor-pointer"
                       >
                         <Lock className="size-4" />
@@ -550,7 +564,17 @@ export function TeacherResourceManager({
         onResourceCreated={() => fetchResources()}
       />
 
-      {/* 4. VIEWER MODAL */}
+      {/* 4. EDIT RESOURCE MODAL */}
+      {editModalResource && (
+        <TeacherResourceEditModal
+          resource={editModalResource}
+          isOpen={Boolean(editModalResource)}
+          onClose={() => setEditModalResource(null)}
+          onResourceUpdated={() => fetchResources()}
+        />
+      )}
+
+      {/* 5. VIEWER MODAL */}
       {selectedViewerResourceId && (
         <ResourceViewerModal
           resourceId={selectedViewerResourceId}
