@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ShieldCheck, Mail, Phone, Globe } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
+import { MGN_EMAILS } from "@/lib/contact-emails";
+
 interface LandingFooterProps {
   onOpenAuth: (mode?: "signin" | "signup") => void;
 }
@@ -76,11 +78,6 @@ export function LandingFooter({ onOpenAuth }: LandingFooterProps) {
                   Medical Camps
                 </Link>
               </li>
-              <li>
-                <Link href="/research" className="hover:text-white transition cursor-pointer">
-                  Research
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -102,31 +99,26 @@ export function LandingFooter({ onOpenAuth }: LandingFooterProps) {
               </li>
               <li>
                 <Link href="/signup" className="hover:text-white transition cursor-pointer">
-                  Hospitals
+                  Hospitals & Orgs
                 </Link>
               </li>
               <li>
-                <Link href="/signup" className="hover:text-white transition cursor-pointer">
-                  Universities
+                <Link href="/pricing" className="hover:text-white transition cursor-pointer">
+                  Enterprise Plans
                 </Link>
               </li>
               <li>
-                <Link href="/signup" className="hover:text-white transition cursor-pointer">
-                  Businesses
-                </Link>
-              </li>
-              <li>
-                <Link href="/signup" className="hover:text-white transition cursor-pointer">
+                <Link href="/verify" className="hover:text-white transition cursor-pointer">
                   Verification
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Col 3: Resources */}
+          {/* Col 3: Resources & Trust */}
           <div className="space-y-3 text-left">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-              Resources
+              Trust & Legal
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
@@ -135,47 +127,62 @@ export function LandingFooter({ onOpenAuth }: LandingFooterProps) {
                 </Link>
               </li>
               <li>
-                <Link href="/features" className="hover:text-white transition cursor-pointer">
-                  Features
-                </Link>
-              </li>
-              <li>
                 <Link href="/contact" className="hover:text-white transition cursor-pointer">
-                  Support
+                  Help & Contact
                 </Link>
               </li>
               <li>
                 <Link href="/terms" className="hover:text-white transition cursor-pointer">
-                  Terms
+                  Terms & Legal
                 </Link>
               </li>
               <li>
                 <Link href="/privacy" className="hover:text-white transition cursor-pointer">
-                  Privacy
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/dpdp" className="hover:text-white transition cursor-pointer">
+                  DPDP Compliance
+                </Link>
+              </li>
+              <li>
+                <Link href="/dmca" className="hover:text-white transition cursor-pointer">
+                  DMCA / IP Policy
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Col 4: Contact Us */}
+          {/* Col 4: Contact & Departments */}
           <div className="col-span-2 sm:col-span-1 md:col-span-2 lg:col-span-1 space-y-3 text-left">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-              Contact Us
+              Contact Desk
             </h4>
             <ul className="space-y-2 text-xs text-slate-300">
-              <li className="flex items-center gap-2 truncate">
-                <Mail className="size-3.5 text-emerald-400 shrink-0" />
-                <span className="truncate">support@mgn.life</span>
+              <li className="space-y-0.5">
+                <span className="text-[10px] text-slate-400 block font-semibold uppercase tracking-wider">Support</span>
+                <a href={`mailto:${MGN_EMAILS.support}`} className="hover:text-emerald-400 transition font-medium block truncate">
+                  {MGN_EMAILS.support}
+                </a>
               </li>
-              <li className="flex items-center gap-2 truncate">
+              <li className="space-y-0.5">
+                <span className="text-[10px] text-slate-400 block font-semibold uppercase tracking-wider">General Enquiries</span>
+                <a href={`mailto:${MGN_EMAILS.info}`} className="hover:text-emerald-400 transition font-medium block truncate">
+                  {MGN_EMAILS.info}
+                </a>
+              </li>
+              <li className="space-y-0.5">
+                <span className="text-[10px] text-slate-400 block font-semibold uppercase tracking-wider">Business & B2B</span>
+                <a href={`mailto:${MGN_EMAILS.business}`} className="hover:text-emerald-400 transition font-medium block truncate">
+                  {MGN_EMAILS.business}
+                </a>
+              </li>
+              <li className="pt-1 flex items-center gap-2 truncate text-slate-300">
                 <Phone className="size-3.5 text-emerald-400 shrink-0" />
                 <a href="tel:+916263585180" className="hover:text-white transition cursor-pointer">
                   +91 62635 85180
                 </a>
-              </li>
-              <li className="flex items-center gap-2 truncate">
-                <Globe className="size-3.5 text-emerald-400 shrink-0" />
-                <span>www.mgn.life</span>
               </li>
             </ul>
 
@@ -205,12 +212,12 @@ export function LandingFooter({ onOpenAuth }: LandingFooterProps) {
           <p>© {new Date().getFullYear()} Med Global Network (MGN). All rights reserved.</p>
           <div className="flex items-center gap-4 sm:gap-6 flex-wrap justify-center">
             <Link href="/privacy" className="hover:text-white transition">
-              Privacy Policy
+              Privacy ({MGN_EMAILS.privacy})
             </Link>
             <Link href="/terms" className="hover:text-white transition">
-              Terms of Service
+              Legal ({MGN_EMAILS.legal})
             </Link>
-            <Link href="/contact" className="hover:text-white transition">
+            <Link href="/contact" className="hover:text-white transition font-semibold text-slate-200">
               Contact Us
             </Link>
           </div>

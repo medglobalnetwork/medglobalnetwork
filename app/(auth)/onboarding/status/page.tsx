@@ -16,6 +16,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { authClient, signOutUser } from "@/lib/auth-client";
+import { MGN_EMAILS } from "@/lib/contact-emails";
 
 export default function OnboardingStatusPage() {
   const router = useRouter();
@@ -139,7 +140,7 @@ export default function OnboardingStatusPage() {
                   <span>Sign Out</span>
                 </button>
                 <a
-                  href="mailto:support@medglobalnetwork.com"
+                  href={`mailto:${MGN_EMAILS.support}`}
                   className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-5 py-2.5 text-xs font-semibold text-[#5d5854] hover:bg-[#eae8e5]"
                 >
                   <HelpCircle className="h-3.5 w-3.5" />
@@ -180,7 +181,7 @@ export default function OnboardingStatusPage() {
                   <span>Sign Out</span>
                 </button>
                 <a
-                  href="mailto:support@medglobalnetwork.com"
+                  href={`mailto:${MGN_EMAILS.support}`}
                   className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-5 py-2.5 text-xs font-semibold text-[#5d5854] hover:bg-[#eae8e5]"
                 >
                   <HelpCircle className="h-3.5 w-3.5" />
@@ -221,7 +222,7 @@ export default function OnboardingStatusPage() {
                   <span>Sign Out</span>
                 </button>
                 <a
-                  href="mailto:support@medglobalnetwork.com"
+                  href={`mailto:${MGN_EMAILS.support}`}
                   className="inline-flex items-center gap-1.5 rounded-xl border border-[#ded8d1] bg-[#f8f7f6] px-5 py-2.5 text-xs font-semibold text-[#5d5854] hover:bg-[#eae8e5]"
                 >
                   <HelpCircle className="h-3.5 w-3.5" />

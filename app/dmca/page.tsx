@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FileText, ShieldAlert, Mail, ChevronRight, Clock } from "lucide-react";
 import { SITE_URL, DPDP_OFFICER_INFO } from "@/lib/seo";
+import { MGN_EMAILS } from "@/lib/contact-emails";
 
 export const metadata: Metadata = {
   title: "Copyright & DMCA Takedown Policy | MedGlobalNetwork",
@@ -80,10 +81,10 @@ export default function DmcaPolicyPage() {
               <p><strong>Organization:</strong> MedGlobalNetwork (MGN)</p>
               <p>
                 <strong>Email:</strong>{" "}
-                <a href="mailto:copyright@mgn.life" className="font-bold text-[#0f4c81] dark:text-[#58a6ff] underline">
-                  copyright@mgn.life
+                <a href={`mailto:${MGN_EMAILS.legal}`} className="font-bold text-[#0f4c81] dark:text-[#58a6ff] underline">
+                  {MGN_EMAILS.legal}
                 </a>{" "}
-                (Cc: {DPDP_OFFICER_INFO.email})
+                (Cc: {MGN_EMAILS.privacy})
               </p>
               <p><strong>Turnaround Time:</strong> Review and takedown action within <strong>24 to 36 hours</strong>.</p>
             </div>

@@ -36,7 +36,7 @@ export interface UserPrivacyConsent {
 export const DPDP_OFFICER_INFO = {
   officerName: "Data Protection & Grievance Officer",
   organization: "MedGlobalNetwork (MGN)",
-  email: "grievance@mgn.life",
+  email: "privacy@mgn.life",
   supportEmail: "support@mgn.life",
   address: "MedGlobalNetwork Compliance Desk, Mumbai & New Delhi, India",
   responseWindowDays: 30,

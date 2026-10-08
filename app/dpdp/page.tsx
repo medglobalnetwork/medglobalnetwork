@@ -15,6 +15,7 @@ import {
   Building,
 } from "lucide-react";
 import { DPDP_OFFICER_INFO, SITE_URL } from "@/lib/seo";
+import { MGN_EMAILS } from "@/lib/contact-emails";
 
 export const metadata: Metadata = {
   title: "DPDP Compliance, Privacy Notice & Grievance Redressal | MGN",
@@ -157,14 +158,14 @@ export default function DpdpNoticePage() {
             </div>
 
             <div className="p-4 rounded-xl bg-[#faf9f8] dark:bg-[#0d1117] border border-[#ded8d1] dark:border-[#30363d] space-y-1">
-              <p className="text-[10px] font-bold uppercase text-[#a09890] dark:text-[#8b949e]">Grievance Email</p>
+              <p className="text-[10px] font-bold uppercase text-[#a09890] dark:text-[#8b949e]">Privacy & Grievance Email</p>
               <a
-                href="mailto:grievance@mgn.life"
+                href={`mailto:${MGN_EMAILS.privacy}`}
                 className="font-bold text-sm text-[#0f4c81] dark:text-[#58a6ff] hover:underline block"
               >
-                grievance@mgn.life
+                {MGN_EMAILS.privacy}
               </a>
-              <p className="text-[#77716b]">Copy: support@mgn.life</p>
+              <p className="text-[#77716b]">Copy: {MGN_EMAILS.support}</p>
             </div>
           </div>
 

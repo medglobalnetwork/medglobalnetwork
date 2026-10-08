@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Users, ShieldAlert, Award, HeartHandshake, ChevronRight, CheckCircle2, XCircle } from "lucide-react";
 import { SITE_URL } from "@/lib/seo";
+import { MGN_EMAILS } from "@/lib/contact-emails";
 
 export const metadata: Metadata = {
   title: "Community & Clinical Guidelines | MedGlobalNetwork",
@@ -96,8 +97,8 @@ export default function CommunityGuidelinesPage() {
             <h2 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">3. Reporting Violations & Safe Harbor Moderation</h2>
             <p>
               To report any abusive content, patient confidentiality breach, or impersonation, click the &quot;Report&quot; button on any post or email our Trust & Safety Team at{" "}
-              <a href="mailto:safety@mgn.life" className="font-semibold text-[#0f4c81] dark:text-[#58a6ff] underline">
-                safety@mgn.life
+              <a href={`mailto:${MGN_EMAILS.security}`} className="font-semibold text-[#0f4c81] dark:text-[#58a6ff] underline">
+                {MGN_EMAILS.security}
               </a>
               . Reports are reviewed by human medical moderators within 24 hours.
             </p>

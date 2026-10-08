@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CreditCard, RefreshCw, CheckCircle2, Clock, ChevronRight, Mail } from "lucide-react";
 import { SITE_URL, DPDP_OFFICER_INFO } from "@/lib/seo";
+import { MGN_EMAILS } from "@/lib/contact-emails";
 
 export const metadata: Metadata = {
   title: "Refund & Cancellation Policy | MedGlobalNetwork",
@@ -114,13 +115,9 @@ export default function RefundPolicyPage() {
           <section className="rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-xs space-y-3">
             <h2 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">4. How to Request a Refund</h2>
             <p>
-              To initiate a cancellation or refund request, please email our billing helpdesk at{" "}
-              <a href="mailto:billing@mgn.life" className="font-semibold text-[#0f4c81] dark:text-[#58a6ff] underline">
-                billing@mgn.life
-              </a>{" "}
-              or{" "}
-              <a href={`mailto:${DPDP_OFFICER_INFO.supportEmail}`} className="font-semibold text-[#0f4c81] dark:text-[#58a6ff] underline">
-                {DPDP_OFFICER_INFO.supportEmail}
+              To initiate a cancellation or refund request, please email our support helpdesk at{" "}
+              <a href={`mailto:${MGN_EMAILS.support}`} className="font-semibold text-[#0f4c81] dark:text-[#58a6ff] underline">
+                {MGN_EMAILS.support}
               </a>{" "}
               with your registered email address, transaction ID, and reason for cancellation.
             </p>

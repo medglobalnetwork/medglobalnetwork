@@ -15,6 +15,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MGN_EMAILS } from "@/lib/contact-emails";
 
 interface Plan {
   id: string;
@@ -90,7 +91,7 @@ const plans: Plan[] = [
     monthlyPrice: 99,
     yearlyPrice: 79,
     buttonText: "Contact Enterprise",
-    buttonHref: "mailto:enterprise@mgn.life",
+    buttonHref: `mailto:${MGN_EMAILS.business}`,
     buttonVariant: "secondary",
     features: [
       "Multi-Department Staff Management",

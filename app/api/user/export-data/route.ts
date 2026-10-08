@@ -111,7 +111,7 @@ export async function GET() {
       dpdp_compliance_header: {
         act: "Digital Personal Data Protection Act (DPDP Act, 2023) - India",
         fiduciary: "MedGlobalNetwork (MGN - https://mgn.life)",
-        fiduciary_email: "grievance@mgn.life",
+        fiduciary_email: "privacy@mgn.life",
         right_exercised: "Section 11 - Right to Access Information about Personal Data",
         export_generated_at: new Date().toISOString(),
         data_principal_id: userId,

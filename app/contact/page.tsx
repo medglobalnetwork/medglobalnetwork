@@ -16,6 +16,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { DPDP_OFFICER_INFO } from "@/lib/seo";
+import { MGN_EMAILS } from "@/lib/contact-emails";
 
 export default function ContactPage() {
   const [formData, setFormData] = React.useState({
@@ -51,7 +52,7 @@ export default function ContactPage() {
     },
     {
       q: "How do I report a content grievance or DPDP data inquiry?",
-      a: "You can write directly to our Data Protection & Grievance Officer at grievance@mgn.life with subject 'DPDP Inquiry / Grievance'.",
+      a: "You can write directly to our Data Protection & Privacy Desk at privacy@mgn.life with subject 'DPDP Inquiry / Privacy Request'.",
     },
   ];
 
@@ -81,54 +82,167 @@ export default function ContactPage() {
           </p>
         </div>
 
-        {/* Contact Info Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          <div className="rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-xs space-y-3">
-            <div className="size-10 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-[#0f4c81] dark:text-[#58a6ff]">
-              <Mail className="size-5" />
-            </div>
-            <h3 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">Email Support</h3>
-            <p className="text-xs text-[#5d5854] dark:text-[#8b949e]">
-              For general queries, verification assistance, and technical help:
-            </p>
-            <a
-              href="mailto:support@mgn.life"
-              className="inline-block text-xs sm:text-sm font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline"
-            >
-              support@mgn.life
-            </a>
+        {/* 6 Canonical Department Contact Cards Grid */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-[#171717] dark:text-[#f0f6fc]">
+              Department Contact Desks
+            </h2>
+            <span className="text-xs text-[#77716b] dark:text-[#8b949e]">
+              Direct assistance routed by domain
+            </span>
           </div>
 
-          <div className="rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-xs space-y-3">
-            <div className="size-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-[#16804d] dark:text-emerald-400">
-              <Phone className="size-5" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {/* 1. User Support */}
+            <div className="rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="size-10 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-[#0f4c81] dark:text-[#58a6ff]">
+                  <Mail className="size-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider block">Customer & User Support</span>
+                  <h3 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">User Support</h3>
+                </div>
+                <p className="text-xs text-[#5d5854] dark:text-[#8b949e] leading-relaxed">
+                  Account issues, login help, CME course access, verification queries, and general platform support.
+                </p>
+              </div>
+              <div className="pt-2 border-t border-[#f0ece8] dark:border-[#30363d]">
+                <a
+                  href={`mailto:${MGN_EMAILS.support}`}
+                  className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#0f4c81] hover:bg-[#0c3c66] text-white py-2.5 text-xs font-bold transition shadow-xs"
+                >
+                  <Mail className="size-3.5" />
+                  <span>Contact Support</span>
+                </a>
+              </div>
             </div>
-            <h3 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">Direct Help Desk</h3>
-            <p className="text-xs text-[#5d5854] dark:text-[#8b949e]">
-              Call or WhatsApp our practitioner concierge desk:
-            </p>
-            <a
-              href="tel:+916263585180"
-              className="inline-block text-xs sm:text-sm font-bold text-[#16804d] dark:text-emerald-400 hover:underline"
-            >
-              +91 62635 85180
-            </a>
-          </div>
 
-          <div className="rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-xs space-y-3">
-            <div className="size-10 rounded-xl bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800 flex items-center justify-center text-purple-600 dark:text-purple-400">
-              <ShieldAlert className="size-5" />
+            {/* 2. General Enquiries */}
+            <div className="rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="size-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300">
+                  <HelpCircle className="size-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">Company & Website</span>
+                  <h3 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">General Enquiries</h3>
+                </div>
+                <p className="text-xs text-[#5d5854] dark:text-[#8b949e] leading-relaxed">
+                  General company information, public queries, media outreach, and general platform questions.
+                </p>
+              </div>
+              <div className="pt-2 border-t border-[#f0ece8] dark:border-[#30363d]">
+                <a
+                  href={`mailto:${MGN_EMAILS.info}`}
+                  className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#ded8d1] dark:border-[#30363d] bg-[#f8f7f6] dark:bg-[#21262d] hover:bg-[#eae8e5] text-[#171717] dark:text-[#f0f6fc] py-2.5 text-xs font-bold transition shadow-xs"
+                >
+                  <Mail className="size-3.5" />
+                  <span>General Enquiry</span>
+                </a>
+              </div>
             </div>
-            <h3 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">Grievance Desk</h3>
-            <p className="text-xs text-[#5d5854] dark:text-[#8b949e]">
-              DPDP Act 2023 compliance & privacy inquiries:
-            </p>
-            <a
-              href="mailto:grievance@mgn.life"
-              className="inline-block text-xs sm:text-sm font-bold text-purple-600 dark:text-purple-400 hover:underline"
-            >
-              grievance@mgn.life
-            </a>
+
+            {/* 3. Business & Enterprise */}
+            <div className="rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="size-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-[#16804d] dark:text-emerald-400">
+                  <Sparkles className="size-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">B2B & Institutional</span>
+                  <h3 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">Business & Enterprise</h3>
+                </div>
+                <p className="text-xs text-[#5d5854] dark:text-[#8b949e] leading-relaxed">
+                  Hospital onboarding, medical college partnerships, enterprise LMS, and commercial API discussions.
+                </p>
+              </div>
+              <div className="pt-2 border-t border-[#f0ece8] dark:border-[#30363d]">
+                <a
+                  href={`mailto:${MGN_EMAILS.business}`}
+                  className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#16804d] hover:bg-[#136c41] text-white py-2.5 text-xs font-bold transition shadow-xs"
+                >
+                  <Mail className="size-3.5" />
+                  <span>Business Enquiry</span>
+                </a>
+              </div>
+            </div>
+
+            {/* 4. Security */}
+            <div className="rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="size-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                  <ShieldAlert className="size-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider block">Trust & Vulnerabilities</span>
+                  <h3 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">Security</h3>
+                </div>
+                <p className="text-xs text-[#5d5854] dark:text-[#8b949e] leading-relaxed">
+                  Security vulnerabilities, responsible disclosure, security incidents, abuse reports, and account safety.
+                </p>
+              </div>
+              <div className="pt-2 border-t border-[#f0ece8] dark:border-[#30363d]">
+                <a
+                  href={`mailto:${MGN_EMAILS.security}`}
+                  className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 text-amber-900 dark:text-amber-200 py-2.5 text-xs font-bold transition shadow-xs"
+                >
+                  <ShieldAlert className="size-3.5" />
+                  <span>Report Security Issue</span>
+                </a>
+              </div>
+            </div>
+
+            {/* 5. Privacy */}
+            <div className="rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="size-10 rounded-xl bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                  <MessageSquare className="size-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">DPDP Act 2023 & Data Rights</span>
+                  <h3 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">Privacy</h3>
+                </div>
+                <p className="text-xs text-[#5d5854] dark:text-[#8b949e] leading-relaxed">
+                  Personal data access, correction, erasure requests, consent revocation, and statutory DPDP compliance.
+                </p>
+              </div>
+              <div className="pt-2 border-t border-[#f0ece8] dark:border-[#30363d]">
+                <a
+                  href={`mailto:${MGN_EMAILS.privacy}`}
+                  className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 text-purple-900 dark:text-purple-200 py-2.5 text-xs font-bold transition shadow-xs"
+                >
+                  <Mail className="size-3.5" />
+                  <span>Privacy Request</span>
+                </a>
+              </div>
+            </div>
+
+            {/* 6. Legal */}
+            <div className="rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="size-10 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 flex items-center justify-center text-rose-600 dark:text-rose-400">
+                  <Send className="size-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider block">Notices & Intellectual Property</span>
+                  <h3 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">Legal</h3>
+                </div>
+                <p className="text-xs text-[#5d5854] dark:text-[#8b949e] leading-relaxed">
+                  Formal legal notices, contract inquiries, DMCA / Copyright claims, and statutory compliance matters.
+                </p>
+              </div>
+              <div className="pt-2 border-t border-[#f0ece8] dark:border-[#30363d]">
+                <a
+                  href={`mailto:${MGN_EMAILS.legal}`}
+                  className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-900 dark:text-rose-200 py-2.5 text-xs font-bold transition shadow-xs"
+                >
+                  <Mail className="size-3.5" />
+                  <span>Contact Legal</span>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 
