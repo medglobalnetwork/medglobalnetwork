@@ -21,6 +21,8 @@ import {
   ScrollText,
   Settings,
   Megaphone,
+  Bell,
+  FileText,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AdminIcon } from "./AdminIcon";
@@ -62,6 +64,8 @@ export function AdminShell({ children }: AdminShellProps) {
     { title: "Suggestion & Match Engine", path: "/admin/recommendations", icon: Sparkles, icons8Id: "YxCw7An8DYqf", desc: "Tune ranking weights, diversity knobs, and candidate sources" },
     { title: "Ads & Sponsored Campaigns", path: "/admin/ads", icon: Megaphone, desc: "Create, target, and monitor sponsored banners and promoted content" },
     { title: "Communication Engine & Moderation", path: "/admin/communication", icon: MessageSquare, icons8Id: "d7iUgF8ZrDaO", desc: "Manage contextual channels, calls, reports, and message audit logs" },
+    { title: "Notifications & Broadcasts", path: "/admin/notifications", icon: Bell, desc: "Bulk push dispatch, FCM tokens, and live notifications stream" },
+    { title: "Platform Reports & Intelligence", path: "/admin/reports", icon: FileText, desc: "User abuse reports, clinical metrics, commercial tracking, CSV export" },
     { title: "Platform Analytics & Growth", path: "/admin/analytics", icon: BarChart3, desc: "Track registration funnels, conversion rates, and engagement" },
     { title: "Audit Trail & Activity Logs", path: "/admin/audit-logs", icon: ScrollText, desc: "Inspect immutable admin activity stream and compliance logs" },
     { title: "System Settings & RBAC", path: "/admin/settings", icon: Settings, icons8Id: "4511GGVppfIx", desc: "Feature flags, safety rules, and role assignments" },

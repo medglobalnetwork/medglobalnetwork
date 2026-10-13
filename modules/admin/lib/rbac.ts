@@ -59,6 +59,12 @@ export type AdminPermission =
   // Analytics
   | "analytics.read"
   | "analytics.export"
+  // Notifications & Broadcasts
+  | "notifications.send"
+  | "notifications.read"
+  // Reports & Governance
+  | "reports.read"
+  | "reports.action"
   // Audit Logs
   | "audit.read"
   // System Settings & RBAC
@@ -77,6 +83,10 @@ export const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
     "verification.reject",
     "moderation.read",
     "moderation.action",
+    "notifications.send",
+    "notifications.read",
+    "reports.read",
+    "reports.action",
     "posts.delete",
     "stories.delete",
     "comments.delete",

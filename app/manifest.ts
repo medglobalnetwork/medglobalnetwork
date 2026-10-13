@@ -6,13 +6,17 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Med Global Network",
     short_name: "MGN",
     description: "Healthcare Professional Social, Learning & Opportunity Ecosystem",
-    start_url: "/",
+    start_url: "/?source=pwa",
     scope: "/",
     display: "standalone",
-    background_color: "#faf9f8",
+    display_override: ["window-controls-overlay", "standalone", "minimal-ui"],
+    background_color: "#ffffff",
     theme_color: "#0f4c81",
     orientation: "portrait",
     categories: ["medical", "health", "social", "education", "productivity"],
+    lang: "en",
+    dir: "ltr",
+    prefer_related_applications: false,
     icons: [
       {
         src: "/icon-192.png",
@@ -57,6 +61,12 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: "Jobs",
         description: "Healthcare career opportunities and camps",
         url: "/opportunities",
+      },
+      {
+        name: "Permissions & Settings",
+        short_name: "Settings",
+        description: "Device permissions and app configuration",
+        url: "/settings/permissions",
       },
     ],
   };

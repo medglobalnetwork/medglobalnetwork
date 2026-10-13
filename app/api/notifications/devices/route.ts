@@ -45,7 +45,12 @@ export async function POST(req: NextRequest) {
              platform = EXCLUDED.platform,
              app_version = EXCLUDED.app_version,
              last_seen_at = NOW()`,
-      [user.id, token, platform === "ios" ? "ios" : "android", appVersion ?? null]
+      [
+        user.id,
+        token,
+        platform === "ios" ? "ios" : platform === "web" || platform === "pwa" ? "web" : "android",
+        appVersion ?? null,
+      ]
     );
 
     return NextResponse.json({ success: true });

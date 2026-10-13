@@ -23,6 +23,8 @@ import {
   HardDrive,
   LogOut,
   Megaphone,
+  Bell,
+  FileText,
 } from "lucide-react";
 import { AdminIcon } from "./AdminIcon";
 import { signOutUser } from "@/lib/auth-client";
@@ -85,6 +87,11 @@ export function AdminSidebar({ badgeCounts = {}, isOpen, onClose }: AdminSidebar
           icons8Id: "vy6OvJYHSJ8I",
           badge: badgeCounts.pendingVerification ? `${badgeCounts.pendingVerification}` : undefined,
           badgeColor: "amber",
+        },
+        {
+          name: "Notifications & Push",
+          href: "/admin/notifications",
+          icon: Bell,
         },
         {
           name: "Moderation & Safety",
@@ -159,6 +166,11 @@ export function AdminSidebar({ badgeCounts = {}, isOpen, onClose }: AdminSidebar
     {
       title: "Governance & Intelligence",
       items: [
+        {
+          name: "Reports & Incidents",
+          href: "/admin/reports",
+          icon: FileText,
+        },
         {
           name: "Platform Analytics",
           href: "/admin/analytics",

@@ -75,7 +75,7 @@ export default function HomePage() {
     }
 
     if (!isPending && !session) {
-      router.replace("/");
+      router.replace("/login");
     }
   }, [isPending, router, session]);
 

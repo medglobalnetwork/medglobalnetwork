@@ -13,16 +13,38 @@ import { CtaBanner } from "@/modules/landing/components/CtaBanner";
 import { LandingFooter } from "@/modules/landing/components/LandingFooter";
 import { authClient } from "@/lib/auth-client";
 import { isNativePlatform } from "@/lib/native-mobile";
+import { isPwaInstalled } from "@/lib/pwa-permissions";
 
 function BootScreen() {
   return (
-    <div className="min-h-dvh bg-white dark:bg-[#0b0f17] flex items-center justify-center text-sm font-semibold text-[#0f4c81]">
-      Loading MGN...
+    <div className="min-h-dvh bg-white flex flex-col items-center justify-center select-none">
+      <div className="flex flex-col items-center justify-center space-y-5 px-6 animate-in fade-in duration-300">
+        <div className="relative flex items-center justify-center">
+          <div className="absolute -inset-6 rounded-full bg-[#0f4c81]/5 blur-2xl animate-pulse" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt="Med Global Network"
+            className="h-16 w-auto sm:h-20 object-contain drop-shadow-xs animate-pulse"
+          />
+        </div>
+        <div className="text-center space-y-1">
+          <h1 className="text-base font-extrabold tracking-tight text-[#0f4c81]">
+            MedGlobalNetwork
+          </h1>
+          <p className="text-[11px] font-semibold text-[#77716b] tracking-wider uppercase">
+            Healthcare Professional Ecosystem
+          </p>
+        </div>
+        <div className="w-36 h-1 bg-[#f0ede8] rounded-full overflow-hidden mt-3">
+          <div className="h-full bg-gradient-to-r from-[#0f4c81] via-[#16804d] to-[#0f4c81] rounded-full animate-indeterminate" />
+        </div>
+      </div>
     </div>
   );
 }
 
-// Stable no-op subscription: native detection is a synchronous read, not a
+// Stable no-op subscription: native/pwa detection is a synchronous read, not a
 // stream. useSyncExternalStore keeps SSR/hydration at `false` (so the website
 // still server-renders the landing page) and swaps to the real client value
 // immediately after mount, without a hydration mismatch.
@@ -32,6 +54,12 @@ function LandingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isNative = React.useSyncExternalStore(subscribeToNothing, isNativePlatform, () => false);
+  const isPwa = React.useSyncExternalStore(
+    subscribeToNothing,
+    () => isPwaInstalled() || searchParams?.get("source") === "pwa",
+    () => false
+  );
+  const isAppMode = isNative || isPwa;
   const { data: session, isPending: isSessionPending } = authClient.useSession();
 
   const bridgeToken = searchParams?.get("bridge_token");
@@ -51,16 +79,23 @@ function LandingContent() {
     }
   }, [searchParams, router, bridgeToken, error, authAction]);
 
-  // The native app never shows the marketing landing page: an authenticated
-  // session goes straight to the app home, everyone else to login. Explicit
-  // auth params (OAuth bridge, ?auth=) still win so those flows are not
-  // hijacked by the session redirect.
+  // The native app and PWA never show the marketing landing page: an authenticated
+  // session goes straight to /home, unauthenticated goes straight to /login.
+  // Logged-in users on browser also go straight to /home.
   useEffect(() => {
-    if (!isNative || isSessionPending || hasAuthParams) return;
-    router.replace(session?.user ? "/home" : "/login");
-  }, [isNative, isSessionPending, hasAuthParams, session, router]);
+    if (isSessionPending || hasAuthParams) return;
 
-  if (isNative) {
+    if (isAppMode) {
+      router.replace(session?.user ? "/home" : "/login");
+      return;
+    }
+
+    if (session?.user) {
+      router.replace("/home");
+    }
+  }, [isAppMode, isSessionPending, hasAuthParams, session, router]);
+
+  if (isAppMode || (session?.user && !hasAuthParams)) {
     return <BootScreen />;
   }
 
