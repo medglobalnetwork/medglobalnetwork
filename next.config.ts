@@ -46,6 +46,16 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  serverExternalPackages: ["pdfjs-dist"],
+  turbopack: {
+    resolveAlias: {
+      canvas: "./lib/empty-module.ts",
+    },
+  },
+  webpack: (config) => {
+    config.resolve.alias.canvas = false;
+    return config;
+  },
   images: {
     remotePatterns: [
       {
