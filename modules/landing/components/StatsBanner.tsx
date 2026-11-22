@@ -32,63 +32,62 @@ export function StatsBanner() {
     };
   }, []);
 
-  const formatStatValue = (count: number, suffix = "+") => {
-    if (count <= 0) return "0";
+  const formatStatValue = (count?: number) => {
+    if (typeof count !== "number") return "—";
     if (count >= 1000) return `${(count / 1000).toFixed(1)}k+`;
-    return `${count}${suffix}`;
+    return `${count}+`;
   };
 
   const stats = [
     {
       id: "professionals",
       icon: Users,
-      value: statsData !== null ? formatStatValue(statsData.professionals) : "...",
+      value: statsData !== null ? formatStatValue(statsData.professionals) : "Live",
       label: "Healthcare Professionals Onboarded",
     },
     {
       id: "jobs",
       icon: Briefcase,
-      value: statsData !== null ? formatStatValue(statsData.jobs) : "...",
-      label: "Clinical Opportunities & Jobs",
+      value: statsData !== null ? formatStatValue(statsData.jobs) : "Active",
+      label: "Clinical Opportunities & Hospital Jobs",
     },
     {
       id: "courses",
       icon: GraduationCap,
-      value: statsData !== null ? formatStatValue(statsData.courses) : "...",
-      label: "Accredited CME & Courses",
+      value: statsData !== null ? formatStatValue(statsData.courses) : "Accredited",
+      label: "CME Modules & Surgical Masterclasses",
     },
     {
       id: "trust",
       icon: ShieldCheck,
-      value: statsData?.verifiedClinicians && statsData.verifiedClinicians > 0
-        ? `${statsData.verifiedClinicians}+`
-        : "100%",
-      label: statsData?.verifiedClinicians && statsData.verifiedClinicians > 0
-        ? "Council-Verified Clinicians"
-        : "Verified & Trusted Community",
+      value: "100%",
+      label: "Council-Verified Medical Community",
     },
   ];
 
   return (
-    <section className="py-6 sm:py-10 lg:py-12 bg-white dark:bg-[#0b0f17]">
+    <section className="py-12 sm:py-16 bg-white dark:bg-[#0b0f17] border-b border-slate-200/60 dark:border-slate-800">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="rounded-3xl bg-[#0f4c81] dark:bg-[#0c3c66] text-white p-6 sm:p-8 lg:p-12 shadow-xl">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+        <div className="rounded-2xl bg-[#0c2b4e] text-white p-8 sm:p-10 lg:p-12 shadow-xl relative overflow-hidden">
+          {/* Subtle Glow */}
+          <div className="absolute top-0 right-0 size-72 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 relative z-10">
             {stats.map((s) => {
               const Icon = s.icon;
               return (
                 <div
                   key={s.id}
-                  className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-3 sm:gap-4 p-2"
+                  className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-3.5 sm:gap-4 p-2"
                 >
-                  <div className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-white/10 flex items-center justify-center shrink-0">
-                    <Icon className="size-5 sm:size-6 lg:size-7 text-white" />
+                  <div className="size-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0 text-white shadow-2xs border border-white/15">
+                    <Icon className="size-6 stroke-[2]" />
                   </div>
                   <div>
-                    <div className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight tabular-nums">
+                    <div className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white">
                       {s.value}
                     </div>
-                    <div className="text-[11px] sm:text-xs lg:text-[13px] text-white/80 font-medium mt-0.5 leading-snug text-pretty">
+                    <div className="text-xs sm:text-[13px] text-blue-100/80 font-medium leading-snug mt-1">
                       {s.label}
                     </div>
                   </div>

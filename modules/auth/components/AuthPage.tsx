@@ -29,6 +29,7 @@ import {
   Check,
   UserPlus,
   LogOut,
+  Clock,
 } from "lucide-react";
 import CodeSlots from "@/components/ui/CodeSlots";
 import { getFirebaseAuth, RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from "@/lib/firebase";
@@ -222,7 +223,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   );
 
   // Signup Multi-Step Verification States
-  const [signupPhase, setSignupPhase] = React.useState<"details" | "verification">("details");
+  const [signupPhase, setSignupPhase] = React.useState<"choose_type" | "details" | "verification">("choose_type");
   const [activeVerifyTab, setActiveVerifyTab] = React.useState<"phone" | "email">("email");
 
   // Phone (Signup: direct addition without OTP verification)
@@ -274,6 +275,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   const [fieldTouched, setFieldTouched] = React.useState<Record<string, boolean>>({});
   const [successMessage, setSuccessMessage] = React.useState("");
   const [isForgotPassword, setIsForgotPassword] = React.useState(false);
+  const [resetPasswordCountdown, setResetPasswordCountdown] = React.useState<number>(0);
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
@@ -304,6 +306,15 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
       return () => clearInterval(timer);
     }
   }, [emailOtpCountdown]);
+
+  React.useEffect(() => {
+    if (resetPasswordCountdown > 0) {
+      const timer = setInterval(() => {
+        setResetPasswordCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [resetPasswordCountdown]);
 
   // Load saved email/username on mount
   React.useEffect(() => {
@@ -342,7 +353,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   React.useEffect(() => {
     if (queryMode === "signup" || queryMode === "signin") {
       setMode(queryMode);
-      setSignupPhase("details");
+      setSignupPhase(queryMode === "signup" ? "choose_type" : "details");
     }
   }, [queryMode]);
 
@@ -1163,6 +1174,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
   async function handleForgotPassword(e: React.FormEvent) {
     e.preventDefault();
+    if (resetPasswordCountdown > 0) return;
     if (!identifier.trim() && !email.trim()) {
       setErrors({ email: "Please enter your email or username to reset password." });
       return;
@@ -1193,6 +1205,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
       const data = await res.json();
       if (res.ok) {
         setSuccessMessage("Password reset link sent to your registered email!");
+        setResetPasswordCountdown(30);
       } else {
         setErrors({ general: data.error || "Failed to send reset link." });
       }
@@ -1204,12 +1217,12 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
   }
 
   return (
-    <div className="min-h-dvh w-full flex flex-col lg:flex-row bg-white dark:bg-[#0b0f17] font-sans selection:bg-[#0f4c81]/20">
+    <div className="min-h-dvh lg:h-screen lg:max-h-screen w-full flex flex-col lg:flex-row bg-white dark:bg-[#0b0f17] font-sans selection:bg-[#0f4c81]/20 lg:overflow-hidden">
       
       {/* ═══════════════════════════════════════════════
           LEFT 50% COLUMN: FULL SCREEN EDGE-TO-EDGE IMAGE (DESKTOP ONLY)
           ═══════════════════════════════════════════════ */}
-      <div className="hidden lg:flex lg:w-1/2 min-h-dvh bg-[#eaf3fc] dark:bg-[#0c1829] flex-col justify-between p-8 lg:p-12 xl:p-16 relative overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-200/80 dark:border-slate-800">
+      <div className="hidden lg:flex lg:w-1/2 lg:h-screen lg:max-h-screen lg:sticky lg:top-0 bg-[#eaf3fc] dark:bg-[#0c1829] flex-col justify-between p-8 lg:p-12 xl:p-16 relative overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-200/80 dark:border-slate-800 shrink-0 select-none">
         
         {/* Full-Screen Edge-to-Edge Illustration Background */}
         <img
@@ -1294,13 +1307,14 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         </div>
 
         {/* Transparent bottom spacer to let the doctors in the background image shine through */}
-        <div className="h-40 lg:h-52 xl:h-60 z-10 pointer-events-none" />
+        <div className="h-28 lg:h-36 xl:h-48 z-10 pointer-events-none shrink-0" />
       </div>
 
       {/* ═══════════════════════════════════════════════
           RIGHT 50% COLUMN: AUTH FORM
           ═══════════════════════════════════════════════ */}
-      <div className="w-full lg:w-1/2 min-h-dvh flex flex-col justify-between bg-white dark:bg-[#0d1117] p-5 sm:p-8 lg:p-12 xl:p-16 z-10 rounded-none overflow-y-auto">
+      <div className="w-full lg:w-1/2 min-h-dvh lg:h-screen lg:max-h-screen bg-white dark:bg-[#0d1117] z-10 rounded-none overflow-y-auto">
+        <div className="min-h-full flex flex-col justify-between p-5 sm:p-8 lg:p-12 xl:p-16">
         
         {/* Top Header */}
         <div className="flex items-center justify-between w-full max-w-[440px] mx-auto pb-4">
@@ -1331,18 +1345,24 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
               {isForgotPassword
                 ? "Reset Password"
                 : mode === "signup"
-                ? signupPhase === "verification"
+                ? signupPhase === "choose_type"
+                  ? "Join MED Global Network"
+                  : signupPhase === "verification"
                   ? "Verify Account"
-                  : "Create Account"
+                  : accountType === "INDIVIDUAL"
+                  ? "Individual Registration"
+                  : "Organisation Registration"
                 : "Welcome Back!"}
             </h2>
             <p className="mt-1 text-xs sm:text-sm text-[#6b7280] dark:text-[#8b949e]">
               {isForgotPassword
                 ? "Enter your email or phone to reset your password"
                 : mode === "signup"
-                ? signupPhase === "verification"
+                ? signupPhase === "choose_type"
+                  ? "Choose how you would like to join the healthcare network"
+                  : signupPhase === "verification"
                   ? "Verify both mobile number and email to activate your account"
-                  : "Join the verified healthcare network"
+                  : "Enter your details to create your account"
                 : "Login to continue to your account"}
             </p>
           </div>
@@ -1424,85 +1444,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
             </div>
           )}
 
-          {/* Account Type Selector (Sign Up Mode, Details Phase) */}
-          {mode === "signup" && !isForgotPassword && signupPhase === "details" && (
-            <div className="mb-5 space-y-2 text-left">
-              <label className="block text-xs font-semibold text-[#0c2b4e] dark:text-[#8b949e]">
-                Account Type
-              </label>
-              <div className="grid grid-cols-2 gap-2.5">
-                {/* Individual Option */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAccountType("INDIVIDUAL");
-                    setErrors({});
-                  }}
-                  className={`p-3 rounded-none border text-left transition cursor-pointer flex flex-col justify-between ${
-                    accountType === "INDIVIDUAL"
-                      ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-1 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
-                      : "border-slate-200 dark:border-[#30363d] bg-white dark:bg-[#0d1117] text-[#171717] dark:text-[#f0f6fc] hover:border-slate-300"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div
-                      className={`p-1.5 rounded-none ${
-                        accountType === "INDIVIDUAL"
-                          ? "bg-[#0f4c81] text-white"
-                          : "bg-[#f0efee] dark:bg-[#21262d] text-[#5d5854] dark:text-[#8b949e]"
-                      }`}
-                    >
-                      <User className="size-4" />
-                    </div>
-                    {accountType === "INDIVIDUAL" && (
-                      <span className="size-2 rounded-none bg-[#0f4c81] dark:bg-[#58a6ff]" />
-                    )}
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold">Individual</div>
-                    <div className="text-[10px] text-[#6b7280] dark:text-[#8b949e] font-normal leading-tight mt-0.5">
-                      Clinician, Nurse, Student
-                    </div>
-                  </div>
-                </button>
 
-                {/* Organisation Option */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAccountType("ORGANISATION");
-                    setErrors({});
-                  }}
-                  className={`p-3 rounded-none border text-left transition cursor-pointer flex flex-col justify-between ${
-                    accountType === "ORGANISATION"
-                      ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-1 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
-                      : "border-slate-200 dark:border-[#30363d] bg-white dark:bg-[#0d1117] text-[#171717] dark:text-[#f0f6fc] hover:border-slate-300"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div
-                      className={`p-1.5 rounded-none ${
-                        accountType === "ORGANISATION"
-                          ? "bg-[#0f4c81] text-white"
-                          : "bg-[#f0efee] dark:bg-[#21262d] text-[#5d5854] dark:text-[#8b949e]"
-                      }`}
-                    >
-                      <Building2 className="size-4" />
-                    </div>
-                    {accountType === "ORGANISATION" && (
-                      <span className="size-2 rounded-none bg-[#0f4c81] dark:bg-[#58a6ff]" />
-                    )}
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold">Organisation</div>
-                    <div className="text-[10px] text-[#6b7280] dark:text-[#8b949e] font-normal leading-tight mt-0.5">
-                      Hospital, Clinic, College
-                    </div>
-                  </div>
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Global Alerts */}
           {successMessage && (
@@ -1568,13 +1510,18 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
 
               <button
                 type="submit"
-                disabled={isSubmitting || !identifier}
+                disabled={isSubmitting || !identifier || resetPasswordCountdown > 0}
                 className="w-full rounded-none bg-[#0f4c81] dark:bg-[#14559b] py-3 text-xs sm:text-sm font-bold text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition disabled:opacity-50 cursor-pointer"
               >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
                     <Loader2 className="size-4 animate-spin" />
                     Sending recovery link...
+                  </span>
+                ) : resetPasswordCountdown > 0 ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Clock className="size-4" />
+                    Resend link in {resetPasswordCountdown}s
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">
@@ -1954,11 +1901,128 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                 </button>
               </div>
             </div>
+          ) : mode === "signup" && signupPhase === "choose_type" ? (
+            /* ═══════════════════════════════════════════
+               CASE D: SIGNUP STEP 1 - CHOOSE ACCOUNT TYPE
+               ═══════════════════════════════════════════ */
+            <div className="space-y-5 text-left animate-in fade-in">
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-[#0c2b4e] dark:text-[#8b949e]">
+                  Account Type
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Individual Option */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAccountType("INDIVIDUAL");
+                      setErrors({});
+                    }}
+                    className={`p-3.5 rounded-none border text-left transition cursor-pointer flex flex-col justify-between ${
+                      accountType === "INDIVIDUAL"
+                        ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-1 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
+                        : "border-slate-200 dark:border-[#30363d] bg-white dark:bg-[#0d1117] text-[#171717] dark:text-[#f0f6fc] hover:border-slate-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div
+                        className={`p-2 rounded-none ${
+                          accountType === "INDIVIDUAL"
+                            ? "bg-[#0f4c81] text-white"
+                            : "bg-[#f0efee] dark:bg-[#21262d] text-[#5d5854] dark:text-[#8b949e]"
+                        }`}
+                      >
+                        <User className="size-4" />
+                      </div>
+                      {accountType === "INDIVIDUAL" && (
+                        <span className="size-2 rounded-none bg-[#0f4c81] dark:bg-[#58a6ff]" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold">Individual</div>
+                      <div className="text-[10px] text-[#6b7280] dark:text-[#8b949e] font-normal leading-tight mt-0.5">
+                        Clinician, Nurse, Student
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Organisation Option */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAccountType("ORGANISATION");
+                      setErrors({});
+                    }}
+                    className={`p-3.5 rounded-none border text-left transition cursor-pointer flex flex-col justify-between ${
+                      accountType === "ORGANISATION"
+                        ? "border-[#0f4c81] dark:border-[#58a6ff] bg-[#eef5fc]/60 dark:bg-[#1f2937]/80 text-[#0f4c81] dark:text-[#58a6ff] ring-1 ring-[#0f4c81]/20 dark:ring-[#58a6ff]/20"
+                        : "border-slate-200 dark:border-[#30363d] bg-white dark:bg-[#0d1117] text-[#171717] dark:text-[#f0f6fc] hover:border-slate-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div
+                        className={`p-2 rounded-none ${
+                          accountType === "ORGANISATION"
+                            ? "bg-[#0f4c81] text-white"
+                            : "bg-[#f0efee] dark:bg-[#21262d] text-[#5d5854] dark:text-[#8b949e]"
+                        }`}
+                      >
+                        <Building2 className="size-4" />
+                      </div>
+                      {accountType === "ORGANISATION" && (
+                        <span className="size-2 rounded-none bg-[#0f4c81] dark:bg-[#58a6ff]" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold">Organisation</div>
+                      <div className="text-[10px] text-[#6b7280] dark:text-[#8b949e] font-normal leading-tight mt-0.5">
+                        Hospital, Clinic, College
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Continue CTA */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSignupPhase("details");
+                  setErrors({});
+                }}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-none bg-[#0f4c81] dark:bg-[#14559b] py-3 text-sm font-bold text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition cursor-pointer active:scale-98"
+              >
+                <span>Continue</span>
+                <ArrowRight className="size-4" />
+              </button>
+            </div>
           ) : (
             /* ═══════════════════════════════════════════
-               CASE D: STANDARD LOGIN / SIGNUP DETAILS FORM
+               CASE E: STANDARD LOGIN / SIGNUP DETAILS FORM
                ═══════════════════════════════════════════ */
             <form onSubmit={handleSubmit} className="space-y-4 text-left">
+              {/* Account Type Banner for Sign Up */}
+              {mode === "signup" && (
+                <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-[#161b22] border border-slate-200 dark:border-slate-800 rounded-none mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">Account Type:</span>
+                    <span className="text-xs font-bold text-[#0f4c81] dark:text-[#58a6ff] flex items-center gap-1.5">
+                      {accountType === "INDIVIDUAL" ? <User className="size-3.5" /> : <Building2 className="size-3.5" />}
+                      {accountType === "INDIVIDUAL" ? "Individual" : "Organisation"}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSignupPhase("choose_type");
+                      setErrors({});
+                    }}
+                    className="text-[11px] font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:underline cursor-pointer"
+                  >
+                    Change
+                  </button>
+                </div>
+              )}
               {/* Sign In Mode: Email vs Phone */}
               {mode === "signin" && (
                 <div>
@@ -2468,7 +2532,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
                   onClick={() => {
                     const newMode = mode === "signin" ? "signup" : "signin";
                     setMode(newMode);
-                    setSignupPhase("details");
+                    setSignupPhase(newMode === "signup" ? "choose_type" : "details");
                     setErrors({});
                     setSuccessMessage("");
                     setOtpSent(false);
@@ -2494,6 +2558,7 @@ export function AuthPage({ defaultMode = "signin" }: AuthPageProps) {
         <footer className="w-full max-w-[440px] mx-auto text-center text-xs text-slate-400 dark:text-slate-500 pt-4">
           © {new Date().getFullYear()} Med Global Network (MGN). All rights reserved.
         </footer>
+        </div>
       </div>
 
     </div>

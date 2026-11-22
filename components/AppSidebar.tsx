@@ -58,7 +58,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
   { id: "events", label: "Events", href: "/events", icon: Calendar, icon8Id: "vwGXRtPWrZSn" },
   { id: "camps", label: "Health Camps", href: "/camps", icon: Tent, icon8Id: "HBLTBJiOS1vp" },
   { id: "research", label: "Research", href: "/research", icon: FlaskConical, icon8Id: "9ZmP1ylpYlqn" },
-  { id: "marketplace", label: "Marketplace", href: "/marketplace", icon: ShoppingBag, icon8Id: "VksxHreSn4ck", badge: "Soon" },
+  { id: "marketplace", label: "Marketplace", href: "/marketplace", icon: ShoppingBag, icon8Id: "VksxHreSn4ck", badge: "New" },
 ];
 
 export const WORKSPACE_NAV_ITEMS: NavItem[] = [
@@ -266,7 +266,10 @@ export function AppSidebar({
         </div>
 
         {/* Navigation List */}
-        <div className="flex-1 overflow-y-auto no-scrollbar px-3 py-4 space-y-6">
+        <div
+          data-lenis-prevent="true"
+          className="flex-1 overflow-y-auto overscroll-contain custom-sidebar-scroll px-3 py-4 space-y-6"
+        >
           {/* Learn Workspace Active Mode */}
           {pathname?.startsWith("/learn") && (
             <div>
@@ -569,7 +572,10 @@ export function AppSidebar({
             )}
 
             {/* Scrollable Nav Items */}
-            <div className="flex-1 overflow-y-auto no-scrollbar p-3 space-y-5">
+            <div
+              data-lenis-prevent="true"
+              className="flex-1 overflow-y-auto overscroll-contain custom-sidebar-scroll p-3 space-y-5"
+            >
               {/* Learn Workspace Active Mode in Mobile Drawer */}
               {pathname?.startsWith("/learn") && (
                 <div>

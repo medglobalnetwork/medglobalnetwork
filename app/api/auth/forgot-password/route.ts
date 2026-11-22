@@ -21,10 +21,10 @@ export async function POST(request: NextRequest) {
 
     const email = rawEmail.trim().toLowerCase();
 
-    // 1. Resolve user by email or username
+    // 1. Resolve user by email, username or phone
     const userRes = await pool.query(
-      `SELECT id, name, email FROM "user" WHERE LOWER(email) = LOWER($1) OR LOWER(username) = LOWER($1) LIMIT 1`,
-      [email]
+      `SELECT id, name, email FROM "user" WHERE LOWER(email) = LOWER($1) OR LOWER(username) = LOWER($1) OR phone = $2 LIMIT 1`,
+      [email, rawEmail.trim()]
     );
 
     if (userRes.rows.length === 0) {
@@ -38,60 +38,41 @@ export async function POST(request: NextRequest) {
     const user = userRes.rows[0];
     const targetEmail = user.email;
 
-    // 2. Try triggering through Better Auth API
-    let sentViaBetterAuth = false;
-    try {
-      const reqHeaders = await headers();
-      const origin = reqHeaders.get("origin") || reqHeaders.get("host") || serverConfig.appUrl;
-      const cleanOrigin = origin.startsWith("http") ? origin : `https://${origin}`;
-
-      if (typeof (auth.api as any).forgetPassword === "function") {
-        await (auth.api as any).forgetPassword({
-          body: {
-            email: targetEmail,
-            redirectTo: `${cleanOrigin}/reset-password`,
-          },
-          headers: reqHeaders,
-        });
-        sentViaBetterAuth = true;
-      }
-    } catch (baErr) {
-      console.warn("[FORGOT_PASSWORD] Better-Auth forgetPassword fallback triggered:", baErr);
+    if (!targetEmail) {
+      return NextResponse.json(
+        { error: "No email address is linked to this account." },
+        { status: 400 }
+      );
     }
 
-    // 3. Fallback: If Better Auth didn't dispatch, generate secure token directly in verification table
-    if (!sentViaBetterAuth) {
-      try {
-        const token = crypto.randomBytes(32).toString("hex");
-        const expiresAt = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
-        const reqHeaders = await headers();
-        const origin = reqHeaders.get("origin") || reqHeaders.get("host") || serverConfig.appUrl;
-        const cleanOrigin = origin.startsWith("http") ? origin : `https://${origin}`;
-        const resetUrl = `${cleanOrigin}/reset-password?token=${token}`;
+    // 2. Generate secure token for password reset
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
+    const reqHeaders = await headers();
+    const origin = reqHeaders.get("origin") || reqHeaders.get("host") || serverConfig.appUrl;
+    let cleanOrigin = origin.startsWith("http")
+      ? origin
+      : origin.includes("localhost") || origin.includes("127.0.0.1")
+      ? `http://${origin}`
+      : `https://${origin}`;
+    const resetUrl = `${cleanOrigin}/reset-password?token=${token}`;
 
-        // Ensure verification table exists and store token
-        await pool.query(`
-          CREATE TABLE IF NOT EXISTS verification (
-            id TEXT PRIMARY KEY,
-            identifier TEXT NOT NULL,
-            value TEXT NOT NULL,
-            expires_at TIMESTAMPTZ NOT NULL,
-            created_at TIMESTAMPTZ DEFAULT NOW(),
-            updated_at TIMESTAMPTZ DEFAULT NOW()
-          );
-        `).catch(() => {});
+    // 3. Store token in verification table with exact Better-Auth schema:
+    // identifier: reset-password:${token}, value: user.id, "expiresAt"
+    const recordId = `ver_${crypto.randomUUID()}`;
+    await pool.query(
+      `INSERT INTO verification (id, identifier, value, "expiresAt", "createdAt", "updatedAt")
+       VALUES ($1, $2, $3, $4, NOW(), NOW())`,
+      [recordId, `reset-password:${token}`, user.id, expiresAt]
+    );
 
-        const recordId = `ver_${crypto.randomUUID()}`;
-        await pool.query(
-          `INSERT INTO verification (id, identifier, value, expires_at)
-           VALUES ($1, $2, $3, $4)`,
-          [recordId, `reset-password:${targetEmail}`, token, expiresAt]
-        );
+    // 4. Dispatch branded email to targetEmail
+    console.info(`[FORGOT_PASSWORD] Dispatching reset email to ${targetEmail} with URL: ${resetUrl}`);
+    const emailSent = await sendPasswordResetEmail(targetEmail, resetUrl, user.name);
+    console.info(`[FORGOT_PASSWORD] Email send result for ${targetEmail}: ${emailSent ? "SUCCESS" : "FAILED"}`);
 
-        await sendPasswordResetEmail(targetEmail, resetUrl, user.name);
-      } catch (directErr) {
-        console.error("[FORGOT_PASSWORD] Direct token dispatch error:", directErr);
-      }
+    if (!emailSent) {
+      console.warn(`[FORGOT_PASSWORD] SMTP failed to deliver reset link to ${targetEmail}. Fallback reset URL: ${resetUrl}`);
     }
 
     return NextResponse.json({

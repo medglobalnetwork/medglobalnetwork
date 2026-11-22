@@ -718,12 +718,14 @@ export default function AboutPage() {
       {/* 8. FOOTER */}
       <LandingFooter onOpenAuth={openAuth} />
 
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={authModalOpen}
-        initialMode={authMode}
-        onClose={() => setAuthModalOpen(false)}
-      />
+      {/* Auth Modal wrapped in Suspense for useSearchParams */}
+      <React.Suspense fallback={null}>
+        <AuthModal
+          isOpen={authModalOpen}
+          initialMode={authMode}
+          onClose={() => setAuthModalOpen(false)}
+        />
+      </React.Suspense>
     </div>
   );
 }

@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   Phone,
   AtSign,
+  Clock,
 } from "lucide-react";
 
 interface AuthModalProps {
@@ -166,8 +167,19 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
   const [fieldTouched, setFieldTouched] = React.useState<Record<string, boolean>>({});
   const [successMessage, setSuccessMessage] = React.useState("");
   const [isForgotPassword, setIsForgotPassword] = React.useState(false);
+  const [resetPasswordCountdown, setResetPasswordCountdown] = React.useState<number>(0);
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+
+  // Password reset cooldown timer
+  React.useEffect(() => {
+    if (resetPasswordCountdown > 0) {
+      const timer = setInterval(() => {
+        setResetPasswordCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [resetPasswordCountdown]);
 
   React.useEffect(() => {
     setMode(initialMode);
@@ -470,6 +482,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
 
   async function handleForgotPassword(e: React.FormEvent) {
     e.preventDefault();
+    if (resetPasswordCountdown > 0) return;
     if (!identifier.trim() && !email.trim()) {
       setErrors({ email: "Please enter your email or username to reset password." });
       return;
@@ -500,6 +513,7 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
       const data = await res.json();
       if (res.ok) {
         setSuccessMessage("Password reset link sent to your registered email.");
+        setResetPasswordCountdown(30);
       } else {
         setErrors({ general: data.error || "Failed to send reset link." });
       }
@@ -711,13 +725,18 @@ export function AuthModal({ isOpen, initialMode = "signin", onClose }: AuthModal
 
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || resetPasswordCountdown > 0}
               className="w-full rounded-xl bg-[#0f4c81] dark:bg-[#1f6feb] py-3 text-xs sm:text-sm font-medium text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#388bfd] transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
                   Sending link...
+                </>
+              ) : resetPasswordCountdown > 0 ? (
+                <>
+                  <Clock className="size-4" />
+                  Resend link in {resetPasswordCountdown}s
                 </>
               ) : (
                 <>

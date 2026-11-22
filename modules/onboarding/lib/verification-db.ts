@@ -33,6 +33,7 @@ export interface MgnIdentityTable {
   specialization: OptionalColumn<string | null>;
   sub_specialization: OptionalColumn<string | null>;
   verification_status: string;
+  submission_id?: OptionalColumn<string | null>;
   onboarding_step?: OptionalColumn<number | null>;
   verification_deadline: OptionalColumn<Date | null>;
   enrolled_at: OptionalColumn<Date | null>;
@@ -103,6 +104,8 @@ export interface MgnVerificationDocumentTable {
   id: string;
   user_id: string;
   document_type: string;
+  identity_type?: OptionalColumn<string | null>;
+  document_label?: OptionalColumn<string | null>;
   file_name: string;
   file_path: string;
   file_size: number;

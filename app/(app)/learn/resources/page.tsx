@@ -403,7 +403,7 @@ export default function StudyLibraryPage() {
           </div>
         )}
 
-        {/* ── 3. CATEGORY TABS (PW-STYLE NAVIGATION) ── */}
+        {/* ── 3. CATEGORY TABS (MGN CLINICAL NAVIGATION) ── */}
         <div className="space-y-3">
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-[#e8e6e3] dark:border-[#21262d]">
             {CATEGORY_TABS.map((tab) => {

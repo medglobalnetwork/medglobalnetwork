@@ -42,6 +42,16 @@ export async function POST(request: Request) {
       );
     }
 
+    try {
+      const { pool } = await import("@/lib/auth");
+      await pool.query(
+        `UPDATE "user" SET "emailVerified" = TRUE, "updatedAt" = NOW() WHERE LOWER(email) = LOWER($1)`,
+        [rawEmail]
+      );
+    } catch (dbErr) {
+      console.warn("Could not set emailVerified in user table:", dbErr);
+    }
+
     return NextResponse.json({
       success: true,
       verified: true,

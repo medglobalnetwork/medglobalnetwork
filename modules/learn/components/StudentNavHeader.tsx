@@ -51,37 +51,31 @@ export function StudentNavHeader({ activeTab }: StudentNavHeaderProps) {
   const navItems = [
     {
       id: "dashboard" as StudentNavTab,
-      label: "Dashboard",
+      label: "My Batches",
       href: "/learn",
-      icon: LayoutDashboard,
+      icon: GraduationCap,
     },
     {
       id: "explore" as StudentNavTab,
-      label: "Explore",
+      label: "All Batches",
       href: "/learn/explore",
       icon: Globe,
     },
     {
-      id: "my-learning" as StudentNavTab,
-      label: "My Learning",
-      href: "/learn/my-learning",
-      icon: GraduationCap,
-    },
-    {
       id: "practice" as StudentNavTab,
-      label: "Practice",
+      label: "Test Series",
       href: "/learn/practice",
       icon: Target,
     },
     {
       id: "resources" as StudentNavTab,
-      label: "Resources",
+      label: "Khazana (Library)",
       href: "/learn/resources",
       icon: BookOpen,
     },
     {
       id: "ask-ai" as StudentNavTab,
-      label: "Ask AI",
+      label: "MGN AI (Doubts)",
       href: "/learn/ask-ai",
       icon: Sparkles,
       highlight: true,

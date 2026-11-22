@@ -227,6 +227,11 @@ export async function verifyPhoneOtp(rawPhone: string, rawOtp: string): Promise<
 
   if (!phone || !otp) return false;
 
+  // Development & testing helper: allow 123456
+  if (!isProduction && otp === "123456") {
+    return true;
+  }
+
   const otpHash = hashOtp(otp);
 
   const res = await pool.query(

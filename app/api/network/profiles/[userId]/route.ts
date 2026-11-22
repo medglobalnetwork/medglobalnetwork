@@ -1,6 +1,6 @@
 // app/api/network/profiles/[userId]/route.ts
 import { getSafeSession } from "@/lib/auth";
-import { networkDb, ensureNetworkingTables, slugifyUsername, generateId } from "@/modules/network/lib/network-db";
+import { networkDb, ensureNetworkingTables, slugifyUsername, generateId, getConnectionDegreeAndMutuals } from "@/modules/network/lib/network-db";
 import { generateRegularMemberId, generateFoundingMemberId, isDesignatedFounderEmail } from "@/modules/network/lib/member-id";
 import { headers } from "next/headers";
 import { sql } from "kysely";
@@ -326,6 +326,9 @@ export async function GET(
     else if (req?.sender_id === session.user.id) connection_status = "pending";
     else if (req?.receiver_id === session.user.id) connection_status = "received";
 
+    // Social Graph Traversal: 1st, 2nd, 3rd+ degree & mutuals
+    const graphData = await getConnectionDegreeAndMutuals(session.user.id, targetUserId);
+
     return Response.json({
       data: {
         ...profile,
@@ -335,6 +338,9 @@ export async function GET(
         post_count: parseInt(postCount?.total ?? "0", 10),
         connection_status,
         connection_request_id: req?.id,
+        connection_degree: graphData.degree,
+        mutual_connection_count: graphData.mutualCount,
+        mutual_connections: graphData.mutualSample,
         follow_status: follow ? "following" : "not_following",
         is_own_profile: session.user.id === targetUserId,
       },

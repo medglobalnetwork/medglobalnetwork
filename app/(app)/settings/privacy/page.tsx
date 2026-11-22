@@ -20,7 +20,7 @@ import {
   Info,
   HelpCircle,
 } from "lucide-react";
-import { DPDP_OFFICER_INFO } from "@/modules/dpdp/lib/dpdp-db";
+import { DPDP_OFFICER_INFO } from "@/modules/dpdp/lib/dpdp-constants";
 
 interface ConsentItem {
   key: string;

@@ -58,6 +58,17 @@ export async function POST(request: Request) {
 
     // If purpose is verification for signup/onboarding only
     if (purpose === "signup" || purpose === "verify") {
+      if (body.userId) {
+        try {
+          const { pool } = await import("@/lib/auth");
+          await pool.query(
+            `UPDATE "user" SET phone = $1, "updatedAt" = NOW() WHERE id = $2`,
+            [normalizedPhone, body.userId]
+          );
+        } catch (dbErr) {
+          console.warn("Could not update user phone in verify-otp:", dbErr);
+        }
+      }
       return NextResponse.json({
         success: true,
         verified: true,

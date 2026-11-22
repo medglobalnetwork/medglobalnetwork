@@ -163,7 +163,10 @@ export default function HomePage() {
           {/* =================================================================
               RIGHT COLUMN: Profile Summary + People + Pro Card (Desktop Only)
               ================================================================= */}
-          <div className="hidden lg:block space-y-5 lg:col-span-4">
+          <div
+            data-lenis-prevent="true"
+            className="hidden lg:block space-y-5 lg:col-span-4 sticky top-20 self-start max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain pr-1 custom-sidebar-scroll"
+          >
             {/* 1. AD PLACEHOLDER */}
             <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-[#ded8d1] bg-white shadow-2xs">
               <div className="px-4 py-2.5 border-b border-[#ded8d1] flex items-center justify-between text-xs bg-white">

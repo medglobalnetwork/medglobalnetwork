@@ -122,6 +122,11 @@ export async function verifyEmailOtp(rawEmail: string, rawOtp: string): Promise<
 
   if (!email || !otp) return false;
 
+  // Development & testing helper: allow 123456
+  if (!isProduction && otp === "123456") {
+    return true;
+  }
+
   const otpHash = hashOtp(otp);
 
   const res = await pool.query(

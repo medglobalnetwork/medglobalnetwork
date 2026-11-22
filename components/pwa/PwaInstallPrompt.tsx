@@ -208,14 +208,9 @@ export function PwaInstallPrompt() {
           </div>
 
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
-              <h4 className="text-xs font-bold text-[#171717] dark:text-[#f0f6fc] truncate">
-                Install Med Global Network
-              </h4>
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#0f4c81]/10 dark:bg-[#0f4c81]/30 text-[#0f4c81] dark:text-[#58a6ff]">
-                PWA
-              </span>
-            </div>
+            <h4 className="text-xs font-bold text-[#171717] dark:text-[#f0f6fc] truncate">
+              Install Med Global Network
+            </h4>
             <p className="text-[11px] text-[#77716b] dark:text-[#8b949e] line-clamp-1">
               Offline records, faster launch & clinical alerts
             </p>

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { LandingHeader } from "@/modules/landing/components/LandingHeader";
 import { HeroSection } from "@/modules/landing/components/HeroSection";
 import { PlatformFeaturesSection } from "@/modules/landing/components/PlatformFeaturesSection";
+import { VerificationTrustSection } from "@/modules/landing/components/VerificationTrustSection";
 import { AudienceSection } from "@/modules/landing/components/AudienceSection";
 import { StatsBanner } from "@/modules/landing/components/StatsBanner";
 import { MobileAppSection } from "@/modules/landing/components/MobileAppSection";
@@ -120,7 +121,10 @@ function LandingContent() {
         {/* 3. Platform Features ("Everything You Need. All in One Platform.") */}
         <PlatformFeaturesSection />
 
-        {/* 4. Audience Grid ("Who Is MGN For?") */}
+        {/* 4. Verification Flow with Framer AnimatedPath ("How MGN Guarantees 100% Medical Authenticity") */}
+        <VerificationTrustSection onOpenAuth={handleNavigateAuth} />
+
+        {/* 5. Audience Grid ("Who Is MGN For?") */}
         <AudienceSection />
 
         {/* 5. Impact Stats Banner */}

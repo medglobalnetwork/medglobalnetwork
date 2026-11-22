@@ -130,10 +130,10 @@ export default function VerificationHubPage() {
               ) : (
                 <button
                   type="button"
-                  onClick={() => router.push(status === "SUBMITTED" ? "/onboarding/status" : "/onboarding")}
+                  onClick={() => router.push("/onboarding/individual/documents")}
                   className="rounded-xl bg-[#1769c2] px-5 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#12569f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1769c2] focus-visible:ring-offset-2 transition"
                 >
-                  {status === "SUBMITTED" ? "View Review Status" : "Submit Verification"}
+                  {status === "SUBMITTED" ? "View Uploaded Documents" : "Upload Verification Documents"}
                 </button>
               )}
             </div>

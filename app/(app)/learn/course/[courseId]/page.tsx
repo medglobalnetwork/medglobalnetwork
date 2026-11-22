@@ -16,6 +16,7 @@ export default function CourseDetailPage() {
 
   const [course, setCourse] = React.useState<Course | null>(null);
   const [curriculum, setCurriculum] = React.useState<CourseModule[]>([]);
+  const [activeTab, setActiveTab] = React.useState<"classes" | "overview" | "dpp" | "notices">("classes");
   const [isLoading, setIsLoading] = React.useState(true);
   const [isEnrolling, setIsEnrolling] = React.useState(false);
 
@@ -218,33 +219,161 @@ export default function CourseDetailPage() {
           </div>
         </div>
 
-        {/* 2. SYLLABUS & CURRICULUM */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-bold text-[#171717] dark:text-[#f0f6fc]">Course Syllabus</h2>
-              <p className="text-xs text-[#77716b] dark:text-[#8b949e]">
-                Structured clinical modules, video lectures, and assessments
-              </p>
-            </div>
-            <span className="text-xs font-semibold text-[#77716b] dark:text-[#8b949e]">
-              {curriculum.length} Modules
-            </span>
-          </div>
-
-          <CurriculumAccordion
-            modules={curriculum}
-            isEnrolled={course.user_enrolled}
-            onSelectLesson={(lesson) => router.push(`/learn/lesson/${lesson.id}`)}
-          />
+        {/* 2. PW CLASSROOM TABS */}
+        <div className="border-b border-[#ded8d1] dark:border-[#30363d] flex gap-2 overflow-x-auto no-scrollbar">
+          {[
+            { id: "classes", label: "📚 All Classes & Lectures" },
+            { id: "dpp", label: "⚡ DPP & Practice Quizzes" },
+            { id: "overview", label: "📌 Batch Overview" },
+            { id: "notices", label: "📢 Announcements & Notices" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 transition-colors cursor-pointer shrink-0 ${
+                activeTab === tab.id
+                  ? "border-[#0f4c81] dark:border-[#58a6ff] text-[#0f4c81] dark:text-[#58a6ff]"
+                  : "border-transparent text-[#77716b] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
-        {/* 3. SYLLABUS DETAILS & REQUIREMENTS */}
-        {course.description && (
-          <div className="rounded-3xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-xs sm:p-8 space-y-4">
-            <h3 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">About this Clinical Course</h3>
-            <div className="prose prose-sm max-w-none text-xs leading-relaxed text-[#5d5854] dark:text-[#8b949e] whitespace-pre-line sm:text-sm">
-              {course.description}
+        {/* TAB 1: ALL CLASSES (SYLLABUS & LECTURES) */}
+        {activeTab === "classes" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base sm:text-lg font-black text-[#171717] dark:text-[#f0f6fc]">
+                  Batch Curriculum & Lecture Schedule
+                </h2>
+                <p className="text-xs text-[#77716b] dark:text-[#8b949e]">
+                  High-yield video masterclasses with downloadable class slides & notes
+                </p>
+              </div>
+              <span className="text-xs font-bold text-[#0f4c81] dark:text-[#58a6ff] bg-[#eef5fc] dark:bg-[#1c2433] px-2.5 py-1 rounded-lg">
+                {curriculum.length} Chapters
+              </span>
+            </div>
+
+            <CurriculumAccordion
+              modules={curriculum}
+              isEnrolled={course.user_enrolled}
+              onSelectLesson={(lesson) => router.push(`/learn/lesson/${lesson.id}`)}
+            />
+          </div>
+        )}
+
+        {/* TAB 2: DPP (DAILY PRACTICE PROBLEMS) & QUIZZES */}
+        {activeTab === "dpp" && (
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-base sm:text-lg font-black text-[#171717] dark:text-[#f0f6fc]">
+                Daily Practice Problems (DPP) & Chapter Quizzes
+              </h2>
+              <p className="text-xs text-[#77716b] dark:text-[#8b949e]">
+                Reinforce high-yield clinical concepts right after every video lecture
+              </p>
+            </div>
+
+            {curriculum.flatMap(m => m.lessons || []).filter(l => l.lesson_type === "quiz").length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {curriculum.flatMap(m => m.lessons || []).filter(l => l.lesson_type === "quiz").map((dpp, idx) => (
+                  <div
+                    key={dpp.id}
+                    onClick={() => router.push(`/learn/lesson/${dpp.id}`)}
+                    className="p-4 rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] hover:border-[#0f4c81] cursor-pointer transition shadow-2xs space-y-2"
+                  >
+                    <div className="flex items-center justify-between text-[11px] font-bold text-[#0f4c81] dark:text-[#58a6ff]">
+                      <span>DPP #{idx + 1}</span>
+                      <span className="bg-amber-50 dark:bg-amber-950/40 text-amber-700 px-2 py-0.5 rounded">
+                        Interactive Quiz
+                      </span>
+                    </div>
+                    <h4 className="text-xs sm:text-sm font-bold text-[#171717] dark:text-[#f0f6fc]">
+                      {dpp.title}
+                    </h4>
+                    <div className="text-[11px] text-[#77716b] flex items-center justify-between pt-1">
+                      <span>⏱ 15-20 Mins</span>
+                      <span className="font-bold text-[#0f4c81]">Attempt DPP →</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center rounded-2xl border border-dashed border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] text-[#77716b]">
+                <p className="text-xs font-semibold">DPPs are assigned automatically after watching each lecture.</p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("classes")}
+                  className="mt-3 text-xs font-bold text-[#0f4c81] dark:text-[#58a6ff] hover:underline"
+                >
+                  View All Lectures →
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 3: BATCH OVERVIEW */}
+        {activeTab === "overview" && (
+          <div className="space-y-6">
+            {course.description && (
+              <div className="rounded-3xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 shadow-xs sm:p-8 space-y-4">
+                <h3 className="text-base font-bold text-[#171717] dark:text-[#f0f6fc]">About this Batch</h3>
+                <div className="prose prose-sm max-w-none text-xs leading-relaxed text-[#5d5854] dark:text-[#8b949e] whitespace-pre-line sm:text-sm">
+                  {course.description}
+                </div>
+              </div>
+            )}
+
+            <div className="rounded-3xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 space-y-3">
+              <h3 className="text-sm font-bold text-[#171717] dark:text-[#f0f6fc]">What's Included in this Batch:</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-[#5d5854] dark:text-[#8b949e]">
+                <div className="p-3 rounded-xl bg-[#faf9f8] dark:bg-[#21262d] flex items-center gap-2">
+                  <span className="text-emerald-600 font-bold">✓</span>
+                  <span>Full Syllabus Video Coverage with Unlimited Replays</span>
+                </div>
+                <div className="p-3 rounded-xl bg-[#faf9f8] dark:bg-[#21262d] flex items-center gap-2">
+                  <span className="text-emerald-600 font-bold">✓</span>
+                  <span>Daily Practice Problems (DPP) with Video Explanations</span>
+                </div>
+                <div className="p-3 rounded-xl bg-[#faf9f8] dark:bg-[#21262d] flex items-center gap-2">
+                  <span className="text-emerald-600 font-bold">✓</span>
+                  <span>Downloadable Class Handwritten Slides in PDF Format</span>
+                </div>
+                <div className="p-3 rounded-xl bg-[#faf9f8] dark:bg-[#21262d] flex items-center gap-2">
+                  <span className="text-emerald-600 font-bold">✓</span>
+                  <span>MGN Clinical AI Doubt Solving Support 24x7</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: NOTICES */}
+        {activeTab === "notices" && (
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                  Live Batch Updates
+                </span>
+              </div>
+              <div className="space-y-3 border-l-2 border-[#0f4c81] pl-4">
+                <div>
+                  <h4 className="text-xs sm:text-sm font-bold text-[#171717] dark:text-[#f0f6fc]">
+                    Welcome to the Batch Orientation Session!
+                  </h4>
+                  <p className="text-xs text-[#77716b] dark:text-[#8b949e] mt-1">
+                    Please ensure you have completed your profile and downloaded the weekly study planner from the Classroom tab.
+                  </p>
+                  <span className="text-[10px] text-[#a8a29e] block mt-1">Posted by Batch Coordinator</span>
+                </div>
+              </div>
             </div>
           </div>
         )}

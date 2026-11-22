@@ -60,3 +60,7 @@ android/app/google-services.json
 
 # Local user storage & dossiers
 private_storage/
+
+# Planning & graphify
+.planning/
+graphify-out/

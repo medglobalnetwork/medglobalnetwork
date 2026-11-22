@@ -7,7 +7,7 @@
 // ============================================================
 
 import { database } from "@/lib/auth";
-import { Kysely } from "kysely";
+import { Kysely, sql } from "kysely";
 
 // ─────────────────────────────────────────────
 // TABLE INTERFACES
@@ -526,6 +526,67 @@ export async function ensureNetworkingTables(): Promise<void> {
     networkingTablesInitialized = true;
   } catch (err) {
     console.warn("ensureNetworkingTables warning:", err);
+  }
+}
+
+// ─────────────────────────────────────────────
+// SOCIAL GRAPH DEGREE & MUTUAL CONNECTIONS ENGINE
+// ─────────────────────────────────────────────
+
+export interface GraphDegreeResult {
+  degree: "self" | "1st" | "2nd" | "3rd+";
+  mutualCount: number;
+  mutualSample: { id: string; name: string; image: string | null }[];
+}
+
+export async function getConnectionDegreeAndMutuals(
+  viewerId: string,
+  targetId: string
+): Promise<GraphDegreeResult> {
+  if (!viewerId || !targetId || viewerId === targetId) {
+    return { degree: "self", mutualCount: 0, mutualSample: [] };
+  }
+
+  try {
+    // 1. Direct 1st-degree check
+    const direct = await sql<{ count: string }>`
+      SELECT COUNT(*)::text as count FROM connections 
+      WHERE (user_a_id = ${viewerId} AND user_b_id = ${targetId})
+         OR (user_a_id = ${targetId} AND user_b_id = ${viewerId})
+    `.execute(networkDb);
+
+    const isFirst = parseInt(direct.rows[0]?.count || "0", 10) > 0;
+
+    // 2. Compute mutual connections (Fast SQL set intersection)
+    const mutuals = await sql<{ id: string; name: string; image: string | null }>`
+      SELECT u.id, u.name, u.image
+      FROM (
+        SELECT CASE WHEN user_a_id = ${viewerId} THEN user_b_id ELSE user_a_id END AS friend_id
+        FROM connections WHERE user_a_id = ${viewerId} OR user_b_id = ${viewerId}
+      ) v_friends
+      JOIN (
+        SELECT CASE WHEN user_a_id = ${targetId} THEN user_b_id ELSE user_a_id END AS friend_id
+        FROM connections WHERE user_a_id = ${targetId} OR user_b_id = ${targetId}
+      ) t_friends ON v_friends.friend_id = t_friends.friend_id
+      JOIN "user" u ON u.id = v_friends.friend_id
+      LIMIT 5
+    `.execute(networkDb);
+
+    const mutualSample = mutuals.rows || [];
+    const mutualCount = mutualSample.length;
+
+    if (isFirst) {
+      return { degree: "1st", mutualCount, mutualSample };
+    }
+
+    if (mutualCount > 0) {
+      return { degree: "2nd", mutualCount, mutualSample };
+    }
+
+    return { degree: "3rd+", mutualCount: 0, mutualSample: [] };
+  } catch {
+    // ponytail: fallback to 3rd+ on edge errors rather than failing the caller
+    return { degree: "3rd+", mutualCount: 0, mutualSample: [] };
   }
 }
 

@@ -3,20 +3,18 @@
 import * as React from "react";
 import Link from "next/link";
 import {
-  ChevronDown,
-  ArrowRight,
   Menu,
   X,
-  LayoutDashboard,
   Home,
-  Info,
   Sparkles,
-  Stethoscope,
-  Building2,
-  BookOpen,
+  Users,
+  ShieldCheck,
+  Smartphone,
+  ArrowRight,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import UserMenu from "@/components/UserMenu";
+import { scrollToTarget } from "@/components/SmoothScroll";
 
 interface LandingHeaderProps {
   onOpenAuth?: (mode?: "signin" | "signup") => void;
@@ -25,449 +23,226 @@ interface LandingHeaderProps {
 export function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
   const { data: session, isPending } = authClient.useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState<boolean>(false);
-  const [activeDropdown, setActiveDropdown] = React.useState<string | null>(null);
-  const [mobileExpandedSection, setMobileExpandedSection] = React.useState<string | null>(null);
-  const [activeNav, setActiveNav] = React.useState<string>("home");
+  const [isScrolled, setIsScrolled] = React.useState<boolean>(false);
 
   const isLoggedIn = !isPending && Boolean(session?.user);
 
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const scrolled = window.scrollY > 15;
+      setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const scrollToSection = (id: string) => {
     setMobileMenuOpen(false);
-    setActiveDropdown(null);
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+      scrollToTarget(element, -76);
     }
   };
 
-  const toggleMobileAccordion = (section: string) => {
-    setMobileExpandedSection(mobileExpandedSection === section ? null : section);
-  };
-
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/95 dark:bg-[#0b0f17]/95 backdrop-blur-md transition-all border-b border-slate-100/80 dark:border-slate-800/60">
-      <div className="mx-auto flex h-16 sm:h-18 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* 1. Brand Logo */}
-        <Link href="/" className="flex items-center group shrink-0">
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled
+          ? "bg-white/95 dark:bg-[#0b0f17]/95 backdrop-blur-md shadow-xs py-3 border-b border-slate-200/80 dark:border-slate-800"
+          : "bg-gradient-to-b from-black/75 via-black/40 to-transparent py-4 text-white"
+      }`}
+    >
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Brand Logo */}
+        <Link href="/" className="flex items-center gap-2.5 group shrink-0">
           <img
             src="/logo.png"
             alt="MGN Logo"
-            className="h-9 sm:h-11 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+            className="h-9 sm:h-10 w-auto object-contain transition-transform group-hover:scale-105"
           />
+          <span
+            className={`text-2xl sm:text-[26px] font-black tracking-tight transition-colors ${
+              isScrolled
+                ? "text-[#0c2b4e] dark:text-[#58a6ff]"
+                : "text-white drop-shadow-xs"
+            }`}
+          >
+            MGN
+          </span>
         </Link>
 
-        {/* 2. Desktop Navigation Links (Icon + Label + Active Bottom Underline) */}
-        <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-[13.5px]">
-          {/* Home */}
-          <Link
-            href="/"
-            onClick={() => setActiveNav("home")}
-            className={`relative flex items-center gap-1.5 py-2 font-medium transition cursor-pointer ${
-              activeNav === "home"
-                ? "text-[#171717] dark:text-[#f0f6fc] font-semibold"
-                : "text-[#5d5854] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
-            }`}
-          >
-            <Home className="size-4 shrink-0" />
-            <span>Home</span>
-            {activeNav === "home" && (
-              <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#171717] dark:bg-[#f0f6fc] rounded-none animate-in fade-in duration-150" />
-            )}
-          </Link>
-
-          {/* About Us */}
+        {/* Desktop Navigation Links */}
+        <nav
+          className={`hidden md:flex items-center gap-6 lg:gap-8 text-[14px] font-semibold transition-colors ${
+            isScrolled
+              ? "text-[#4b5563] dark:text-[#9ca3af]"
+              : "text-white/90 drop-shadow-xs"
+          }`}
+        >
           <button
             type="button"
-            onClick={() => {
-              setActiveNav("about");
-              scrollToSection("features");
-            }}
-            className={`relative flex items-center gap-1.5 py-2 font-medium transition cursor-pointer ${
-              activeNav === "about"
-                ? "text-[#171717] dark:text-[#f0f6fc] font-semibold"
-                : "text-[#5d5854] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
+            onClick={() => scrollToSection("features")}
+            className={`transition cursor-pointer ${
+              isScrolled
+                ? "hover:text-[#0c2b4e] dark:hover:text-[#58a6ff]"
+                : "hover:text-white"
             }`}
           >
-            <Info className="size-4 shrink-0" />
-            <span>About Us</span>
-            {activeNav === "about" && (
-              <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#171717] dark:bg-[#f0f6fc] rounded-none animate-in fade-in duration-150" />
-            )}
+            Features
           </button>
-
-          {/* Features */}
           <button
             type="button"
-            onClick={() => {
-              setActiveNav("features");
-              scrollToSection("features");
-            }}
-            className={`relative flex items-center gap-1.5 py-2 font-medium transition cursor-pointer ${
-              activeNav === "features"
-                ? "text-[#171717] dark:text-[#f0f6fc] font-semibold"
-                : "text-[#5d5854] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
+            onClick={() => scrollToSection("verification")}
+            className={`transition cursor-pointer ${
+              isScrolled
+                ? "hover:text-[#0c2b4e] dark:hover:text-[#58a6ff]"
+                : "hover:text-white"
             }`}
           >
-            <Sparkles className="size-4 shrink-0" />
-            <span>Features</span>
-            {activeNav === "features" && (
-              <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#171717] dark:bg-[#f0f6fc] rounded-none animate-in fade-in duration-150" />
-            )}
+            Verification
           </button>
-
-          {/* For Professionals Dropdown */}
-          <div
-            className="relative"
-            onMouseEnter={() => setActiveDropdown("professionals")}
-            onMouseLeave={() => setActiveDropdown(null)}
+          <button
+            type="button"
+            onClick={() => scrollToSection("audience")}
+            className={`transition cursor-pointer ${
+              isScrolled
+                ? "hover:text-[#0c2b4e] dark:hover:text-[#58a6ff]"
+                : "hover:text-white"
+            }`}
           >
-            <button
-              type="button"
-              onClick={() => setActiveNav("professionals")}
-              className={`relative flex items-center gap-1.5 py-2 font-medium transition cursor-pointer ${
-                activeNav === "professionals"
-                  ? "text-[#171717] dark:text-[#f0f6fc] font-semibold"
-                  : "text-[#5d5854] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
-              }`}
-            >
-              <Stethoscope className="size-4 shrink-0" />
-              <span>For Professionals</span>
-              <ChevronDown className="size-3.5 opacity-70" />
-              {activeNav === "professionals" && (
-                <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#171717] dark:bg-[#f0f6fc] rounded-none animate-in fade-in duration-150" />
-              )}
-            </button>
-            {activeDropdown === "professionals" && (
-              <div className="absolute top-full left-0 mt-0.5 w-60 rounded-2xl bg-white dark:bg-[#161b22] p-2 shadow-xl border border-[#ded8d1]/60 dark:border-[#30363d] animate-in fade-in slide-in-from-top-1 z-50">
-                <Link
-                  href="/signup"
-                  className="block px-3 py-2 rounded-xl text-xs font-medium text-[#171717] dark:text-[#f0f6fc] hover:bg-[#f0efee] dark:hover:bg-[#21262d]"
-                >
-                  Doctor &amp; Clinician Network
-                </Link>
-                <Link
-                  href="/signup"
-                  className="block px-3 py-2 rounded-xl text-xs font-medium text-[#171717] dark:text-[#f0f6fc] hover:bg-[#f0efee] dark:hover:bg-[#21262d]"
-                >
-                  Allied Health Specialists
-                </Link>
-                <Link
-                  href="/signup"
-                  className="block px-3 py-2 rounded-xl text-xs font-medium text-[#171717] dark:text-[#f0f6fc] hover:bg-[#f0efee] dark:hover:bg-[#21262d]"
-                >
-                  Nursing Community
-                </Link>
-                <Link
-                  href="/signup"
-                  className="block px-3 py-2 rounded-xl text-xs font-medium text-[#171717] dark:text-[#f0f6fc] hover:bg-[#f0efee] dark:hover:bg-[#21262d]"
-                >
-                  Medical Students &amp; Residents
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* For Organizations Dropdown */}
-          <div
-            className="relative"
-            onMouseEnter={() => setActiveDropdown("organizations")}
-            onMouseLeave={() => setActiveDropdown(null)}
+            Who It&apos;s For
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollToSection("mobile-app")}
+            className={`transition cursor-pointer ${
+              isScrolled
+                ? "hover:text-[#0c2b4e] dark:hover:text-[#58a6ff]"
+                : "hover:text-white"
+            }`}
           >
-            <button
-              type="button"
-              onClick={() => setActiveNav("organizations")}
-              className={`relative flex items-center gap-1.5 py-2 font-medium transition cursor-pointer ${
-                activeNav === "organizations"
-                  ? "text-[#171717] dark:text-[#f0f6fc] font-semibold"
-                  : "text-[#5d5854] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
-              }`}
-            >
-              <Building2 className="size-4 shrink-0" />
-              <span>For Organizations</span>
-              <ChevronDown className="size-3.5 opacity-70" />
-              {activeNav === "organizations" && (
-                <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#171717] dark:bg-[#f0f6fc] rounded-none animate-in fade-in duration-150" />
-              )}
-            </button>
-            {activeDropdown === "organizations" && (
-              <div className="absolute top-full left-0 mt-0.5 w-60 rounded-2xl bg-white dark:bg-[#161b22] p-2 shadow-xl border border-[#ded8d1]/60 dark:border-[#30363d] animate-in fade-in slide-in-from-top-1 z-50">
-                <Link
-                  href="/signup"
-                  className="block px-3 py-2 rounded-xl text-xs font-medium text-[#171717] dark:text-[#f0f6fc] hover:bg-[#f0efee] dark:hover:bg-[#21262d]"
-                >
-                  Hospitals &amp; Clinical Institutes
-                </Link>
-                <Link
-                  href="/signup"
-                  className="block px-3 py-2 rounded-xl text-xs font-medium text-[#171717] dark:text-[#f0f6fc] hover:bg-[#f0efee] dark:hover:bg-[#21262d]"
-                >
-                  Medical Colleges &amp; Universities
-                </Link>
-                <Link
-                  href="/signup"
-                  className="block px-3 py-2 rounded-xl text-xs font-medium text-[#171717] dark:text-[#f0f6fc] hover:bg-[#f0efee] dark:hover:bg-[#21262d]"
-                >
-                  Healthcare Recruiters &amp; HR
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Resources Dropdown */}
-          <div
-            className="relative"
-            onMouseEnter={() => setActiveDropdown("resources")}
-            onMouseLeave={() => setActiveDropdown(null)}
-          >
-            <button
-              type="button"
-              onClick={() => setActiveNav("resources")}
-              className={`relative flex items-center gap-1.5 py-2 font-medium transition cursor-pointer ${
-                activeNav === "resources"
-                  ? "text-[#171717] dark:text-[#f0f6fc] font-semibold"
-                  : "text-[#5d5854] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc]"
-              }`}
-            >
-              <BookOpen className="size-4 shrink-0" />
-              <span>Resources</span>
-              <ChevronDown className="size-3.5 opacity-70" />
-              {activeNav === "resources" && (
-                <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#171717] dark:bg-[#f0f6fc] rounded-none animate-in fade-in duration-150" />
-              )}
-            </button>
-            {activeDropdown === "resources" && (
-              <div className="absolute top-full left-0 mt-0.5 w-56 rounded-2xl bg-white dark:bg-[#161b22] p-2 shadow-xl border border-[#ded8d1]/60 dark:border-[#30363d] animate-in fade-in slide-in-from-top-1 z-50">
-                <button
-                  type="button"
-                  onClick={() => scrollToSection("features")}
-                  className="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-[#171717] dark:text-[#f0f6fc] hover:bg-[#f0efee] dark:hover:bg-[#21262d]"
-                >
-                  Accredited CME Courses
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection("features")}
-                  className="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-[#171717] dark:text-[#f0f6fc] hover:bg-[#f0efee] dark:hover:bg-[#21262d]"
-                >
-                  Clinical Case Studies
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection("mobile-app")}
-                  className="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-[#171717] dark:text-[#f0f6fc] hover:bg-[#f0efee] dark:hover:bg-[#21262d]"
-                >
-                  Mobile Applications
-                </button>
-              </div>
-            )}
-          </div>
+            Mobile App
+          </button>
         </nav>
 
-        {/* 3. Right CTA Buttons (Tablet & Desktop) */}
-        <div className="hidden sm:flex items-center gap-2.5 sm:gap-3 shrink-0">
+        {/* Action Buttons */}
+        <div className="hidden sm:flex items-center gap-3">
           {isLoggedIn ? (
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-3">
               <Link
                 href="/home"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] dark:bg-[#14559b] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition active:scale-95"
+                className="inline-flex items-center gap-2 rounded-lg bg-[#0c2b4e] hover:bg-[#081d36] text-white px-5 py-2 text-xs sm:text-sm font-bold shadow-xs hover:shadow-sm transition-all"
               >
-                <LayoutDashboard className="size-3.5" />
                 <span>Dashboard</span>
                 <ArrowRight className="size-3.5" />
               </Link>
               <UserMenu />
             </div>
           ) : (
-            <>
-              {/* Outlined Login Button */}
-              <Link
-                href="/login"
-                className="px-4 sm:px-5 py-2 rounded-xl border border-[#0f4c81]/30 dark:border-[#58a6ff]/40 text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff] hover:bg-[#0f4c81]/5 dark:hover:bg-[#58a6ff]/10 transition cursor-pointer"
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => (onOpenAuth ? onOpenAuth("signin") : (window.location.href = "/login"))}
+                className={`rounded-lg px-4.5 py-2 text-xs sm:text-sm font-bold transition-all cursor-pointer border ${
+                  isScrolled
+                    ? "border-slate-300 dark:border-slate-700 hover:border-[#0c2b4e] dark:hover:border-[#58a6ff] text-[#0c2b4e] dark:text-[#58a6ff] bg-white dark:bg-[#161b22]"
+                    : "border-white/40 text-white hover:bg-white/20 bg-white/10 backdrop-blur-xs"
+                }`}
               >
-                Login
-              </Link>
+                Sign In
+              </button>
 
-              {/* Solid Blue Sign Up Button */}
-              <Link
-                href="/signup"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#0f4c81] dark:bg-[#14559b] px-4 sm:px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#0c3c66] dark:hover:bg-[#0f4c81] transition active:scale-95 cursor-pointer"
+              <button
+                type="button"
+                onClick={() => (onOpenAuth ? onOpenAuth("signup") : (window.location.href = "/signup"))}
+                className="rounded-lg bg-[#0c2b4e] hover:bg-[#081d36] text-white px-5 py-2 text-xs sm:text-sm font-bold shadow-xs hover:shadow-sm transition-all cursor-pointer"
               >
-                <span>Sign Up</span>
-              </Link>
-            </>
+                Join Network Free
+              </button>
+            </div>
           )}
         </div>
 
-        {/* 4. Mobile Toggle Bar (Mobile Only) */}
-        <div className="flex sm:hidden items-center gap-2 shrink-0">
-          {isLoggedIn ? (
-            <UserMenu />
-          ) : (
-            <Link
-              href="/login"
-              className="px-2.5 py-1.5 text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff]"
-            >
-              Login
-            </Link>
-          )}
+        {/* Mobile Hamburger Toggle */}
+        <div className="flex md:hidden items-center gap-2">
+          {isLoggedIn && <UserMenu />}
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-1.5 text-[#5d5854] dark:text-[#8b949e] hover:text-[#171717] dark:hover:text-[#f0f6fc] rounded-lg cursor-pointer"
+            className={`p-2 rounded-lg focus:outline-hidden ${
+              isScrolled
+                ? "text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white"
+                : "text-white hover:text-white/80"
+            }`}
             aria-label="Toggle navigation menu"
           >
-            {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+            {mobileMenuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
           </button>
         </div>
       </div>
 
-      {/* 5. Mobile Drawer Menu */}
+      {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-[#ded8d1] dark:border-[#30363d] bg-white dark:bg-[#161b22] px-4 py-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150 shadow-lg max-h-[calc(100dvh-4rem)] overflow-y-auto">
-          <div className="flex flex-col space-y-1 text-sm font-medium text-[#171717] dark:text-[#f0f6fc]">
-            <Link
-              href="/"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2.5 py-2.5 px-3 rounded-lg text-[#0f4c81] dark:text-[#58a6ff] font-semibold bg-[#eef5fc]/60 dark:bg-[#1e293b]"
-            >
-              <Home className="size-4 text-[#0f4c81]" />
-              <span>Home</span>
-            </Link>
-
+        <div className="md:hidden bg-white/98 dark:bg-[#0b0f17]/98 border-b border-slate-200 dark:border-slate-800 px-5 pt-3 pb-6 space-y-3 shadow-xl backdrop-blur-md">
+          <div className="space-y-1 text-sm font-semibold text-slate-800 dark:text-slate-200">
             <button
               type="button"
               onClick={() => scrollToSection("features")}
-              className="flex items-center gap-2.5 text-left py-2.5 px-3 rounded-lg hover:bg-[#faf9f8] dark:hover:bg-[#21262d]"
+              className="w-full text-left py-2.5 px-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2.5"
             >
-              <Info className="size-4 text-[#5d5854] dark:text-[#8b949e]" />
-              <span>About Us</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => scrollToSection("features")}
-              className="flex items-center gap-2.5 text-left py-2.5 px-3 rounded-lg hover:bg-[#faf9f8] dark:hover:bg-[#21262d]"
-            >
-              <Sparkles className="size-4 text-[#5d5854] dark:text-[#8b949e]" />
+              <Sparkles className="size-4 text-[#0c2b4e] dark:text-[#58a6ff]" />
               <span>Features</span>
             </button>
-
-            {/* Accordion 1: For Professionals */}
-            <div>
-              <button
-                type="button"
-                onClick={() => toggleMobileAccordion("professionals")}
-                className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-[#faf9f8] dark:hover:bg-[#21262d] text-left"
-              >
-                <span className="flex items-center gap-2">
-                  <Stethoscope className="size-4 text-[#0f4c81]" />
-                  <span>For Professionals</span>
-                </span>
-                <ChevronDown className={`size-4 transition-transform duration-200 ${mobileExpandedSection === "professionals" ? "rotate-180" : ""}`} />
-              </button>
-              {mobileExpandedSection === "professionals" && (
-                <div className="pl-9 pr-3 py-1 space-y-1 text-xs text-[#555] dark:text-slate-300">
-                  <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 hover:text-[#0f4c81]">
-                    Doctor &amp; Clinician Network
-                  </Link>
-                  <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 hover:text-[#0f4c81]">
-                    Allied Health Specialists
-                  </Link>
-                  <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 hover:text-[#0f4c81]">
-                    Nursing Community
-                  </Link>
-                  <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 hover:text-[#0f4c81]">
-                    Medical Students &amp; Residents
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            {/* Accordion 2: For Organizations */}
-            <div>
-              <button
-                type="button"
-                onClick={() => toggleMobileAccordion("organizations")}
-                className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-[#faf9f8] dark:hover:bg-[#21262d] text-left"
-              >
-                <span className="flex items-center gap-2">
-                  <Building2 className="size-4 text-[#16804d]" />
-                  <span>For Organizations</span>
-                </span>
-                <ChevronDown className={`size-4 transition-transform duration-200 ${mobileExpandedSection === "organizations" ? "rotate-180" : ""}`} />
-              </button>
-              {mobileExpandedSection === "organizations" && (
-                <div className="pl-9 pr-3 py-1 space-y-1 text-xs text-[#555] dark:text-slate-300">
-                  <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 hover:text-[#16804d]">
-                    Hospitals &amp; Clinical Institutes
-                  </Link>
-                  <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 hover:text-[#16804d]">
-                    Medical Colleges &amp; Universities
-                  </Link>
-                  <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 hover:text-[#16804d]">
-                    Healthcare Recruiters &amp; HR
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            {/* Accordion 3: Resources */}
-            <div>
-              <button
-                type="button"
-                onClick={() => toggleMobileAccordion("resources")}
-                className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-[#faf9f8] dark:hover:bg-[#21262d] text-left"
-              >
-                <span className="flex items-center gap-2">
-                  <BookOpen className="size-4 text-[#0284c7]" />
-                  <span>Resources</span>
-                </span>
-                <ChevronDown className={`size-4 transition-transform duration-200 ${mobileExpandedSection === "resources" ? "rotate-180" : ""}`} />
-              </button>
-              {mobileExpandedSection === "resources" && (
-                <div className="pl-9 pr-3 py-1 space-y-1 text-xs text-[#555] dark:text-slate-300">
-                  <button type="button" onClick={() => scrollToSection("features")} className="block w-full text-left py-1.5 hover:text-[#0284c7]">
-                    Accredited CME Courses
-                  </button>
-                  <button type="button" onClick={() => scrollToSection("features")} className="block w-full text-left py-1.5 hover:text-[#0284c7]">
-                    Clinical Case Studies
-                  </button>
-                  <button type="button" onClick={() => scrollToSection("mobile-app")} className="block w-full text-left py-1.5 hover:text-[#0284c7]">
-                    Mobile Applications
-                  </button>
-                </div>
-              )}
-            </div>
+            <button
+              type="button"
+              onClick={() => scrollToSection("verification")}
+              className="w-full text-left py-2.5 px-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2.5"
+            >
+              <ShieldCheck className="size-4 text-[#16804d] dark:text-emerald-400" />
+              <span>Verification</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection("audience")}
+              className="w-full text-left py-2.5 px-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2.5"
+            >
+              <Users className="size-4 text-[#0c2b4e] dark:text-[#58a6ff]" />
+              <span>Who It&apos;s For</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection("mobile-app")}
+              className="w-full text-left py-2.5 px-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2.5"
+            >
+              <Smartphone className="size-4 text-[#0c2b4e] dark:text-[#58a6ff]" />
+              <span>Mobile App</span>
+            </button>
           </div>
 
-          <div className="pt-3 border-t border-[#ded8d1] dark:border-[#30363d] flex flex-col gap-2">
-            {isLoggedIn ? (
-              <Link
-                href="/home"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2.5 rounded-xl bg-[#0f4c81] text-xs font-bold text-white shadow-xs"
+          {!isLoggedIn && (
+            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAuth ? onOpenAuth("signin") : (window.location.href = "/login");
+                }}
+                className="w-full rounded-lg border border-slate-300 dark:border-slate-700 text-[#0c2b4e] dark:text-[#58a6ff] py-2.5 text-center text-sm font-bold"
               >
-                Open Dashboard
-              </Link>
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                <Link
-                  href="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-center py-2.5 rounded-xl border border-[#0f4c81]/40 text-xs font-semibold text-[#0f4c81] dark:text-[#58a6ff]"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/signup"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-center py-2.5 rounded-xl bg-[#0f4c81] text-xs font-semibold text-white shadow-xs"
-                >
-                  Sign Up
-                </Link>
-              </div>
-            )}
-          </div>
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAuth ? onOpenAuth("signup") : (window.location.href = "/signup");
+                }}
+                className="w-full rounded-lg bg-[#0c2b4e] text-white py-2.5 text-center text-sm font-bold shadow-xs"
+              >
+                Join Network Free
+              </button>
+            </div>
+          )}
         </div>
       )}
     </header>

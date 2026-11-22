@@ -3,6 +3,7 @@ import { getSafeSession } from "@/lib/auth";
 import { networkDb, generateId, ensureNetworkingTables } from "@/modules/network/lib/network-db";
 import { headers, cookies } from "next/headers";
 import { getLatestUserLocation } from "@/lib/location-tracking";
+import { sql } from "kysely";
 
 export async function GET(request: Request) {
   try {
@@ -43,8 +44,21 @@ export async function GET(request: Request) {
         "pp.education_verified",
         "pp.registration_verified",
       ])
-      .where("np.visibility", "=", "public")
-      .orderBy("np.created_at", "desc");
+      .where("np.visibility", "=", "public");
+
+    const feed = searchParams.get("feed");
+    if (feed === "top" || feed === "popular") {
+      // ponytail: HackerNews/LinkedIn gravity formula in native SQL: (reactions*2 + comments*3.5 + shares*5 + 10) / (hours_old + 2)^1.4
+      q = q.orderBy(
+        sql`(
+          (COALESCE(np.reaction_count, 0) * 2.0 + COALESCE(np.comment_count, 0) * 3.5 + COALESCE(np.share_count, 0) * 5.0 + 10.0) 
+          / POWER(GREATEST(EXTRACT(EPOCH FROM (NOW() - np.created_at)) / 3600.0, 0.1) + 2.0, 1.4)
+        )`,
+        "desc"
+      );
+    } else {
+      q = q.orderBy("np.created_at", "desc");
+    }
 
     if (communityId) {
       q = q.where("np.community_id", "=", communityId);
@@ -54,7 +68,6 @@ export async function GET(request: Request) {
       q = q.where("np.author_id", "=", authorId);
     }
 
-    const feed = searchParams.get("feed");
     if (feed === "nearby") {
       const cookieStore = await cookies();
       let targetCity = searchParams.get("city") || "";
